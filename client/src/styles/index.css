@@ -1,0 +1,16 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root { --radius: 16px; }
+
+.container-x { @apply max-w-6xl mx-auto px-4; }
+.card { @apply bg-white border border-slate-200 rounded-card shadow-soft; }
+.btn { @apply inline-flex items-center gap-2 border border-slate-200 rounded-card px-3 py-2 bg-white text-slate-700 hover:bg-slate-50 active:scale-[.99]; }
+.btn-primary { @apply bg-accent text-white border-accent hover:opacity-90; }
+.badge { @apply inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-indigo-50 text-indigo-900 border border-indigo-100; }
+.input, .select { @apply border border-slate-200 rounded-xl px-3 py-2 bg-white text-slate-800; }
+
+.grid-items { @apply grid grid-cols-4 gap-3; }
+@media (max-width: 1024px){ .grid-items { @apply grid-cols-3; } }
+@media (max-width: 768px){ .grid-items { @apply grid-cols-2; } }
