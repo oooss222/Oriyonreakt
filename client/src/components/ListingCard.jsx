@@ -1,28 +1,63 @@
-import React from 'react'
+import React from "react";
+import { Link } from "react-router-dom";
+import { API_BASE } from "../lib/api";
 
-export default function ListingCard({ item, onFav }){
-  const [fav, setFav] = React.useState(() => {
-    const f = new Set(JSON.parse(localStorage.getItem('favs')||'[]'))
-    return f.has(item.id)
-  })
-  const toggle = ()=>{
-    const f = new Set(JSON.parse(localStorage.getItem('favs')||'[]'))
-    if(f.has(item.id)){ f.delete(item.id); setFav(false) }
-    else { f.add(item.id); setFav(true) }
-    localStorage.setItem('favs', JSON.stringify([...f]))
-    onFav?.(item.id, !fav)
-  }
+function imageUrl(src) {
+  if (!src) return "";
+
+  if (src.startsWith("http")) return src;
+
+  return API_BASE.replace("/api", "") + src;
+}
+
+export default function ListingCard({ listing }) {
+  if (!listing) return null;
+
+  const id = listing.id || listing._id;
+
+  const firstImage =
+    listing.images?.[0]?.url ||
+    listing.images?.[0] ||
+    "";
+
   return (
-    <article className="card overflow-hidden">
-      <img src={item.image} alt="" className="w-full h-40 object-cover bg-indigo-50"/>
-      <div className="p-3">
-        <div className="badge">{item.city}</div>
-        <h3 className="mt-2 text-sm font-semibold">{item.title}</h3>
-        <div className="flex items-center justify-between mt-2">
-          <strong>{new Intl.NumberFormat('ru-RU',{style:'currency',currency:'TJS',maximumFractionDigits:0}).format(item.price)}</strong>
-          <button className={`btn ${fav?'bg-amber-50 border-amber-200':''}`} onClick={toggle} title="В избранное">★</button>
-        </div>
+    <Link
+      to={`/ad/${id}`}
+      className="block rounded-xl border bg-white overflow-hidden hover:shadow-md transition"
+    >
+      <div className="aspect-[4/3] bg-gray-100">
+        {firstImage ? (
+          <img
+            src={imageUrl(firstImage)}
+            alt={listing.title}
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          <div className="h-full w-full flex items-center justify-center text-gray-400">
+            Нет фото
+          </div>
+        )}
       </div>
-    </article>
-  )
+
+      <div className="p-3">
+        <h3 className="font-semibold line-clamp-2">
+          {listing.title}
+        </h3>
+
+        <div className="mt-1 text-lg font-bold">
+          {listing.price || "Цена не указана"}
+        </div>
+
+        <div className="mt-1 text-sm text-gray-500">
+          {listing.location || "Локация не указана"}
+        </div>
+
+        {listing.subcategory && (
+          <div className="mt-2 text-xs text-gray-400">
+            {listing.subcategory}
+          </div>
+        )}
+      </div>
+    </Link>
+  );
 }

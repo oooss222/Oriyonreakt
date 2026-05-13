@@ -1,11 +1,15 @@
-// src/lib/api.js
 const API = import.meta.env.VITE_API_URL || "http://localhost:4000/api";
 
-// Универсальная обёртка над fetch
 async function request(path, { method = "GET", body, token } = {}) {
   const headers = {};
-  if (!(body instanceof FormData)) headers["Content-Type"] = "application/json";
-  if (token) headers.Authorization = `Bearer ${token}`;
+
+  if (!(body instanceof FormData)) {
+    headers["Content-Type"] = "application/json";
+  }
+
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
 
   const res = await fetch(`${API}${path}`, {
     method,
@@ -19,14 +23,17 @@ async function request(path, { method = "GET", body, token } = {}) {
 
   if (!res.ok) {
     let msg = `HTTP ${res.status}`;
+
     try {
       const err = await res.json();
       msg = err.error || JSON.stringify(err);
     } catch {}
+
     throw new Error(msg);
   }
 
   const text = await res.text();
+
   try {
     return text ? JSON.parse(text) : null;
   } catch {
@@ -35,38 +42,152 @@ async function request(path, { method = "GET", body, token } = {}) {
 }
 
 export const api = {
-  // AUTH
-  register: (data) => request("/auth/register", { method: "POST", body: data }),
-  login: (data) => request("/auth/login", { method: "POST", body: data }),
+  register: (data) =>
+    request("/auth/register", {
+      method: "POST",
+      body: data,
+    }),
 
-  // USERS
-  me: (token) => request("/users/me", { token }),
+  login: (data) =>
+    request("/auth/login", {
+      method: "POST",
+      body: data,
+    }),
+
+  me: (token) =>
+    request("/users/me", {
+      token,
+    }),
+
   updateMe: (token, data) =>
-    request("/users/me", { method: "PATCH", token, body: data }),
+    request("/users/me", {
+      method: "PUT",
+      token,
+      body: data,
+    }),
 
-  // LISTINGS
+  getVerification: (token) =>
+    request("/auth/verification", {
+      token,
+    }),
+
+  requestEmailVerification: (token) =>
+    request("/auth/verification", {
+      method: "POST",
+      token,
+    }),
+
   listings: (params = {}) => {
     const q = new URLSearchParams(params).toString();
     return request(`/listings${q ? `?${q}` : ""}`);
   },
-  listingById: (id) => request(`/listings/${id}`),
+
+  listingById: (id) =>
+    request(`/listings/${id}`),
+
+  myListings: (token) =>
+    request("/listings/mine", {
+      token,
+    }),
+
+  uploadImages: (token, formData) =>
+    request("/upload/images", {
+      method: "POST",
+      token,
+      body: formData,
+    }),
+
   createListing: (token, data) =>
-    request("/listings", { method: "POST", token, body: data }),
-  myListings: (token) => request("/listings/my", { token }),
+    request("/listings", {
+      method: "POST",
+      token,
+      body: data,
+    }),
 
-  // FAVORITES
-  favorites: (token) => request("/favorites", { token }),
+  updateListing: (token, id, body) =>
+    request(`/listings/${id}`, {
+      method: "PUT",
+      token,
+      body,
+    }),
+
+  deleteListing: (token, id) =>
+    request(`/listings/${id}`, {
+      method: "DELETE",
+      token,
+    }),
+
+  favorites: (token) =>
+    request("/favorites", {
+      token,
+    }),
+
   addFavorite: (token, id) =>
-    request(`/favorites/${id}`, { method: "POST", token }),
-  removeFavorite: (token, id) =>
-    request(`/favorites/${id}`, { method: "DELETE", token }),
+    request(`/favorites/${id}`, {
+      method: "POST",
+      token,
+    }),
 
-  // (на будущее) загрузка файлов
-  uploadImage: (token, file) => {
-    const fd = new FormData();
-    fd.append("image", file);
-    return request("/upload/image", { method: "POST", token, body: fd });
-  },
+  removeFavorite: (token, id) =>
+    request(`/favorites/${id}`, {
+      method: "DELETE",
+      token,
+    }),
+
+  topUpWallet: (token, amount) =>
+    request("/users/me/wallet/top-up", {
+      method: "POST",
+      token,
+      body: {
+        amount,
+      },
+    }),
+
+  adminUsers: (token) =>
+    request("/admin/users", {
+      token,
+    }),
+
+  adminSetUserRole: (token, userId, role) =>
+    request(`/admin/users/${userId}/role`, {
+      method: "PUT",
+      token,
+      body: {
+        role,
+      },
+    }),
+
+  adminBlockUser: (token, userId) =>
+    request(`/admin/users/${userId}/block`, {
+      method: "POST",
+      token,
+    }),
+
+  adminUnblockUser: (token, userId) =>
+    request(`/admin/users/${userId}/unblock`, {
+      method: "POST",
+      token,
+    }),
+
+  moderationListings: (token, status = "pending") =>
+    request(`/moderation/listings?status=${encodeURIComponent(status)}`, {
+      token,
+    }),
+
+  moderationApproveListing: (token, listingId) =>
+    request(`/moderation/listings/${listingId}/approve`, {
+      method: "POST",
+      token,
+    }),
+
+  moderationRejectListing: (token, listingId, reason) =>
+    request(`/moderation/listings/${listingId}/reject`, {
+      method: "POST",
+      token,
+      body: {
+        reason,
+      },
+    }),
 };
 
 export const API_BASE = API;

@@ -2,28 +2,75 @@ const router = require("express").Router();
 const path = require("path");
 const fs = require("fs");
 const multer = require("multer");
+const sharp = require("sharp");
 const auth = require("../middleware/auth");
 
-const UPLOAD_DIR = path.join(__dirname, "..", "..", "uploads");
-if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+const uploadDir = path.join(__dirname, "..", "..", "uploads");
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, UPLOAD_DIR),
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname || "").toLowerCase() || ".jpg";
-    const name = `${Date.now()}_${Math.random().toString(16).slice(2)}${ext}`;
-    cb(null, name);
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, {
+    recursive: true,
+  });
+}
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 5 * 1024 * 1024,
+    files: 10,
+  },
+  fileFilter(req, file, cb) {
+    if (!file.mimetype.startsWith("image/")) {
+      return cb(new Error("Only images are allowed"));
+    }
+
+    cb(null, true);
   },
 });
 
-const upload = multer({ storage });
+router.post("/images", auth, upload.array("images", 10), async (req, res) => {
+  try {
+    const files = req.files || [];
 
-// POST /api/upload/image  (auth, single file: "image")
-router.post("/image", auth, upload.single("image"), (req, res) => {
-  if (!req.file) return res.status(400).json({ error: "No file" });
-  // отдаем URL, по которому фронт сможет загрузить
-  const url = `/uploads/${req.file.filename}`;
-  res.json({ url });
+    if (!files.length) {
+      return res.status(400).json({
+        error: "No images uploaded",
+      });
+    }
+
+    const urls = [];
+
+    for (const file of files) {
+      const filename = `${Date.now()}-${Math.round(
+        Math.random() * 1e9
+      )}.webp`;
+
+      const outputPath = path.join(uploadDir, filename);
+
+      await sharp(file.buffer)
+        .rotate()
+        .resize({
+          width: 1600,
+          withoutEnlargement: true,
+        })
+        .webp({
+          quality: 82,
+        })
+        .toFile(outputPath);
+
+      urls.push(`/uploads/${filename}`);
+    }
+
+    return res.status(201).json({
+      urls,
+    });
+  } catch (e) {
+    console.error("UPLOAD_IMAGES_ERROR:", e?.message);
+
+    return res.status(500).json({
+      error: "Image upload failed",
+    });
+  }
 });
 
 module.exports = router;

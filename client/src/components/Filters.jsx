@@ -48,7 +48,7 @@ const Section = ({ title, children, defaultOpen=false }) => (
 
 /** dictionaries */
 const DICTS = {
-  cities: ['Душанбе','Худжанд','Бохтар','Куляб'],
+  cities: ['Душанбе'],
   condition: ['new','used'],
 
   transport: {

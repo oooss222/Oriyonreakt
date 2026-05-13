@@ -1,46 +1,88 @@
 const router = require("express").Router();
-const jwt = require("jsonwebtoken");
+const auth = require("../middleware/auth");
 const User = require("../models/User");
 
-// простая JWT-аутентификация
-function auth(req, res, next) {
-  const h = req.headers.authorization || "";
-  const token = h.startsWith("Bearer ") ? h.slice(7) : "";
-  if (!token) return res.status(401).json({ error: "No token" });
-  try {
-    const payload = jwt.verify(token, process.env.JWT_SECRET);
-    req.userId = payload.id;
-    next();
-  } catch (e) {
-    return res.status(401).json({ error: "Invalid token" });
-  }
-}
-
-// GET /api/users/me
 router.get("/me", auth, async (req, res) => {
-  const u = await User.findById(req.userId).lean();
-  if (!u) return res.status(404).json({ error: "User not found" });
-  const { _id: id, email, name, phone, sellerType } = u;
-  res.json({ id, email, name, phone, sellerType });
+  try {
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({
+        error: "User not found",
+      });
+    }
+
+    return res.json(User.sanitize(user));
+  } catch (e) {
+    console.error("USER_ME_ERROR:", e?.message);
+
+    return res.status(500).json({
+      error: "Failed to load profile",
+    });
+  }
 });
 
-// PATCH /api/users/me
-router.patch("/me", auth, async (req, res) => {
-  const { name, phone, sellerType } = req.body || {};
-  const u = await User.findByIdAndUpdate(
-    req.userId,
-    { $set: { name, phone, sellerType } },
-    { new: true }
-  ).lean();
-  if (!u) return res.status(404).json({ error: "User not found" });
-  const { _id: id, email } = u;
-  res.json({
-    id,
-    email,
-    name: u.name,
-    phone: u.phone,
-    sellerType: u.sellerType,
-  });
+router.put("/me", auth, async (req, res) => {
+  try {
+    const body = req.body || {};
+
+    const updated = await User.updateProfile(req.user.id, {
+      name: body.name ? String(body.name).trim() : undefined,
+      phone: body.phone ? String(body.phone).trim() : undefined,
+      sellerType: body.sellerType || undefined,
+    });
+
+    if (!updated) {
+      return res.status(404).json({
+        error: "User not found",
+      });
+    }
+
+    return res.json(User.sanitize(updated));
+  } catch (e) {
+    console.error("USER_UPDATE_ERROR:", e?.message);
+
+    return res.status(500).json({
+      error: "Failed to update profile",
+    });
+  }
+});
+
+router.post("/me/wallet/top-up", auth, async (req, res) => {
+  try {
+    const amount = Number(req.body?.amount || 0);
+
+    if (!Number.isFinite(amount) || amount <= 0) {
+      return res.status(400).json({
+        error: "Invalid amount",
+      });
+    }
+
+    if (amount > 100000) {
+      return res.status(400).json({
+        error: "Amount is too large",
+      });
+    }
+
+    const updated = await User.topUpWallet(
+      req.user.id,
+      amount
+    );
+
+    if (!updated) {
+      return res.status(404).json({
+        error: "User not found",
+      });
+    }
+
+    return res.json(User.sanitize(updated));
+  } catch (e) {
+    console.error("WALLET_TOP_UP_ERROR:", e?.message);
+
+    return res.status(500).json({
+      error: "Failed to top up wallet",
+    });
+  }
 });
 
 module.exports = router;

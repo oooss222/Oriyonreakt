@@ -1,14 +1,54 @@
 const jwt = require("jsonwebtoken");
+const User = require("../models/User");
 
-module.exports = function auth(req, res, next) {
+module.exports = async function auth(req, res, next) {
   const header = req.headers.authorization || "";
-  const token = header.startsWith("Bearer ") ? header.slice(7) : null;
-  if (!token) return res.status(401).json({ error: "No token" });
+  const token = header.startsWith("Bearer ") ? header.slice(7) : "";
+
+  if (!token) {
+    return res.status(401).json({
+      error: "No token",
+    });
+  }
+
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = payload; // { id, email }
+
+    const id = String(payload.id || payload._id || payload.userId || "");
+
+    if (!id) {
+      return res.status(401).json({
+        error: "Invalid token payload",
+      });
+    }
+
+    const user = await User.findById(id);
+
+    if (!user) {
+      return res.status(401).json({
+        error: "User not found",
+      });
+    }
+
+    if (user.isBlocked) {
+      return res.status(403).json({
+        error: "User is blocked",
+      });
+    }
+
+    req.user = {
+      id: user.id,
+      email: user.email,
+      role: user.role || "user",
+      isBlocked: Boolean(user.isBlocked),
+    };
+
     next();
-  } catch {
-    return res.status(401).json({ error: "Invalid token" });
+  } catch (e) {
+    console.error("AUTH_ERROR:", e?.message);
+
+    return res.status(401).json({
+      error: "Invalid token",
+    });
   }
 };

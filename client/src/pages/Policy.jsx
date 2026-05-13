@@ -57,8 +57,7 @@ export default function Policy() {
             Если у вас возникли вопросы по обработке данных или работе сайта, свяжитесь с нами:
           </p>
           <ul className="list-disc pl-5 text-slate-600 space-y-1">
-            <li>Email: <a href="mailto:support@oriyon.store" className="text-accent">support@oriyon.store</a></li>
-            <li>Телефон: +992 900 00 00 00</li>
+            <li>Email: <a href="mailto:info@oriyon.store " className="text-accent"> info@oriyon.store </a></li>
           </ul>
         </section>
 
