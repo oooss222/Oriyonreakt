@@ -95,8 +95,8 @@ async function start() {
   try {
     await initDb();
 
-    app.listen(PORT, () => {
-      console.log(`API http://localhost:${PORT}`);
+    app.listen(PORT, "0.0.0.0", () => {
+      console.log(`API running on port ${PORT}`);
 
       console.log("Database: PostgreSQL");
 
