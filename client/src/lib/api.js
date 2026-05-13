@@ -1,32 +1,51 @@
-const API = import.meta.env.VITE_API_URL || "http://localhost:4000/api";
+const API = (
+  import.meta.env.VITE_API_BASE ||
+  import.meta.env.VITE_API_URL ||
+  "/api"
+).replace(/\/$/, "");
 
-async function request(path, { method = "GET", body, token } = {}) {
+async function request(
+  path,
+  {
+    method = "GET",
+    body,
+    token,
+  } = {}
+) {
   const headers = {};
 
   if (!(body instanceof FormData)) {
-    headers["Content-Type"] = "application/json";
+    headers["Content-Type"] =
+      "application/json";
   }
 
   if (token) {
     headers.Authorization = `Bearer ${token}`;
   }
 
-  const res = await fetch(`${API}${path}`, {
-    method,
-    headers,
-    body: body
-      ? body instanceof FormData
-        ? body
-        : JSON.stringify(body)
-      : undefined,
-  });
+  const res = await fetch(
+    `${API}${path}`,
+    {
+      method,
+      headers,
+
+      body: body
+        ? body instanceof FormData
+          ? body
+          : JSON.stringify(body)
+        : undefined,
+    }
+  );
 
   if (!res.ok) {
     let msg = `HTTP ${res.status}`;
 
     try {
       const err = await res.json();
-      msg = err.error || JSON.stringify(err);
+
+      msg =
+        err.error ||
+        JSON.stringify(err);
     } catch {}
 
     throw new Error(msg);
@@ -35,7 +54,9 @@ async function request(path, { method = "GET", body, token } = {}) {
   const text = await res.text();
 
   try {
-    return text ? JSON.parse(text) : null;
+    return text
+      ? JSON.parse(text)
+      : null;
   } catch {
     return text;
   }
@@ -71,15 +92,22 @@ export const api = {
       token,
     }),
 
-  requestEmailVerification: (token) =>
+  requestEmailVerification: (
+    token
+  ) =>
     request("/auth/verification", {
       method: "POST",
       token,
     }),
 
   listings: (params = {}) => {
-    const q = new URLSearchParams(params).toString();
-    return request(`/listings${q ? `?${q}` : ""}`);
+    const q = new URLSearchParams(
+      params
+    ).toString();
+
+    return request(
+      `/listings${q ? `?${q}` : ""}`
+    );
   },
 
   listingById: (id) =>
@@ -90,7 +118,10 @@ export const api = {
       token,
     }),
 
-  uploadImages: (token, formData) =>
+  uploadImages: (
+    token,
+    formData
+  ) =>
     request("/upload/images", {
       method: "POST",
       token,
@@ -104,7 +135,11 @@ export const api = {
       body: data,
     }),
 
-  updateListing: (token, id, body) =>
+  updateListing: (
+    token,
+    id,
+    body
+  ) =>
     request(`/listings/${id}`, {
       method: "PUT",
       token,
@@ -128,66 +163,115 @@ export const api = {
       token,
     }),
 
-  removeFavorite: (token, id) =>
+  removeFavorite: (
+    token,
+    id
+  ) =>
     request(`/favorites/${id}`, {
       method: "DELETE",
       token,
     }),
 
-  topUpWallet: (token, amount) =>
-    request("/users/me/wallet/top-up", {
-      method: "POST",
-      token,
-      body: {
-        amount,
-      },
-    }),
+  topUpWallet: (
+    token,
+    amount
+  ) =>
+    request(
+      "/users/me/wallet/top-up",
+      {
+        method: "POST",
+        token,
+        body: {
+          amount,
+        },
+      }
+    ),
 
   adminUsers: (token) =>
     request("/admin/users", {
       token,
     }),
 
-  adminSetUserRole: (token, userId, role) =>
-    request(`/admin/users/${userId}/role`, {
-      method: "PUT",
-      token,
-      body: {
-        role,
-      },
-    }),
+  adminSetUserRole: (
+    token,
+    userId,
+    role
+  ) =>
+    request(
+      `/admin/users/${userId}/role`,
+      {
+        method: "PUT",
+        token,
+        body: {
+          role,
+        },
+      }
+    ),
 
-  adminBlockUser: (token, userId) =>
-    request(`/admin/users/${userId}/block`, {
-      method: "POST",
-      token,
-    }),
+  adminBlockUser: (
+    token,
+    userId
+  ) =>
+    request(
+      `/admin/users/${userId}/block`,
+      {
+        method: "POST",
+        token,
+      }
+    ),
 
-  adminUnblockUser: (token, userId) =>
-    request(`/admin/users/${userId}/unblock`, {
-      method: "POST",
-      token,
-    }),
+  adminUnblockUser: (
+    token,
+    userId
+  ) =>
+    request(
+      `/admin/users/${userId}/unblock`,
+      {
+        method: "POST",
+        token,
+      }
+    ),
 
-  moderationListings: (token, status = "pending") =>
-    request(`/moderation/listings?status=${encodeURIComponent(status)}`, {
-      token,
-    }),
+  moderationListings: (
+    token,
+    status = "pending"
+  ) =>
+    request(
+      `/moderation/listings?status=${encodeURIComponent(
+        status
+      )}`,
+      {
+        token,
+      }
+    ),
 
-  moderationApproveListing: (token, listingId) =>
-    request(`/moderation/listings/${listingId}/approve`, {
-      method: "POST",
-      token,
-    }),
+  moderationApproveListing: (
+    token,
+    listingId
+  ) =>
+    request(
+      `/moderation/listings/${listingId}/approve`,
+      {
+        method: "POST",
+        token,
+      }
+    ),
 
-  moderationRejectListing: (token, listingId, reason) =>
-    request(`/moderation/listings/${listingId}/reject`, {
-      method: "POST",
-      token,
-      body: {
-        reason,
-      },
-    }),
+  moderationRejectListing: (
+    token,
+    listingId,
+    reason
+  ) =>
+    request(
+      `/moderation/listings/${listingId}/reject`,
+      {
+        method: "POST",
+        token,
+        body: {
+          reason,
+        },
+      }
+    ),
 };
 
 export const API_BASE = API;
