@@ -35,6 +35,13 @@ const pool = new Pool(
   DATABASE_URL
     ? {
         connectionString: DATABASE_URL,
+        ssl: {
+          rejectUnauthorized: false,
+        },
+        connectionTimeoutMillis: 5000,
+        idleTimeoutMillis: 30000,
+        query_timeout: 10000,
+        statement_timeout: 10000,
       }
     : {
         host: process.env.PGHOST || "localhost",
@@ -42,9 +49,12 @@ const pool = new Pool(
         database: process.env.PGDATABASE || "oriyon",
         user: process.env.PGUSER || "postgres",
         password: process.env.PGPASSWORD || "password",
+        connectionTimeoutMillis: 5000,
+        idleTimeoutMillis: 30000,
+        query_timeout: 10000,
+        statement_timeout: 10000,
       }
 );
-
 pool.on("error", (err) => {
   console.error("POSTGRES_POOL_ERROR:", err);
 });
