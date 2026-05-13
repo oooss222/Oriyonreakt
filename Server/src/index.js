@@ -81,13 +81,11 @@ app.use("/api", (req, res) =>
 );
 
 app.use((err, req, res, next) => {
-  console.error(
-    "UNCAUGHT_ERROR:",
-    err?.message
-  );
+  console.error("UNCAUGHT_ERROR:", err);
 
   res.status(500).json({
-    error: "Server error",
+    error: err?.message || "Server error",
+    stack: err?.stack,
   });
 });
 
