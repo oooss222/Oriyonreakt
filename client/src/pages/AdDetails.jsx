@@ -1,14 +1,41 @@
 import React from "react";
 import { Link, useParams } from "react-router-dom";
-import { MapPin, Phone, User2 } from "lucide-react";
+import {
+  MapPin,
+  Phone,
+  User2,
+  MessageCircle,
+  Heart,
+  ShieldCheck,
+  Eye,
+} from "lucide-react";
 import { api, API_BASE } from "../lib/api";
+import AdSlot from "../components/AdSlot";
+import ListingCard from "../components/ListingCard";
 
 const TOKEN_KEY = "auth_token";
 
 function imageUrl(src) {
   if (!src) return "/img/placeholder.jpg";
-  if (src.startsWith("http")) return src;
-  return API_BASE.replace("/api", "") + src;
+
+  if (src.startsWith("http")) {
+    return src;
+  }
+
+  const server = API_BASE.replace(/\/api$/, "");
+  const clean = String(src).replace(/^\/+/, "");
+
+  return `${server}/${clean}`;
+}
+
+function formatPrice(value) {
+  if (value == null || value === "") return "Договорная";
+
+  const n = Number(String(value).replace(/\s/g, "").replace(",", "."));
+
+  if (!Number.isFinite(n)) return String(value);
+
+  return `${n.toLocaleString("ru-RU")} TJS`;
 }
 
 export default function AdDetails() {
@@ -16,8 +43,10 @@ export default function AdDetails() {
   const token = localStorage.getItem(TOKEN_KEY) || "";
 
   const [ad, setAd] = React.useState(null);
+  const [related, setRelated] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [isFav, setIsFav] = React.useState(false);
+  const [phoneVisible, setPhoneVisible] = React.useState(false);
 
   React.useEffect(() => {
     let active = true;
@@ -32,11 +61,10 @@ export default function AdDetails() {
 
         if (cached && String(cached._id || cached.id) === String(id)) {
           if (active) setAd(cached);
-          return;
+        } else {
+          const data = await api.listingById(id);
+          if (active) setAd(data);
         }
-
-        const data = await api.listingById(id);
-        if (active) setAd(data);
       } catch {
         if (active) setAd(null);
       } finally {
@@ -52,6 +80,40 @@ export default function AdDetails() {
   }, [id]);
 
   React.useEffect(() => {
+    if (!ad) return;
+
+    let active = true;
+
+    async function loadRelated() {
+      try {
+        const data = await api.listings({
+          cat: ad.cat || undefined,
+          subcategory: ad.subcategory || undefined,
+          limit: 12,
+        });
+
+        const currentId = String(ad._id || ad.id);
+
+        const list = Array.isArray(data)
+          ? data.filter((item) => String(item._id || item.id) !== currentId)
+          : [];
+
+        if (active) {
+          setRelated(list.slice(0, 10));
+        }
+      } catch {
+        if (active) setRelated([]);
+      }
+    }
+
+    loadRelated();
+
+    return () => {
+      active = false;
+    };
+  }, [ad]);
+
+  React.useEffect(() => {
     if (!token || !ad) {
       setIsFav(false);
       return;
@@ -61,9 +123,7 @@ export default function AdDetails() {
       .favorites(token)
       .then((list) => {
         const ids = new Set(
-          (Array.isArray(list) ? list : []).map((i) =>
-            String(i._id || i.id)
-          )
+          (Array.isArray(list) ? list : []).map((i) => String(i._id || i.id))
         );
 
         setIsFav(ids.has(String(ad._id || ad.id)));
@@ -77,7 +137,7 @@ export default function AdDetails() {
       return;
     }
 
-    const adId = ad._id || ad.id;
+    const adId = ad?._id || ad?.id;
 
     if (!adId) return;
 
@@ -97,7 +157,7 @@ export default function AdDetails() {
   if (loading) {
     return (
       <div className="container-x py-10">
-        <div className="card p-6 text-center">Загрузка…</div>
+        <div className="card p-8 text-center text-slate-500">Загрузка…</div>
       </div>
     );
   }
@@ -105,7 +165,7 @@ export default function AdDetails() {
   if (!ad) {
     return (
       <div className="container-x py-10">
-        <div className="card p-6 text-center space-y-3">
+        <div className="card p-8 text-center space-y-4">
           <h1 className="text-2xl font-bold">Объявление не найдено</h1>
 
           <p className="text-slate-600">
@@ -126,8 +186,6 @@ export default function AdDetails() {
     ? [imageUrl(ad.img)]
     : ["/img/placeholder.jpg"];
 
-  const price = ad.price || "Договорная";
-
   const specs = Array.isArray(ad.specs)
     ? ad.specs
     : ad.attrs && typeof ad.attrs === "object"
@@ -137,122 +195,205 @@ export default function AdDetails() {
       }))
     : [];
 
+  const price = formatPrice(ad.price);
+
   return (
-    <div className="container-x py-6 space-y-6">
-      <div className="card p-4 flex flex-col gap-2">
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="badge">Объявление №{ad._id || ad.id}</div>
-            <h1 className="text-2xl font-bold">{ad.title}</h1>
-          </div>
-
-          <button
-            className={`btn ${isFav ? "btn-primary" : ""}`}
-            onClick={toggleFav}
-            title={isFav ? "Убрать из избранного" : "В избранное"}
-          >
-            ♥ {isFav ? "В избранном" : "В избранное"}
-          </button>
-        </div>
-
-        <div className="text-slate-600 text-sm flex items-center gap-2">
-          <MapPin className="w-4 h-4 text-accent" />
-          {ad.location || "—"}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="lg:col-span-2 card p-3">
-          <div className="w-full h-80 bg-slate-100 rounded-card overflow-hidden">
-            <img
-              src={images[0]}
-              alt={ad.title}
-              className="w-full h-full object-cover"
-            />
-          </div>
-
-          {images.length > 1 && (
-            <div className="grid grid-cols-4 gap-2 mt-3">
-              {images.slice(1).map((src, index) => (
-                <img
-                  key={`${src}-${index}`}
-                  src={src}
-                  alt={ad.title}
-                  className="w-full h-20 object-cover rounded-lg border bg-slate-100"
-                />
-              ))}
-            </div>
-          )}
-        </div>
-
-        <aside className="card p-4 space-y-4">
-          <div>
-            <div className="text-slate-500 text-sm">Цена</div>
-            <div className="text-2xl font-extrabold">{price}</div>
-          </div>
-
-          <div className="border-t border-slate-200 pt-3">
-            <div className="text-slate-500 text-sm mb-1">Продавец</div>
-
-            <div className="flex items-center gap-2">
-              <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center">
-                <User2 className="w-5 h-5 text-slate-500" />
-              </div>
-
-              <div>
-                <div className="font-semibold">
-                  {ad.sellerName || "Пользователь Oriyon"}
+    <div className="container-x py-6 space-y-5">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+        <main className="lg:col-span-8 space-y-5">
+          <section className="card p-4 md:p-5">
+            <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+              <div className="min-w-0">
+                <div className="inline-flex items-center gap-2 rounded-full border bg-blue-50 text-blue-700 px-3 py-1 text-xs mb-2">
+                  Объявление №{ad._id || ad.id}
                 </div>
 
-                <div className="text-xs text-slate-500">На сайте недавно</div>
+                <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900">
+                  {ad.title || "Без названия"}
+                </h1>
+
+                <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-slate-500">
+                  <span className="inline-flex items-center gap-1">
+                    <MapPin className="w-4 h-4 text-blue-600" />
+                    {ad.location || ad.city || "Душанбе"}
+                  </span>
+
+                  {ad.createdAt && !Number.isNaN(Date.parse(ad.createdAt)) && (
+                    <span>
+                      Опубликовано{" "}
+                      {new Date(ad.createdAt).toLocaleDateString("ru-RU")}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <button
+                className={`btn shrink-0 ${isFav ? "btn-primary" : ""}`}
+                onClick={toggleFav}
+                title={isFav ? "Убрать из избранного" : "В избранное"}
+              >
+                <Heart className="w-4 h-4" />
+                {isFav ? "В избранном" : "В избранное"}
+              </button>
+            </div>
+          </section>
+
+          <section className="card p-3 md:p-4">
+            <div className="w-full h-[260px] sm:h-[360px] md:h-[430px] bg-slate-100 rounded-2xl overflow-hidden">
+              <img
+                src={images[0]}
+                alt={ad.title || "Фото объявления"}
+                className="w-full h-full object-cover"
+              />
+            </div>
+
+            {images.length > 1 && (
+              <div className="flex gap-2 mt-3 overflow-x-auto pb-1">
+                {images.map((src, index) => (
+                  <img
+                    key={`${src}-${index}`}
+                    src={src}
+                    alt={`${ad.title || "Фото"} ${index + 1}`}
+                    className="w-24 h-20 object-cover rounded-xl border bg-slate-100 shrink-0"
+                  />
+                ))}
+              </div>
+            )}
+          </section>
+
+          <section className="card p-4 md:p-5">
+            <h2 className="text-lg font-bold mb-3">Описание</h2>
+
+            <p className="text-slate-700 whitespace-pre-wrap leading-7">
+              {ad.description || "Описание отсутствует."}
+            </p>
+          </section>
+
+          <section className="card p-4 md:p-5">
+            <h2 className="text-lg font-bold mb-3">Характеристики</h2>
+
+            {specs.length > 0 ? (
+              <div className="divide-y divide-slate-100">
+                {specs.map((spec, index) => (
+                  <div
+                    key={`${spec.name}-${index}`}
+                    className="flex items-center justify-between gap-4 py-2 text-sm"
+                  >
+                    <span className="text-slate-500">{spec.name}</span>
+                    <span className="font-semibold text-slate-800 text-right">
+                      {String(spec.value)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-slate-500 text-sm">
+                Характеристики не указаны.
+              </div>
+            )}
+          </section>
+
+          <AdSlot type="banner" id="ad-details-bottom-banner" />
+
+          {related.length > 0 && (
+            <section className="card p-4 md:p-5">
+              <div className="flex items-center justify-between gap-3 mb-4">
+                <div>
+                  <h2 className="text-lg font-bold">Похожие объявления</h2>
+                  <p className="text-sm text-slate-500">
+                    Другие объявления из этой категории
+                  </p>
+                </div>
+
+                <Link to="/listing" className="text-sm text-blue-600">
+                  Смотреть все
+                </Link>
+              </div>
+
+              <div className="flex gap-4 overflow-x-auto pb-2 snap-x">
+                {related.map((item) => (
+                  <div
+                    key={item._id || item.id}
+                    className="min-w-[220px] max-w-[220px] snap-start"
+                  >
+                    <ListingCard item={item} />
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+        </main>
+
+        <aside className="lg:col-span-4 space-y-5">
+          <section className="card p-4 md:p-5 sticky top-4">
+            <div className="text-sm text-slate-500">Цена</div>
+
+            <div className="text-3xl font-extrabold text-slate-900 mt-1">
+              {price}
+            </div>
+
+            <div className="border-t border-slate-200 mt-4 pt-4">
+              <div className="text-slate-500 text-sm mb-2">Продавец</div>
+
+              <div className="flex items-center gap-3">
+                <div className="w-11 h-11 rounded-full bg-blue-50 flex items-center justify-center">
+                  <User2 className="w-5 h-5 text-blue-600" />
+                </div>
+
+                <div>
+                  <div className="font-bold">
+                    {ad.sellerName || "Пользователь Oriyon"}
+                  </div>
+
+                  <div className="text-xs text-slate-500">
+                    На сайте недавно
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-3 flex items-center gap-2 text-xs text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-xl p-2">
+                <ShieldCheck className="w-4 h-4" />
+                Безопасная сделка: проверяйте товар перед оплатой
               </div>
             </div>
-          </div>
 
-          <div className="space-y-2">
-            {ad.phone ? (
-              <a href={`tel:${ad.phone}`} className="btn btn-primary w-full">
-                <Phone className="w-4 h-4" /> Позвонить: {ad.phone}
-              </a>
-            ) : (
-              <button className="btn btn-primary w-full">
-                Показать телефон
+            <div className="space-y-2 mt-4">
+              {ad.phone ? (
+                phoneVisible ? (
+                  <a href={`tel:${ad.phone}`} className="btn btn-primary w-full">
+                    <Phone className="w-4 h-4" />
+                    {ad.phone}
+                  </a>
+                ) : (
+                  <button
+                    className="btn btn-primary w-full"
+                    onClick={() => setPhoneVisible(true)}
+                  >
+                    <Phone className="w-4 h-4" />
+                    Показать телефон
+                  </button>
+                )
+              ) : (
+                <button className="btn btn-primary w-full">
+                  <Phone className="w-4 h-4" />
+                  Показать телефон
+                </button>
+              )}
+
+              <button className="btn w-full">
+                <MessageCircle className="w-4 h-4" />
+                Написать сообщение
               </button>
-            )}
+            </div>
 
-            <button className="btn w-full">Написать сообщение</button>
-          </div>
+            <div className="mt-4 text-xs text-slate-500 flex items-center gap-1">
+              <Eye className="w-4 h-4" />
+              ID объявления: {ad._id || ad.id}
+            </div>
+          </section>
+
+          <AdSlot type="sidebar" id="ad-details-sidebar" />
         </aside>
-      </div>
-
-      <div className="card p-4 space-y-3">
-        <h2 className="text-lg font-semibold">Описание</h2>
-
-        <p className="text-slate-700 whitespace-pre-wrap">
-          {ad.description || "Описание отсутствует."}
-        </p>
-      </div>
-
-      <div className="card p-4 space-y-3">
-        <h2 className="text-lg font-semibold">Характеристики</h2>
-
-        {specs.length > 0 ? (
-          <ul className="text-slate-700 text-sm divide-y divide-slate-100">
-            {specs.map((spec, index) => (
-              <li
-                key={`${spec.name}-${index}`}
-                className="flex justify-between gap-4 py-1"
-              >
-                <span className="text-slate-500">{spec.name}</span>
-                <span className="font-medium">{String(spec.value)}</span>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <div className="text-slate-500 text-sm">
-            Характеристики не указаны.
-          </div>
-        )}
       </div>
     </div>
   );
