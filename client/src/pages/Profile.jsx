@@ -2202,10 +2202,18 @@ export default function Profile() {
               </div>
 
               <input
-                className="h-12 rounded-2xl border px-4 w-full outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="+992 ..."
-                value={form.phone}
-                <div className="mt-4">
+  className="h-12 rounded-2xl border px-4 w-full outline-none focus:ring-2 focus:ring-blue-500"
+  placeholder="+992 ..."
+  value={form.phone}
+  onChange={(e) =>
+    setForm((prev) => ({
+      ...prev,
+      phone: e.target.value,
+    }))
+  }
+/>
+
+<div className="mt-4">
   <label className="block text-sm font-medium mb-1">
     WhatsApp
   </label>
