@@ -62,7 +62,32 @@ const CATS = {
       "Мобильные аксессуары",
       "Ремонт и сервис телефонов",
     ],
-    specTemplate: ["Производитель", "Модель", "Память", "Состояние", "Гарантия"],
+    specTemplate: [
+  {
+    name: "Производитель",
+    type: "select",
+    options: ["Apple", "Samsung", "Xiaomi", "Huawei", "Honor", "Realme"],
+  },
+  {
+    name: "Модель",
+    type: "text",
+  },
+  {
+    name: "Память",
+    type: "select",
+    options: ["64 GB", "128 GB", "256 GB", "512 GB", "1 TB"],
+  },
+  {
+    name: "Состояние",
+    type: "select",
+    options: ["Новый", "Б/у", "Требует ремонта"],
+  },
+  {
+    name: "Гарантия",
+    type: "select",
+    options: ["Да", "Нет"],
+  },
+],
   },
   electronics: {
     title: "Бытовая техника",
@@ -133,8 +158,10 @@ export default function AddListing() {
       subcategory: firstSub,
     }));
 
-    const tpl = (cat?.specTemplate || []).map((name) => ({
-      name,
+    const tpl = (cat?.specTemplate || []).map((item) => ({
+      name: item.name,
+      type: item.type || "text",
+      options: item.options || [],
       value: "",
     }));
 
@@ -584,12 +611,28 @@ export default function AddListing() {
                     className="h-10 rounded-lg border px-3 outline-none focus:ring-2 focus:ring-blue-500"
                   />
 
-                  <input
-                    value={spec.value}
-                    onChange={(e) => updateSpec(index, "value", e.target.value)}
-                    placeholder="Значение"
-                    className="h-10 rounded-lg border px-3 outline-none focus:ring-2 focus:ring-blue-500"
-                  />
+                  {spec.type === "select" ? (
+                <select
+                  value={spec.value}
+                  onChange={(e) => updateSpec(index, "value", e.target.value)}
+                  className="h-10 rounded-lg border px-3 outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Выберите</option>
+
+                  {spec.options.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <input
+                  value={spec.value}
+                  onChange={(e) => updateSpec(index, "value", e.target.value)}
+                  placeholder="Значение"
+                  className="h-10 rounded-lg border px-3 outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              )}
 
                   <button
                     type="button"
