@@ -227,6 +227,9 @@ export default function Listing() {
   }, [cat, subcategory, search, priceFrom, priceTo, sort]);
 
   const activeCat = draft.cat || cat;
+  const availableSubcategories = React.useMemo(() => {
+  return activeCat ? SUBCATEGORIES[activeCat] || [] : [];
+}, [activeCat]);
   const suggestions = React.useMemo(() => {
   const q = draft.search.trim().toLowerCase();
 
@@ -273,7 +276,6 @@ const specFilters = React.useMemo(() => {
     if (draft.subcategory) next.subcategory = draft.subcategory;
     if (draft.priceFrom) next.priceFrom = draft.priceFrom;
     if (draft.priceTo) next.priceTo = draft.priceTo;
-    if (draft.photo) next.photo = draft.photo;
     if (draft.sort && draft.sort !== "new") next.sort = draft.sort;
 
     setSearchParams(next);
@@ -286,7 +288,6 @@ const specFilters = React.useMemo(() => {
       subcategory: "",
       priceFrom: "",
       priceTo: "",
-      photo: "",
       sort: "new",
     });
 
@@ -294,13 +295,12 @@ const specFilters = React.useMemo(() => {
   };
 
   const hasActiveFilters =
-    search ||
-    cat ||
-    subcategory ||
-    priceFrom ||
-    priceTo ||
-    photo ||
-    sort !== "new";
+  search ||
+  cat ||
+  subcategory ||
+  priceFrom ||
+  priceTo ||
+  sort !== "new";
 
   return (
     <div className="container mx-auto px-4 py-6 space-y-5">

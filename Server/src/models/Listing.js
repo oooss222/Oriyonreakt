@@ -67,7 +67,6 @@ class ListingModel {
     status = "approved",
     priceFrom,
     priceTo,
-    photo,
     sort = "new",
     limit = 50,
     offset = 0,
@@ -129,10 +128,6 @@ class ListingModel {
     if (maxPrice !== null) {
       values.push(maxPrice);
       conditions.push(`${priceExpr} <= $${values.length}`);
-    }
-
-    if (photo === "1" || photo === true || photo === "true") {
-      conditions.push(`jsonb_array_length(images) > 0`);
     }
 
     let orderBy = "created_at DESC";
