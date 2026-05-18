@@ -340,30 +340,68 @@ export default function Home() {
       </div>
 
       <div className="relative rounded-2xl bg-white p-2 shadow-md max-w-2xl">
-        <div className="flex items-center gap-2">
-          <Search className="text-slate-400 ml-3 shrink-0" size={21} />
+  <div className="flex items-center gap-2">
+    <Search className="text-slate-400 ml-3 shrink-0" size={21} />
 
-          <input
-            value={q}
-            onFocus={() => setShowSuggestions(true)}
-            onChange={(e) => {
-              setQ(e.target.value);
-              setShowSuggestions(true);
-            }}
-            onKeyDown={(e) => e.key === "Enter" && goSearch()}
-            placeholder="Что ищем в Душанбе? Например: телефон, авто, мебель..."
-            className="h-11 flex-1 outline-none text-slate-800 placeholder:text-slate-400 text-sm"
-          />
+    <input
+      value={q}
+      onFocus={() => setShowSuggestions(true)}
+      onChange={(e) => {
+        setQ(e.target.value);
+        setShowSuggestions(true);
+      }}
+      onKeyDown={(e) => e.key === "Enter" && goSearch()}
+      placeholder="Что ищем в Душанбе? Например: телефон, авто, мебель..."
+      className="h-11 flex-1 outline-none text-slate-800 placeholder:text-slate-400 text-sm"
+    />
 
+    <button
+      type="button"
+      onClick={goSearch}
+      className="h-11 rounded-xl bg-blue-600 px-5 text-white text-sm font-semibold hover:bg-blue-700 transition"
+    >
+      Найти
+    </button>
+  </div>
+
+  {showSuggestions && suggestions.length > 0 && (
+    <div className="absolute left-0 right-0 top-full mt-2 z-50 rounded-2xl border bg-white shadow-xl overflow-hidden text-slate-900">
+      {suggestions.map((ad) => {
+        const id = ad.id || ad._id;
+
+        return (
           <button
+            key={id}
             type="button"
-            onClick={goSearch}
-            className="h-11 rounded-xl bg-blue-600 px-5 text-white text-sm font-semibold hover:bg-blue-700 transition"
+            onMouseDown={(e) => {
+              e.preventDefault();
+              sessionStorage.setItem("ad_preview", JSON.stringify(ad));
+              setShowSuggestions(false);
+              window.location.href = `/ad/${id}`;
+            }}
+            className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-50 text-left border-b last:border-b-0"
           >
-            Найти
+            <img
+              src={getThumb(ad)}
+              alt={ad.title || "Объявление"}
+              className="w-12 h-12 rounded-xl object-cover bg-slate-100"
+            />
+
+            <div className="min-w-0">
+              <div className="text-sm font-semibold truncate">
+                {ad.title || "Без названия"}
+              </div>
+
+              <div className="text-xs text-slate-500">
+                {fmtPrice(ad.price)}
+              </div>
+            </div>
           </button>
-        </div>
-      </div>
+        );
+      })}
+    </div>
+  )}
+</div>
 
       <div className="rounded-2xl bg-white/10 border border-white/15 px-4 py-3 max-w-2xl">
         <div className="text-sm md:text-base font-semibold">
