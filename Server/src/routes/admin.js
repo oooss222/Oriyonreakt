@@ -4,6 +4,7 @@ const auth = require("../middleware/auth");
 const { requireRole } = require("../middleware/role");
 const User = require("../models/User");
 const Listing = require("../models/Listing");
+const Ad = require("../models/Ad");
 
 const ALLOWED_ROLES = [
   "user",
@@ -213,5 +214,66 @@ router.delete(
     }
   }
 );
+
+router.get("/ads", requireRole("super_admin"), async (req, res) => {
+  try {
+    const ads = await Ad.findAll();
+    return res.json(ads);
+  } catch (e) {
+    console.error("ADMIN_ADS_GET_ERROR:", e?.message);
+    return res.status(500).json({ error: "Failed to load ads" });
+  }
+});
+
+router.post("/ads", requireRole("super_admin"), async (req, res) => {
+  try {
+    const body = req.body || {};
+
+    if (!body.imageUrl) {
+      return res.status(400).json({ error: "imageUrl is required" });
+    }
+
+    const ad = await Ad.create({
+      title: body.title || "",
+      imageUrl: body.imageUrl,
+      targetUrl: body.targetUrl || "",
+      placement: body.placement || "home_top",
+      isActive: body.isActive !== false,
+      createdBy: req.user.id,
+      startsAt: body.startsAt || null,
+      endsAt: body.endsAt || null,
+    });
+
+    return res.status(201).json(ad);
+  } catch (e) {
+    console.error("ADMIN_AD_CREATE_ERROR:", e?.message);
+    return res.status(500).json({ error: "Failed to create ad" });
+  }
+});
+
+router.put("/ads/:id/toggle", requireRole("super_admin"), async (req, res) => {
+  try {
+    const ad = await Ad.toggle(req.params.id, Boolean(req.body?.isActive));
+
+    if (!ad) {
+      return res.status(404).json({ error: "Ad not found" });
+    }
+
+    return res.json(ad);
+  } catch (e) {
+    console.error("ADMIN_AD_TOGGLE_ERROR:", e?.message);
+    return res.status(500).json({ error: "Failed to update ad" });
+  }
+});
+
+router.delete("/ads/:id", requireRole("super_admin"), async (req, res) => {
+  try {
+    await Ad.delete(req.params.id);
+    return res.json({ ok: true });
+  } catch (e) {
+    console.error("ADMIN_AD_DELETE_ERROR:", e?.message);
+    return res.status(500).json({ error: "Failed to delete ad" });
+  }
+});
 
 module.exports = router;
