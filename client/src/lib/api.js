@@ -152,6 +152,12 @@ export const api = {
       token,
     }),
 
+    adminDeleteListing: (token, id) =>
+  request(`/admin/listings/${id}`, {
+    method: "DELETE",
+    token,
+  }),
+
   favorites: (token) =>
     request("/favorites", {
       token,

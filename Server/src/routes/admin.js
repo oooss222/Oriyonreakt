@@ -3,6 +3,7 @@ const router = require("express").Router();
 const auth = require("../middleware/auth");
 const { requireRole } = require("../middleware/role");
 const User = require("../models/User");
+const Listing = require("../models/Listing");
 
 const ALLOWED_ROLES = [
   "user",
@@ -181,6 +182,33 @@ router.post(
 
       return res.status(500).json({
         error: "Failed to unblock user",
+      });
+    }
+  }
+);
+
+router.delete(
+  "/listings/:id",
+  requireRole("admin", "super_admin"),
+  async (req, res) => {
+    try {
+      const listing = await Listing.adminDelete(req.params.id);
+
+      if (!listing) {
+        return res.status(404).json({
+          error: "Listing not found",
+        });
+      }
+
+      return res.json({
+        ok: true,
+        listing,
+      });
+    } catch (e) {
+      console.error("ADMIN_LISTING_DELETE_ERROR:", e?.message);
+
+      return res.status(500).json({
+        error: "Failed to delete listing",
       });
     }
   }

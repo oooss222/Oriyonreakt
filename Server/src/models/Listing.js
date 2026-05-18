@@ -240,6 +240,19 @@ class ListingModel {
     return mapListing(result.rows[0]);
   }
 
+  static async adminDelete(id) {
+  const result = await query(
+    `
+    DELETE FROM listings
+    WHERE id = $1
+    RETURNING *
+    `,
+    [id]
+  );
+
+  return mapListing(result.rows[0]);
+}
+
   static async delete(id, ownerId) {
     const listing = await this.findById(id);
 
