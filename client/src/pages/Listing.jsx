@@ -227,6 +227,9 @@ export default function Listing() {
   }, [cat, subcategory, search, priceFrom, priceTo, sort]);
 
   const activeCat = draft.cat || cat;
+  const availableSubcategories = React.useMemo(() => {
+  return activeCat ? SUBCATEGORIES[activeCat] || [] : [];
+}, [activeCat]);
 
 const specFilters = React.useMemo(() => {
   return activeCat ? SPEC_FILTERS[activeCat] || [] : [];

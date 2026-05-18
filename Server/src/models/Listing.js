@@ -116,6 +116,7 @@ class ListingModel {
           OR location ILIKE $${values.length}
           OR cat ILIKE $${values.length}
           OR subcategory ILIKE $${values.length}
+          OR specs::text ILIKE $${values.length}
         )
       `);
     }
