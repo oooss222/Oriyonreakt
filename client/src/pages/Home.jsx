@@ -178,6 +178,44 @@ function HorizontalSection({ title, icon: Icon, items, linkTo = "/listing" }) {
           </div>
         </div>
 
+                {showSuggestions && suggestions.length > 0 && (
+          <div className="absolute left-0 right-0 top-full mt-2 z-50 rounded-2xl border bg-white shadow-xl overflow-hidden text-slate-900">
+            {suggestions.map((ad) => {
+              const id = ad.id || ad._id;
+
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    sessionStorage.setItem("ad_preview", JSON.stringify(ad));
+                    setShowSuggestions(false);
+                    nav(`/ad/${id}`);
+                  }}
+                  className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-50 text-left border-b last:border-b-0"
+                >
+                  <img
+                    src={getThumb(ad)}
+                    alt={ad.title || "Объявление"}
+                    className="w-12 h-12 rounded-xl object-cover bg-slate-100"
+                  />
+
+                  <div className="min-w-0">
+                    <div className="text-sm font-semibold truncate">
+                      {ad.title || "Без названия"}
+                    </div>
+
+                    <div className="text-xs text-slate-500">
+                      {fmtPrice(ad.price)}
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        )}
+
         <Link
           to={linkTo}
           className="hidden sm:inline-flex items-center gap-1 text-sm font-medium text-blue-700 hover:underline"
@@ -223,6 +261,7 @@ export default function Home() {
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState("");
   const [q, setQ] = React.useState("");
+  const [showSuggestions, setShowSuggestions] = React.useState(false);
 
   React.useEffect(() => {
     let active = true;
@@ -266,6 +305,18 @@ export default function Home() {
       nav("/listing");
     }
   }, [q, nav]);
+
+  const suggestions = React.useMemo(() => {
+  const text = q.trim().toLowerCase();
+
+  if (text.length < 2) return [];
+
+  return listings
+    .filter((ad) =>
+      String(ad.title || "").toLowerCase().includes(text)
+    )
+    .slice(0, 6);
+}, [q, listings]);
 
   const stats = React.useMemo(() => {
     const withPhoto = listings.filter((item) => item?.images?.length).length;
@@ -326,13 +377,17 @@ export default function Home() {
         </p>
       </div>
 
-      <div className="rounded-2xl bg-white p-2 shadow-md max-w-2xl">
+      <div className="relative rounded-2xl bg-white p-2 shadow-md max-w-2xl">
         <div className="flex items-center gap-2">
           <Search className="text-slate-400 ml-3 shrink-0" size={21} />
 
           <input
             value={q}
-            onChange={(e) => setQ(e.target.value)}
+            onFocus={() => setShowSuggestions(true)}
+            onChange={(e) => {
+              setQ(e.target.value);
+              setShowSuggestions(true);
+            }}
             onKeyDown={(e) => e.key === "Enter" && goSearch()}
             placeholder="Что ищем в Душанбе? Например: телефон, авто, мебель..."
             className="h-11 flex-1 outline-none text-slate-800 placeholder:text-slate-400 text-sm"

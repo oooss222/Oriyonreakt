@@ -13,6 +13,8 @@ import {
   LogIn,
 } from "lucide-react";
 
+import { api, API_BASE } from "../lib/api";
+
 const TOKEN_KEY = "auth_token";
 const USER_KEY = "auth_user";
 
@@ -22,6 +24,8 @@ export default function Header() {
 
   const [q, setQ] = React.useState(sp.get("search") || sp.get("q") || "");
   const [open, setOpen] = React.useState(false);
+  const [listings, setListings] = React.useState([]);
+  const [showSuggestions, setShowSuggestions] = React.useState(false);
 
   const token = localStorage.getItem(TOKEN_KEY) || "";
 
@@ -32,6 +36,69 @@ export default function Header() {
       return null;
     }
   }, []);
+
+  React.useEffect(() => {
+  let active = true;
+
+  async function loadListings() {
+    try {
+      const data = await api.listings({
+        limit: 30,
+      });
+
+      if (active) {
+        setListings(Array.isArray(data) ? data : []);
+      }
+    } catch {}
+  }
+
+  loadListings();
+
+  return () => {
+    active = false;
+  };
+}, []);
+
+function imageUrl(src) {
+  if (!src) return "/img/placeholder.jpg";
+
+  if (src.startsWith("http") || src.startsWith("/img/")) {
+    return src;
+  }
+
+  return API_BASE.replace("/api", "") + src;
+}
+
+function getThumb(ad) {
+  const first = ad?.images?.[0];
+
+  if (typeof first === "string") {
+    return imageUrl(first);
+  }
+
+  return imageUrl(
+    first?.url ||
+      first?.src ||
+      first?.path ||
+      first?.secure_url ||
+      first?.preview ||
+      ad?.img ||
+      ad?.image ||
+      ""
+  );
+}
+
+const suggestions = React.useMemo(() => {
+  const text = q.trim().toLowerCase();
+
+  if (text.length < 2) return [];
+
+  return listings
+    .filter((ad) =>
+      String(ad.title || "").toLowerCase().includes(text)
+    )
+    .slice(0, 6);
+}, [q, listings]);
 
   const go = React.useCallback(() => {
     const text = q.trim();
@@ -69,13 +136,18 @@ export default function Header() {
           </Link>
 
           <div className="flex-1 max-w-2xl hidden md:block">
+            <div className="flex-1 max-w-2xl hidden md:block relative"></div>
             <div className="flex items-center gap-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-2 shadow-sm focus-within:ring-2 focus-within:ring-blue-500 transition">
               <Search size={20} className="text-slate-400 shrink-0" />
 
               <input
                 className="flex-1 h-10 outline-none bg-transparent text-sm text-slate-700 placeholder:text-slate-400"
                 value={q}
-                onChange={(e) => setQ(e.target.value)}
+                onFocus={() => setShowSuggestions(true)}
+                onChange={(e) => {
+                  setQ(e.target.value);
+                  setShowSuggestions(true);
+                }}
                 onKeyDown={(e) => e.key === "Enter" && go()}
                 placeholder="Поиск объявлений, категорий или товаров..."
               />
@@ -89,6 +161,50 @@ export default function Header() {
               </button>
             </div>
           </div>
+          
+          {showSuggestions && suggestions.length > 0 && (
+  <div className="absolute left-0 right-0 top-full mt-2 z-50 rounded-2xl border bg-white shadow-xl overflow-hidden text-slate-900">
+    {suggestions.map((ad) => {
+      const id = ad.id || ad._id;
+
+      return (
+        <button
+          key={id}
+          type="button"
+          onMouseDown={(e) => {
+            e.preventDefault();
+
+            sessionStorage.setItem(
+              "ad_preview",
+              JSON.stringify(ad)
+            );
+
+            setShowSuggestions(false);
+
+            nav(`/ad/${id}`);
+          }}
+          className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-50 text-left border-b last:border-b-0"
+        >
+          <img
+            src={getThumb(ad)}
+            alt={ad.title || "Объявление"}
+            className="w-12 h-12 rounded-xl object-cover bg-slate-100"
+          />
+
+          <div className="min-w-0">
+            <div className="text-sm font-semibold truncate">
+              {ad.title || "Без названия"}
+            </div>
+
+            <div className="text-xs text-slate-500">
+              {ad.price || "Цена не указана"}
+            </div>
+          </div>
+        </button>
+      );
+    })}
+  </div>
+)}
 
           <nav className="hidden lg:flex items-center gap-2">
             <Link
@@ -99,14 +215,7 @@ export default function Header() {
               Главная
             </Link>
 
-            <Link
-              to="/listing"
-              className="inline-flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-50 transition"
-            >
-              <Grid3X3 size={18} />
-              Объявления
-            </Link>
-
+            
             <Link
               to="/add"
               className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition shadow-sm"
