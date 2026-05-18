@@ -979,6 +979,29 @@ function ModerationPanel({ token }) {
     [token]
   );
 
+  const removeListing = React.useCallback(
+  async (id) => {
+    const ok = confirm("Удалить объявление полностью?");
+
+    if (!ok) return;
+
+    try {
+      setActionLoadingId(id);
+
+      await api.adminDeleteListing(token, id);
+
+      setItems((arr) =>
+        arr.filter((item) => String(getId(item)) !== String(id))
+      );
+    } catch (e) {
+      alert(e.message || "Ошибка удаления");
+    } finally {
+      setActionLoadingId("");
+    }
+  },
+  [token]
+);
+
   const openReject = React.useCallback((ad) => {
     setRejectTarget(ad);
     setRejectReason("");
@@ -1267,6 +1290,15 @@ function ModerationPanel({ token }) {
                       >
                         Отклонить
                       </button>
+
+                      <button
+                        onClick={() => removeListing(id)}
+                        disabled={isBusy}
+                        className="inline-flex justify-center px-3 py-2 rounded-lg border text-red-700 hover:bg-red-50 disabled:opacity-60"
+                      >
+                        Удалить
+                      </button>
+
                     </>
                   )}
                 </div>

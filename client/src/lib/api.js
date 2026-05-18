@@ -152,7 +152,7 @@ export const api = {
       token,
     }),
 
-    adminDeleteListing: (token, id) =>
+  adminDeleteListing: (token, id) =>
   request(`/admin/listings/${id}`, {
     method: "DELETE",
     token,
