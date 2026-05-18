@@ -2250,13 +2250,7 @@ export default function Profile() {
     className="input w-full"
   />
 </div>
-                onChange={(e) =>
-                  setForm((v) => ({
-                    ...v,
-                    phone: e.target.value,
-                  }))
-                }
-              />
+                
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
   <label className="block">
     <div className="text-sm font-medium mb-1">
