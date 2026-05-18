@@ -1569,6 +1569,8 @@ export default function Profile() {
     name: me?.name || "",
     email: me?.email || "",
     phone: me?.phone || "",
+    whatsapp: me?.whatsapp || "",
+    telegram: me?.telegram || "",
   });
 
   const [emailStatus, setEmailStatus] = React.useState(
@@ -1617,6 +1619,8 @@ export default function Profile() {
           name: u.name || "",
           email: u.email || "",
           phone: u.phone || "",
+          whatsapp: u.whatsapp || "",
+          telegram: u.telegram || "",
         });
         setEmailStatus(u.emailVerified ? "verified" : "unknown");
         localStorage.setItem(USER_KEY, JSON.stringify(u));
@@ -1649,6 +1653,8 @@ export default function Profile() {
         .updateMe(token, {
           name: form.name,
           phone: form.phone,
+          whatsapp: form.whatsapp,
+          telegram: form.telegram,
         })
         .then((u) => {
           if (!u) return;
@@ -2199,6 +2205,43 @@ export default function Profile() {
                 className="h-12 rounded-2xl border px-4 w-full outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="+992 ..."
                 value={form.phone}
+                <div className="mt-4">
+  <label className="block text-sm font-medium mb-1">
+    WhatsApp
+  </label>
+
+  <input
+    type="text"
+    value={form.whatsapp || ""}
+    onChange={(e) =>
+      setForm((prev) => ({
+        ...prev,
+        whatsapp: e.target.value,
+      }))
+    }
+    placeholder="992900000000"
+    className="input w-full"
+  />
+</div>
+
+<div className="mt-4">
+  <label className="block text-sm font-medium mb-1">
+    Telegram
+  </label>
+
+  <input
+    type="text"
+    value={form.telegram || ""}
+    onChange={(e) =>
+      setForm((prev) => ({
+        ...prev,
+        telegram: e.target.value,
+      }))
+    }
+    placeholder="@username"
+    className="input w-full"
+  />
+</div>
                 onChange={(e) =>
                   setForm((v) => ({
                     ...v,
@@ -2206,6 +2249,51 @@ export default function Profile() {
                   }))
                 }
               />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+  <label className="block">
+    <div className="text-sm font-medium mb-1">
+      WhatsApp
+    </div>
+
+    <input
+      value={form.whatsapp}
+      onChange={(e) =>
+        setForm((prev) => ({
+          ...prev,
+          whatsapp: e.target.value,
+        }))
+      }
+      placeholder="992900000000"
+      className="input w-full"
+    />
+
+    <div className="text-xs text-slate-500 mt-1">
+      Только номер без + и пробелов
+    </div>
+  </label>
+
+  <label className="block">
+    <div className="text-sm font-medium mb-1">
+      Telegram
+    </div>
+
+    <input
+      value={form.telegram}
+      onChange={(e) =>
+        setForm((prev) => ({
+          ...prev,
+          telegram: e.target.value,
+        }))
+      }
+      placeholder="@username"
+      className="input w-full"
+    />
+
+    <div className="text-xs text-slate-500 mt-1">
+      username или ссылка t.me
+    </div>
+  </label>
+</div>
             </label>
           </div>
         </div>
