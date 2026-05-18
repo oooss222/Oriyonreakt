@@ -160,7 +160,10 @@ export default function Listing() {
   const [showSuggestions, setShowSuggestions] = React.useState(false);
   const cat = searchParams.get("cat") || "";
   const subcategory = searchParams.get("subcategory") || "";
-  const search = searchParams.get("search") || "";
+  const search =
+  searchParams.get("search") ||
+  searchParams.get("q") ||
+  "";
   const priceFrom = searchParams.get("priceFrom") || "";
   const priceTo = searchParams.get("priceTo") || "";
   const sort = searchParams.get("sort") || "new";
@@ -206,7 +209,7 @@ export default function Listing() {
         });
 
         if (active) {
-          setItems(Array.isArray(data) ? data : []);
+          setItems(Array.isArray(data) ? data.filter(Boolean) : []);
         }
       } catch (e) {
         if (active) {
@@ -269,7 +272,12 @@ const specFilters = React.useMemo(() => {
   const applyFilters = () => {
     const next = {};
 
-    if (draft.search.trim()) next.search = draft.search.trim();
+    const normalizedSearch = draft.search.trim();
+
+    if (normalizedSearch) {
+      next.search = normalizedSearch;
+      next.q = normalizedSearch;
+    }
     if (draft.cat) next.cat = draft.cat;
     if (draft.subcategory) next.subcategory = draft.subcategory;
     if (draft.priceFrom) next.priceFrom = draft.priceFrom;
