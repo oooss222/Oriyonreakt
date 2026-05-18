@@ -84,6 +84,8 @@ class UserModel {
       email: user.email,
       name: user.name,
       phone: user.phone,
+      whatsapp: user.whatsapp || "",
+      telegram: user.telegram || "",
       sellerType: user.sellerType,
       role: user.role || "user",
       isBlocked: Boolean(user.isBlocked),
@@ -94,19 +96,27 @@ class UserModel {
     };
   }
 
-  static async updateProfile(id, { name, phone, sellerType }) {
+  static async updateProfile(id, {
+    name,
+    phone,
+    whatsapp,
+    telegram,
+    sellerType,
+  }) {
     const result = await query(
       `
       UPDATE users
       SET
         name = COALESCE($2, name),
         phone = COALESCE($3, phone),
-        seller_type = COALESCE($4, seller_type),
+        whatsapp = COALESCE($4, whatsapp),
+        telegram = COALESCE($5, telegram),
+        seller_type = COALESCE($6, seller_type),
         updated_at = now()
       WHERE id = $1
       RETURNING *
       `,
-      [id, name, phone, sellerType]
+      [id, name, phone, whatsapp, telegram, sellerType]
     );
 
     return mapUser(result.rows[0]);
