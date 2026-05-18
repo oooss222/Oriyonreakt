@@ -361,34 +361,6 @@ export default function Home() {
   </div>
 </section>
 
-        <section className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <div className="rounded-3xl border bg-white p-5">
-            <div className="text-sm text-slate-500">Свежие объявления</div>
-            <div className="text-3xl font-extrabold mt-1">{stats.listings}</div>
-          </div>
-
-          <div className="rounded-3xl border bg-white p-5">
-            <div className="text-sm text-slate-500">Категории</div>
-            <div className="text-3xl font-extrabold mt-1">
-              {stats.categories}
-            </div>
-          </div>
-
-          <div className="rounded-3xl border bg-white p-5">
-            <div className="text-sm text-slate-500">С фото</div>
-            <div className="text-3xl font-extrabold mt-1">
-              {stats.withPhoto}
-            </div>
-          </div>
-
-          <div className="rounded-3xl border bg-white p-5">
-            <div className="text-sm text-slate-500">Локации</div>
-            <div className="text-3xl font-extrabold mt-1">
-              {stats.locations || 1}
-            </div>
-          </div>
-        </section>
-
         <section className="space-y-4">
           <div className="flex items-end justify-between gap-3">
             <div>
@@ -397,7 +369,7 @@ export default function Home() {
                 Разделы
               </div>
 
-              <h2 className="text-2xl font-bold">Популярные категории</h2>
+              <h2 className="text-2xl font-bold">Категории</h2>
             </div>
 
             <Link
