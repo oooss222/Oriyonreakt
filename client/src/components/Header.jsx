@@ -101,16 +101,17 @@ const suggestions = React.useMemo(() => {
 }, [q, listings]);
 
   const go = React.useCallback(() => {
-    const text = q.trim();
+  const text = q.trim();
 
-    setOpen(false);
+  setOpen(false);
 
-    if (text) {
-      nav(`/listing?search=${encodeURIComponent(text)}`);
-    } else {
-      nav("/listing");
-    }
-  }, [q, nav]);
+  if (text) {
+    window.location.href =
+      `/listing?search=${encodeURIComponent(text)}`;
+  } else {
+    window.location.href = "/listing";
+  }
+}, [q]);
 
   const close = () => setOpen(false);
 
@@ -135,8 +136,7 @@ const suggestions = React.useMemo(() => {
             </div>
           </Link>
 
-          <div className="flex-1 max-w-2xl hidden md:block">
-            <div className="flex-1 max-w-2xl hidden md:block relative"></div>
+          <div className="flex-1 max-w-2xl hidden md:block relative">
             <div className="flex items-center gap-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-2 shadow-sm focus-within:ring-2 focus-within:ring-blue-500 transition">
               <Search size={20} className="text-slate-400 shrink-0" />
 

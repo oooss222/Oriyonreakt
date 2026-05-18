@@ -259,14 +259,15 @@ export default function Home() {
   }, []);
 
   const goSearch = React.useCallback(() => {
-    const text = q.trim();
+  const text = q.trim();
 
-    if (text) {
-      nav(`/listing?search=${encodeURIComponent(text)}`);
-    } else {
-      nav("/listing");
-    }
-  }, [q, nav]);
+  if (text) {
+    window.location.href =
+      `/listing?search=${encodeURIComponent(text)}`;
+  } else {
+    window.location.href = "/listing";
+  }
+}, [q]);
 
   const suggestions = React.useMemo(() => {
   const text = q.trim().toLowerCase();
