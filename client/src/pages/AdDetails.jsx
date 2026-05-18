@@ -43,6 +43,8 @@ export default function AdDetails() {
   const token = localStorage.getItem(TOKEN_KEY) || "";
 
   const [ad, setAd] = React.useState(null);
+  const [activeImageIndex, setActiveImageIndex] = React.useState(0);
+  const [lightboxOpen, setLightboxOpen] = React.useState(false);
   const [related, setRelated] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [isFav, setIsFav] = React.useState(false);
@@ -239,30 +241,73 @@ export default function AdDetails() {
           </section>
 
           <section className="card p-3 md:p-4">
-            <div className="w-full h-[260px] sm:h-[360px] md:h-[430px] bg-slate-100 rounded-2xl overflow-hidden">
-              <img
-                src={images[0]}
-                alt={ad.title || "Фото объявления"}
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  e.currentTarget.src =
-                    "https://placehold.co/900x600?text=No+Image";
-                }}
-              />
-            </div>
+           <div 
+               className="relative rounded-3xl overflow-hidden bg-slate-100 cursor-zoom-in"
+                onClick={() => setLightboxOpen(true)}
+              >
+                <img
+                  src={images[activeImageIndex] || images[0]}
+                  alt={ad.title || "Фото объявления"}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.currentTarget.src =
+                      "https://placehold.co/900x600?text=No+Image";
+                  }}
+                />
 
-            {images.length > 1 && (
-              <div className="flex gap-2 mt-3 overflow-x-auto pb-1">
-                {images.map((src, index) => (
-                  <img
-                    key={`${src}-${index}`}
-                    src={src}
-                    alt={`${ad.title || "Фото"} ${index + 1}`}
-                    className="w-24 h-20 object-cover rounded-xl border bg-slate-100 shrink-0"
-                  />
-                ))}
+                {images.length > 1 && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setActiveImageIndex((prev) =>
+                          prev === 0 ? images.length - 1 : prev - 1
+                        );
+                      }}
+                      className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 shadow flex items-center justify-center"
+                    >
+                      ‹
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setActiveImageIndex((prev) =>
+                          prev === images.length - 1 ? 0 : prev + 1
+                        );
+                      }}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 shadow flex items-center justify-center"
+                    >
+                      ›
+                    </button>
+                  </>
+                )}
               </div>
-            )}
+
+              {images.length > 1 && (
+                <div className="flex gap-2 mt-3 overflow-x-auto pb-2">
+                  {images.map((src, index) => (
+                    <button
+                      key={`${src}-${index}`}
+                      type="button"
+                      onClick={() => setActiveImageIndex(index)}
+                      className={`shrink-0 rounded-xl border-2 overflow-hidden ${
+                        activeImageIndex === index
+                          ? "border-blue-600"
+                          : "border-transparent"
+                      }`}
+                    >
+                      <img
+                        src={src}
+                        alt={`${ad.title || "Фото"} ${index + 1}`}
+                        className="w-24 h-20 object-cover bg-slate-100"
+                      />
+                    </button>
+                  ))}
+                </div>
+              )}
           </section>
 
           <section className="card p-4 md:p-5">
@@ -388,33 +433,6 @@ export default function AdDetails() {
               <MessageCircle className="w-4 h-4" />
               Написать сообщение
             </button>
-
-            {ad.whatsapp &&
-              String(ad.whatsapp).replace(/[^\d]/g, "") && (
-                <a
-                  href={`https://wa.me/${String(ad.whatsapp).replace(/[^\d]/g, "")}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="btn w-full bg-green-600 text-white hover:bg-green-700"
-                >
-                  WhatsApp
-                </a>
-              )}
-
-            {ad.telegram && (
-              <a
-                href={
-                  String(ad.telegram).startsWith("http")
-                    ? ad.telegram
-                    : `https://t.me/${String(ad.telegram).replace("@", "")}`
-                }
-                target="_blank"
-                rel="noreferrer"
-                className="btn w-full bg-sky-500 text-white hover:bg-sky-600"
-              >
-                Telegram
-              </a>
-            )}
           </div>
 
             <div className="mt-4 text-xs text-slate-500 flex items-center gap-1">
@@ -423,8 +441,60 @@ export default function AdDetails() {
             </div>
           </section>
 
-        </aside>
+               </aside>
       </div>
+
+      {lightboxOpen && (
+        <div
+          className="fixed inset-0 z-[100] bg-black/80 flex items-center justify-center p-4"
+          onClick={() => setLightboxOpen(false)}
+        >
+          <button
+            type="button"
+            onClick={() => setLightboxOpen(false)}
+            className="absolute right-5 top-5 text-white text-3xl"
+          >
+            ×
+          </button>
+
+          {images.length > 1 && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setActiveImageIndex((prev) =>
+                  prev === 0 ? images.length - 1 : prev - 1
+                );
+              }}
+              className="absolute left-5 top-1/2 -translate-y-1/2 text-white text-5xl"
+            >
+              ‹
+            </button>
+          )}
+
+          <img
+            src={images[activeImageIndex] || images[0]}
+            alt={ad.title || "Фото объявления"}
+            className="max-w-full max-h-[90vh] object-contain rounded-2xl"
+            onClick={(e) => e.stopPropagation()}
+          />
+
+          {images.length > 1 && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setActiveImageIndex((prev) =>
+                  prev === images.length - 1 ? 0 : prev + 1
+                );
+              }}
+              className="absolute right-5 top-1/2 -translate-y-1/2 text-white text-5xl"
+            >
+              ›
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }
