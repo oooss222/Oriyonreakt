@@ -329,7 +329,7 @@ export default function AdDetails() {
         </main>
 
         <aside className="lg:col-span-4 space-y-5">
-          <section className="card p-4 md:p-5 lg:sticky lg:top-24">
+          <section className="card p-6 md:p-7 lg:sticky lg:top-24 rounded-3xl">
             <div className="text-sm text-slate-500">Цена</div>
 
             <div className="text-3xl font-extrabold text-slate-900 mt-1">
@@ -362,33 +362,60 @@ export default function AdDetails() {
             </div>
 
             <div className="space-y-2 mt-4">
-              {ad.phone ? (
-                phoneVisible ? (
-                  <a href={`tel:${ad.phone}`} className="btn btn-primary w-full">
-                    <Phone className="w-4 h-4" />
-                    {ad.phone}
-                  </a>
-                ) : (
-                  <button
-                    className="btn btn-primary w-full"
-                    onClick={() => setPhoneVisible(true)}
-                  >
-                    <Phone className="w-4 h-4" />
-                    Показать телефон
-                  </button>
-                )
+            {ad.phone ? (
+              phoneVisible ? (
+                <a href={`tel:${ad.phone}`} className="btn btn-primary w-full">
+                  <Phone className="w-4 h-4" />
+                  {ad.phone}
+                </a>
               ) : (
-                <button className="btn btn-primary w-full">
+                <button
+                  className="btn btn-primary w-full"
+                  onClick={() => setPhoneVisible(true)}
+                >
                   <Phone className="w-4 h-4" />
                   Показать телефон
                 </button>
+              )
+            ) : (
+              <button className="btn btn-primary w-full">
+                <Phone className="w-4 h-4" />
+                Показать телефон
+              </button>
+            )}
+
+            <button className="btn w-full">
+              <MessageCircle className="w-4 h-4" />
+              Написать сообщение
+            </button>
+
+            {ad.whatsapp &&
+              String(ad.whatsapp).replace(/[^\d]/g, "") && (
+                <a
+                  href={`https://wa.me/${String(ad.whatsapp).replace(/[^\d]/g, "")}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="btn w-full bg-green-600 text-white hover:bg-green-700"
+                >
+                  WhatsApp
+                </a>
               )}
 
-              <button className="btn w-full">
-                <MessageCircle className="w-4 h-4" />
-                Написать сообщение
-              </button>
-            </div>
+            {ad.telegram && (
+              <a
+                href={
+                  String(ad.telegram).startsWith("http")
+                    ? ad.telegram
+                    : `https://t.me/${String(ad.telegram).replace("@", "")}`
+                }
+                target="_blank"
+                rel="noreferrer"
+                className="btn w-full bg-sky-500 text-white hover:bg-sky-600"
+              >
+                Telegram
+              </a>
+            )}
+          </div>
 
             <div className="mt-4 text-xs text-slate-500 flex items-center gap-1">
               <Eye className="w-4 h-4" />
@@ -396,63 +423,6 @@ export default function AdDetails() {
             </div>
           </section>
 
-          <AdSlot type="sidebar" id="ad-details-sidebar" />
-
-          {related.length > 0 && (
-  <section className="card p-4">
-    <div className="flex items-center justify-between mb-3">
-      <h2 className="text-base font-bold">Другие объявления</h2>
-
-      <Link to="/listing" className="text-xs text-blue-600">
-        Все
-      </Link>
-    </div>
-
-    <div className="space-y-3">
-      {related.slice(0, 4).map((item) => {
-        const itemId = item._id || item.id;
-
-        const image =
-          item.images?.[0]?.url ||
-          item.images?.[0] ||
-          item.image ||
-          "";
-
-        const imgUrl = image
-          ? imageUrl(image)
-          : "/img/placeholder.jpg";
-
-        return (
-          <Link
-            key={itemId}
-            to={`/ad/${itemId}`}
-            className="flex gap-3 rounded-xl border p-2 hover:bg-slate-50 transition"
-          >
-            <img
-              src={imgUrl}
-              alt={item.title || "Объявление"}
-              className="w-20 h-16 object-cover rounded-lg bg-slate-100"
-            />
-
-            <div className="min-w-0">
-              <div className="text-sm font-semibold line-clamp-2">
-                {item.title || "Без названия"}
-              </div>
-
-              <div className="text-sm font-bold text-slate-900 mt-1">
-                {formatPrice(item.price)}
-              </div>
-
-              <div className="text-xs text-slate-500 line-clamp-1">
-                {item.location || item.city || "Душанбе"}
-              </div>
-            </div>
-          </Link>
-        );
-      })}
-    </div>
-  </section>
-)}
         </aside>
       </div>
     </div>
