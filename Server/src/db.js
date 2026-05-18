@@ -177,6 +177,35 @@ async function initDb() {
       created_at TIMESTAMPTZ NOT NULL DEFAULT now()
     );
 
+        CREATE TABLE IF NOT EXISTS ads (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+
+      title TEXT NOT NULL DEFAULT '',
+      image_url TEXT NOT NULL,
+      target_url TEXT NOT NULL DEFAULT '',
+
+      placement TEXT NOT NULL DEFAULT 'home_top'
+        CHECK (
+          placement IN (
+            'home_top',
+            'home_middle',
+            'listing_top',
+            'listing_sidebar',
+            'details_sidebar'
+          )
+        ),
+
+      is_active BOOLEAN NOT NULL DEFAULT true,
+
+      created_by UUID REFERENCES users(id) ON DELETE SET NULL,
+
+      starts_at TIMESTAMPTZ,
+      ends_at TIMESTAMPTZ,
+
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
+
     CREATE INDEX IF NOT EXISTS idx_users_email
       ON users(email);
 
@@ -218,6 +247,12 @@ async function initDb() {
 
     CREATE INDEX IF NOT EXISTS idx_wallet_transactions_created_at
       ON wallet_transactions(created_at DESC);
+
+    CREATE INDEX IF NOT EXISTS idx_ads_placement
+      ON ads(placement);
+
+    CREATE INDEX IF NOT EXISTS idx_ads_is_active
+      ON ads(is_active);
   `);
 }
 
@@ -233,6 +268,9 @@ function mapUser(row) {
 
     name: row.name,
     phone: row.phone,
+
+    whatsapp: row.whatsapp || "",
+    telegram: row.telegram || "",
 
     sellerType: row.seller_type,
 
@@ -302,6 +340,32 @@ function mapWalletTransaction(row) {
   };
 }
 
+function mapAd(row) {
+  if (!row) return null;
+
+  return {
+    id: row.id,
+    _id: row.id,
+
+    title: row.title,
+
+    imageUrl: row.image_url,
+    targetUrl: row.target_url,
+
+    placement: row.placement,
+
+    isActive: Boolean(row.is_active),
+
+    createdBy: row.created_by || null,
+
+    startsAt: row.starts_at || null,
+    endsAt: row.ends_at || null,
+
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
 module.exports = {
   pool,
   query,
@@ -309,6 +373,7 @@ module.exports = {
   mapUser,
   mapListing,
   mapWalletTransaction,
+  mapAd,
 
   USER_ROLES,
   LISTING_STATUSES,
