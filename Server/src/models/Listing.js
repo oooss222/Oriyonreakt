@@ -15,18 +15,29 @@ class ListingModel {
     const result = await query(
       `
       INSERT INTO listings (
-        title,
-        price,
-        description,
-        location,
-        cat,
-        subcategory,
-        images,
-        specs,
-        owner,
-        status,
-        rejection_reason
-      )
+  public_id,
+  title,
+  price,
+  description,
+  location,
+  cat,
+  subcategory,
+  images,
+  specs,
+  owner,
+  status,
+  rejection_reason
+)
+VALUES (
+  FLOOR(10000000 + RANDOM() * 90000000),
+  $1, $2, $3, $4,
+  $5, $6, $7::jsonb,
+  $8::jsonb,
+  $9,
+  'pending',
+  ''
+)
+RETURNING *
       VALUES (
         $1, $2, $3, $4,
         $5, $6, $7::jsonb,
