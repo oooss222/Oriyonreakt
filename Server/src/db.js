@@ -141,6 +141,9 @@ async function initDb() {
     ALTER TABLE listings
       ADD COLUMN IF NOT EXISTS moderated_at TIMESTAMPTZ;
 
+    ALTER TABLE listings
+      ADD COLUMN IF NOT EXISTS public_id BIGINT UNIQUE;
+
     DO $$
     BEGIN
       IF NOT EXISTS (
@@ -249,11 +252,13 @@ function mapListing(row) {
   if (!row) return null;
 
   return {
-    id: row.id,
-    _id: row.id,
+  id: row.id,
+  _id: row.id,
 
-    title: row.title,
-    price: row.price,
+  publicId: row.public_id,
+  public_id: row.public_id,
+
+  title: row.title,
 
     description: row.description,
 
