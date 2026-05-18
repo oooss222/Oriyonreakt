@@ -228,8 +228,8 @@ export default function Listing() {
 
   const activeCat = draft.cat || cat;
 
-const availableSubcategories = React.useMemo(() => {
-  return activeCat ? SUBCATEGORIES[activeCat] || [] : [];
+const specFilters = React.useMemo(() => {
+  return activeCat ? SPEC_FILTERS[activeCat] || [] : [];
 }, [activeCat]);
 
   const applyFilters = () => {
