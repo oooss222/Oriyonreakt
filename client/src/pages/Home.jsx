@@ -262,8 +262,7 @@ export default function Home() {
   const text = q.trim();
 
   if (text) {
-    window.location.href =
-      `/listing?search=${encodeURIComponent(text)}`;
+    window.location.href = `/listing?search=${encodeURIComponent(text)}`;
   } else {
     window.location.href = "/listing";
   }
