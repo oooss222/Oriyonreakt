@@ -128,34 +128,50 @@ export default function Auth() {
   };
 
   const onRegister = async (e) => {
-    e.preventDefault();
-    setErr("");
-    setOk("");
-    setLoading(true);
-    try {
-      if (!reg.name || !reg.email || !reg.password || !reg.confirm)
-        throw new Error("Заполните все поля");
-      if (!/^\S+@\S+\.\S+$/.test(reg.email.trim()))
-        throw new Error("Некорректный email");
-      if (reg.password.length < 6)
-        throw new Error("Пароль должен быть не короче 6 символов");
-      if (reg.password !== reg.confirm) throw new Error("Пароли не совпадают");
-      if (!reg.agree) throw new Error("Подтвердите согласие с политикой сайта");
-      await api.register({
-        name: reg.name.trim(),
-        email: reg.email.trim(),
-        password: reg.password,
-      });
-      setOk("Аккаунт создан! Теперь войдите.");
-      setTab("login");
-      setLogin({ email: reg.email, password: "" });
-      setReg({ name: "", email: "", password: "", confirm: "", agree: false });
-    } catch (e) {
-      setErr(e.message || "Ошибка регистрации");
-    } finally {
-      setLoading(false);
+  e.preventDefault();
+  setErr("");
+  setOk("");
+  setLoading(true);
+
+  try {
+    if (!reg.name || !reg.email || !reg.password || !reg.confirm) {
+      throw new Error("Заполните все поля");
     }
-  };
+
+    if (!/^\S+@\S+\.\S+$/.test(reg.email.trim())) {
+      throw new Error("Некорректный email");
+    }
+
+    if (reg.password.length < 6) {
+      throw new Error("Пароль должен быть не короче 6 символов");
+    }
+
+    if (reg.password !== reg.confirm) {
+      throw new Error("Пароли не совпадают");
+    }
+
+    if (!reg.agree) {
+      throw new Error("Подтвердите согласие с политикой сайта");
+    }
+
+    const { token, user } = await api.register({
+      name: reg.name.trim(),
+      email: reg.email.trim(),
+      password: reg.password,
+    });
+
+    localStorage.setItem(TOKEN_KEY, token);
+    localStorage.setItem(USER_KEY, JSON.stringify(user));
+
+    setOk("Аккаунт создан! Перенаправляем…");
+
+    setTimeout(() => nav("/profile"), 300);
+  } catch (e) {
+    setErr(e.message || "Ошибка регистрации");
+  } finally {
+    setLoading(false);
+  }
+};
 
   const strength = React.useMemo(() => {
     let s = 0;

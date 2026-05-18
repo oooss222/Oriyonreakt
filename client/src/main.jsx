@@ -12,6 +12,7 @@ import Policy from "./pages/Policy.jsx";
 import AdDetails from "./pages/AdDetails.jsx";
 import Profile from "./pages/Profile.jsx";
 import AddListing from "./pages/AddListing.jsx";
+import EditListing from "./pages/EditListing.jsx";
 
 import "./styles/index.css";
 
@@ -72,6 +73,10 @@ const router = createBrowserRouter([
       {
         path: "add",
         element: <AddListing />,
+      },
+      {
+         path: "edit/:id",
+         element: <EditListing />,
       },
       {
         path: "*",
