@@ -205,7 +205,7 @@ export default function AdDetails() {
             <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
               <div className="min-w-0">
                 <div className="inline-flex items-center gap-2 rounded-full border bg-blue-50 text-blue-700 px-3 py-1 text-xs mb-2">
-                  Объявление №{ad._id || ad.id}
+                  Объявление №{ad.publicId || ad.public_id || ad._id || ad.id}
                 </div>
 
                 <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900">
@@ -244,6 +244,10 @@ export default function AdDetails() {
                 src={images[0]}
                 alt={ad.title || "Фото объявления"}
                 className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.src =
+                    "https://placehold.co/900x600?text=No+Image";
+                }}
               />
             </div>
 
@@ -388,7 +392,7 @@ export default function AdDetails() {
 
             <div className="mt-4 text-xs text-slate-500 flex items-center gap-1">
               <Eye className="w-4 h-4" />
-              ID объявления: {ad._id || ad.id}
+              ID объявления: {ad.publicId || ad.public_id || ad._id || ad.id}
             </div>
           </section>
 

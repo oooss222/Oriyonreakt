@@ -9,7 +9,10 @@ function imageUrl(src) {
     return src;
   }
 
-  return API_BASE.replace("/api", "") + src;
+  const server = API_BASE.replace(/\/api$/, "");
+  const clean = String(src).replace(/^\/+/, "");
+
+  return `${server}/${clean}`;
 }
 
 export default function ListingCard({ item, onFav }) {
@@ -74,6 +77,10 @@ export default function ListingCard({ item, onFav }) {
         }
         alt={item.title}
         className="w-full h-40 object-cover bg-indigo-50"
+        onError={(e) => {
+          e.currentTarget.src =
+            "https://placehold.co/600x400?text=No+Image";
+        }}
       />
 
       <div className="p-3">
