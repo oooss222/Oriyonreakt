@@ -393,6 +393,62 @@ export default function AdDetails() {
           </section>
 
           <AdSlot type="sidebar" id="ad-details-sidebar" />
+
+          {related.length > 0 && (
+  <section className="card p-4">
+    <div className="flex items-center justify-between mb-3">
+      <h2 className="text-base font-bold">Другие объявления</h2>
+
+      <Link to="/listing" className="text-xs text-blue-600">
+        Все
+      </Link>
+    </div>
+
+    <div className="space-y-3">
+      {related.slice(0, 4).map((item) => {
+        const itemId = item._id || item.id;
+
+        const image =
+          item.images?.[0]?.url ||
+          item.images?.[0] ||
+          item.image ||
+          "";
+
+        const imgUrl = image
+          ? imageUrl(image)
+          : "/img/placeholder.jpg";
+
+        return (
+          <Link
+            key={itemId}
+            to={`/ad/${itemId}`}
+            className="flex gap-3 rounded-xl border p-2 hover:bg-slate-50 transition"
+          >
+            <img
+              src={imgUrl}
+              alt={item.title || "Объявление"}
+              className="w-20 h-16 object-cover rounded-lg bg-slate-100"
+            />
+
+            <div className="min-w-0">
+              <div className="text-sm font-semibold line-clamp-2">
+                {item.title || "Без названия"}
+              </div>
+
+              <div className="text-sm font-bold text-slate-900 mt-1">
+                {formatPrice(item.price)}
+              </div>
+
+              <div className="text-xs text-slate-500 line-clamp-1">
+                {item.location || item.city || "Душанбе"}
+              </div>
+            </div>
+          </Link>
+        );
+      })}
+    </div>
+  </section>
+)}
         </aside>
       </div>
     </div>
