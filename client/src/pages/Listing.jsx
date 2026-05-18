@@ -260,9 +260,7 @@ export default function Listing() {
 
   return [...fromListings, ...fromCategories].slice(0, 8);
 }, [draft.search, items]);
-  const availableSubcategories = React.useMemo(() => {
-  return activeCat ? SUBCATEGORIES[activeCat] || [] : [];
-}, [activeCat]);
+ 
 
 const specFilters = React.useMemo(() => {
   return activeCat ? SPEC_FILTERS[activeCat] || [] : [];
