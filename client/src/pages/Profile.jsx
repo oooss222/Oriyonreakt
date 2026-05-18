@@ -2213,53 +2213,6 @@ export default function Profile() {
   }
 />
 
-
-                
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-  <label className="block">
-    <div className="text-sm font-medium mb-1">
-      WhatsApp
-    </div>
-
-    <input
-      value={form.whatsapp}
-      onChange={(e) =>
-        setForm((prev) => ({
-          ...prev,
-          whatsapp: e.target.value,
-        }))
-      }
-      placeholder="992900000000"
-      className="input w-full"
-    />
-
-    <div className="text-xs text-slate-500 mt-1">
-      Только номер без + и пробелов
-    </div>
-  </label>
-
-  <label className="block">
-    <div className="text-sm font-medium mb-1">
-      Telegram
-    </div>
-
-    <input
-      value={form.telegram}
-      onChange={(e) =>
-        setForm((prev) => ({
-          ...prev,
-          telegram: e.target.value,
-        }))
-      }
-      placeholder="@username"
-      className="input w-full"
-    />
-
-    <div className="text-xs text-slate-500 mt-1">
-      username или ссылка t.me
-    </div>
-  </label>
-</div>
             </label>
           </div>
         </div>
