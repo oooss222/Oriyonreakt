@@ -159,11 +159,11 @@ export default function AddListing() {
     }));
 
     const tpl = (cat?.specTemplate || []).map((item) => ({
-      name: item.name,
-      type: item.type || "text",
-      options: item.options || [],
-      value: "",
-    }));
+  name: typeof item === "string" ? item : item.name,
+  type: typeof item === "string" ? "text" : item.type || "text",
+  options: typeof item === "string" ? [] : item.options || [],
+  value: "",
+}));
 
     setSpecs(tpl);
   }, [form.cat]);
@@ -311,11 +311,15 @@ export default function AddListing() {
       }
 
       const compactSpecs = specs
-        .filter((item) => item.name?.trim() && item.value?.trim())
-        .map((item) => ({
-          name: item.name.trim(),
-          value: item.value.trim(),
-        }));
+      .filter(
+        (item) =>
+          String(item.name || "").trim() &&
+          String(item.value || "").trim()
+      )
+      .map((item) => ({
+        name: String(item.name || "").trim(),
+        value: String(item.value || "").trim(),
+      }));
 
       const created = await api.createListing(token, {
         title: form.title.trim(),
@@ -340,8 +344,10 @@ export default function AddListing() {
   const subs = cat?.subs || [];
   const photosCount = previews.length;
   const filledSpecs = specs.filter(
-    (item) => item.name.trim() && item.value.trim()
-  ).length;
+  (item) =>
+    String(item.name || "").trim() &&
+    String(item.value || "").trim()
+).length;
 
   return (
     <div className="w-full max-w-7xl mx-auto px-4 py-6 space-y-6 text-slate-900">
