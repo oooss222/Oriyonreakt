@@ -67,6 +67,8 @@ app.use("/api/upload", require("./routes/upload"));
 
 app.use("/api/listings", require("./routes/listings"));
 
+app.use("/api/ads", require("./routes/ads"));
+
 app.use("/api/admin", require("./routes/admin"));
 
 app.use(
