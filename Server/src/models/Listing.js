@@ -253,6 +253,30 @@ class ListingModel {
   return mapListing(result.rows[0]);
 }
 
+  static async deleteById(id) {
+  await query(
+    `
+    DELETE FROM listings
+    WHERE id = $1
+    `,
+    [id]
+  );
+
+  return true;
+}
+
+  static async deleteById(id) {
+  await query(
+    `
+    DELETE FROM listings
+    WHERE id = $1
+    `,
+    [id]
+  );
+
+  return true;
+}
+
   static async delete(id, ownerId) {
     const listing = await this.findById(id);
 
