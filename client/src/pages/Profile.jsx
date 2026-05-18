@@ -1569,8 +1569,7 @@ export default function Profile() {
     name: me?.name || "",
     email: me?.email || "",
     phone: me?.phone || "",
-    whatsapp: me?.whatsapp || "",
-    telegram: me?.telegram || "",
+   
   });
 
   const [emailStatus, setEmailStatus] = React.useState(
@@ -1619,8 +1618,7 @@ export default function Profile() {
           name: u.name || "",
           email: u.email || "",
           phone: u.phone || "",
-          whatsapp: u.whatsapp || "",
-          telegram: u.telegram || "",
+          
         });
         setEmailStatus(u.emailVerified ? "verified" : "unknown");
         localStorage.setItem(USER_KEY, JSON.stringify(u));
@@ -1653,8 +1651,7 @@ export default function Profile() {
         .updateMe(token, {
           name: form.name,
           phone: form.phone,
-          whatsapp: form.whatsapp,
-          telegram: form.telegram,
+          
         })
         .then((u) => {
           if (!u) return;
