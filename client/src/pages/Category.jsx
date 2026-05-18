@@ -134,7 +134,7 @@ export default function Category() {
         <span className="text-slate-700">{cat.title}</span>
       </nav>
 
-      <header className="rounded-2xl border bg-white p-4 md:p-5 flex items-center gap-4">
+      <header className="rounded-3xl border border-slate-200 bg-gradient-to-br from-white to-slate-50 p-4 md:p-6 flex items-center gap-4 shadow-sm">
         <div className="shrink-0 w-16 h-16 md:w-20 md:h-20 rounded-2xl border bg-slate-50 grid place-items-center overflow-hidden">
           <img
             src={cat.img}
@@ -221,15 +221,23 @@ export default function Category() {
                 to={`/listing?cat=${slug}&subcategory=${encodeURIComponent(
                   sub
                 )}`}
-                className="rounded-2xl border bg-white p-4 hover:shadow-md hover:-translate-y-0.5 transition flex flex-col items-center text-center"
+                className="group rounded-3xl border border-slate-200 bg-white p-4 hover:shadow-xl hover:border-blue-200 hover:-translate-y-1 transition-all duration-300 flex flex-col items-center text-center"
               >
-                <div className="w-16 h-16 rounded-xl bg-gradient-to-b from-slate-50 to-white border grid place-items-center mb-2">
-                  <span className="text-xl select-none">📁</span>
-                </div>
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-b from-blue-50 to-white border border-blue-100 grid place-items-center mb-3 group-hover:scale-105 transition">
+  <img
+    src={cat.img}
+    alt={sub}
+    className="w-10 h-10 object-contain"
+  />
+</div>
 
-                <div className="text-sm font-semibold line-clamp-2">
-                  {sub}
-                </div>
+<div className="text-sm font-semibold line-clamp-2">
+  {sub}
+</div>
+
+<div className="text-xs text-slate-500 mt-1">
+  Смотреть объявления
+</div>
               </Link>
             ))}
           </div>
