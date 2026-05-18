@@ -8,7 +8,7 @@ import React from 'react'
 export default function AdSlot({ type='banner', id, className='' }){
   const styles = {
     banner: 'w-full h-24 md:h-28',
-    sidebar: 'w-full h-80',
+    sidebar: 'w-full h-56',
     infeed: 'w-full h-24'
   }
   return (

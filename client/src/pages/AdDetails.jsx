@@ -325,7 +325,7 @@ export default function AdDetails() {
         </main>
 
         <aside className="lg:col-span-4 space-y-5">
-          <section className="card p-4 md:p-5 sticky top-4">
+          <section className="card p-4 md:p-5 lg:sticky lg:top-24">
             <div className="text-sm text-slate-500">Цена</div>
 
             <div className="text-3xl font-extrabold text-slate-900 mt-1">
