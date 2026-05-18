@@ -226,9 +226,11 @@ export default function Listing() {
     };
   }, [cat, subcategory, search, priceFrom, priceTo, sort]);
 
-  const availableSubcategories = React.useMemo(() => {
-    return draft.cat ? SUBCATEGORIES[draft.cat] || [] : [];
-  }, [draft.cat]);
+  const activeCat = draft.cat || cat;
+
+const availableSubcategories = React.useMemo(() => {
+  return activeCat ? SUBCATEGORIES[activeCat] || [] : [];
+}, [activeCat]);
 
   const applyFilters = () => {
     const next = {};
@@ -317,23 +319,26 @@ export default function Listing() {
             />
           </div>
 
-          <select
-            value={draft.cat}
-            onChange={(e) =>
-              setDraft((v) => ({
-                ...v,
-                cat: e.target.value,
-                subcategory: "",
-              }))
-            }
-            className="md:col-span-2 h-11 rounded-xl border px-3 outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            {CATEGORIES.map((item) => (
-              <option key={item.value} value={item.value}>
-                {item.label}
-              </option>
-            ))}
-          </select>
+          {!cat && (
+  <select
+    value={draft.cat}
+    onChange={(e) =>
+      setDraft((v) => ({
+        ...v,
+        cat: e.target.value,
+        subcategory: "",
+        specs: {},
+      }))
+    }
+    className="md:col-span-2 h-11 rounded-xl border px-3 outline-none focus:ring-2 focus:ring-blue-500"
+  >
+    {CATEGORIES.map((item) => (
+      <option key={item.value} value={item.value}>
+        {item.label}
+      </option>
+    ))}
+  </select>
+)}
 
           <select
             value={draft.subcategory}
