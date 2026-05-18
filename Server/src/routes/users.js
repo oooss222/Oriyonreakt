@@ -22,15 +22,40 @@ router.get("/me", auth, async (req, res) => {
   }
 });
 
+function normalizeWhatsapp(value = "") {
+  return String(value).replace(/[^\d]/g, "");
+}
+
+function normalizeTelegram(value = "") {
+  value = String(value).trim();
+
+  if (!value) return "";
+
+  if (value.startsWith("https://t.me/")) {
+    return value;
+  }
+
+  return `https://t.me/${value.replace("@", "")}`;
+}
+
 router.put("/me", auth, async (req, res) => {
   try {
     const body = req.body || {};
 
     const updated = await User.updateProfile(req.user.id, {
-      name: body.name ? String(body.name).trim() : undefined,
-      phone: body.phone ? String(body.phone).trim() : undefined,
-      sellerType: body.sellerType || undefined,
-    });
+    name: body.name ? String(body.name).trim() : undefined,
+    phone: body.phone ? String(body.phone).trim() : undefined,
+    whatsapp:
+    body.whatsapp !== undefined
+      ? normalizeWhatsapp(body.whatsapp)
+      : undefined,
+
+    telegram:
+    body.telegram !== undefined
+      ? normalizeTelegram(body.telegram)
+      : undefined,
+    sellerType: body.sellerType || undefined,
+  });
 
     if (!updated) {
       return res.status(404).json({
