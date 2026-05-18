@@ -2213,43 +2213,7 @@ export default function Profile() {
   }
 />
 
-<div className="mt-4">
-  <label className="block text-sm font-medium mb-1">
-    WhatsApp
-  </label>
 
-  <input
-    type="text"
-    value={form.whatsapp || ""}
-    onChange={(e) =>
-      setForm((prev) => ({
-        ...prev,
-        whatsapp: e.target.value,
-      }))
-    }
-    placeholder="992900000000"
-    className="input w-full"
-  />
-</div>
-
-<div className="mt-4">
-  <label className="block text-sm font-medium mb-1">
-    Telegram
-  </label>
-
-  <input
-    type="text"
-    value={form.telegram || ""}
-    onChange={(e) =>
-      setForm((prev) => ({
-        ...prev,
-        telegram: e.target.value,
-      }))
-    }
-    placeholder="@username"
-    className="input w-full"
-  />
-</div>
                 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
   <label className="block">
