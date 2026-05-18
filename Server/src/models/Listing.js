@@ -12,57 +12,53 @@ function toNumberOrNull(value) {
 
 class ListingModel {
   static async create(data) {
-    const result = await query(
-      `
-      INSERT INTO listings (
-  public_id,
-  title,
-  price,
-  description,
-  location,
-  cat,
-  subcategory,
-  images,
-  specs,
-  owner,
-  status,
-  rejection_reason
-)
-VALUES (
-  FLOOR(10000000 + RANDOM() * 90000000),
-  $1, $2, $3, $4,
-  $5, $6, $7::jsonb,
-  $8::jsonb,
-  $9,
-  'pending',
-  ''
-)
-RETURNING *
-      VALUES (
-        $1, $2, $3, $4,
-        $5, $6, $7::jsonb,
-        $8::jsonb,
-        $9,
-        'pending',
-        ''
-      )
-      RETURNING *
-      `,
-      [
-        data.title,
-        data.price || "",
-        data.description || "",
-        data.location || "",
-        data.cat,
-        data.subcategory || "",
-        JSON.stringify(data.images || []),
-        JSON.stringify(data.specs || []),
-        data.owner,
-      ]
-    );
+  const result = await query(
+    `
+    INSERT INTO listings (
+      public_id,
+      title,
+      price,
+      description,
+      location,
+      cat,
+      subcategory,
+      images,
+      specs,
+      owner,
+      status,
+      rejection_reason
+    )
+    VALUES (
+      FLOOR(10000000 + RANDOM() * 90000000),
+      $1,
+      $2,
+      $3,
+      $4,
+      $5,
+      $6,
+      $7::jsonb,
+      $8::jsonb,
+      $9,
+      'pending',
+      ''
+    )
+    RETURNING *
+    `,
+    [
+      data.title,
+      data.price || "",
+      data.description || "",
+      data.location || "",
+      data.cat,
+      data.subcategory || "",
+      JSON.stringify(data.images || []),
+      JSON.stringify(data.specs || []),
+      data.owner,
+    ]
+  );
 
-    return mapListing(result.rows[0]);
-  }
+  return mapListing(result.rows[0]);
+}
 
   static async findAll({
     cat,
