@@ -1274,33 +1274,32 @@ function ModerationPanel({ token }) {
                   </Link>
 
                   {status === "pending" && (
-                    <>
-                      <button
-                        onClick={() => approve(id)}
-                        disabled={isBusy}
-                        className="inline-flex justify-center px-3 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-60"
-                      >
-                        {isBusy ? "..." : "Принять"}
-                      </button>
+  <>
+    <button
+      onClick={() => approve(id)}
+      disabled={isBusy}
+      className="inline-flex justify-center px-3 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-60"
+    >
+      {isBusy ? "..." : "Принять"}
+    </button>
 
-                      <button
-                        onClick={() => openReject(ad)}
-                        disabled={isBusy}
-                        className="inline-flex justify-center px-3 py-2 rounded-lg border text-red-600 hover:bg-red-50 disabled:opacity-60"
-                      >
-                        Отклонить
-                      </button>
+    <button
+      onClick={() => openReject(ad)}
+      disabled={isBusy}
+      className="inline-flex justify-center px-3 py-2 rounded-lg border text-red-600 hover:bg-red-50 disabled:opacity-60"
+    >
+      Отклонить
+    </button>
+  </>
+)}
 
-                      <button
-                        onClick={() => removeListing(id)}
-                        disabled={isBusy}
-                        className="inline-flex justify-center px-3 py-2 rounded-lg border text-red-700 hover:bg-red-50 disabled:opacity-60"
-                      >
-                        Удалить
-                      </button>
-
-                    </>
-                  )}
+<button
+  onClick={() => removeListing(id)}
+  disabled={isBusy}
+  className="inline-flex justify-center px-3 py-2 rounded-lg border text-red-700 hover:bg-red-50 disabled:opacity-60"
+>
+  Удалить
+</button>
                 </div>
               </article>
             );
