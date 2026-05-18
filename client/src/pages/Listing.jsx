@@ -157,7 +157,7 @@ export default function Listing() {
   const [items, setItems] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState("");
-
+  const [showSuggestions, setShowSuggestions] = React.useState(false);
   const cat = searchParams.get("cat") || "";
   const subcategory = searchParams.get("subcategory") || "";
   const search = searchParams.get("search") || "";
@@ -227,6 +227,36 @@ export default function Listing() {
   }, [cat, subcategory, search, priceFrom, priceTo, sort]);
 
   const activeCat = draft.cat || cat;
+  const suggestions = React.useMemo(() => {
+  const q = draft.search.trim().toLowerCase();
+
+  if (q.length < 2) return [];
+
+  const fromListings = items
+    .filter((item) =>
+      String(item.title || "").toLowerCase().includes(q)
+    )
+    .slice(0, 5)
+    .map((item) => ({
+      type: "Объявление",
+      label: item.title,
+      value: item.title,
+    }));
+
+  const fromCategories = CATEGORIES
+    .filter((item) =>
+      item.value && item.label.toLowerCase().includes(q)
+    )
+    .slice(0, 3)
+    .map((item) => ({
+      type: "Категория",
+      label: item.label,
+      value: item.label,
+      cat: item.value,
+    }));
+
+  return [...fromListings, ...fromCategories].slice(0, 8);
+}, [draft.search, items]);
   const availableSubcategories = React.useMemo(() => {
   return activeCat ? SUBCATEGORIES[activeCat] || [] : [];
 }, [activeCat]);
@@ -303,24 +333,79 @@ const specFilters = React.useMemo(() => {
 
         <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
           <div className="md:col-span-4 relative">
-            <Search
-              size={18}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-            />
+  <Search
+    size={18}
+    className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+  />
 
-            <input
-              value={draft.search}
-              onChange={(e) =>
-                setDraft((v) => ({
-                  ...v,
-                  search: e.target.value,
-                }))
-              }
-              onKeyDown={(e) => e.key === "Enter" && applyFilters()}
-              placeholder="Поиск по названию или описанию"
-              className="h-11 w-full rounded-xl border pl-10 pr-3 outline-none focus:ring-2 focus:ring-blue-500"
-            />
+  <input
+    value={draft.search}
+    onFocus={() => setShowSuggestions(true)}
+    onChange={(e) => {
+      setDraft((v) => ({
+        ...v,
+        search: e.target.value,
+      }));
+      setShowSuggestions(true);
+    }}
+    onKeyDown={(e) => {
+      if (e.key === "Enter") {
+        setShowSuggestions(false);
+        applyFilters();
+      }
+
+      if (e.key === "Escape") {
+        setShowSuggestions(false);
+      }
+    }}
+    placeholder="Поиск по названию или описанию"
+    className="h-11 w-full rounded-xl border pl-10 pr-3 outline-none focus:ring-2 focus:ring-blue-500"
+  />
+
+  {showSuggestions && suggestions.length > 0 && (
+    <div className="absolute left-0 right-0 top-12 z-50 rounded-2xl border bg-white shadow-xl overflow-hidden">
+      {suggestions.map((item, index) => (
+        <button
+          key={`${item.type}-${item.label}-${index}`}
+          type="button"
+          onMouseDown={(e) => {
+            e.preventDefault();
+
+            if (item.cat) {
+              setDraft((v) => ({
+                ...v,
+                cat: item.cat,
+                subcategory: "",
+                search: "",
+                specs: {},
+              }));
+
+              setSearchParams({
+                cat: item.cat,
+              });
+            } else {
+              setDraft((v) => ({
+                ...v,
+                search: item.value,
+              }));
+            }
+
+            setShowSuggestions(false);
+          }}
+          className="w-full text-left px-4 py-3 hover:bg-slate-50 border-b last:border-b-0"
+        >
+          <div className="text-sm font-medium text-slate-900">
+            {item.label}
           </div>
+
+          <div className="text-xs text-slate-500">
+            {item.type}
+          </div>
+        </button>
+      ))}
+    </div>
+  )}
+</div>
 
           {!cat && (
   <select
