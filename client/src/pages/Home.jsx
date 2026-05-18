@@ -317,8 +317,7 @@ export default function Home() {
   return (
     <div className="bg-slate-50">
       <div className="container mx-auto px-4 py-6 space-y-10">
-        <section className="relative overflow-hidden rounded-[1.5rem] border bg-gradient-to-br from-blue-700 via-blue-600 to-indigo-800 text-white shadow-lg">
-  <div className="absolute -right-16 -top-16 w-56 h-56 rounded-full bg-white/10 blur-sm" />
+<section className="relative rounded-[1.5rem] border bg-gradient-to-br from-blue-700 via-blue-600 to-indigo-800 text-white shadow-lg">  <div className="absolute -right-16 -top-16 w-56 h-56 rounded-full bg-white/10 blur-sm" />
   <div className="absolute right-10 bottom-8 w-24 h-24 rounded-full bg-white/10" />
 
   <div className="relative p-5 md:p-7">
