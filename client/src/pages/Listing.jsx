@@ -7,7 +7,7 @@ import {
   SlidersHorizontal,
   X,
   MapPin,
-  Image as ImageIcon,
+  
 } from "lucide-react";
 
 const CATEGORIES = [
@@ -31,6 +31,7 @@ const SUBCATEGORIES = {
     "Спецтехника",
     "Прицепы",
     "Шины и диски",
+    "Автохимия и автомасла",
   ],
   furniture: [
     "Мебель для спальни",
@@ -39,22 +40,68 @@ const SUBCATEGORIES = {
     "Мебель для прихожей",
     "Мебель на заказ",
   ],
-  phones: ["Смартфоны", "Аксессуары", "Запчасти", "Ремонт телефонов"],
+  phones: [
+    "Мобильные телефоны",
+    "Планшеты",
+    "Мобильные аксессуары",
+    "Ремонт и сервис телефонов",
+  ],
   electronics: [
-    "Холодильники",
-    "Стиральные машины",
-    "Телевизоры",
-    "Кондиционеры",
-    "Кухонная техника",
+    "Техника для дома и кухни",
+    "Видеонаблюдение и камеры",
+    "Климатическая техника",
+    "Обогреватели",
   ],
   computers: [
     "Ноутбуки",
-    "Компьютеры",
-    "Мониторы",
-    "Принтеры",
-    "Комплектующие",
+    "ПК",
+    "Приставки",
+    "Принтеры и сканеры",
   ],
-  repair: ["Инструменты", "Материалы", "Услуги ремонта"],
+  repair: [
+    "Окна и двери",
+    "Дома, срубы и снаряжения",
+    "Средства индивидуальной защиты",
+    "Ворота и заборы",
+    "Стройматериалы",
+    "Инструменты",
+    "Прочее для ремонта",
+  ],
+};
+
+const SPEC_FILTERS = {
+  phones: [
+    {
+      name: "Производитель",
+      options: ["Apple", "Samsung", "Xiaomi", "Huawei", "Honor", "Realme"],
+    },
+    {
+      name: "Память",
+      options: ["64 GB", "128 GB", "256 GB", "512 GB", "1 TB"],
+    },
+    {
+      name: "Состояние",
+      options: ["Новый", "Б/у", "Требует ремонта"],
+    },
+    {
+      name: "Гарантия",
+      options: ["Да", "Нет"],
+    },
+  ],
+  transport: [
+    {
+      name: "КПП",
+      options: ["Автомат", "Механика", "Робот", "Вариатор"],
+    },
+    {
+      name: "Топливо",
+      options: ["Бензин", "Дизель", "Газ", "Гибрид", "Электро"],
+    },
+    {
+      name: "Состояние",
+      options: ["Новый", "Б/у", "Требует ремонта"],
+    },
+  ],
 };
 
 const getThumb = (ad) => {
@@ -75,7 +122,10 @@ const getThumb = (ad) => {
       return src;
     }
 
-    return API_BASE.replace("/api", "") + src;
+    const server = API_BASE.replace(/\/api$/, "");
+    const clean = String(src).replace(/^\/+/, "");
+
+    return `${server}/${clean}`;
   }
 
   return ad?.img || ad?.image || "/img/placeholder.jpg";
@@ -99,10 +149,7 @@ const formatPrice = (value) => {
   return `${n.toLocaleString("ru-RU")} TJS`;
 };
 
-const hasImage = (ad) => {
-  if (Array.isArray(ad?.images) && ad.images.length > 0) return true;
-  return Boolean(ad?.img || ad?.image);
-};
+
 
 export default function Listing() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -116,18 +163,17 @@ export default function Listing() {
   const search = searchParams.get("search") || "";
   const priceFrom = searchParams.get("priceFrom") || "";
   const priceTo = searchParams.get("priceTo") || "";
-  const photo = searchParams.get("photo") || "";
   const sort = searchParams.get("sort") || "new";
 
   const [draft, setDraft] = React.useState({
-    search,
-    cat,
-    subcategory,
-    priceFrom,
-    priceTo,
-    photo,
-    sort,
-  });
+  search,
+  cat,
+  subcategory,
+  priceFrom,
+  priceTo,
+  sort,
+  specs: {},
+});
 
   React.useEffect(() => {
     setDraft({
@@ -136,10 +182,10 @@ export default function Listing() {
       subcategory,
       priceFrom,
       priceTo,
-      photo,
       sort,
+      specs: {},
     });
-  }, [search, cat, subcategory, priceFrom, priceTo, photo, sort]);
+  }, [search, cat, subcategory, priceFrom, priceTo, sort]);
 
   React.useEffect(() => {
     let active = true;
@@ -155,7 +201,6 @@ export default function Listing() {
           search: search || undefined,
           priceFrom: priceFrom || undefined,
           priceTo: priceTo || undefined,
-          photo: photo || undefined,
           sort: sort || "new",
           limit: 100,
         });
@@ -179,7 +224,7 @@ export default function Listing() {
     return () => {
       active = false;
     };
-  }, [cat, subcategory, search, priceFrom, priceTo, photo, sort]);
+  }, [cat, subcategory, search, priceFrom, priceTo, sort]);
 
   const availableSubcategories = React.useMemo(() => {
     return draft.cat ? SUBCATEGORIES[draft.cat] || [] : [];
@@ -345,27 +390,13 @@ export default function Listing() {
             className="md:col-span-2 h-11 rounded-xl border px-3 outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="new">Сначала новые</option>
-            <option value="old">Сначала старые</option>
             <option value="price_asc">Цена по возрастанию</option>
             <option value="price_desc">Цена по убыванию</option>
           </select>
         </div>
 
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <label className="inline-flex items-center gap-2 text-sm text-slate-600">
-            <input
-              type="checkbox"
-              checked={draft.photo === "1"}
-              onChange={(e) =>
-                setDraft((v) => ({
-                  ...v,
-                  photo: e.target.checked ? "1" : "",
-                }))
-              }
-              className="w-4 h-4"
-            />
-            Только объявления с фото
-          </label>
+          
 
           <button
             type="button"
@@ -480,13 +511,11 @@ export default function Listing() {
                     {ad.location || ad.city || "Душанбе"}
                   </div>
 
-                  <div className="text-xs text-slate-400 line-clamp-1 flex items-center gap-1">
-                    <ImageIcon size={13} />
-                    {hasImage(ad) ? "Есть фото" : "Без фото"}
-                    {ad.createdAt && !Number.isNaN(Date.parse(ad.createdAt))
-                      ? ` • ${new Date(ad.createdAt).toLocaleDateString("ru-RU")}`
-                      : ""}
-                  </div>
+                  <div className="text-xs text-slate-400">
+                  {ad.createdAt && !Number.isNaN(Date.parse(ad.createdAt))
+                    ? new Date(ad.createdAt).toLocaleDateString("ru-RU")
+                    : ""}
+                </div>
                 </div>
               </Link>
             );
