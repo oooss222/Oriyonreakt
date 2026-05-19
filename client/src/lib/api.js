@@ -110,6 +110,9 @@ export const api = {
     );
   },
 
+  adByPlacement: (placement) =>
+  request(`/ads/${encodeURIComponent(placement)}`),
+
   listingById: (id) =>
     request(`/listings/${id}`),
 
@@ -154,6 +157,33 @@ export const api = {
 
   adminDeleteListing: (token, id) =>
   request(`/admin/listings/${id}`, {
+    method: "DELETE",
+    token,
+  }),
+
+  
+
+  adminAds: (token) =>
+  request("/admin/ads", {
+    token,
+  }),
+
+adminCreateAd: (token, data) =>
+  request("/admin/ads", {
+    method: "POST",
+    token,
+    body: data,
+  }),
+
+adminToggleAd: (token, id, isActive) =>
+  request(`/admin/ads/${id}/toggle`, {
+    method: "PUT",
+    token,
+    body: { isActive },
+  }),
+
+adminDeleteAd: (token, id) =>
+  request(`/admin/ads/${id}`, {
     method: "DELETE",
     token,
   }),
