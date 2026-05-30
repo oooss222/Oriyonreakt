@@ -56,17 +56,12 @@ export default function AdDetails() {
     async function loadAd() {
       try {
         setLoading(true);
+        sessionStorage.removeItem("ad_preview");
+       const data = await api.listingById(id);
 
-        const cached = JSON.parse(
-          sessionStorage.getItem("ad_preview") || "null"
-        );
-
-        if (cached && String(cached._id || cached.id) === String(id)) {
-          if (active) setAd(cached);
-        } else {
-          const data = await api.listingById(id);
-          if (active) setAd(data);
-        }
+      if (active) {
+        setAd(data);
+      }
       } catch {
         if (active) setAd(null);
       } finally {
