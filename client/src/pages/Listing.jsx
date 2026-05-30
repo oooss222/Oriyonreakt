@@ -274,10 +274,10 @@ const specFilters = React.useMemo(() => {
 
     const normalizedSearch = draft.search.trim();
 
-    if (normalizedSearch) {
-      next.search = normalizedSearch;
-      next.q = normalizedSearch;
-    }
+  if (normalizedSearch) {
+    next.search = normalizedSearch;
+    next.q = normalizedSearch;
+  }
     if (draft.cat) next.cat = draft.cat;
     if (draft.subcategory) next.subcategory = draft.subcategory;
     if (draft.priceFrom) next.priceFrom = draft.priceFrom;
