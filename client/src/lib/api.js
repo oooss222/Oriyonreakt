@@ -116,10 +116,28 @@ export const api = {
   listingById: (id) =>
     request(`/listings/${id}`),
 
+  messageInbox: (token) =>
+  request("/messages/inbox", {
+    token,
+  }),
+
+  messageThread: (token, listingId) =>
+  request(`/messages/${listingId}`, {
+    token,
+  }),
+
+  sendMessage: (token, listingId, text) =>
+  request(`/messages/${listingId}`, {
+    method: "POST",
+    token,
+    body: { text },
+  }),
+
   myListings: (token) =>
     request("/listings/mine", {
       token,
     }),
+
 
   uploadImages: (
     token,

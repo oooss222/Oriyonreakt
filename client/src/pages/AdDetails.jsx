@@ -49,6 +49,10 @@ export default function AdDetails() {
   const [loading, setLoading] = React.useState(true);
   const [isFav, setIsFav] = React.useState(false);
   const [phoneVisible, setPhoneVisible] = React.useState(false);
+  const [messageOpen, setMessageOpen] = React.useState(false);
+  const [messageText, setMessageText] = React.useState("");
+  const [messageSending, setMessageSending] = React.useState(false);
+
 
   React.useEffect(() => {
     let active = true;
@@ -148,6 +152,35 @@ export default function AdDetails() {
       }
     } catch (e) {
       console.error("Favorite toggle failed:", e);
+    }
+  };
+
+  const sendSellerMessage = async () => {
+  if (!token) {
+    window.location.href = "/auth";
+    return;
+  }
+
+  const text = messageText.trim();
+
+  if (!text) {
+    alert("Введите сообщение");
+    return;
+  }
+
+  try {
+    setMessageSending(true);
+
+    await api.sendMessage(token, ad._id || ad.id, text);
+
+    setMessageText("");
+    setMessageOpen(false);
+
+    alert("Сообщение отправлено продавцу");
+    } catch (e) {
+    alert(e.message || "Не удалось отправить сообщение");
+    } finally {
+    setMessageSending(false);
     }
   };
 
@@ -443,10 +476,35 @@ export default function AdDetails() {
               </button>
             )}
 
-            <button className="btn w-full">
-              <MessageCircle className="w-4 h-4" />
-              Написать сообщение
-            </button>
+            <button
+                type="button"
+                className="btn w-full"
+                onClick={() => setMessageOpen((v) => !v)}
+              >
+                <MessageCircle className="w-4 h-4" />
+                Написать сообщение
+              </button>
+
+              {messageOpen && (
+                <div className="rounded-2xl border bg-slate-50 p-3 space-y-3">
+                  <textarea
+                    value={messageText}
+                    onChange={(e) => setMessageText(e.target.value)}
+                    rows={4}
+                    placeholder="Напишите сообщение продавцу..."
+                    className="w-full rounded-xl border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 resize-y"
+                  />
+
+                  <button
+                    type="button"
+                    onClick={sendSellerMessage}
+                    disabled={messageSending}
+                    className="btn btn-primary w-full disabled:opacity-60"
+                  >
+                    {messageSending ? "Отправляем..." : "Отправить сообщение"}
+                  </button>
+                </div>
+              )}
           </div>
 
             <div className="mt-4 text-xs text-slate-500 flex items-center gap-1">
