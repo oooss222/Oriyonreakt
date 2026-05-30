@@ -29,6 +29,31 @@ export default function Messages() {
 
   const isAdmin = me?.role === "admin" || me?.role === "super_admin";
 
+  const isOnline = (lastSeen) => {
+  if (!lastSeen) return false;
+
+  const diff =
+    Date.now() - new Date(lastSeen).getTime();
+
+  return diff < 2 * 60 * 1000;
+};
+
+const formatLastSeen = (lastSeen) => {
+  if (!lastSeen) return "не в сети";
+
+  if (isOnline(lastSeen)) {
+    return "онлайн";
+  }
+
+  return (
+    "был(а) " +
+    new Date(lastSeen).toLocaleTimeString("ru-RU", {
+      hour: "2-digit",
+      minute: "2-digit",
+    })
+  );
+};
+
   React.useEffect(() => {
     if (!token) {
       window.location.href = "/auth";
@@ -250,10 +275,35 @@ export default function Messages() {
                     {selected.listingTitle || "Объявление"}
                   </div>
 
-                  <div className="text-xs text-slate-500">
-                    {selected.senderName || selected.senderEmail} →{" "}
-                    {selected.receiverName || selected.receiverEmail}
-                  </div>
+                  <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                    <span>
+                        {selected.senderName || selected.senderEmail}
+                    </span>
+
+                    <span>→</span>
+
+                    <span>
+                        {selected.receiverName || selected.receiverEmail}
+                    </span>
+
+                    <div
+                        className={`w-2.5 h-2.5 rounded-full ${
+                        isOnline(
+                            selected.receiverLastSeen ||
+                            selected.senderLastSeen
+                        )
+                            ? "bg-green-500"
+                            : "bg-slate-300"
+                        }`}
+                    />
+
+                    <span>
+                        {formatLastSeen(
+                        selected.receiverLastSeen ||
+                        selected.senderLastSeen
+                        )}
+                    </span>
+                    </div>
                 </div>
 
                 <Link
@@ -291,9 +341,21 @@ export default function Messages() {
                               mine ? "text-blue-100" : "text-slate-500"
                             }`}
                           >
+                            <div className="flex items-center gap-2">
+                        <span>
                             {msg.senderName ||
-                              msg.senderEmail ||
-                              "Пользователь"}
+                            msg.senderEmail ||
+                            "Пользователь"}
+                        </span>
+
+                        <div
+                            className={`w-2 h-2 rounded-full ${
+                            isOnline(msg.senderLastSeen)
+                                ? "bg-green-400"
+                                : "bg-slate-300"
+                            }`}
+                        />
+                        </div>
                           </div>
 
                           <div className="whitespace-pre-wrap text-sm leading-6">
