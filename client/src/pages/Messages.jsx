@@ -172,8 +172,16 @@ export default function Messages() {
                         : "hover:bg-slate-50"
                     }`}
                   >
+                   <div className="flex items-start justify-between gap-2">
                     <div className="font-semibold line-clamp-1">
-                      {item.listingTitle || "Объявление"}
+                        {item.listingTitle || "Объявление"}
+                    </div>
+
+                    {Number(item.unreadCount || 0) > 0 && (
+                        <div className="min-w-[22px] h-[22px] px-1 rounded-full bg-red-500 text-white text-xs font-bold flex items-center justify-center">
+                        {Number(item.unreadCount || 0) > 99 ? "99+" : item.unreadCount}
+                        </div>
+                    )}
                     </div>
 
                     <div className="text-xs text-slate-500 mt-1 line-clamp-1">
