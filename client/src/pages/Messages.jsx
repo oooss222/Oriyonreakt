@@ -55,40 +55,35 @@ const formatLastSeen = (lastSeen) => {
 };
 
   React.useEffect(() => {
-  if (!token) {
-    window.location.href = "/auth";
-    return;
-  }
-
-  let alive = true;
-
-  async function loadInbox() {
-    try {
-      const data = await api.messageInbox(token);
-
-      if (alive) {
-        setItems(Array.isArray(data) ? data : []);
-      }
-    } catch {
-      if (alive) {
-        setItems([]);
-      }
-    } finally {
-      if (alive) {
-        setLoading(false);
-      }
+    if (!token) {
+      window.location.href = "/auth";
+      return;
     }
-  }
 
-  loadInbox();
+    let alive = true;
 
-  const timer = setInterval(loadInbox, 15000);
+    api
+      .messageInbox(token)
+      .then((data) => {
+        if (alive) {
+          setItems(Array.isArray(data) ? data : []);
+        }
+      })
+      .catch(() => {
+        if (alive) {
+          setItems([]);
+        }
+      })
+      .finally(() => {
+        if (alive) {
+          setLoading(false);
+        }
+      });
 
-  return () => {
-    alive = false;
-    clearInterval(timer);
-  };
-}, [token]);
+    return () => {
+      alive = false;
+    };
+  }, [token]);
 
   const openThread = async (item) => {
     try {
