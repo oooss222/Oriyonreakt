@@ -57,9 +57,10 @@ router.post("/:listingId", async (req, res) => {
     }
 
     const msg = await Message.create({
-      listingId: req.params.listingId,
-      senderId: req.user.id,
-      text,
+    listingId: req.params.listingId,
+    senderId: req.user.id,
+    receiverId: req.body?.receiverId || null,
+    text,
     });
 
     return res.status(201).json(msg);

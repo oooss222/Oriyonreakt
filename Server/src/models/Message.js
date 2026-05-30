@@ -1,43 +1,67 @@
 const { query, mapMessage } = require("../db");
 
 class MessageModel {
-  static async create({ listingId, senderId, text }) {
-    const listingResult = await query(
-      `
-      SELECT owner
-      FROM listings
-      WHERE id = $1
-      LIMIT 1
-      `,
-      [listingId]
-    );
+  static async create({ listingId, senderId, text, receiverId }) {
+  const listingResult = await query(
+    `
+    SELECT owner
+    FROM listings
+    WHERE id = $1
+    LIMIT 1
+    `,
+    [listingId]
+  );
 
-    const listing = listingResult.rows[0];
+  const listing = listingResult.rows[0];
 
-    if (!listing) {
-      throw new Error("LISTING_NOT_FOUND");
-    }
-
-    if (String(listing.owner) === String(senderId)) {
-      throw new Error("CANNOT_MESSAGE_YOURSELF");
-    }
-
-    const result = await query(
-      `
-      INSERT INTO messages (
-        listing_id,
-        sender_id,
-        receiver_id,
-        text
-      )
-      VALUES ($1, $2, $3, $4)
-      RETURNING *
-      `,
-      [listingId, senderId, listing.owner, text]
-    );
-
-    return mapMessage(result.rows[0]);
+  if (!listing) {
+    throw new Error("LISTING_NOT_FOUND");
   }
+
+  let finalReceiverId = receiverId || listing.owner;
+
+  if (String(listing.owner) === String(senderId)) {
+    if (!receiverId) {
+      const lastDialogResult = await query(
+        `
+        SELECT sender_id
+        FROM messages
+        WHERE listing_id = $1
+          AND sender_id <> $2
+        ORDER BY created_at DESC
+        LIMIT 1
+        `,
+        [listingId, senderId]
+      );
+
+      finalReceiverId = lastDialogResult.rows[0]?.sender_id;
+    }
+
+    if (!finalReceiverId) {
+      throw new Error("RECEIVER_REQUIRED");
+    }
+  }
+
+  if (String(finalReceiverId) === String(senderId)) {
+    throw new Error("CANNOT_MESSAGE_YOURSELF");
+  }
+
+  const result = await query(
+    `
+    INSERT INTO messages (
+      listing_id,
+      sender_id,
+      receiver_id,
+      text
+    )
+    VALUES ($1, $2, $3, $4)
+    RETURNING *
+    `,
+    [listingId, senderId, finalReceiverId, text]
+  );
+
+  return mapMessage(result.rows[0]);
+}
 
   static async getThread({ listingId, userId, role }) {
     const isAdmin = role === "admin" || role === "super_admin";
