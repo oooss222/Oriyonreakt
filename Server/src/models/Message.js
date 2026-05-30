@@ -101,8 +101,10 @@ class MessageModel {
       l.images->0->>'url' AS listing_image,
       s.name AS sender_name,
       s.email AS sender_email,
-      r.name AS receiver_name,
-      r.email AS receiver_email
+    s.last_seen AS sender_last_seen,
+    r.name AS receiver_name,
+    r.email AS receiver_email,
+    r.last_seen AS receiver_last_seen
     FROM messages m
     LEFT JOIN listings l ON l.id = m.listing_id
     LEFT JOIN users s ON s.id = m.sender_id
@@ -155,8 +157,10 @@ class MessageModel {
       l.images->0->>'url' AS listing_image,
       s.name AS sender_name,
       s.email AS sender_email,
-      r.name AS receiver_name,
-      r.email AS receiver_email
+    s.last_seen AS sender_last_seen,
+    r.name AS receiver_name,
+    r.email AS receiver_email,
+    r.last_seen AS receiver_last_seen
     FROM latest
     LEFT JOIN unread
       ON unread.listing_id = latest.listing_id

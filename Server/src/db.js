@@ -96,6 +96,9 @@ async function initDb() {
     ALTER TABLE users
       ADD COLUMN IF NOT EXISTS is_blocked BOOLEAN NOT NULL DEFAULT false;
 
+    ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS last_seen TIMESTAMPTZ;
+
     DO $$
     BEGIN
       IF NOT EXISTS (
@@ -291,8 +294,7 @@ function mapUser(row) {
     name: row.name,
     phone: row.phone,
 
-    whatsapp: row.whatsapp || "",
-    telegram: row.telegram || "",
+    lastSeen: row.last_seen || null,
 
     sellerType: row.seller_type,
 
@@ -407,6 +409,9 @@ function mapMessage(row) {
 
     listingTitle: row.listing_title || "",
     listingImage: row.listing_image || "",
+
+    senderLastSeen: row.sender_last_seen || null,
+    receiverLastSeen: row.receiver_last_seen || null,
 
     senderName: row.sender_name || "",
     senderEmail: row.sender_email || "",

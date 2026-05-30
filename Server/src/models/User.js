@@ -185,6 +185,20 @@ class UserModel {
 
     return mapUser(result.rows[0]);
   }
-}
 
+
+static async touchLastSeen(id) {
+  const result = await query(
+    `
+    UPDATE users
+    SET last_seen = now()
+    WHERE id = $1
+    RETURNING *
+    `,
+    [id]
+  );
+
+  return mapUser(result.rows[0]);
+}
+}
 module.exports = UserModel;
