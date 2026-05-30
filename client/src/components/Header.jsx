@@ -11,6 +11,7 @@ import {
   Home,
   Grid3X3,
   LogIn,
+  MessageCircle,
 } from "lucide-react";
 
 import { api, API_BASE } from "../lib/api";
@@ -26,7 +27,7 @@ export default function Header() {
   const [open, setOpen] = React.useState(false);
   const [listings, setListings] = React.useState([]);
   const [showSuggestions, setShowSuggestions] = React.useState(false);
-
+  const [unreadCount, setUnreadCount] = React.useState(0);
   const token = localStorage.getItem(TOKEN_KEY) || "";
 
   const user = React.useMemo(() => {
@@ -58,6 +59,37 @@ export default function Header() {
     active = false;
   };
 }, []);
+
+React.useEffect(() => {
+  if (!token) return;
+
+  let active = true;
+
+  async function loadUnread() {
+    try {
+      const data = await api.messageInbox(token);
+
+      if (!active) return;
+
+      const total = (Array.isArray(data) ? data : []).reduce(
+        (sum, item) =>
+          sum + Number(item.unreadCount || 0),
+        0
+      );
+
+      setUnreadCount(total);
+    } catch {}
+  }
+
+  loadUnread();
+
+  const timer = setInterval(loadUnread, 15000);
+
+  return () => {
+    active = false;
+    clearInterval(timer);
+  };
+}, [token]);
 
 function imageUrl(src) {
   if (!src) return "/img/placeholder.jpg";
@@ -225,6 +257,21 @@ const suggestions = React.useMemo(() => {
             </Link>
 
             <Link
+      to="/messages"
+      className="relative inline-flex items-center gap-2 px-3 py-2 rounded-xl border text-sm font-medium text-slate-700 hover:bg-slate-50 transition"
+    >
+      <MessageCircle size={18} />
+
+      Сообщения
+
+      {unreadCount > 0 && (
+        <div className="absolute -top-2 -right-2 min-w-[22px] h-[22px] px-1 rounded-full bg-red-500 text-white text-xs font-bold flex items-center justify-center">
+          {unreadCount > 99 ? "99+" : unreadCount}
+        </div>
+      )}
+    </Link>
+
+            <Link
               to="/profile?tab=fav"
               className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border text-sm font-medium text-slate-700 hover:bg-slate-50 transition group"
             >
@@ -325,6 +372,22 @@ const suggestions = React.useMemo(() => {
                 <PlusCircle size={18} />
                 Подать объявление
               </Link>
+
+              <Link
+  to="/messages"
+  onClick={close}
+  className="relative flex items-center gap-2 px-3 py-3 rounded-xl hover:bg-slate-50"
+>
+  <MessageCircle size={18} />
+
+  Сообщения
+
+  {unreadCount > 0 && (
+    <div className="ml-auto min-w-[22px] h-[22px] px-1 rounded-full bg-red-500 text-white text-xs font-bold flex items-center justify-center">
+      {unreadCount > 99 ? "99+" : unreadCount}
+    </div>
+  )}
+</Link>
 
               <Link
                 to="/profile?tab=fav"
