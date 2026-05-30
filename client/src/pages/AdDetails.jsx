@@ -201,8 +201,8 @@ export default function AdDetails() {
 
   return (
     <div className="container-x py-6 space-y-5">
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-        <main className="lg:col-span-8 space-y-5">
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-5">
+        <main className="xl:col-span-8 space-y-5">
           <section className="card p-4 md:p-5">
             <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
               <div className="min-w-0">
@@ -248,7 +248,7 @@ export default function AdDetails() {
                 <img
                   src={images[activeImageIndex] || images[0]}
                   alt={ad.title || "Фото объявления"}
-                  className="w-full h-full object-cover"
+                  className="w-full max-h-[320px] sm:max-h-[420px] md:max-h-[520px] object-contain bg-white"
                   onError={(e) => {
                     e.currentTarget.src =
                       "https://placehold.co/900x600?text=No+Image";
@@ -303,6 +303,10 @@ export default function AdDetails() {
                         src={src}
                         alt={`${ad.title || "Фото"} ${index + 1}`}
                         className="w-24 h-20 object-cover bg-slate-100"
+                        onError={(e) => {
+                          e.currentTarget.src =
+                            "https://placehold.co/300x200?text=No+Image";
+                        }}
                       />
                     </button>
                   ))}
@@ -323,17 +327,26 @@ export default function AdDetails() {
 
             {specs.length > 0 ? (
               <div className="divide-y divide-slate-100">
-                {specs.map((spec, index) => (
-                  <div
-                    key={`${spec.name}-${index}`}
-                    className="flex items-center justify-between gap-4 py-2 text-sm"
-                  >
-                    <span className="text-slate-500">{spec.name}</span>
-                    <span className="font-semibold text-slate-800 text-right">
-                      {String(spec.value)}
-                    </span>
-                  </div>
-                ))}
+              {specs
+              .filter((spec) => {
+                const name = String(spec.name || "").toLowerCase();
+
+                return name !== "цена" && name !== "price";
+              })
+              .map((spec, index) => (
+                <div
+                  key={`${spec.name}-${index}`}
+                  className="flex items-center justify-between gap-4 py-2 text-sm"
+                >
+                  <span className="text-slate-500">
+                    {spec.name}
+                  </span>
+
+                  <span className="font-semibold text-slate-800 text-right">
+                    {String(spec.value)}
+                  </span>
+                </div>
+              ))}
               </div>
             ) : (
               <div className="text-slate-500 text-sm">
@@ -363,7 +376,7 @@ export default function AdDetails() {
                 {related.map((item) => (
                   <div
                     key={item._id || item.id}
-                    className="min-w-[220px] max-w-[220px] snap-start"
+                    className="min-w-[180px] sm:min-w-[220px] max-w-[220px] snap-start"
                   >
                     <ListingCard item={item} />
                   </div>
@@ -373,7 +386,7 @@ export default function AdDetails() {
           )}
         </main>
 
-        <aside className="lg:col-span-4 space-y-5">
+        <aside className="xl:col-span-4 space-y-5">
           <section className="card p-6 md:p-7 lg:sticky lg:top-24 rounded-3xl">
             <div className="text-sm text-slate-500">Цена</div>
 
@@ -391,7 +404,13 @@ export default function AdDetails() {
 
                 <div>
                   <div className="font-bold">
-                    {ad.sellerName || "Пользователь Oriyon"}
+                    {(
+                      ad.sellerName ||
+                      ad.ownerName ||
+                      ad.userName ||
+                      ad.owner?.name ||
+                      ""
+                    ).trim() || "Продавец"}
                   </div>
 
                   <div className="text-xs text-slate-500">
