@@ -170,7 +170,7 @@ class ListingModel {
     SELECT
       l.*,
       u.name AS seller_name,
-      u.phone AS seller_phone,
+      u.phone AS seller_phone
 
     FROM listings l
     LEFT JOIN users u ON u.id = l.owner
@@ -187,7 +187,7 @@ class ListingModel {
   return {
     ...listing,
     sellerName: result.rows[0].seller_name || "",
-    phone: result.rows[0].seller_phone || "",
+    phone: result.rows[0].seller_phone || ""
 
   };
 }
