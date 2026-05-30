@@ -298,6 +298,8 @@ function mapListing(row) {
 
   title: row.title,
 
+    price: row.price || "",
+
     description: row.description,
 
     location: row.location,

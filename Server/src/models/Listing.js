@@ -265,19 +265,7 @@ class ListingModel {
   return true;
 }
 
-  static async deleteById(id) {
-  await query(
-    `
-    DELETE FROM listings
-    WHERE id = $1
-    `,
-    [id]
-  );
-
-  return true;
-}
-
-  static async delete(id, ownerId) {
+   static async delete(id, ownerId) {
     const listing = await this.findById(id);
 
     if (!listing) return false;
