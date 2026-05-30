@@ -171,8 +171,7 @@ class ListingModel {
       l.*,
       u.name AS seller_name,
       u.phone AS seller_phone,
-      u.whatsapp AS seller_whatsapp,
-      u.telegram AS seller_telegram
+
     FROM listings l
     LEFT JOIN users u ON u.id = l.owner
     WHERE l.id = $1
@@ -189,8 +188,7 @@ class ListingModel {
     ...listing,
     sellerName: result.rows[0].seller_name || "",
     phone: result.rows[0].seller_phone || "",
-    whatsapp: result.rows[0].seller_whatsapp || "",
-    telegram: result.rows[0].seller_telegram || "",
+
   };
 }
 
