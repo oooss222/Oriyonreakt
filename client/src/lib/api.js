@@ -126,11 +126,11 @@ export const api = {
     token,
   }),
 
-  sendMessage: (token, listingId, text) =>
+  sendMessage: (token, listingId, text, receiverId) =>
   request(`/messages/${listingId}`, {
     method: "POST",
     token,
-    body: { text },
+    body: { text, receiverId },
   }),
 
   myListings: (token) =>

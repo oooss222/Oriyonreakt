@@ -1618,9 +1618,19 @@ function MessagesPanel({ token }) {
     const value = text.trim();
     if (!value || !selected) return;
 
-    const msg = await api.sendMessage(token, selected.listingId, value);
-    setThread((arr) => [...arr, msg]);
-    setText("");
+    const myId = JSON.parse(localStorage.getItem("auth_user") || "{}")?.id;
+
+    const receiverId =
+      String(selected.senderId) === String(myId)
+        ? selected.receiverId
+        : selected.senderId;
+
+    const msg = await api.sendMessage(
+      token,
+      selected.listingId,
+      value,
+      receiverId
+    );
   };
 
   if (loading) {
@@ -1693,6 +1703,8 @@ function MessagesPanel({ token }) {
     </div>
   );
 }
+
+
 
 function MyListingsPanel({ items, loading, canManage, onRemove }) {
   const [query, setQuery] = React.useState("");
