@@ -75,6 +75,32 @@ export default function Messages() {
     }
   };
 
+  React.useEffect(() => {
+  if (!selected || !token) return;
+
+  let active = true;
+
+  async function refreshThread() {
+    try {
+      const data = await api.messageThread(
+        token,
+        selected.listingId
+      );
+
+      if (!active) return;
+
+      setThread(Array.isArray(data) ? data : []);
+    } catch {}
+  }
+
+  const timer = setInterval(refreshThread, 5000);
+
+  return () => {
+    active = false;
+    clearInterval(timer);
+  };
+}, [selected, token]);
+
   const getReceiverId = () => {
     const myId = me?.id || me?._id;
 
