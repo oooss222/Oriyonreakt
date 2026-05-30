@@ -3,7 +3,7 @@ import { createRoot } from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 import App from "./shell/App.jsx";
-
+import Messages from "./pages/Messages.jsx";
 import Home from "./pages/Home.jsx";
 import Listing from "./pages/Listing.jsx";
 import Auth from "./pages/Auth.jsx";
@@ -70,6 +70,12 @@ const router = createBrowserRouter([
         path: "profile",
         element: <Profile />,
       },
+
+      {
+        path: "messages",
+        element: <Messages />,
+      },
+
       {
         path: "add",
         element: <AddListing />,
