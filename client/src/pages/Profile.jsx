@@ -29,7 +29,7 @@ const ROLES = ["user", "moderator", "accountant", "admin", "super_admin"];
 const normalizeTab = (value) => {
   if (value === "favorites") return "fav";
   if (
-    ["fav", "profile", "wallet", "admin", "moderation", "my"].includes(value)
+    ["fav", "profile", "wallet", "admin", "moderation", "messages", "my"].includes(value)
   ) {
     return value;
   }
@@ -1595,6 +1595,105 @@ function AdsPanel({ token }) {
   );
 }
 
+function MessagesPanel({ token }) {
+  const [items, setItems] = React.useState([]);
+  const [selected, setSelected] = React.useState(null);
+  const [thread, setThread] = React.useState([]);
+  const [text, setText] = React.useState("");
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    api.messageInbox(token)
+      .then((data) => setItems(Array.isArray(data) ? data : []))
+      .finally(() => setLoading(false));
+  }, [token]);
+
+  const openThread = async (item) => {
+    setSelected(item);
+    const data = await api.messageThread(token, item.listingId);
+    setThread(Array.isArray(data) ? data : []);
+  };
+
+  const send = async () => {
+    const value = text.trim();
+    if (!value || !selected) return;
+
+    const msg = await api.sendMessage(token, selected.listingId, value);
+    setThread((arr) => [...arr, msg]);
+    setText("");
+  };
+
+  if (loading) {
+    return <div className="rounded-2xl border bg-white p-5">Загрузка сообщений...</div>;
+  }
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="rounded-2xl border bg-white p-4 space-y-3">
+        <h2 className="text-xl font-bold">Сообщения</h2>
+
+        {items.length === 0 ? (
+          <div className="text-sm text-slate-500">Диалогов пока нет.</div>
+        ) : (
+          items.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => openThread(item)}
+              className="w-full text-left rounded-xl border p-3 hover:bg-slate-50"
+            >
+              <div className="font-semibold line-clamp-1">
+                {item.listingTitle || "Объявление"}
+              </div>
+              <div className="text-sm text-slate-500 line-clamp-1">
+                {item.senderName || item.senderEmail} → {item.receiverName || item.receiverEmail}
+              </div>
+              <div className="text-sm mt-1 line-clamp-2">{item.text}</div>
+            </button>
+          ))
+        )}
+      </div>
+
+      <div className="lg:col-span-2 rounded-2xl border bg-white p-4">
+        {!selected ? (
+          <div className="text-slate-500">Выберите диалог слева.</div>
+        ) : (
+          <div className="space-y-4">
+            <h3 className="font-bold">{selected.listingTitle}</h3>
+
+            <div className="space-y-2 max-h-[420px] overflow-y-auto pr-2">
+              {thread.map((msg) => (
+                <div key={msg.id} className="rounded-xl border p-3">
+                  <div className="text-xs text-slate-500 mb-1">
+                    {msg.senderName || msg.senderEmail || "Пользователь"}
+                  </div>
+                  <div className="text-sm whitespace-pre-wrap">{msg.text}</div>
+                </div>
+              ))}
+            </div>
+
+            <textarea
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              rows={3}
+              placeholder="Введите сообщение..."
+              className="w-full rounded-xl border px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+            />
+
+            <button
+              type="button"
+              onClick={send}
+              className="px-5 py-2.5 rounded-xl bg-blue-600 text-white hover:bg-blue-700"
+            >
+              Отправить
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function MyListingsPanel({ items, loading, canManage, onRemove }) {
   const [query, setQuery] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState("all");
@@ -2149,6 +2248,10 @@ export default function Profile() {
             </TabButton>
           )}
 
+          <TabButton active={tab === "messages"} onClick={() => setTab("messages")}>
+            Сообщения
+          </TabButton>
+
           <TabButton active={tab === "my"} onClick={() => setTab("my")}>
             Мои объявления
             <span className="ml-1 rounded-full border px-2 py-0.5 text-xs bg-white text-slate-700">
@@ -2179,6 +2282,10 @@ export default function Profile() {
 
       {tab === "moderation" && canOpenModeration && (
         <ModerationPanel token={token} />
+      )}
+
+      {tab === "messages" && (
+        <MessagesPanel token={token} />
       )}
 
      {tab === "wallet" && (
