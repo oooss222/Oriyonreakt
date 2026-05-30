@@ -403,6 +403,7 @@ function mapMessage(row) {
 
     text: row.text,
     isRead: Boolean(row.is_read),
+    unreadCount: Number(row.unread_count || 0),
 
     listingTitle: row.listing_title || "",
     listingImage: row.listing_image || "",

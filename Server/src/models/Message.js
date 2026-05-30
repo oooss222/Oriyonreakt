@@ -64,76 +64,114 @@ class MessageModel {
 }
 
   static async getThread({ listingId, userId, role }) {
-    const isAdmin = role === "admin" || role === "super_admin";
+  const isAdmin = role === "admin" || role === "super_admin";
 
-    const values = [listingId];
+  const values = [listingId];
 
-    let accessSql = "";
+  let accessSql = "";
 
-    if (!isAdmin) {
-      values.push(userId);
+  if (!isAdmin) {
+    values.push(userId);
 
-      accessSql = `
-        AND (
-          m.sender_id = $2
-          OR m.receiver_id = $2
-        )
-      `;
-    }
+    accessSql = `
+      AND (
+        m.sender_id = $2
+        OR m.receiver_id = $2
+      )
+    `;
 
-    const result = await query(
+    await query(
       `
+      UPDATE messages
+      SET is_read = true
+      WHERE listing_id = $1
+        AND receiver_id = $2
+        AND is_read = false
+      `,
+      [listingId, userId]
+    );
+  }
+
+  const result = await query(
+    `
+    SELECT
+      m.*,
+      0::int AS unread_count,
+      l.title AS listing_title,
+      l.images->0->>'url' AS listing_image,
+      s.name AS sender_name,
+      s.email AS sender_email,
+      r.name AS receiver_name,
+      r.email AS receiver_email
+    FROM messages m
+    LEFT JOIN listings l ON l.id = m.listing_id
+    LEFT JOIN users s ON s.id = m.sender_id
+    LEFT JOIN users r ON r.id = m.receiver_id
+    WHERE m.listing_id = $1
+    ${accessSql}
+    ORDER BY m.created_at ASC
+    `,
+    values
+  );
+
+  return result.rows.map(mapMessage);
+}
+
+ static async inbox({ userId, role }) {
+  const isAdmin = role === "admin" || role === "super_admin";
+
+  const result = await query(
+    `
+    WITH dialog_messages AS (
       SELECT
         m.*,
-        l.title AS listing_title,
-        l.images->0->>'url' AS listing_image,
-        s.name AS sender_name,
-        s.email AS sender_email,
-        r.name AS receiver_name,
-        r.email AS receiver_email
+        LEAST(m.sender_id, m.receiver_id) AS user_a,
+        GREATEST(m.sender_id, m.receiver_id) AS user_b
       FROM messages m
-      LEFT JOIN listings l ON l.id = m.listing_id
-      LEFT JOIN users s ON s.id = m.sender_id
-      LEFT JOIN users r ON r.id = m.receiver_id
-      WHERE m.listing_id = $1
-      ${accessSql}
-      ORDER BY m.created_at ASC
-      `,
-      values
-    );
-
-    return result.rows.map(mapMessage);
-  }
-
-  static async inbox({ userId, role }) {
-    const isAdmin = role === "admin" || role === "super_admin";
-
-    const result = await query(
-      `
-      SELECT DISTINCT ON (m.listing_id, LEAST(m.sender_id, m.receiver_id), GREATEST(m.sender_id, m.receiver_id))
-        m.*,
-        l.title AS listing_title,
-        l.images->0->>'url' AS listing_image,
-        s.name AS sender_name,
-        s.email AS sender_email,
-        r.name AS receiver_name,
-        r.email AS receiver_email
-      FROM messages m
-      LEFT JOIN listings l ON l.id = m.listing_id
-      LEFT JOIN users s ON s.id = m.sender_id
-      LEFT JOIN users r ON r.id = m.receiver_id
       ${isAdmin ? "" : "WHERE m.sender_id = $1 OR m.receiver_id = $1"}
-      ORDER BY
-        m.listing_id,
-        LEAST(m.sender_id, m.receiver_id),
-        GREATEST(m.sender_id, m.receiver_id),
-        m.created_at DESC
-      `,
-      isAdmin ? [] : [userId]
-    );
+    ),
+    unread AS (
+      SELECT
+        listing_id,
+        user_a,
+        user_b,
+        COUNT(*) FILTER (
+          WHERE receiver_id = $1
+            AND is_read = false
+        )::int AS unread_count
+      FROM dialog_messages
+      GROUP BY listing_id, user_a, user_b
+    ),
+    latest AS (
+      SELECT DISTINCT ON (listing_id, user_a, user_b)
+        *
+      FROM dialog_messages
+      ORDER BY listing_id, user_a, user_b, created_at DESC
+    )
+    SELECT
+      latest.*,
+      COALESCE(unread.unread_count, 0)::int AS unread_count,
+      l.title AS listing_title,
+      l.images->0->>'url' AS listing_image,
+      s.name AS sender_name,
+      s.email AS sender_email,
+      r.name AS receiver_name,
+      r.email AS receiver_email
+    FROM latest
+    LEFT JOIN unread
+      ON unread.listing_id = latest.listing_id
+      AND unread.user_a = latest.user_a
+      AND unread.user_b = latest.user_b
+    LEFT JOIN listings l ON l.id = latest.listing_id
+    LEFT JOIN users s ON s.id = latest.sender_id
+    LEFT JOIN users r ON r.id = latest.receiver_id
+    ORDER BY latest.created_at DESC
+    `,
+    isAdmin ? [userId] : [userId]
+  );
 
-    return result.rows.map(mapMessage);
-  }
+  return result.rows.map(mapMessage);
+}
 }
 
 module.exports = MessageModel;
