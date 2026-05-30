@@ -164,6 +164,16 @@ async function initDb() {
       PRIMARY KEY (user_id, listing_id)
     );
 
+        CREATE TABLE IF NOT EXISTS messages (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      listing_id UUID NOT NULL REFERENCES listings(id) ON DELETE CASCADE,
+      sender_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      receiver_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      text TEXT NOT NULL,
+      is_read BOOLEAN NOT NULL DEFAULT false,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
+
     CREATE TABLE IF NOT EXISTS wallet_transactions (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -253,6 +263,18 @@ async function initDb() {
 
     CREATE INDEX IF NOT EXISTS idx_ads_is_active
       ON ads(is_active);
+
+    CREATE INDEX IF NOT EXISTS idx_messages_listing
+      ON messages(listing_id);
+
+    CREATE INDEX IF NOT EXISTS idx_messages_sender
+      ON messages(sender_id);
+
+    CREATE INDEX IF NOT EXISTS idx_messages_receiver
+        ON messages(receiver_id);
+
+    CREATE INDEX IF NOT EXISTS idx_messages_created_at
+      ON messages(created_at DESC);
   `);
 }
 
@@ -368,6 +390,33 @@ function mapAd(row) {
   };
 }
 
+function mapMessage(row) {
+  if (!row) return null;
+
+  return {
+    id: row.id,
+    _id: row.id,
+
+    listingId: row.listing_id,
+    senderId: row.sender_id,
+    receiverId: row.receiver_id,
+
+    text: row.text,
+    isRead: Boolean(row.is_read),
+
+    listingTitle: row.listing_title || "",
+    listingImage: row.listing_image || "",
+
+    senderName: row.sender_name || "",
+    senderEmail: row.sender_email || "",
+
+    receiverName: row.receiver_name || "",
+    receiverEmail: row.receiver_email || "",
+
+    createdAt: row.created_at,
+  };
+}
+
 module.exports = {
   pool,
   query,
@@ -376,6 +425,7 @@ module.exports = {
   mapListing,
   mapWalletTransaction,
   mapAd,
+  mapMessage,
 
   USER_ROLES,
   LISTING_STATUSES,
