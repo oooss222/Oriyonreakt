@@ -190,7 +190,7 @@ const peerId =
   }
 
   return (
-    <div className="container-x py-6">
+    <div className="max-w-[1700px] mx-auto px-3 md:px-6 py-6">
       <div className="mb-4 flex items-center justify-between gap-3">
         <div>
           <div className="inline-flex items-center gap-2 text-sm text-blue-700 bg-blue-50 border border-blue-100 rounded-full px-3 py-1 mb-2">
@@ -217,7 +217,7 @@ const peerId =
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-        <aside className="lg:col-span-4 xl:col-span-3 rounded-3xl border border-slate-200 bg-white/90 backdrop-blur p-3 h-fit shadow-sm">
+        <aside className="lg:col-span-4 xl:col-span-4 rounded-3xl border border-slate-200 bg-white/90 backdrop-blur p-3 h-fit shadow-sm">
           <div className="font-bold px-2 py-2">
             Диалоги
           </div>
@@ -236,10 +236,10 @@ const peerId =
                     key={getId(item)}
                     type="button"
                     onClick={() => openThread(item)}
-                    className={`w-full text-left rounded-2xl border p-3 transition ${
+                    className={`w-full text-left rounded-3xl border border-slate-200 p-4 transition-all shadow-sm ${
                       active
                         ? "bg-blue-50 border-blue-200"
-                        : "hover:bg-slate-50"
+                        : "hover:bg-white hover:shadow-md hover:-translate-y-[1px]"
                     }`}
                   >
                    <div className="flex items-start justify-between gap-2">
@@ -269,7 +269,7 @@ const peerId =
           )}
         </aside>
 
-        <main className="lg:col-span-8 xl:col-span-9 rounded-3xl border border-slate-200 bg-white/80 backdrop-blur min-h-[620px] flex flex-col shadow-sm overflow-hidden">
+        <main className="lg:col-span-8 xl:col-span-8 rounded-3xl border border-slate-200 bg-white/80 backdrop-blur min-h-[620px] flex flex-col shadow-sm overflow-hidden">
           {!selected ? (
             <div className="flex-1 grid place-items-center p-8 text-center">
               <div>
@@ -333,7 +333,14 @@ const peerId =
                 </Link>
               </div>
 
-              <div className="flex-1 overflow-y-auto px-3 md:px-5 py-5 space-y-4 bg-gradient-to-b from-slate-50 to-slate-100">
+            <div
+                className="flex-1 overflow-y-auto px-3 md:px-5 py-5 space-y-4 bg-[#e5ddd5]"
+                style={{
+                    backgroundImage:
+                    "radial-gradient(rgba(255,255,255,0.35) 1px, transparent 1px)",
+                    backgroundSize: "24px 24px",
+                }}
+            >
                 {threadLoading ? (
                   <div className="text-slate-500">
                     Загружаем диалог...
@@ -346,10 +353,10 @@ const peerId =
                     return (
                       <div
                         key={msg.id}
-                        className={`flex ${mine ? "justify-end" : "justify-start"}`}
+                        className={`flex ${mine ? "justify-end" : "justify-start"} mb-2`}
                       >
                         <div
-                          className={`max-w-[88%] md:max-w-[72%] rounded-[24px] px-4 py-3 shadow-sm backdrop-blur border transition-all ${
+                          className={`max-w-[92%] md:max-w-[60%] rounded-[24px] px-4 py-3 shadow-sm backdrop-blur border transition-all ${
                             mine
                               ? "bg-gradient-to-br from-blue-600 to-blue-700 text-white border-blue-500"
                               : "bg-white/90 text-slate-900 border-slate-200"
@@ -403,7 +410,7 @@ const peerId =
                     <textarea
                       value={text}
                       onChange={(e) => setText(e.target.value)}
-                      rows={2}
+                      rows={1}
                       placeholder="Введите сообщение..."
                       className="flex-1 rounded-3xl border border-slate-200 bg-slate-50 px-5 py-3 outline-none focus:ring-2 focus:ring-blue-500 resize-none shadow-sm"
                     />
