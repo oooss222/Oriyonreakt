@@ -217,7 +217,7 @@ const peerId =
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-        <aside className="lg:col-span-4 xl:col-span-3 rounded-3xl border bg-white p-3 h-fit">
+        <aside className="lg:col-span-4 xl:col-span-3 rounded-3xl border border-slate-200 bg-white/90 backdrop-blur p-3 h-fit shadow-sm">
           <div className="font-bold px-2 py-2">
             Диалоги
           </div>
@@ -269,7 +269,7 @@ const peerId =
           )}
         </aside>
 
-        <main className="lg:col-span-8 xl:col-span-9 rounded-3xl border bg-white min-h-[520px] flex flex-col">
+        <main className="lg:col-span-8 xl:col-span-9 rounded-3xl border border-slate-200 bg-white/80 backdrop-blur min-h-[620px] flex flex-col shadow-sm overflow-hidden">
           {!selected ? (
             <div className="flex-1 grid place-items-center p-8 text-center">
               <div>
@@ -288,7 +288,7 @@ const peerId =
             </div>
           ) : (
             <>
-              <div className="border-b p-4 flex items-center justify-between gap-3">
+              <div className="border-b bg-white/80 backdrop-blur px-4 py-4 flex items-center justify-between gap-3 sticky top-0 z-10 rounded-t-3xl">
                 <div>
                   <div className="font-bold">
                     {selected.listingTitle || "Объявление"}
@@ -333,7 +333,7 @@ const peerId =
                 </Link>
               </div>
 
-              <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50">
+              <div className="flex-1 overflow-y-auto px-3 md:px-5 py-5 space-y-4 bg-gradient-to-b from-slate-50 to-slate-100">
                 {threadLoading ? (
                   <div className="text-slate-500">
                     Загружаем диалог...
@@ -349,10 +349,10 @@ const peerId =
                         className={`flex ${mine ? "justify-end" : "justify-start"}`}
                       >
                         <div
-                          className={`max-w-[85%] md:max-w-[70%] rounded-2xl px-4 py-3 border ${
+                          className={`max-w-[88%] md:max-w-[72%] rounded-[24px] px-4 py-3 shadow-sm backdrop-blur border transition-all ${
                             mine
-                              ? "bg-blue-600 text-white border-blue-600"
-                              : "bg-white text-slate-900"
+                              ? "bg-gradient-to-br from-blue-600 to-blue-700 text-white border-blue-500"
+                              : "bg-white/90 text-slate-900 border-slate-200"
                           }`}
                         >
                           <div
@@ -398,21 +398,21 @@ const peerId =
               </div>
 
               {!isAdmin && (
-                <div className="border-t p-3 md:p-4">
+                <div className="border-t bg-white/90 backdrop-blur p-3 md:p-4 sticky bottom-0">
                   <div className="flex flex-col sm:flex-row gap-2">
                     <textarea
                       value={text}
                       onChange={(e) => setText(e.target.value)}
                       rows={2}
                       placeholder="Введите сообщение..."
-                      className="flex-1 rounded-2xl border px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                      className="flex-1 rounded-3xl border border-slate-200 bg-slate-50 px-5 py-3 outline-none focus:ring-2 focus:ring-blue-500 resize-none shadow-sm"
                     />
 
                     <button
                       type="button"
                       onClick={send}
                       disabled={sending || !text.trim()}
-                      className="inline-flex justify-center items-center gap-2 rounded-2xl bg-blue-600 text-white px-5 py-3 hover:bg-blue-700 disabled:opacity-60"
+                      className="inline-flex justify-center items-center gap-2 rounded-3xl bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-60 shadow-lg shadow-blue-200"
                     >
                       <Send size={18} />
                       {sending ? "..." : "Отправить"}
