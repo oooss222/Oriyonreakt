@@ -63,7 +63,7 @@ class MessageModel {
   return mapMessage(result.rows[0]);
 }
 
-  static async getThread({ listingId, userId, role }) {
+  static async getThread({ listingId, userId, role, peerId }) {
   const isAdmin = role === "admin" || role === "super_admin";
 
   const values = [listingId];

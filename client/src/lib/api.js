@@ -121,10 +121,13 @@ export const api = {
     token,
   }),
 
-  messageThread: (token, listingId) =>
-  request(`/messages/${listingId}`, {
-    token,
-  }),
+  messageThread: (token, listingId, peerId) =>
+  request(
+    `/messages/${listingId}${peerId ? `?peerId=${encodeURIComponent(peerId)}` : ""}`,
+    {
+      token,
+    }
+  ),
 
   sendMessage: (token, listingId, text, receiverId) =>
   request(`/messages/${listingId}`, {

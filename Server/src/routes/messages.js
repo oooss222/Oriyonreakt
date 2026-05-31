@@ -28,6 +28,7 @@ router.get("/:listingId", async (req, res) => {
       listingId: req.params.listingId,
       userId: req.user.id,
       role: req.user.role,
+      peerId: req.query.peerId || null,
     });
 
     return res.json(data);

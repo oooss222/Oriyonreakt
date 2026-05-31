@@ -90,7 +90,18 @@ const formatLastSeen = (lastSeen) => {
       setSelected(item);
       setThreadLoading(true);
 
-      const data = await api.messageThread(token, item.listingId);
+      const myId = me?.id || me?._id;
+
+const peerId =
+  String(item.senderId) === String(myId)
+    ? item.receiverId
+    : item.senderId;
+
+const data = await api.messageThread(
+  token,
+  item.listingId,
+  peerId
+);
 
       setThread(Array.isArray(data) ? data : []);
     } catch {
@@ -107,10 +118,18 @@ const formatLastSeen = (lastSeen) => {
 
   async function refreshThread() {
     try {
-      const data = await api.messageThread(
-        token,
-        selected.listingId
-      );
+      const myId = me?.id || me?._id;
+
+const peerId =
+  String(selected.senderId) === String(myId)
+    ? selected.receiverId
+    : selected.senderId;
+
+    const data = await api.messageThread(
+    token,
+    selected.listingId,
+    peerId
+    );
 
       if (!active) return;
 
