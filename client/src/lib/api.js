@@ -48,6 +48,10 @@ async function request(
         JSON.stringify(err);
     } catch {}
 
+    if (res.status === 401 && token) {
+      localStorage.removeItem("auth_token");
+    }
+
     throw new Error(msg);
   }
 

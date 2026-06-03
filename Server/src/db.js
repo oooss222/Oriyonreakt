@@ -99,6 +99,12 @@ async function initDb() {
     ALTER TABLE users
       ADD COLUMN IF NOT EXISTS last_seen TIMESTAMPTZ;
 
+    ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS whatsapp TEXT NOT NULL DEFAULT '';
+
+    ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS telegram TEXT NOT NULL DEFAULT '';
+
     DO $$
     BEGIN
       IF NOT EXISTS (
@@ -293,6 +299,8 @@ function mapUser(row) {
 
     name: row.name,
     phone: row.phone,
+    whatsapp: row.whatsapp || "",
+    telegram: row.telegram || "",
 
     lastSeen: row.last_seen || null,
 

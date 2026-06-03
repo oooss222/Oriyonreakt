@@ -165,6 +165,29 @@ export default function AdDetails() {
   const [messageSending, setMessageSending] = React.useState(false);
   const [toast, setToast] = React.useState("");
   const [copied, setCopied] = React.useState(false);
+  const [currentUserId, setCurrentUserId] = React.useState(null);
+
+  React.useEffect(() => {
+    if (!token) {
+      setCurrentUserId(null);
+      return;
+    }
+
+    let active = true;
+
+    api
+      .me(token)
+      .then((user) => {
+        if (active) setCurrentUserId(user?.id || user?._id || null);
+      })
+      .catch(() => {
+        if (active) setCurrentUserId(null);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [token]);
 
   React.useEffect(() => {
     let active = true;
@@ -319,13 +342,25 @@ export default function AdDetails() {
     try {
       setMessageSending(true);
 
-      await api.sendMessage(token, ad._id || ad.id, text);
+      await api.sendMessage(
+        token,
+        ad._id || ad.id,
+        text,
+        ad.owner
+      );
 
       setMessageText("");
       setMessageOpen(false);
       setToast("Сообщение отправлено");
     } catch (e) {
-      setToast(e.message || "Не удалось отправить");
+      const msg = e.message || "Не удалось отправить";
+
+      if (msg.includes("Invalid token") || msg.includes("401")) {
+        window.location.href = "/auth";
+        return;
+      }
+
+      setToast(msg);
     } finally {
       setMessageSending(false);
     }
@@ -407,6 +442,11 @@ export default function AdDetails() {
       ? `${ad.cat ? "&" : "?"}subcategory=${encodeURIComponent(ad.subcategory)}`
       : ""
   }`;
+
+  const isOwner =
+    currentUserId &&
+    ad.owner &&
+    String(currentUserId) === String(ad.owner);
 
   return (
     <div className="pb-28 xl:pb-10">
@@ -790,33 +830,45 @@ export default function AdDetails() {
                     </button>
                   )}
 
-                  <button
-                    type="button"
-                    className="btn w-full py-3 rounded-2xl"
-                    onClick={() => setMessageOpen((v) => !v)}
-                  >
-                    <MessageCircle className="w-5 h-5" />
-                    Написать продавцу
-                  </button>
-
-                  {messageOpen && (
-                    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 space-y-3 animate-fade-in-up">
-                      <textarea
-                        value={messageText}
-                        onChange={(e) => setMessageText(e.target.value)}
-                        rows={4}
-                        placeholder="Здравствуйте! Интересует ваше объявление..."
-                        className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500 resize-y bg-white"
-                      />
+                  {!isOwner ? (
+                    <>
                       <button
                         type="button"
-                        onClick={sendSellerMessage}
-                        disabled={messageSending}
-                        className="btn btn-primary w-full rounded-xl disabled:opacity-60"
+                        className="btn w-full py-3 rounded-2xl"
+                        onClick={() => setMessageOpen((v) => !v)}
                       >
-                        {messageSending ? "Отправляем..." : "Отправить"}
+                        <MessageCircle className="w-5 h-5" />
+                        Написать продавцу
                       </button>
-                    </div>
+
+                      {messageOpen && (
+                        <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 space-y-3 animate-fade-in-up">
+                          <textarea
+                            value={messageText}
+                            onChange={(e) => setMessageText(e.target.value)}
+                            rows={4}
+                            placeholder="Здравствуйте! Интересует ваше объявление..."
+                            className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500 resize-y bg-white"
+                          />
+                          <button
+                            type="button"
+                            onClick={sendSellerMessage}
+                            disabled={messageSending}
+                            className="btn btn-primary w-full rounded-xl disabled:opacity-60"
+                          >
+                            {messageSending ? "Отправляем..." : "Отправить"}
+                          </button>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <Link
+                      to="/messages"
+                      className="btn w-full py-3 rounded-2xl"
+                    >
+                      <MessageCircle className="w-5 h-5" />
+                      Сообщения покупателей
+                    </Link>
                   )}
 
                   <div className="grid grid-cols-2 gap-2">
@@ -865,7 +917,7 @@ export default function AdDetails() {
             </div>
           </div>
 
-          {ad.phone ? (
+          {!isOwner && ad.phone ? (
             phoneVisible ? (
               <a
                 href={`tel:${ad.phone}`}
@@ -886,16 +938,22 @@ export default function AdDetails() {
             )
           ) : null}
 
-          <button
-            type="button"
-            className="btn shrink-0 rounded-2xl px-4"
-            onClick={() => {
-              setMessageOpen(true);
-              window.scrollTo({ top: 0, behavior: "smooth" });
-            }}
-          >
-            <MessageCircle className="w-4 h-4" />
-          </button>
+          {!isOwner ? (
+            <button
+              type="button"
+              className="btn shrink-0 rounded-2xl px-4"
+              onClick={() => {
+                setMessageOpen(true);
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
+            >
+              <MessageCircle className="w-4 h-4" />
+            </button>
+          ) : (
+            <Link to="/messages" className="btn shrink-0 rounded-2xl px-4">
+              <MessageCircle className="w-4 h-4" />
+            </Link>
+          )}
         </div>
       </div>
 

@@ -78,6 +78,12 @@ router.post("/:listingId", async (req, res) => {
       });
     }
 
+    if (e?.message === "RECEIVER_REQUIRED") {
+      return res.status(400).json({
+        error: "Укажите получателя сообщения",
+      });
+    }
+
     console.error("MESSAGE_CREATE_ERROR:", e?.message);
 
     return res.status(500).json({
