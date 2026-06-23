@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const fs = require("fs");
 const path = require("path");
 
 require("dotenv").config();
@@ -17,25 +18,25 @@ const ALLOWED_ORIGINS = (
   .map((s) => s.trim())
   .filter(Boolean);
 
-app.use(
-  cors({
-    origin(origin, cb) {
-      if (!origin) {
-        return cb(null, true);
-      }
+const corsMiddleware = cors({
+  origin(origin, cb) {
+    if (!origin) {
+      return cb(null, true);
+    }
 
-      if (ALLOWED_ORIGINS.includes(origin)) {
-        return cb(null, true);
-      }
+    if (ALLOWED_ORIGINS.includes(origin)) {
+      return cb(null, true);
+    }
 
-      return cb(
-        new Error("CORS: Origin not allowed: " + origin)
-      );
-    },
+    return cb(
+      new Error("CORS: Origin not allowed: " + origin)
+    );
+  },
 
-    credentials: true,
-  })
-);
+  credentials: true,
+});
+
+app.use("/api", corsMiddleware);
 
 app.use(
   express.json({
@@ -83,6 +84,22 @@ app.use("/api", (req, res) =>
     error: "Not found",
   })
 );
+
+const clientDist = path.join(
+  __dirname,
+  "..",
+  "..",
+  "client",
+  "dist"
+);
+
+if (fs.existsSync(path.join(clientDist, "index.html"))) {
+  app.use(express.static(clientDist));
+
+  app.get(/^(?!\/api).*/, (req, res) => {
+    res.sendFile(path.join(clientDist, "index.html"));
+  });
+}
 
 app.use((err, req, res, next) => {
   console.error("UNCAUGHT_ERROR:", err);

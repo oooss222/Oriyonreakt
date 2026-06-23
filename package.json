@@ -1,0 +1,8 @@
+{
+  "name": "oriyon-app",
+  "private": true,
+  "scripts": {
+    "build": "npm --prefix client ci && npm --prefix client run build && npm --prefix Server ci",
+    "start": "node Server/src/index.js"
+  }
+}
