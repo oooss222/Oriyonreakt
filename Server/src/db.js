@@ -31,30 +31,48 @@ const TRANSACTION_STATUSES = [
   "cancelled",
 ];
 
-const pool = new Pool(
-  DATABASE_URL
-    ? {
-        connectionString: DATABASE_URL,
-        ssl: {
-          rejectUnauthorized: false,
-        },
-        connectionTimeoutMillis: 5000,
-        idleTimeoutMillis: 30000,
-        query_timeout: 10000,
-        statement_timeout: 10000,
-      }
-    : {
-        host: process.env.PGHOST || "localhost",
-        port: Number(process.env.PGPORT || 5432),
-        database: process.env.PGDATABASE || "oriyon",
-        user: process.env.PGUSER || "postgres",
-        password: process.env.PGPASSWORD || "password",
-        connectionTimeoutMillis: 5000,
-        idleTimeoutMillis: 30000,
-        query_timeout: 10000,
-        statement_timeout: 10000,
-      }
-);
+function getPoolConfig() {
+  const poolDefaults = {
+    connectionTimeoutMillis: 5000,
+    idleTimeoutMillis: 30000,
+    query_timeout: 10000,
+    statement_timeout: 10000,
+  };
+
+  if (!DATABASE_URL) {
+    return {
+      ...poolDefaults,
+      host: process.env.PGHOST || "localhost",
+      port: Number(process.env.PGPORT || 5432),
+      database: process.env.PGDATABASE || "oriyon",
+      user: process.env.PGUSER || "postgres",
+      password: process.env.PGPASSWORD || "password",
+    };
+  }
+
+  const ca =
+    process.env.DATABASE_CA ||
+    process.env.CA_CERT ||
+    process.env.PGSSLROOTCERT;
+
+  // Newer pg treats sslmode=require in the URL as strict cert verification.
+  // Strip it and configure SSL explicitly for managed Postgres (DigitalOcean).
+  const connectionString = DATABASE_URL.replace(
+    /([?&])sslmode=[^&]*&?/g,
+    "$1"
+  )
+    .replace(/[?&]$/, "");
+
+  return {
+    ...poolDefaults,
+    connectionString,
+    ssl: ca
+      ? { rejectUnauthorized: true, ca }
+      : { rejectUnauthorized: false },
+  };
+}
+
+const pool = new Pool(getPoolConfig());
 pool.on("error", (err) => {
   console.error("POSTGRES_POOL_ERROR:", err);
 });
