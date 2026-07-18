@@ -85,20 +85,25 @@ app.use("/api", (req, res) =>
   })
 );
 
-const clientDist = path.join(
-  __dirname,
-  "..",
-  "..",
-  "client",
-  "dist"
+const clientDistCandidates = [
+  path.join(__dirname, "..", "public"),
+  path.join(__dirname, "..", "..", "client", "dist"),
+];
+
+const clientDist = clientDistCandidates.find((dir) =>
+  fs.existsSync(path.join(dir, "index.html"))
 );
 
-if (fs.existsSync(path.join(clientDist, "index.html"))) {
+if (clientDist) {
+  console.log("Serving frontend from:", clientDist);
+
   app.use(express.static(clientDist));
 
   app.get(/^(?!\/api).*/, (req, res) => {
     res.sendFile(path.join(clientDist, "index.html"));
   });
+} else {
+  console.warn("Frontend build not found; running API only");
 }
 
 app.use((err, req, res, next) => {

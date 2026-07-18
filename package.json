@@ -2,7 +2,7 @@
   "name": "oriyon-app",
   "private": true,
   "scripts": {
-    "build": "npm --prefix client ci --include=dev && npm --prefix client run build && npm --prefix Server ci",
+    "build": "npm --prefix client ci --include=dev && npm --prefix client run build && node scripts/copy-client-dist.js && npm --prefix Server ci",
     "start": "node Server/src/index.js"
   }
 }
