@@ -239,13 +239,7 @@ const suggestions = React.useMemo(() => {
 )}
 
           <nav className="hidden lg:flex items-center gap-2">
-            <Link
-              to="/"
-              className="inline-flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-50 transition"
-            >
-              <Home size={18} />
-              Главная
-            </Link>
+ 
 
             
             <Link
@@ -253,7 +247,7 @@ const suggestions = React.useMemo(() => {
               className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition shadow-sm"
             >
               <PlusCircle size={18} />
-              Подать
+              Подать объявление 
             </Link>
 
             <Link
