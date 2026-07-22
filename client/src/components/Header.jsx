@@ -187,9 +187,10 @@ const suggestions = React.useMemo(() => {
               <button
                 type="button"
                 onClick={go}
-                className="rounded-xl bg-blue-600 text-white px-5 py-2 text-sm font-semibold hover:bg-blue-700 transition"
+                aria-label="Искать"
+                className="inline-flex items-center justify-center rounded-xl bg-blue-600 text-white w-10 h-10 hover:bg-blue-700 transition shrink-0"
               >
-                Искать
+                <Search size={18} />
               </button>
             </div>
           </div>
