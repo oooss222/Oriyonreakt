@@ -74,7 +74,7 @@ export default function FavoriteButton({
         className={`transition-colors ${
           active
             ? "text-red-600"
-            : "text-gray-700 group-hover:text-red-600"
+            : "text-slate-500 group-hover:text-red-500"
         }`}
         fill={active ? "currentColor" : "none"}
       />

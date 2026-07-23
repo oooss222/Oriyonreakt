@@ -46,9 +46,9 @@ const Input = React.forwardRef(function Input(
         ref={ref}
         {...props}
         className={[
-          "w-full h-11 rounded-lg border bg-white px-3 text-[15px] leading-none",
+          "w-full h-11 rounded-xl border border-slate-200 bg-white px-3 text-[15px] leading-none",
           "placeholder:text-slate-400",
-          "focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors",
+          "focus:ring-2 focus:ring-accent-500/30 focus:border-accent-500 transition-colors shadow-sm",
           leftIcon ? "pl-11" : "",
           right ? "pr-11" : "",
           className,
@@ -191,35 +191,39 @@ export default function Auth() {
     reg.agree;
 
   // === стиль кнопок ===
-  const buttonStyle = `
-    w-full h-11 rounded-xl font-medium text-white transition-all
-    bg-gradient-to-r from-blue-600 via-blue-500 to-blue-700
-    shadow-md hover:shadow-lg hover:from-blue-500 hover:to-blue-600
-    active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed
-  `;
+  const buttonStyle = "btn btn-primary w-full h-11 text-base shadow-md hover:shadow-lg";
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mx-auto w-full max-w-xl">
-        <div className="rounded-2xl border bg-white shadow-sm overflow-hidden">
-          {/* === Табы === */}
-          <div className="bg-slate-50/80 border-b px-2 py-2">
-            <div className="grid grid-cols-2 gap-2 p-1 rounded-xl bg-white border">
+    <div className="page-shell">
+      <div className="page-container flex items-center justify-center min-h-[calc(100vh-200px)]">
+      <div className="mx-auto w-full max-w-md">
+        <div className="text-center mb-6">
+          <h1 className="text-2xl sm:text-3xl font-bold text-brand tracking-tight">
+            Добро пожаловать
+          </h1>
+          <p className="text-sm text-slate-500 mt-2">
+            Войдите или создайте аккаунт Oriyon Store
+          </p>
+        </div>
+
+        <div className="section-panel overflow-hidden shadow-card">
+          <div className="bg-slate-50/80 border-b border-slate-200/80 px-3 py-3">
+            <div className="grid grid-cols-2 gap-1 p-1 rounded-xl bg-white border border-slate-200/80">
               <button
-                className={`px-3 py-2 rounded-lg text-sm font-medium transition ${
+                className={`px-3 py-2.5 rounded-lg text-sm font-semibold transition ${
                   tab === "login"
-                    ? "bg-blue-600 text-white shadow-sm"
-                    : "hover:bg-slate-50"
+                    ? "bg-accent-600 text-white shadow-sm"
+                    : "text-slate-600 hover:bg-slate-50"
                 }`}
                 onClick={() => setTab("login")}
               >
                 Вход
               </button>
               <button
-                className={`px-3 py-2 rounded-lg text-sm font-medium transition ${
+                className={`px-3 py-2.5 rounded-lg text-sm font-semibold transition ${
                   tab === "register"
-                    ? "bg-blue-600 text-white shadow-sm"
-                    : "hover:bg-slate-50"
+                    ? "bg-accent-600 text-white shadow-sm"
+                    : "text-slate-600 hover:bg-slate-50"
                 }`}
                 onClick={() => setTab("register")}
               >
@@ -388,6 +392,7 @@ export default function Auth() {
             </>
           )}
         </div>
+      </div>
       </div>
     </div>
   );
