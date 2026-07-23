@@ -148,30 +148,29 @@ const suggestions = React.useMemo(() => {
   const close = () => setOpen(false);
 
   return (
-    <header className="sticky top-0 z-50 glass-bar">
-      <div className="h-1 bg-gradient-to-r from-brand via-blue-600 to-blue-400" />
-      <div className="container-x">
-        <div className="h-[72px] flex items-center justify-between gap-3 lg:gap-4">
-          <Link to="/" onClick={close} className="flex items-center gap-2.5 group shrink-0">
+    <header className="sticky top-0 z-50 border-b border-blue-100 bg-white/90 backdrop-blur-xl shadow-sm">
+      <div className="container mx-auto px-4 lg:px-6">
+        <div className="h-20 flex items-center justify-between gap-4">
+          <Link to="/" onClick={close} className="flex items-center gap-3 group shrink-0">
             <img
               src="/oriyon.store.png"
               alt="Oriyon Store"
-              className="w-14 h-14 lg:w-16 lg:h-16 object-contain transition-transform duration-300 group-hover:scale-105"
+              className="w-24 h-24 object-contain transition-transform duration-300 group-hover:scale-105"
             />
 
-            <div className="hidden lg:block">
-              <div className="text-base font-extrabold text-brand leading-none tracking-tight">
+            <div className="hidden lg:block -ml-3">
+              <div className="text-lg font-extrabold text-slate-900 leading-none">
                 Oriyon Store
               </div>
-              <div className="text-xs text-slate-500 mt-0.5">
+              <div className="text-xs text-slate-500 mt-1">
                 Онлайн-платформа объявлений
               </div>
             </div>
           </Link>
 
           <div className="flex-1 max-w-2xl hidden md:block relative">
-            <div className="flex items-center gap-2 w-full rounded-2xl border border-slate-200/80 bg-white px-3 py-1.5 shadow-sm focus-within:ring-2 focus-within:ring-blue-500/25 focus-within:border-blue-400 transition">
-              <Search size={18} className="text-slate-400 shrink-0 ml-1" />
+            <div className="flex items-center gap-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-2 shadow-sm focus-within:ring-2 focus-within:ring-blue-500 transition">
+              <Search size={20} className="text-slate-400 shrink-0" />
 
               <input
                 className="flex-1 h-10 outline-none bg-transparent text-sm text-slate-700 placeholder:text-slate-400"
@@ -189,7 +188,7 @@ const suggestions = React.useMemo(() => {
                 type="button"
                 onClick={go}
                 aria-label="Искать"
-                className="inline-flex items-center justify-center rounded-xl bg-blue-600 text-white w-9 h-9 hover:bg-blue-700 transition shrink-0 shadow-sm"
+                className="inline-flex items-center justify-center rounded-xl bg-blue-600 text-white w-10 h-10 hover:bg-blue-700 transition shrink-0"
               >
                 <Search size={18} />
               </button>
@@ -197,7 +196,7 @@ const suggestions = React.useMemo(() => {
           </div>
           
           {showSuggestions && suggestions.length > 0 && (
-            <div className="absolute left-0 right-0 top-full mt-2 z-50 rounded-2xl border border-slate-200/80 bg-white shadow-xl overflow-hidden text-slate-900">
+  <div className="absolute left-0 right-0 top-full mt-2 z-50 rounded-2xl border bg-white shadow-xl overflow-hidden text-slate-900">
     {suggestions.map((ad) => {
       const id = ad.id || ad._id;
 
@@ -240,13 +239,19 @@ const suggestions = React.useMemo(() => {
   </div>
 )}
 
-          <nav className="hidden lg:flex items-center gap-1.5">
-            <Link to="/add" className="nav-link-primary">
+          <nav className="hidden lg:flex items-center gap-2">
+            <Link
+              to="/add"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition shadow-sm"
+            >
               <PlusCircle size={18} />
               Подать объявление
             </Link>
 
-            <Link to="/messages" className="relative nav-link">
+            <Link
+      to="/messages"
+      className="relative inline-flex items-center gap-2 px-3 py-2 rounded-xl border text-sm font-medium text-slate-700 hover:bg-slate-50 transition"
+    >
       <MessageCircle size={18} />
 
       Сообщения
@@ -256,9 +261,12 @@ const suggestions = React.useMemo(() => {
           {unreadCount > 99 ? "99+" : unreadCount}
         </div>
       )}
-            </Link>
+    </Link>
 
-            <Link to="/profile?tab=fav" className="nav-link group">
+            <Link
+              to="/profile?tab=fav"
+              className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border text-sm font-medium text-slate-700 hover:bg-slate-50 transition group"
+            >
               <Heart
                 size={18}
                 className="transition-all duration-300 group-hover:fill-red-500 group-hover:text-red-500"
@@ -268,18 +276,27 @@ const suggestions = React.useMemo(() => {
 
             {token ? (
               <>
-                <Link to="/profile?tab=wallet" className="nav-link">
+                <Link
+                  to="/profile?tab=wallet"
+                  className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border text-sm font-medium text-slate-700 hover:bg-slate-50 transition"
+                >
                   <Wallet size={18} />
                   Кошелёк
                 </Link>
 
-                <Link to="/profile?tab=profile" className="nav-link">
+                <Link
+                  to="/profile?tab=profile"
+                  className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border text-sm font-medium text-slate-700 hover:bg-slate-50 transition"
+                >
                   <User size={18} />
                   {user?.name || "Профиль"}
                 </Link>
               </>
             ) : (
-              <Link to="/auth" className="nav-link">
+              <Link
+                to="/auth"
+                className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border text-sm font-medium text-slate-700 hover:bg-slate-50 transition"
+              >
                 <LogIn size={18} />
                 Войти
               </Link>
@@ -297,7 +314,7 @@ const suggestions = React.useMemo(() => {
         </div>
 
         <div className="md:hidden pb-3">
-          <div className="flex items-center gap-2 w-full rounded-2xl border border-slate-200/80 bg-white px-3 py-1.5 shadow-sm focus-within:ring-2 focus-within:ring-blue-500/25 transition">
+          <div className="flex items-center gap-2 w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 shadow-sm focus-within:ring-2 focus-within:ring-blue-500 transition">
             <Search size={19} className="text-slate-400 shrink-0" />
 
             <input
@@ -311,7 +328,7 @@ const suggestions = React.useMemo(() => {
             <button
               type="button"
               onClick={go}
-              className="rounded-xl bg-blue-600 text-white px-4 py-2 text-sm font-semibold hover:bg-blue-700 transition shadow-sm"
+              className="rounded-xl bg-blue-600 text-white px-4 py-2 text-sm font-semibold hover:bg-blue-700 transition"
             >
               Найти
             </button>
@@ -320,7 +337,7 @@ const suggestions = React.useMemo(() => {
 
         {open && (
           <div className="lg:hidden pb-4">
-            <div className="section-panel p-2 grid gap-1">
+            <div className="rounded-2xl border bg-white p-2 shadow-sm grid gap-2">
               <Link
                 to="/"
                 onClick={close}

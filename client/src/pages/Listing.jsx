@@ -1,11 +1,12 @@
 import React from "react";
-import { useSearchParams } from "react-router-dom";
-import ListingCard from "../components/ListingCard";
-import { api } from "../lib/api";
+import { Link, useSearchParams } from "react-router-dom";
+import FavoriteButton from "../components/FavoriteButton";
+import { api, API_BASE } from "../lib/api";
 import {
   Search,
   SlidersHorizontal,
   X,
+  MapPin,
 } from "lucide-react";
 
 const CATEGORIES = [
@@ -100,6 +101,51 @@ const SPEC_FILTERS = {
       options: ["Новый", "Б/у", "Требует ремонта"],
     },
   ],
+};
+
+const getThumb = (ad) => {
+  if (ad?.images?.length) {
+    const f = ad.images[0];
+
+    let src = "";
+
+    if (typeof f === "string") {
+      src = f;
+    } else {
+      src = f?.url || f?.src || f?.path || f?.secure_url || f?.preview || "";
+    }
+
+    if (!src) return "/img/placeholder.jpg";
+
+    if (src.startsWith("http") || src.startsWith("/img/")) {
+      return src;
+    }
+
+    const server = API_BASE.replace(/\/api$/, "");
+    const clean = String(src).replace(/^\/+/, "");
+
+    return `${server}/${clean}`;
+  }
+
+  return ad?.img || ad?.image || "/img/placeholder.jpg";
+};
+
+const getPriceNumber = (value) => {
+  if (value == null || value === "") return null;
+
+  const n = Number(String(value).replace(/\s/g, "").replace(",", "."));
+
+  return Number.isFinite(n) ? n : null;
+};
+
+const formatPrice = (value) => {
+  const n = getPriceNumber(value);
+
+  if (n == null) {
+    return value || "Цена не указана";
+  }
+
+  return `${n.toLocaleString("ru-RU")} TJS`;
 };
 
 export default function Listing() {
@@ -260,19 +306,16 @@ const specFilters = React.useMemo(() => {
   sort !== "new";
 
   return (
-    <div className="page-shell">
-      <div className="page-container space-y-5 sm:space-y-6">
-      <div className="section-panel p-4 md:p-6 space-y-4">
+    <div className="container mx-auto px-4 py-6 space-y-5">
+      <div className="rounded-3xl border bg-white p-4 md:p-5 space-y-4">
         <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
           <div>
-            <div className="section-chip mb-2">
+            <div className="inline-flex items-center gap-2 text-sm text-blue-700 bg-blue-50 border border-blue-100 rounded-full px-3 py-1 mb-2">
               <SlidersHorizontal size={16} />
               Фильтры поиска
             </div>
 
-            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
-              Объявления в Душанбе
-            </h1>
+            <h1 className="text-2xl font-bold">Объявления в Душанбе</h1>
 
             <p className="text-sm text-slate-500 mt-1">
               Найдено: {items.length}
@@ -280,7 +323,11 @@ const specFilters = React.useMemo(() => {
           </div>
 
           {hasActiveFilters && (
-            <button type="button" onClick={resetFilters} className="btn">
+            <button
+              type="button"
+              onClick={resetFilters}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border hover:bg-slate-50"
+            >
               <X size={18} />
               Сбросить фильтры
             </button>
@@ -315,7 +362,7 @@ const specFilters = React.useMemo(() => {
       }
     }}
     placeholder="Поиск по названию или описанию"
-    className="input h-11 pl-10"
+    className="h-11 w-full rounded-xl border pl-10 pr-3 outline-none focus:ring-2 focus:ring-blue-500"
   />
 
   {showSuggestions && suggestions.length > 0 && (
@@ -374,7 +421,7 @@ const specFilters = React.useMemo(() => {
         specs: {},
       }))
     }
-    className="select md:col-span-2 h-11"
+    className="md:col-span-2 h-11 rounded-xl border px-3 outline-none focus:ring-2 focus:ring-blue-500"
   >
     {CATEGORIES.map((item) => (
       <option key={item.value} value={item.value}>
@@ -393,7 +440,7 @@ const specFilters = React.useMemo(() => {
               }))
             }
             disabled={!draft.cat}
-            className="select md:col-span-2 h-11 disabled:bg-slate-100 disabled:text-slate-400"
+            className="md:col-span-2 h-11 rounded-xl border px-3 outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-100 disabled:text-slate-400"
           >
             <option value="">Все подкатегории</option>
 
@@ -413,7 +460,7 @@ const specFilters = React.useMemo(() => {
               }))
             }
             placeholder="Цена от"
-            className="input md:col-span-1 h-11"
+            className="md:col-span-1 h-11 rounded-xl border px-3 outline-none focus:ring-2 focus:ring-blue-500"
           />
 
           <input
@@ -425,7 +472,7 @@ const specFilters = React.useMemo(() => {
               }))
             }
             placeholder="Цена до"
-            className="input md:col-span-1 h-11"
+            className="md:col-span-1 h-11 rounded-xl border px-3 outline-none focus:ring-2 focus:ring-blue-500"
           />
 
           <select
@@ -436,7 +483,7 @@ const specFilters = React.useMemo(() => {
                 sort: e.target.value,
               }))
             }
-            className="select md:col-span-2 h-11"
+            className="md:col-span-2 h-11 rounded-xl border px-3 outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="new">Сначала новые</option>
             <option value="price_asc">Цена по возрастанию</option>
@@ -447,7 +494,11 @@ const specFilters = React.useMemo(() => {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           
 
-          <button type="button" onClick={applyFilters} className="btn btn-primary">
+          <button
+            type="button"
+            onClick={applyFilters}
+            className="inline-flex justify-center items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition"
+          >
             <Search size={18} />
             Применить фильтры
           </button>
@@ -455,46 +506,116 @@ const specFilters = React.useMemo(() => {
       </div>
 
       {loading && (
-        <div className="section-panel p-8 text-center text-slate-500 animate-pulse">
+        <div className="rounded-3xl border bg-white p-8 text-center text-slate-500">
           Загрузка объявлений...
         </div>
       )}
 
       {!loading && error && (
-        <div className="section-panel p-8 text-center text-red-700 bg-red-50/50 border-red-200">
+        <div className="rounded-3xl border bg-red-50 text-red-700 p-8 text-center">
           {error}
         </div>
       )}
 
       {!loading && !error && items.length === 0 && (
-        <div className="empty-state">
-          <div className="text-slate-800 font-semibold text-lg">
+        <div className="rounded-3xl border bg-white p-10 text-center">
+          <div className="text-slate-800 font-semibold">
             По выбранным фильтрам ничего не найдено
           </div>
 
-          <p className="text-sm text-slate-500 mt-2">
+          <p className="text-sm text-slate-500 mt-1">
             Попробуйте изменить цену, категорию или поисковый запрос.
           </p>
 
-          <button type="button" onClick={resetFilters} className="btn mt-4">
+          <button
+            type="button"
+            onClick={resetFilters}
+            className="mt-4 px-5 py-2.5 rounded-xl border hover:bg-slate-50"
+          >
             Сбросить фильтры
           </button>
         </div>
       )}
 
       {!loading && !error && items.length > 0 && (
-        <div className="grid-items">
-          {items.map((ad, idx) => (
-            <ListingCard
-              key={ad._id || ad.id}
-              ad={ad}
-              className="animate-fade-in-up"
-              animationDelay={idx * 40}
-            />
-          ))}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4">
+          {items.map((ad, idx) => {
+            const id = ad._id || ad.id;
+            const imgUrl = getThumb(ad);
+            const more = Math.max(0, (ad.images?.length || 0) - 1);
+
+            return (
+              <Link
+                key={id}
+                to={`/ad/${id}`}
+                onClick={() =>
+                  sessionStorage.setItem("ad_preview", JSON.stringify(ad))
+                }
+                className="group relative flex flex-col rounded-2xl border bg-white p-2 transition hover:shadow-lg hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-blue-500 animate-fade-in-up"
+                style={{ animationDelay: `${idx * 40}ms` }}
+                aria-label={`Объявление: ${ad.title || "Без названия"}`}
+              >
+                <div className="relative">
+                  <img
+                    src={imgUrl}
+                    alt={ad.title || "Фото"}
+                    loading="lazy"
+                    className="w-full h-40 object-cover rounded-xl bg-slate-100"
+                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+                  />
+
+                  {(ad.vip || ad.top) && (
+                    <div className="absolute left-2 top-2 flex gap-2">
+                      {ad.vip && (
+                        <span className="px-2 py-0.5 text-[11px] rounded-full bg-amber-500 text-white shadow">
+                          VIP
+                        </span>
+                      )}
+
+                      {ad.top && (
+                        <span className="px-2 py-0.5 text-[11px] rounded-full bg-indigo-600 text-white shadow">
+                          TOP
+                        </span>
+                      )}
+                    </div>
+                  )}
+
+                  {more > 0 && (
+                    <span className="absolute right-2 bottom-2 text-[11px] bg-black/70 text-white rounded px-1">
+                      +{more}
+                    </span>
+                  )}
+                </div>
+
+                <div className="mt-2 flex-1 flex flex-col gap-1">
+                  <div className="font-semibold text-sm text-slate-900 line-clamp-2 group-hover:text-blue-600 transition">
+                    {ad.title || "Без названия"}
+                  </div>
+
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="text-blue-700 font-extrabold text-sm">
+                      {formatPrice(ad.price)}
+                    </div>
+
+                    <FavoriteButton id={id} defaultActive={ad.isFavorite} compact />
+                  </div>
+
+                  <div className="text-xs text-slate-500 line-clamp-1 flex items-center gap-1">
+                    <MapPin size={13} />
+                    {ad.location || ad.city || "Душанбе"}
+                  </div>
+
+                  <div className="text-xs text-slate-400">
+                    {ad.createdAt && !Number.isNaN(Date.parse(ad.createdAt))
+                      ? new Date(ad.createdAt).toLocaleDateString("ru-RU")
+                      : ""}
+                  </div>
+                </div>
+              </Link>
+            );
+          })}
         </div>
       )}
-      </div>
     </div>
   );
 }

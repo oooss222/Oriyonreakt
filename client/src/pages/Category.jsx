@@ -121,8 +121,7 @@ export default function Category() {
   }
 
   return (
-    <div className="page-shell">
-      <div className="page-container space-y-6">
+    <div className="container mx-auto px-4 py-6 space-y-6">
       <nav className="text-sm text-slate-500">
         <button onClick={() => nav(-1)} className="hover:underline">
           Назад
@@ -135,7 +134,7 @@ export default function Category() {
         <span className="text-slate-700">{cat.title}</span>
       </nav>
 
-      <header className="section-panel p-4 md:p-6 flex items-center gap-4">
+      <header className="rounded-3xl border border-slate-200 bg-gradient-to-br from-white to-slate-50 p-4 md:p-6 flex items-center gap-4 shadow-sm">
         <div className="shrink-0 w-16 h-16 md:w-20 md:h-20 rounded-2xl border bg-slate-50 grid place-items-center overflow-hidden">
           <img
             src={cat.img}
@@ -146,7 +145,7 @@ export default function Category() {
 
         <div className="min-w-0">
           <div className="inline-flex items-center gap-2 mb-1">
-            <span className="section-chip px-2 py-0.5 text-xs">
+            <span className="px-2 py-0.5 text-xs rounded-full bg-blue-50 text-blue-700 border border-blue-100">
               Категория
             </span>
 
@@ -168,7 +167,7 @@ export default function Category() {
         <div className="ml-auto flex gap-2">
           <Link
             to={`/listing?cat=${slug}`}
-            className="hidden sm:inline-flex nav-link-primary"
+            className="hidden sm:inline-flex px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition shadow-sm"
           >
             Все объявления
           </Link>
@@ -241,7 +240,6 @@ export default function Category() {
           <AdSlot type="banner" id={`cat-${slug}-banner`} />
         </div>
       </section>
-      </div>
     </div>
   );
 }
