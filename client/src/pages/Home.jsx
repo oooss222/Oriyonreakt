@@ -2,7 +2,6 @@ import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import AdSlot from "../components/AdSlot";
 import { api, API_BASE } from "../lib/api";
-import { categories } from "../data/categories";
 import {
   Search,
   PlusCircle,
@@ -11,6 +10,7 @@ import {
   MapPin,
   Clock3,
   ArrowRight,
+  Grid3X3,
   TrendingUp,
   BadgeCheck,
   Flame,
@@ -18,6 +18,45 @@ import {
   Smartphone,
   Monitor,
 } from "lucide-react";
+
+const categories = [
+  {
+    slug: "transport",
+    title: "Авто",
+    img: "/img/car.png",
+    desc: "Авто, запчасти, техника",
+  },
+  {
+    slug: "furniture",
+    title: "Мебель",
+    img: "/img/furniture.png",
+    desc: "Дом, офис, интерьер",
+  },
+  {
+    slug: "phones",
+    title: "Телефоны",
+    img: "/img/phone.png",
+    desc: "Смартфоны и аксессуары",
+  },
+  {
+    slug: "electronics",
+    title: "Бытовая техника",
+    img: "/img/electronics.png",
+    desc: "Техника для дома",
+  },
+  {
+    slug: "computers",
+    title: "Компьютеры",
+    img: "/img/computers.png",
+    desc: "ПК, ноутбуки, оргтехника",
+  },
+  {
+    slug: "repair",
+    title: "Ремонт",
+    img: "/img/repair.png",
+    desc: "Материалы и инструменты",
+  },
+];
 
 const cityChips = ["Душанбе", "Худжанд", "Бохтар", "Куляб", "Вахдат"];
 
@@ -280,9 +319,14 @@ export default function Home() {
       <div className="container mx-auto px-4 py-6 space-y-10">
 
 
-        <section id="categories" className="space-y-4">
+        <section className="space-y-4">
           <div className="flex items-end justify-between gap-3">
             <div>
+              <div className="inline-flex items-center gap-2 text-sm text-blue-700 bg-blue-50 border border-blue-100 rounded-full px-3 py-1 mb-2">
+                <Grid3X3 size={16} />
+                Разделы
+              </div>
+
               <h2 className="text-2xl font-bold">Категории</h2>
             </div>
 

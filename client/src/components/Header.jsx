@@ -15,7 +15,6 @@ import {
 } from "lucide-react";
 
 import { api, API_BASE } from "../lib/api";
-import { categories } from "../data/categories";
 
 const TOKEN_KEY = "auth_token";
 const USER_KEY = "auth_user";
@@ -28,9 +27,7 @@ export default function Header() {
   const [open, setOpen] = React.useState(false);
   const [listings, setListings] = React.useState([]);
   const [showSuggestions, setShowSuggestions] = React.useState(false);
-  const [showCategories, setShowCategories] = React.useState(false);
   const [unreadCount, setUnreadCount] = React.useState(0);
-  const categoriesRef = React.useRef(null);
   const token = localStorage.getItem(TOKEN_KEY) || "";
 
   const user = React.useMemo(() => {
@@ -148,32 +145,7 @@ const suggestions = React.useMemo(() => {
   }
 }, [q]);
 
-  const close = () => {
-    setOpen(false);
-    setShowCategories(false);
-  };
-
-  React.useEffect(() => {
-    if (!showCategories) return;
-
-    function handleClickOutside(e) {
-      if (categoriesRef.current && !categoriesRef.current.contains(e.target)) {
-        setShowCategories(false);
-      }
-    }
-
-    function handleEscape(e) {
-      if (e.key === "Escape") setShowCategories(false);
-    }
-
-    document.addEventListener("mousedown", handleClickOutside);
-    document.addEventListener("keydown", handleEscape);
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-      document.removeEventListener("keydown", handleEscape);
-    };
-  }, [showCategories]);
+  const close = () => setOpen(false);
 
   return (
     <header className="sticky top-0 z-50 border-b border-blue-100 bg-white/90 backdrop-blur-xl shadow-sm">
@@ -195,66 +167,6 @@ const suggestions = React.useMemo(() => {
               </div>
             </div>
           </Link>
-
-          <div ref={categoriesRef} className="relative hidden md:block shrink-0">
-            <button
-              type="button"
-              onClick={() => setShowCategories((v) => !v)}
-              aria-expanded={showCategories}
-              aria-haspopup="true"
-              className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition ${
-                showCategories
-                  ? "border-blue-200 bg-blue-50 text-blue-700"
-                  : "border-blue-100 bg-blue-50 text-blue-700 hover:bg-blue-100"
-              }`}
-            >
-              <Grid3X3 size={16} />
-              Разделы
-            </button>
-
-            {showCategories && (
-              <div className="absolute left-0 top-full mt-2 z-50 w-[min(92vw,720px)] rounded-2xl border bg-white p-4 shadow-xl">
-                <div className="mb-3 flex items-center justify-between gap-3">
-                  <div className="text-sm font-semibold text-slate-900">Категории</div>
-                  <Link
-                    to="/listing"
-                    onClick={close}
-                    className="text-sm font-medium text-blue-700 hover:underline"
-                  >
-                    Все объявления
-                  </Link>
-                </div>
-
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {categories.map((cat) => (
-                    <Link
-                      key={cat.slug}
-                      to={`/c/${cat.slug}`}
-                      onClick={close}
-                      className="group flex items-center gap-3 rounded-xl border p-3 hover:bg-slate-50 hover:shadow-sm transition"
-                    >
-                      <div className="w-12 h-12 rounded-xl bg-gradient-to-b from-blue-50 to-white border grid place-items-center shrink-0 overflow-hidden">
-                        <img
-                          src={cat.img}
-                          alt={cat.title}
-                          className="w-8 h-8 object-contain"
-                        />
-                      </div>
-
-                      <div className="min-w-0">
-                        <div className="text-sm font-semibold text-slate-900 truncate">
-                          {cat.title}
-                        </div>
-                        <div className="text-xs text-slate-500 truncate">
-                          {cat.desc}
-                        </div>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
 
           <div className="flex-1 max-w-2xl hidden md:block relative">
             <div className="flex items-center gap-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-2 shadow-sm focus-within:ring-2 focus-within:ring-blue-500 transition">
@@ -446,26 +358,6 @@ const suggestions = React.useMemo(() => {
                 <Grid3X3 size={18} />
                 Объявления
               </Link>
-
-              <div className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
-                Категории
-              </div>
-
-              {categories.map((cat) => (
-                <Link
-                  key={cat.slug}
-                  to={`/c/${cat.slug}`}
-                  onClick={close}
-                  className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-slate-50"
-                >
-                  <img
-                    src={cat.img}
-                    alt={cat.title}
-                    className="w-8 h-8 object-contain"
-                  />
-                  {cat.title}
-                </Link>
-              ))}
 
               <Link
                 to="/add"
