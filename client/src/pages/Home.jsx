@@ -1,6 +1,7 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import AdSlot from "../components/AdSlot";
+import FavoriteButton from "../components/FavoriteButton";
 import { api, API_BASE } from "../lib/api";
 import {
   Search,
@@ -110,6 +111,10 @@ function ListingCard({ ad, listings }) {
       aria-label={`Объявление: ${ad.title || "Без названия"}`}
     >
       <div className="relative overflow-hidden rounded-2xl">
+        <div className="absolute z-10 right-2 top-2">
+          <FavoriteButton id={id} defaultActive={ad.isFavorite} />
+        </div>
+
         <img
           src={img}
           alt={ad.title || "Объявление"}

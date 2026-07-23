@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import FavoriteButton from "./FavoriteButton";
 import { API_BASE } from "../lib/api";
 
 function imageUrl(src) {
@@ -17,37 +18,6 @@ function imageUrl(src) {
 
 export default function ListingCard({ item, onFav }) {
   const listingId = item.id || item._id;
-
-  const [fav, setFav] = React.useState(() => {
-    const f = new Set(
-      JSON.parse(localStorage.getItem("favs") || "[]")
-    );
-
-    return f.has(listingId);
-  });
-
-  const toggle = (e) => {
-    e.preventDefault();
-
-    const f = new Set(
-      JSON.parse(localStorage.getItem("favs") || "[]")
-    );
-
-    if (f.has(listingId)) {
-      f.delete(listingId);
-      setFav(false);
-    } else {
-      f.add(listingId);
-      setFav(true);
-    }
-
-    localStorage.setItem(
-      "favs",
-      JSON.stringify([...f])
-    );
-
-    onFav?.(listingId, !fav);
-  };
 
   const image =
     item.images?.[0]?.url ||
@@ -69,19 +39,29 @@ export default function ListingCard({ item, onFav }) {
       to={`/ad/${listingId}`}
       className="card overflow-hidden block"
     >
-      <img
-        src={
-          image
-            ? imageUrl(image)
-            : "https://placehold.co/600x400?text=No+Image"
-        }
-        alt={item.title}
-        className="w-full h-40 object-cover bg-indigo-50"
-        onError={(e) => {
-          e.currentTarget.src =
-            "https://placehold.co/600x400?text=No+Image";
-        }}
-      />
+      <div className="relative">
+        <div className="absolute z-10 right-2 top-2">
+          <FavoriteButton
+            id={listingId}
+            defaultActive={item.isFavorite}
+            onChange={(active) => onFav?.(listingId, active)}
+          />
+        </div>
+
+        <img
+          src={
+            image
+              ? imageUrl(image)
+              : "https://placehold.co/600x400?text=No+Image"
+          }
+          alt={item.title}
+          className="w-full h-40 object-cover bg-indigo-50"
+          onError={(e) => {
+            e.currentTarget.src =
+              "https://placehold.co/600x400?text=No+Image";
+          }}
+        />
+      </div>
 
       <div className="p-3">
         <div className="badge">
@@ -92,20 +72,8 @@ export default function ListingCard({ item, onFav }) {
           {item.title}
         </h3>
 
-        <div className="flex items-center justify-between mt-2">
+        <div className="mt-2">
           <strong>{price}</strong>
-
-          <button
-            className={`btn ${
-              fav
-                ? "bg-amber-50 border-amber-200"
-                : ""
-            }`}
-            onClick={toggle}
-            title="В избранное"
-          >
-            ★
-          </button>
         </div>
       </div>
     </Link>

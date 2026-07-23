@@ -1,6 +1,7 @@
 import React from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { api, API_BASE } from "../lib/api";
+import FavoriteButton from "../components/FavoriteButton";
 import {
   User as UserIcon,
   LogOut,
@@ -228,6 +229,7 @@ const ListingCard = React.memo(function ListingCard({
   canManage,
   onRemove,
   compact = false,
+  isFavorite = false,
 }) {
   const id = getId(ad);
   const imgUrl = getThumb(ad);
@@ -260,6 +262,12 @@ const ListingCard = React.memo(function ListingCard({
         className="block"
       >
         <div className="relative overflow-hidden rounded-2xl">
+          {!canManage && (
+            <div className="absolute z-10 right-2 top-2">
+              <FavoriteButton id={id} defaultActive={isFavorite} />
+            </div>
+          )}
+
           <img
             src={imgUrl}
             alt={ad.title || "Объявление"}
@@ -394,6 +402,7 @@ const ListingsGrid = React.memo(function ListingsGrid({
           canManage={canManage}
           onRemove={onRemove}
           compact={compact}
+          isFavorite={tab === "fav"}
         />
       ))}
     </div>
