@@ -9,7 +9,7 @@ export default function App() {
   const isMessagesPage = location.pathname === "/messages";
 
   return (
-    <div className="min-h-screen flex flex-col bg-page-gradient">
+    <div className="min-h-screen flex flex-col page-shell">
       <Header />
 
       <main className="flex-1">

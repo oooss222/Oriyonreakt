@@ -79,7 +79,7 @@ function HorizontalSection({ title, icon: Icon, items, linkTo = "/listing" }) {
 
         <Link
           to={linkTo}
-          className="hidden sm:inline-flex items-center gap-1 text-sm font-semibold text-accent-600 hover:text-accent-700 transition-colors"
+          className="hidden sm:inline-flex items-center gap-1 text-sm font-semibold text-blue-600 hover:text-blue-700 transition-colors"
         >
           Смотреть все
           <ArrowRight size={16} />
@@ -222,6 +222,31 @@ export default function Home() {
   return (
     <div className="page-shell">
       <div className="page-container space-y-10 sm:space-y-12">
+        <section className="hero-banner">
+          <div className="relative z-[1] max-w-2xl">
+            <p className="text-blue-100 text-sm font-medium mb-2">
+              Маркетплейс объявлений Таджикистана
+            </p>
+            <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-balance">
+              Покупайте и продавайте на Oriyon Store
+            </h1>
+            <p className="text-blue-100/90 mt-3 text-sm sm:text-base leading-relaxed">
+              Тысячи объявлений: авто, техника, мебель, телефоны и многое другое.
+            </p>
+            <div className="mt-5 flex flex-wrap gap-3">
+              <Link to="/listing" className="btn bg-white text-brand border-white hover:bg-blue-50">
+                Смотреть объявления
+              </Link>
+              <Link to="/add" className="btn bg-white/10 text-white border-white/30 hover:bg-white/20">
+                <PlusCircle size={18} />
+                Подать объявление
+              </Link>
+            </div>
+          </div>
+          <div className="pointer-events-none absolute -right-8 -top-8 h-40 w-40 rounded-full bg-white/10 blur-2xl" />
+          <div className="pointer-events-none absolute -bottom-10 right-1/4 h-32 w-32 rounded-full bg-blue-300/20 blur-2xl" />
+        </section>
+
         <section className="space-y-4">
           <div className="flex items-end justify-between gap-3">
             <div>
@@ -237,7 +262,7 @@ export default function Home() {
 
             <Link
               to="/listing"
-              className="hidden sm:inline-flex items-center gap-1 text-sm font-semibold text-accent-600 hover:text-accent-700 transition-colors"
+              className="hidden sm:inline-flex items-center gap-1 text-sm font-semibold text-blue-600 hover:text-blue-700 transition-colors"
             >
               Все объявления
               <ArrowRight size={16} />
@@ -249,7 +274,7 @@ export default function Home() {
               <Link
                 key={cat.slug}
                 to={`/c/${cat.slug}`}
-                className="category-card"
+                className="category-card group"
                 aria-label={`Категория: ${cat.title}`}
               >
                 <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-b from-accent-50 to-white border border-slate-100 grid place-items-center mb-3 overflow-hidden">

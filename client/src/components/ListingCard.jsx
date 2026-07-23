@@ -63,7 +63,7 @@ export default function ListingCard({
           sessionStorage.setItem("ad_list", JSON.stringify(listings));
         }
       }}
-      className={`listing-card ${className}`}
+      className={`listing-card group ${className}`}
       style={animationDelay != null ? { animationDelay: `${animationDelay}ms` } : undefined}
       aria-label={`Объявление: ${data?.title || "Без названия"}`}
     >

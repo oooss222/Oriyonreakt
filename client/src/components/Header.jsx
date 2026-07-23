@@ -149,6 +149,7 @@ const suggestions = React.useMemo(() => {
 
   return (
     <header className="sticky top-0 z-50 glass-bar">
+      <div className="h-1 bg-gradient-to-r from-brand via-blue-600 to-blue-400" />
       <div className="container-x">
         <div className="h-[72px] flex items-center justify-between gap-3 lg:gap-4">
           <Link to="/" onClick={close} className="flex items-center gap-2.5 group shrink-0">
@@ -169,7 +170,7 @@ const suggestions = React.useMemo(() => {
           </Link>
 
           <div className="flex-1 max-w-2xl hidden md:block relative">
-            <div className="flex items-center gap-2 w-full rounded-2xl border border-slate-200/80 bg-white px-3 py-1.5 shadow-soft focus-within:ring-2 focus-within:ring-accent-500/25 focus-within:border-accent-400 transition">
+            <div className="flex items-center gap-2 w-full rounded-2xl border border-slate-200/80 bg-white px-3 py-1.5 shadow-sm focus-within:ring-2 focus-within:ring-blue-500/25 focus-within:border-blue-400 transition">
               <Search size={18} className="text-slate-400 shrink-0 ml-1" />
 
               <input
@@ -188,7 +189,7 @@ const suggestions = React.useMemo(() => {
                 type="button"
                 onClick={go}
                 aria-label="Искать"
-                className="inline-flex items-center justify-center rounded-xl bg-accent-600 text-white w-9 h-9 hover:bg-accent-700 transition shrink-0 shadow-sm"
+                className="inline-flex items-center justify-center rounded-xl bg-blue-600 text-white w-9 h-9 hover:bg-blue-700 transition shrink-0 shadow-sm"
               >
                 <Search size={18} />
               </button>
@@ -196,7 +197,7 @@ const suggestions = React.useMemo(() => {
           </div>
           
           {showSuggestions && suggestions.length > 0 && (
-            <div className="absolute left-0 right-0 top-full mt-2 z-50 rounded-2xl border border-slate-200/80 bg-white shadow-card overflow-hidden text-slate-900">
+            <div className="absolute left-0 right-0 top-full mt-2 z-50 rounded-2xl border border-slate-200/80 bg-white shadow-xl overflow-hidden text-slate-900">
     {suggestions.map((ad) => {
       const id = ad.id || ad._id;
 
@@ -296,7 +297,7 @@ const suggestions = React.useMemo(() => {
         </div>
 
         <div className="md:hidden pb-3">
-          <div className="flex items-center gap-2 w-full rounded-2xl border border-slate-200/80 bg-white px-3 py-1.5 shadow-soft focus-within:ring-2 focus-within:ring-accent-500/25 transition">
+          <div className="flex items-center gap-2 w-full rounded-2xl border border-slate-200/80 bg-white px-3 py-1.5 shadow-sm focus-within:ring-2 focus-within:ring-blue-500/25 transition">
             <Search size={19} className="text-slate-400 shrink-0" />
 
             <input
@@ -310,7 +311,7 @@ const suggestions = React.useMemo(() => {
             <button
               type="button"
               onClick={go}
-              className="rounded-xl bg-accent-600 text-white px-4 py-2 text-sm font-semibold hover:bg-accent-700 transition shadow-sm"
+              className="rounded-xl bg-blue-600 text-white px-4 py-2 text-sm font-semibold hover:bg-blue-700 transition shadow-sm"
             >
               Найти
             </button>
