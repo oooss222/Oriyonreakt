@@ -558,10 +558,6 @@ const specFilters = React.useMemo(() => {
                 style={{ animationDelay: `${idx * 40}ms` }}
                 aria-label={`Объявление: ${ad.title || "Без названия"}`}
               >
-                <div className="absolute z-10 right-2 top-2">
-                  <FavoriteButton id={id} defaultActive={ad.isFavorite} />
-                </div>
-
                 <div className="relative">
                   <img
                     src={imgUrl}
@@ -587,12 +583,6 @@ const specFilters = React.useMemo(() => {
                     </div>
                   )}
 
-                  {ad.price != null && ad.price !== "" && (
-                    <div className="absolute left-2 bottom-2 rounded-full bg-black/65 text-white text-xs px-2 py-1 shadow-sm">
-                      {formatPrice(ad.price)}
-                    </div>
-                  )}
-
                   {more > 0 && (
                     <span className="absolute right-2 bottom-2 text-[11px] bg-black/70 text-white rounded px-1">
                       +{more}
@@ -603,6 +593,14 @@ const specFilters = React.useMemo(() => {
                 <div className="mt-2 flex-1 flex flex-col gap-1">
                   <div className="font-semibold text-sm text-slate-900 line-clamp-2 group-hover:text-blue-600 transition">
                     {ad.title || "Без названия"}
+                  </div>
+
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="text-blue-700 font-extrabold text-sm">
+                      {formatPrice(ad.price)}
+                    </div>
+
+                    <FavoriteButton id={id} defaultActive={ad.isFavorite} compact />
                   </div>
 
                   <div className="text-xs text-slate-500 line-clamp-1 flex items-center gap-1">

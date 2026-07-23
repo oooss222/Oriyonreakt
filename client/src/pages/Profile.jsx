@@ -262,12 +262,6 @@ const ListingCard = React.memo(function ListingCard({
         className="block"
       >
         <div className="relative overflow-hidden rounded-2xl">
-          {!canManage && (
-            <div className="absolute z-10 right-2 top-2">
-              <FavoriteButton id={id} defaultActive={isFavorite} />
-            </div>
-          )}
-
           <img
             src={imgUrl}
             alt={ad.title || "Объявление"}
@@ -297,8 +291,14 @@ const ListingCard = React.memo(function ListingCard({
             {ad.title || "Без названия"}
           </div>
 
-          <div className="text-blue-700 font-extrabold mt-1">
-            {fmtPrice(ad.price)}
+          <div className="flex items-center justify-between gap-2 mt-1">
+            <div className="text-blue-700 font-extrabold">
+              {fmtPrice(ad.price)}
+            </div>
+
+            {!canManage && (
+              <FavoriteButton id={id} defaultActive={isFavorite} compact />
+            )}
           </div>
 
           <div className="text-xs text-slate-500 line-clamp-1 mt-1">

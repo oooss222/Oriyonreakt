@@ -40,14 +40,6 @@ export default function ListingCard({ item, onFav }) {
       className="card overflow-hidden block"
     >
       <div className="relative">
-        <div className="absolute z-10 right-2 top-2">
-          <FavoriteButton
-            id={listingId}
-            defaultActive={item.isFavorite}
-            onChange={(active) => onFav?.(listingId, active)}
-          />
-        </div>
-
         <img
           src={
             image
@@ -72,8 +64,15 @@ export default function ListingCard({ item, onFav }) {
           {item.title}
         </h3>
 
-        <div className="mt-2">
+        <div className="mt-2 flex items-center justify-between gap-2">
           <strong>{price}</strong>
+
+          <FavoriteButton
+            id={listingId}
+            defaultActive={item.isFavorite}
+            onChange={(active) => onFav?.(listingId, active)}
+            compact
+          />
         </div>
       </div>
     </Link>

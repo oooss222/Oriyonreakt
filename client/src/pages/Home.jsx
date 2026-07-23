@@ -111,10 +111,6 @@ function ListingCard({ ad, listings }) {
       aria-label={`Объявление: ${ad.title || "Без названия"}`}
     >
       <div className="relative overflow-hidden rounded-2xl">
-        <div className="absolute z-10 right-2 top-2">
-          <FavoriteButton id={id} defaultActive={ad.isFavorite} />
-        </div>
-
         <img
           src={img}
           alt={ad.title || "Объявление"}
@@ -144,8 +140,12 @@ function ListingCard({ ad, listings }) {
           {ad.title || "Без названия"}
         </div>
 
-        <div className="text-blue-700 font-extrabold">
-          {fmtPrice(ad.price)}
+        <div className="flex items-center justify-between gap-2">
+          <div className="text-blue-700 font-extrabold">
+            {fmtPrice(ad.price)}
+          </div>
+
+          <FavoriteButton id={id} defaultActive={ad.isFavorite} compact />
         </div>
 
         <div className="text-xs text-slate-500 line-clamp-1 flex items-center gap-1">
