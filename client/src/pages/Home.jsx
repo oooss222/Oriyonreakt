@@ -9,7 +9,6 @@ import {
   MapPin,
   Clock3,
   ArrowRight,
-  Grid3X3,
   TrendingUp,
   BadgeCheck,
   Flame,
@@ -318,46 +317,33 @@ export default function Home() {
   return (
     <div className="bg-slate-50">
       <div className="container mx-auto px-4 py-6 space-y-10">
-        <section className="space-y-4">
-          <div className="flex items-end justify-between gap-3">
-            <div>
-              <div className="inline-flex items-center gap-2 text-sm text-blue-700 bg-blue-50 border border-blue-100 rounded-full px-3 py-1 mb-2">
-                <Grid3X3 size={16} />
-                Разделы
-              </div>
+        <section className="space-y-3">
+          <h2 className="text-xl font-bold text-slate-900">Категории</h2>
 
-              <h2 className="text-2xl font-bold">Категории</h2>
-            </div>
-
-            <Link
-              to="/listing"
-              className="hidden sm:inline-flex items-center gap-1 text-sm font-medium text-blue-700 hover:underline"
-            >
-              Все объявления
-              <ArrowRight size={16} />
-            </Link>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+          <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-6 gap-2">
             {categories.map((cat) => (
               <Link
                 key={cat.slug}
                 to={`/c/${cat.slug}`}
-                className="group rounded-3xl border bg-white p-4 transition hover:shadow-lg hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="group flex flex-col items-center text-center rounded-2xl border border-slate-200/80 bg-white px-2 py-3 transition hover:border-blue-200 hover:shadow-sm hover:bg-blue-50/40 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 aria-label={`Категория: ${cat.title}`}
               >
-                <div className="w-20 h-20 rounded-2xl bg-gradient-to-b from-blue-50 to-white border grid place-items-center mb-3 overflow-hidden">
+                <div className="w-11 h-11 rounded-xl bg-slate-50 border border-slate-100 grid place-items-center overflow-hidden group-hover:bg-white group-hover:border-blue-100 transition">
                   <img
                     src={cat.img}
-                    alt={cat.title}
+                    alt=""
                     loading="lazy"
-                    className="w-14 h-14 object-contain transition-transform duration-300 group-hover:scale-110"
+                    className="w-7 h-7 object-contain transition-transform duration-200 group-hover:scale-105"
                   />
                 </div>
 
-                <div className="font-bold text-slate-900 line-clamp-1">{cat.title}</div>
+                <div className="font-semibold text-xs sm:text-sm text-slate-900 mt-2 leading-tight line-clamp-1 group-hover:text-blue-700 transition">
+                  {cat.title}
+                </div>
 
-                <div className="text-xs text-slate-500 mt-1 line-clamp-2">{cat.desc}</div>
+                <div className="text-[10px] sm:text-[11px] text-slate-500 mt-0.5 line-clamp-2 leading-snug px-0.5">
+                  {cat.desc}
+                </div>
               </Link>
             ))}
           </div>
