@@ -2173,6 +2173,14 @@ export default function Profile() {
               {favItems.length}
             </span>
           </TabButton>
+
+          <TabButton active={tab === "messages"} onClick={() => setTab("fav")}>
+            <FolderHeart size={18} />
+            Сообщения
+            <span className="ml-1 rounded-full border px-2 py-0.5 text-xs bg-white text-slate-700">
+              
+            </span>
+          </TabButton>
         </div>
       </div>
 
@@ -2191,9 +2199,7 @@ export default function Profile() {
         <ModerationPanel token={token} />
       )}
 
-      <a href="/messages" className="btn">
-        Сообщения
-      </a>
+      
 
      {tab === "wallet" && (
   <div className="space-y-6">

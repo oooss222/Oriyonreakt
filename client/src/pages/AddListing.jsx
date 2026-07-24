@@ -2,6 +2,19 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../lib/api";
 import {
+  CAR_BRANDS,
+  CAR_MODELS,
+  PHONE_BRANDS,
+  PHONE_MODELS,
+  LAPTOP_BRANDS,
+  LAPTOP_MODELS,
+  APPLIANCE_BRANDS,
+  APPLIANCE_MODELS,
+  COMMON_SPEC_OPTIONS,
+  getDependentOptions,
+  SPEC_DEPENDENCIES,
+} from "../data/specOptions";
+import {
   Plus,
   X,
   UploadCloud,
@@ -33,14 +46,14 @@ const CATS = {
       "Автохимия и автомасла",
     ],
     specTemplate: [
-      "Марка",
-      "Модель",
-      "Год",
-      "Пробег",
-      "КПП",
-      "Цвет",
-      "Топливо",
-      "Состояние",
+      { name: "Марка", type: "select", options: CAR_BRANDS },
+      { name: "Модель", type: "select", dependsOn: "Марка", optionsFrom: CAR_MODELS },
+      { name: "Год", type: "select", options: COMMON_SPEC_OPTIONS.years },
+      { name: "Пробег", type: "text" },
+      { name: "КПП", type: "select", options: COMMON_SPEC_OPTIONS.kpp },
+      { name: "Цвет", type: "select", options: COMMON_SPEC_OPTIONS.color },
+      { name: "Топливо", type: "select", options: COMMON_SPEC_OPTIONS.fuel },
+      { name: "Состояние", type: "select", options: COMMON_SPEC_OPTIONS.condition },
     ],
   },
   furniture: {
@@ -63,31 +76,33 @@ const CATS = {
       "Ремонт и сервис телефонов",
     ],
     specTemplate: [
-  {
-    name: "Производитель",
-    type: "select",
-    options: ["Apple", "Samsung", "Xiaomi", "Huawei", "Honor", "Realme"],
-  },
-  {
-    name: "Модель",
-    type: "text",
-  },
-  {
-    name: "Память",
-    type: "select",
-    options: ["64 GB", "128 GB", "256 GB", "512 GB", "1 TB"],
-  },
-  {
-    name: "Состояние",
-    type: "select",
-    options: ["Новый", "Б/у", "Требует ремонта"],
-  },
-  {
-    name: "Гарантия",
-    type: "select",
-    options: ["Да", "Нет"],
-  },
-],
+      {
+        name: "Производитель",
+        type: "select",
+        options: PHONE_BRANDS,
+      },
+      {
+        name: "Модель",
+        type: "select",
+        dependsOn: "Производитель",
+        optionsFrom: PHONE_MODELS,
+      },
+      {
+        name: "Память",
+        type: "select",
+        options: COMMON_SPEC_OPTIONS.memory,
+      },
+      {
+        name: "Состояние",
+        type: "select",
+        options: COMMON_SPEC_OPTIONS.condition,
+      },
+      {
+        name: "Гарантия",
+        type: "select",
+        options: COMMON_SPEC_OPTIONS.warranty,
+      },
+    ],
   },
   electronics: {
     title: "Бытовая техника",
@@ -97,18 +112,36 @@ const CATS = {
       "Климатическая техника",
       "Обогреватели",
     ],
-    specTemplate: ["Тип", "Бренд", "Состояние", "Гарантия"],
+    specTemplate: [
+      { name: "Тип", type: "text" },
+      { name: "Бренд", type: "select", options: APPLIANCE_BRANDS },
+      {
+        name: "Модель",
+        type: "select",
+        dependsOn: "Бренд",
+        optionsFrom: APPLIANCE_MODELS,
+      },
+      { name: "Состояние", type: "select", options: COMMON_SPEC_OPTIONS.condition },
+      { name: "Гарантия", type: "select", options: COMMON_SPEC_OPTIONS.warranty },
+    ],
   },
   computers: {
     title: "Компьютеры и оргтехника",
     subs: ["Ноутбуки", "ПК", "Приставки", "Принтеры и сканеры"],
     specTemplate: [
-      "Тип",
-      "Процессор",
-      "ОЗУ",
-      "Накопитель",
-      "Видеокарта",
-      "Состояние",
+      { name: "Тип", type: "text" },
+      { name: "Бренд", type: "select", options: LAPTOP_BRANDS },
+      {
+        name: "Модель",
+        type: "select",
+        dependsOn: "Бренд",
+        optionsFrom: LAPTOP_MODELS,
+      },
+      { name: "Процессор", type: "text" },
+      { name: "ОЗУ", type: "text" },
+      { name: "Накопитель", type: "text" },
+      { name: "Видеокарта", type: "text" },
+      { name: "Состояние", type: "select", options: COMMON_SPEC_OPTIONS.condition },
     ],
   },
   repair: {
@@ -159,11 +192,14 @@ export default function AddListing() {
     }));
 
     const tpl = (cat?.specTemplate || []).map((item) => ({
-  name: typeof item === "string" ? item : item.name,
-  type: typeof item === "string" ? "text" : item.type || "text",
-  options: typeof item === "string" ? [] : item.options || [],
-  value: "",
-}));
+      name: typeof item === "string" ? item : item.name,
+      type: typeof item === "string" ? "text" : item.type || "text",
+      options: typeof item === "string" ? [] : item.options || [],
+      dependsOn: typeof item === "string" ? "" : item.dependsOn || "",
+      optionsFrom: typeof item === "string" ? null : item.optionsFrom || null,
+      locked: true,
+      value: "",
+    }));
 
     setSpecs(tpl);
   }, [form.cat]);
@@ -231,7 +267,10 @@ export default function AddListing() {
   };
 
   const addSpecRow = () => {
-    setSpecs((state) => [...state, { name: "", value: "" }]);
+    setSpecs((state) => [
+      ...state,
+      { name: "", value: "", type: "text", locked: false },
+    ]);
   };
 
   const removeSpecRow = (index) => {
@@ -239,16 +278,29 @@ export default function AddListing() {
   };
 
   const updateSpec = (index, key, value) => {
-    setSpecs((state) =>
-      state.map((row, i) =>
+    setSpecs((state) => {
+      let next = state.map((row, i) =>
         i === index
           ? {
               ...row,
               [key]: value,
             }
           : row
-      )
-    );
+      );
+
+      if (key === "value") {
+        const changedName = next[index]?.name;
+        const dependentNames = SPEC_DEPENDENCIES[changedName] || [];
+
+        if (dependentNames.length > 0) {
+          next = next.map((row) =>
+            dependentNames.includes(row.name) ? { ...row, value: "" } : row
+          );
+        }
+      }
+
+      return next;
+    });
   };
 
   const resetForm = () => {
@@ -605,27 +657,47 @@ export default function AddListing() {
             </div>
 
             <div className="space-y-3">
-              {specs.map((spec, index) => (
+              {specs.map((spec, index) => {
+                const selectOptions = getDependentOptions(spec, specs);
+                const needsParent = Boolean(spec.dependsOn);
+                const parentSelected = needsParent
+                  ? specs.some(
+                      (row) => row.name === spec.dependsOn && row.value
+                    )
+                  : true;
+
+                return (
                 <div
                   key={index}
                   className="grid grid-cols-[1fr_1fr_auto] gap-2 items-center"
                 >
-                  <input
-                    value={spec.name}
-                    onChange={(e) => updateSpec(index, "name", e.target.value)}
-                    placeholder="Название"
-                    className="h-10 rounded-lg border px-3 outline-none focus:ring-2 focus:ring-blue-500"
-                  />
+                  {spec.locked ? (
+                    <div className="h-10 flex items-center px-3 text-sm font-medium text-slate-700 bg-slate-50 rounded-lg border">
+                      {spec.name}
+                    </div>
+                  ) : (
+                    <input
+                      value={spec.name}
+                      onChange={(e) => updateSpec(index, "name", e.target.value)}
+                      placeholder="Название"
+                      className="h-10 rounded-lg border px-3 outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  )}
 
                   {spec.type === "select" ? (
                 <select
                   value={spec.value}
                   onChange={(e) => updateSpec(index, "value", e.target.value)}
-                  className="h-10 rounded-lg border px-3 outline-none focus:ring-2 focus:ring-blue-500"
+                  disabled={needsParent && !parentSelected}
+                  className="h-10 rounded-lg border px-3 outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-100 disabled:text-slate-400"
                 >
-                  <option value="">Выберите</option>
+                  <option value="">
+                    {needsParent && !parentSelected
+                      ? `Сначала выберите ${spec.dependsOn.toLowerCase()}`
+                      : "Выберите"}
+                  </option>
 
-                  {spec.options.map((option) => (
+                  {selectOptions.map((option) => (
                     <option key={option} value={option}>
                       {option}
                     </option>
@@ -649,7 +721,8 @@ export default function AddListing() {
                     <X className="w-4 h-4" />
                   </button>
                 </div>
-              ))}
+              );
+              })}
 
               {specs.length === 0 && (
                 <div className="text-sm text-slate-500">
