@@ -30,7 +30,7 @@ const ROLES = ["user", "moderator", "accountant", "admin", "super_admin"];
 const normalizeTab = (value) => {
   if (value === "favorites") return "fav";
   if (
-    ["fav", "profile", "wallet", "admin", "moderation", "messages", "my", "ads"].includes(value)
+    ["fav", "profile", "wallet", "admin", "moderation", "messages", "my"].includes(value)
   ) {
     return value;
   }
@@ -38,14 +38,6 @@ const normalizeTab = (value) => {
 };
 
 const getId = (item) => item?.id || item?._id;
-
-function resolveMediaUrl(src) {
-  if (!src) return "";
-  if (src.startsWith("http") || src.startsWith("data:")) return src;
-
-  const server = API_BASE.replace(/\/api$/, "");
-  return `${server}/${String(src).replace(/^\/+/, "")}`;
-}
 
 const getThumb = (ad) => {
   let src = "";
@@ -1391,227 +1383,6 @@ function ModerationPanel({ token }) {
   );
 }
 
-function AdsPanel({ token }) {
-  const [ads, setAds] = React.useState([]);
-  const [loading, setLoading] = React.useState(true);
-
-  const [form, setForm] = React.useState({
-    title: "",
-    imageUrl: "",
-    targetUrl: "",
-    placement: "home_top",
-  });
-
-  const loadAds = React.useCallback(async () => {
-    try {
-      const data = await api.adminAds(token);
-      setAds(Array.isArray(data) ? data : []);
-    } catch (e) {
-      alert(e.message || "Ошибка загрузки рекламы");
-    } finally {
-      setLoading(false);
-    }
-  }, [token]);
-
-  React.useEffect(() => {
-    loadAds();
-  }, [loadAds]);
-
-  const createAd = async (e) => {
-    e.preventDefault();
-
-    if (!form.imageUrl.trim()) {
-      alert("Укажите imageUrl");
-      return;
-    }
-
-    try {
-      const ad = await api.adminCreateAd(token, form);
-
-      setAds((arr) => [ad, ...arr]);
-
-      setForm({
-        title: "",
-        imageUrl: "",
-        targetUrl: "",
-        placement: "home_top",
-      });
-    } catch (e) {
-      alert(e.message || "Ошибка создания рекламы");
-    }
-  };
-
-  const removeAd = async (id) => {
-    const ok = confirm("Удалить рекламу?");
-    if (!ok) return;
-
-    try {
-      await api.adminDeleteAd(token, id);
-
-      setAds((arr) =>
-        arr.filter((item) => String(item.id) !== String(id))
-      );
-    } catch (e) {
-      alert(e.message || "Ошибка удаления");
-    }
-  };
-
-  const toggleAd = async (id, isActive) => {
-    try {
-      const updated = await api.adminToggleAd(
-        token,
-        id,
-        !isActive
-      );
-
-      setAds((arr) =>
-        arr.map((item) =>
-          String(item.id) === String(id)
-            ? updated
-            : item
-        )
-      );
-    } catch (e) {
-      alert(e.message || "Ошибка обновления");
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="rounded-2xl border bg-white p-5">
-        Загрузка рекламы...
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-5">
-      <div className="rounded-2xl border bg-white p-5">
-        <h2 className="text-xl font-bold mb-4">
-          Управление рекламой
-        </h2>
-
-        <form
-          onSubmit={createAd}
-          className="grid gap-3"
-        >
-          <input
-            value={form.title}
-            onChange={(e) =>
-              setForm((v) => ({
-                ...v,
-                title: e.target.value,
-              }))
-            }
-            placeholder="Название"
-            className="h-11 rounded-xl border px-3"
-          />
-
-          <input
-            value={form.imageUrl}
-            onChange={(e) =>
-              setForm((v) => ({
-                ...v,
-                imageUrl: e.target.value,
-              }))
-            }
-            placeholder="Ссылка на картинку"
-            className="h-11 rounded-xl border px-3"
-          />
-
-          <input
-            value={form.targetUrl}
-            onChange={(e) =>
-              setForm((v) => ({
-                ...v,
-                targetUrl: e.target.value,
-              }))
-            }
-            placeholder="Ссылка перехода"
-            className="h-11 rounded-xl border px-3"
-          />
-
-          <select
-            value={form.placement}
-            onChange={(e) =>
-              setForm((v) => ({
-                ...v,
-                placement: e.target.value,
-              }))
-            }
-            className="h-11 rounded-xl border px-3"
-          >
-            <option value="home_top">Главная верх</option>
-            <option value="home_middle">Главная середина</option>
-            <option value="listing_top">Listing верх</option>
-            <option value="listing_sidebar">Listing sidebar</option>
-            <option value="details_sidebar">Details sidebar</option>
-          </select>
-
-          <button className="h-11 rounded-xl bg-blue-600 text-white hover:bg-blue-700">
-            Создать рекламу
-          </button>
-        </form>
-      </div>
-
-      <div className="grid gap-4">
-        {ads.map((ad) => (
-          <div
-            key={ad.id}
-            className="rounded-2xl border bg-white p-4"
-          >
-            <div className="flex flex-col lg:flex-row gap-4">
-              <img
-                src={resolveMediaUrl(ad.imageUrl)}
-                alt={ad.title}
-                className="w-full lg:w-64 h-40 rounded-xl object-cover border"
-              />
-
-              <div className="flex-1 space-y-2">
-                <div className="font-bold">
-                  {ad.title || "Без названия"}
-                </div>
-
-                <div className="text-sm text-slate-500">
-                  Placement: {ad.placement}
-                </div>
-
-                <div className="text-sm break-all">
-                  {ad.targetUrl || "Без ссылки"}
-                </div>
-
-                <div className="flex flex-wrap gap-2 pt-2">
-                  <button
-                    onClick={() =>
-                      toggleAd(ad.id, ad.isActive)
-                    }
-                    className={`px-4 py-2 rounded-xl text-white ${
-                      ad.isActive
-                        ? "bg-amber-600"
-                        : "bg-emerald-600"
-                    }`}
-                  >
-                    {ad.isActive
-                      ? "Выключить"
-                      : "Включить"}
-                  </button>
-
-                  <button
-                    onClick={() => removeAd(ad.id)}
-                    className="px-4 py-2 rounded-xl border text-red-700 hover:bg-red-50"
-                  >
-                    Удалить
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 
 function MyListingsPanel({ items, loading, canManage, onRemove }) {
   const [query, setQuery] = React.useState("");
@@ -2155,12 +1926,6 @@ export default function Profile() {
             </TabButton>
           )}
 
-          {(role === "super_admin" || role === "admin") && (
-            <TabButton active={tab === "ads"} onClick={() => setTab("ads")}>
-              Реклама
-            </TabButton>
-          )}
-
           {canOpenModeration && (
             <TabButton
               active={tab === "moderation"}
@@ -2201,10 +1966,6 @@ export default function Profile() {
         token={token}
         currentUser={me}
         />
-      )}
-
-      {tab === "ads" && (role === "super_admin" || role === "admin") && (
-        <AdsPanel token={token} />
       )}
 
       {tab === "moderation" && canOpenModeration && (

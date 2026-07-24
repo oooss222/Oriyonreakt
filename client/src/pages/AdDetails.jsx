@@ -18,7 +18,6 @@ import {
   Pencil,
 } from "lucide-react";
 import { api, API_BASE } from "../lib/api";
-import AdSlot from "../components/AdSlot";
 import ListingCard from "../components/ListingCard";
 import { CAT_LABELS } from "../data/listingCategories";
 
@@ -939,8 +938,6 @@ export default function AdDetails() {
                   </div>
                 </div>
               </section>
-
-              <AdSlot placement="details_sidebar" type="sidebar" />
             </div>
           </aside>
         </div>

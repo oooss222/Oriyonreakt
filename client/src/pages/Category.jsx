@@ -1,6 +1,5 @@
 import React from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import AdSlot from "../components/AdSlot";
 
 const CATS = {
   transport: {
@@ -235,11 +234,6 @@ export default function Category() {
         )}
       </section>
 
-      <section>
-        <div className="rounded-2xl overflow-hidden border bg-white shadow-sm">
-          <AdSlot type="banner" placement="listing_top" />
-        </div>
-      </section>
     </div>
   );
 }

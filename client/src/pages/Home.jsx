@@ -1,6 +1,5 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
-import AdSlot from "../components/AdSlot";
 import FavoriteButton from "../components/FavoriteButton";
 import { api, API_BASE } from "../lib/api";
 import {
@@ -361,12 +360,6 @@ export default function Home() {
                 <div className="text-xs text-slate-500 mt-1 line-clamp-2">{cat.desc}</div>
               </Link>
             ))}
-          </div>
-        </section>
-
-        <section>
-          <div className="rounded-3xl overflow-hidden border bg-white shadow-sm">
-            <AdSlot type="banner" placement="home_top" />
           </div>
         </section>
 
