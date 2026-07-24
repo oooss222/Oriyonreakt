@@ -2,6 +2,7 @@ import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import FavoriteButton from "../components/FavoriteButton";
 import { api, API_BASE } from "../lib/api";
+import { HOME_CATEGORIES } from "../data/categories";
 import {
   PlusCircle,
   ShieldCheck,
@@ -16,45 +17,6 @@ import {
   Smartphone,
   Monitor,
 } from "lucide-react";
-
-const categories = [
-  {
-    slug: "transport",
-    title: "Авто",
-    img: "/img/car.png",
-    desc: "Авто, запчасти, техника",
-  },
-  {
-    slug: "furniture",
-    title: "Мебель",
-    img: "/img/furniture.png",
-    desc: "Дом, офис, интерьер",
-  },
-  {
-    slug: "phones",
-    title: "Телефоны",
-    img: "/img/phone.png",
-    desc: "Смартфоны и аксессуары",
-  },
-  {
-    slug: "electronics",
-    title: "Бытовая техника",
-    img: "/img/electronics.png",
-    desc: "Техника для дома",
-  },
-  {
-    slug: "computers",
-    title: "Компьютеры",
-    img: "/img/computers.png",
-    desc: "ПК, ноутбуки, оргтехника",
-  },
-  {
-    slug: "repair",
-    title: "Ремонт",
-    img: "/img/repair.png",
-    desc: "Материалы и инструменты",
-  },
-];
 
 const cityChips = ["Душанбе", "Худжанд", "Бохтар", "Куляб", "Вахдат"];
 
@@ -288,7 +250,7 @@ export default function Home() {
 
     return {
       listings: listings.length,
-      categories: categories.length,
+      categories: HOME_CATEGORIES.length,
       withPhoto,
       locations: locations.size,
     };
@@ -317,38 +279,6 @@ export default function Home() {
   return (
     <div className="bg-slate-50">
       <div className="container mx-auto px-4 py-6 space-y-10">
-        <section className="space-y-3">
-          <h2 className="text-xl font-bold text-slate-900">Категории</h2>
-
-          <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-6 gap-2">
-            {categories.map((cat) => (
-              <Link
-                key={cat.slug}
-                to={`/c/${cat.slug}`}
-                className="group flex flex-col items-center text-center rounded-2xl border border-slate-200/80 bg-white px-2 py-3 transition hover:border-blue-200 hover:shadow-sm hover:bg-blue-50/40 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                aria-label={`Категория: ${cat.title}`}
-              >
-                <div className="w-11 h-11 rounded-xl bg-slate-50 border border-slate-100 grid place-items-center overflow-hidden group-hover:bg-white group-hover:border-blue-100 transition">
-                  <img
-                    src={cat.img}
-                    alt=""
-                    loading="lazy"
-                    className="w-7 h-7 object-contain transition-transform duration-200 group-hover:scale-105"
-                  />
-                </div>
-
-                <div className="font-semibold text-xs sm:text-sm text-slate-900 mt-2 leading-tight line-clamp-1 group-hover:text-blue-700 transition">
-                  {cat.title}
-                </div>
-
-                <div className="text-[10px] sm:text-[11px] text-slate-500 mt-0.5 line-clamp-2 leading-snug px-0.5">
-                  {cat.desc}
-                </div>
-              </Link>
-            ))}
-          </div>
-        </section>
-
         {loading && <ListingSkeleton />}
 
         {!loading && error && (
