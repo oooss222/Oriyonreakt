@@ -13,6 +13,10 @@ import {
   COMMON_SPEC_OPTIONS,
   getDependentOptions,
   SPEC_DEPENDENCIES,
+  LOCATIONS,
+  PRICE_MAX_DIGITS,
+  formatPriceInput,
+  getPriceDigits,
 } from "../data/specOptions";
 import {
   Plus,
@@ -237,11 +241,9 @@ export default function AddListing() {
     }));
   };
 
-  const formatPrice = (value) => {
-    const cleaned = String(value).replace(/[^\d]/g, "");
-    if (!cleaned) return "";
-    return new Intl.NumberFormat("ru-RU").format(Number(cleaned));
-  };
+  const formatPrice = (value) => formatPriceInput(value);
+
+  const priceDigits = getPriceDigits(form.price);
 
   const onFiles = (list) => {
     const arr = Array.from(list || []).filter((file) =>
@@ -337,8 +339,18 @@ export default function AddListing() {
       return;
     }
 
+    if (getPriceDigits(form.price).length > PRICE_MAX_DIGITS) {
+      setErr(`Цена не может быть длиннее ${PRICE_MAX_DIGITS} цифр`);
+      return;
+    }
+
     if (form.description.length > DESC_MAX) {
       setErr(`Описание не должно быть длиннее ${DESC_MAX} символов`);
+      return;
+    }
+
+    if (!form.location.trim()) {
+      setErr("Выберите локацию");
       return;
     }
 
@@ -472,8 +484,13 @@ export default function AddListing() {
                   value={form.price}
                   onChange={(e) => setField("price", formatPrice(e.target.value))}
                   placeholder="Например: 120 000"
+                  inputMode="numeric"
                   className="w-full h-11 rounded-lg border px-3 outline-none focus:ring-2 focus:ring-blue-500"
                 />
+
+                <div className="mt-1 text-xs text-slate-500">
+                  {priceDigits.length}/{PRICE_MAX_DIGITS} цифр
+                </div>
               </div>
 
               <div>
@@ -482,14 +499,19 @@ export default function AddListing() {
                 </label>
 
                 <div className="relative">
-                  <MapPin className="w-4 h-4 text-slate-400 absolute left-3 top-3.5" />
+                  <MapPin className="w-4 h-4 text-slate-400 absolute left-3 top-3.5 pointer-events-none" />
 
-                  <input
+                  <select
                     value={form.location}
                     onChange={(e) => setField("location", e.target.value)}
-                    placeholder="Душанбе"
-                    className="w-full h-11 rounded-lg border pl-9 pr-3 outline-none focus:ring-2 focus:ring-blue-500"
-                  />
+                    className="w-full h-11 rounded-lg border pl-9 pr-3 outline-none focus:ring-2 focus:ring-blue-500 bg-white appearance-none"
+                  >
+                    {LOCATIONS.map((city) => (
+                      <option key={city} value={city}>
+                        {city}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
             </div>

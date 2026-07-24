@@ -1,6 +1,12 @@
 import React from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { api } from "../lib/api";
+import {
+  LOCATIONS,
+  PRICE_MAX_DIGITS,
+  formatPriceInput,
+  getPriceDigits,
+} from "../data/specOptions";
 
 const TOKEN_KEY = "auth_token";
 
@@ -12,7 +18,7 @@ export default function EditListing() {
   const [form, setForm] = React.useState({
     title: "",
     price: "",
-    location: "",
+    location: "Душанбе",
     cat: "",
     subcategory: "",
     description: "",
@@ -35,10 +41,14 @@ export default function EditListing() {
       .then((ad) => {
         if (!alive) return;
 
+        const savedLocation = ad.location || ad.city || LOCATIONS[0];
+
         setForm({
           title: ad.title || "",
-          price: ad.price || "",
-          location: ad.location || "",
+          price: ad.price
+            ? formatPriceInput(getPriceDigits(String(ad.price)))
+            : "",
+          location: savedLocation,
           cat: ad.cat || "",
           subcategory: ad.subcategory || "",
           description: ad.description || "",
@@ -63,12 +73,32 @@ export default function EditListing() {
     }));
   };
 
+  const priceDigits = getPriceDigits(form.price);
+
+  const locationOptions = React.useMemo(() => {
+    if (form.location && !LOCATIONS.includes(form.location)) {
+      return [form.location, ...LOCATIONS];
+    }
+
+    return LOCATIONS;
+  }, [form.location]);
+
   const submit = async (e) => {
     e.preventDefault();
     setErr("");
 
     if (!form.title.trim() || !form.cat.trim()) {
       setErr("Заполните название и категорию");
+      return;
+    }
+
+    if (getPriceDigits(form.price).length > PRICE_MAX_DIGITS) {
+      setErr(`Цена не может быть длиннее ${PRICE_MAX_DIGITS} цифр`);
+      return;
+    }
+
+    if (!form.location.trim()) {
+      setErr("Выберите локацию");
       return;
     }
 
@@ -139,17 +169,29 @@ export default function EditListing() {
             <input
               className="input w-full"
               value={form.price}
-              onChange={(e) => setField("price", e.target.value)}
+              inputMode="numeric"
+              onChange={(e) =>
+                setField("price", formatPriceInput(e.target.value))
+              }
             />
+            <div className="mt-1 text-xs text-slate-500">
+              {priceDigits.length}/{PRICE_MAX_DIGITS} цифр
+            </div>
           </label>
 
           <label className="block">
             <div className="text-sm font-medium mb-1">Локация</div>
-            <input
-              className="input w-full"
+            <select
+              className="select w-full"
               value={form.location}
               onChange={(e) => setField("location", e.target.value)}
-            />
+            >
+              {locationOptions.map((city) => (
+                <option key={city} value={city}>
+                  {city}
+                </option>
+              ))}
+            </select>
           </label>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

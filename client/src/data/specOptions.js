@@ -1,4 +1,28 @@
-export const CAR_BRANDS = [
+export const LOCATIONS = [
+  "Душанбе",
+  "Худжанд",
+  "Бохтар",
+  "Куляб",
+  "Вахдат",
+  "Истаравшан",
+  "Турсунзаде",
+  "Исфара",
+  "Пенджикент",
+  "Рогун",
+];
+
+export const PRICE_MAX_DIGITS = 12;
+
+export function formatPriceInput(value, maxDigits = PRICE_MAX_DIGITS) {
+  const cleaned = String(value).replace(/[^\d]/g, "").slice(0, maxDigits);
+  if (!cleaned) return "";
+  return new Intl.NumberFormat("ru-RU").format(Number(cleaned));
+}
+
+export function getPriceDigits(value) {
+  return String(value).replace(/[^\d]/g, "");
+}
+
   "Toyota",
   "Hyundai",
   "Kia",
