@@ -75,6 +75,10 @@ export default function EditListing() {
 
   const priceDigits = getPriceDigits(form.price);
 
+  const handlePriceChange = (rawValue) => {
+    setField("price", formatPriceInput(rawValue));
+  };
+
   const locationOptions = React.useMemo(() => {
     if (form.location && !LOCATIONS.includes(form.location)) {
       return [form.location, ...LOCATIONS];
@@ -170,9 +174,12 @@ export default function EditListing() {
               className="input w-full"
               value={form.price}
               inputMode="numeric"
-              onChange={(e) =>
-                setField("price", formatPriceInput(e.target.value))
-              }
+              autoComplete="off"
+              onChange={(e) => handlePriceChange(e.target.value)}
+              onPaste={(e) => {
+                e.preventDefault();
+                handlePriceChange(e.clipboardData.getData("text"));
+              }}
             />
             <div className="mt-1 text-xs text-slate-500">
               {priceDigits.length}/{PRICE_MAX_DIGITS} цифр
@@ -182,8 +189,12 @@ export default function EditListing() {
           <label className="block">
             <div className="text-sm font-medium mb-1">Локация</div>
             <select
-              className="select w-full"
-              value={form.location}
+              className="select w-full cursor-pointer"
+              value={
+                locationOptions.includes(form.location)
+                  ? form.location
+                  : locationOptions[0]
+              }
               onChange={(e) => setField("location", e.target.value)}
             >
               {locationOptions.map((city) => (

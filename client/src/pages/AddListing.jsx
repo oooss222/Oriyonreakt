@@ -241,9 +241,11 @@ export default function AddListing() {
     }));
   };
 
-  const formatPrice = (value) => formatPriceInput(value);
-
   const priceDigits = getPriceDigits(form.price);
+
+  const handlePriceChange = (rawValue) => {
+    setField("price", formatPriceInput(rawValue));
+  };
 
   const onFiles = (list) => {
     const arr = Array.from(list || []).filter((file) =>
@@ -387,8 +389,12 @@ export default function AddListing() {
 
       const created = await api.createListing(token, {
         title: form.title.trim(),
-        price: form.price || "",
-        location: form.location || "",
+        price: getPriceDigits(form.price)
+          ? formatPriceInput(form.price)
+          : "",
+        location: LOCATIONS.includes(form.location)
+          ? form.location
+          : LOCATIONS[0],
         cat: form.cat.trim(),
         subcategory: form.subcategory.trim(),
         description: form.description || "",
@@ -482,14 +488,22 @@ export default function AddListing() {
 
                 <input
                   value={form.price}
-                  onChange={(e) => setField("price", formatPrice(e.target.value))}
+                  onChange={(e) => handlePriceChange(e.target.value)}
+                  onPaste={(e) => {
+                    e.preventDefault();
+                    handlePriceChange(e.clipboardData.getData("text"));
+                  }}
                   placeholder="Например: 120 000"
                   inputMode="numeric"
+                  autoComplete="off"
                   className="w-full h-11 rounded-lg border px-3 outline-none focus:ring-2 focus:ring-blue-500"
                 />
 
                 <div className="mt-1 text-xs text-slate-500">
                   {priceDigits.length}/{PRICE_MAX_DIGITS} цифр
+                  {priceDigits.length >= PRICE_MAX_DIGITS && (
+                    <span className="text-amber-600"> — максимум</span>
+                  )}
                 </div>
               </div>
 
@@ -499,12 +513,16 @@ export default function AddListing() {
                 </label>
 
                 <div className="relative">
-                  <MapPin className="w-4 h-4 text-slate-400 absolute left-3 top-3.5 pointer-events-none" />
+                  <MapPin className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none z-10" />
 
                   <select
-                    value={form.location}
+                    value={
+                      LOCATIONS.includes(form.location)
+                        ? form.location
+                        : LOCATIONS[0]
+                    }
                     onChange={(e) => setField("location", e.target.value)}
-                    className="w-full h-11 rounded-lg border pl-9 pr-3 outline-none focus:ring-2 focus:ring-blue-500 bg-white appearance-none"
+                    className="w-full h-11 rounded-lg border pl-9 pr-8 outline-none focus:ring-2 focus:ring-blue-500 bg-white cursor-pointer"
                   >
                     {LOCATIONS.map((city) => (
                       <option key={city} value={city}>
