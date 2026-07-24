@@ -30,7 +30,7 @@ const ROLES = ["user", "moderator", "accountant", "admin", "super_admin"];
 const normalizeTab = (value) => {
   if (value === "favorites") return "fav";
   if (
-    ["fav", "profile", "wallet", "admin", "moderation", "messages", "my"].includes(value)
+    ["fav", "profile", "wallet", "admin", "moderation", "my"].includes(value)
   ) {
     return value;
   }
@@ -1948,14 +1948,6 @@ export default function Profile() {
             Избранное
             <span className="ml-1 rounded-full border px-2 py-0.5 text-xs bg-white text-slate-700">
               {favItems.length}
-            </span>
-          </TabButton>
-
-          <TabButton active={tab === "messages"} onClick={() => setTab("fav")}>
-            <FolderHeart size={18} />
-            Сообщения
-            <span className="ml-1 rounded-full border px-2 py-0.5 text-xs bg-white text-slate-700">
-              
             </span>
           </TabButton>
         </div>
