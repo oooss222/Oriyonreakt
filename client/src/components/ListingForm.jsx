@@ -59,7 +59,9 @@ export default function ListingForm({
     description: "",
   });
 
-  const [specs, setSpecs] = React.useState([]);
+  const [specs, setSpecs] = React.useState(() =>
+    buildSpecTemplate("transport", CATS.transport.subs[0])
+  );
   const [existingImages, setExistingImages] = React.useState([]);
   const [files, setFiles] = React.useState([]);
   const [previews, setPreviews] = React.useState([]);

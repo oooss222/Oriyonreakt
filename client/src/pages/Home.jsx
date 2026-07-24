@@ -366,7 +366,7 @@ export default function Home() {
 
         <section>
           <div className="rounded-3xl overflow-hidden border bg-white shadow-sm">
-            <AdSlot type="banner" id="home-banner" />
+            <AdSlot type="banner" placement="home_top" />
           </div>
         </section>
 

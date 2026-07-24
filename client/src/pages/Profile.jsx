@@ -30,7 +30,7 @@ const ROLES = ["user", "moderator", "accountant", "admin", "super_admin"];
 const normalizeTab = (value) => {
   if (value === "favorites") return "fav";
   if (
-    ["fav", "profile", "wallet", "admin", "moderation", "messages", "my"].includes(value)
+    ["fav", "profile", "wallet", "admin", "moderation", "messages", "my", "ads"].includes(value)
   ) {
     return value;
   }
@@ -38,6 +38,14 @@ const normalizeTab = (value) => {
 };
 
 const getId = (item) => item?.id || item?._id;
+
+function resolveMediaUrl(src) {
+  if (!src) return "";
+  if (src.startsWith("http") || src.startsWith("data:")) return src;
+
+  const server = API_BASE.replace(/\/api$/, "");
+  return `${server}/${String(src).replace(/^\/+/, "")}`;
+}
 
 const getThumb = (ad) => {
   let src = "";
@@ -1554,7 +1562,7 @@ function AdsPanel({ token }) {
           >
             <div className="flex flex-col lg:flex-row gap-4">
               <img
-                src={ad.imageUrl}
+                src={resolveMediaUrl(ad.imageUrl)}
                 alt={ad.title}
                 className="w-full lg:w-64 h-40 rounded-xl object-cover border"
               />
@@ -1952,37 +1960,43 @@ export default function Profile() {
 
     let alive = true;
 
-    if (tab === "my") {
-      setLoadingMy(true);
+    setLoadingMy(true);
 
-      api
-        .myListings(token)
-        .then((items) => {
-          if (alive) setMyItems(Array.isArray(items) ? items : []);
-        })
-        .catch(() => {
-          if (alive) setMyItems([]);
-        })
-        .finally(() => {
-          if (alive) setLoadingMy(false);
-        });
-    }
+    api
+      .myListings(token)
+      .then((items) => {
+        if (alive) setMyItems(Array.isArray(items) ? items : []);
+      })
+      .catch(() => {
+        if (alive) setMyItems([]);
+      })
+      .finally(() => {
+        if (alive) setLoadingMy(false);
+      });
 
-    if (tab === "fav") {
-      setLoadingFav(true);
+    return () => {
+      alive = false;
+    };
+  }, [token]);
 
-      api
-        .favorites(token)
-        .then((items) => {
-          if (alive) setFavItems(Array.isArray(items) ? items : []);
-        })
-        .catch(() => {
-          if (alive) setFavItems([]);
-        })
-        .finally(() => {
-          if (alive) setLoadingFav(false);
-        });
-    }
+  React.useEffect(() => {
+    if (!token || tab !== "fav") return;
+
+    let alive = true;
+
+    setLoadingFav(true);
+
+    api
+      .favorites(token)
+      .then((items) => {
+        if (alive) setFavItems(Array.isArray(items) ? items : []);
+      })
+      .catch(() => {
+        if (alive) setFavItems([]);
+      })
+      .finally(() => {
+        if (alive) setLoadingFav(false);
+      });
 
     return () => {
       alive = false;
@@ -2141,7 +2155,7 @@ export default function Profile() {
             </TabButton>
           )}
 
-          {role === "super_admin" && (
+          {(role === "super_admin" || role === "admin") && (
             <TabButton active={tab === "ads"} onClick={() => setTab("ads")}>
               Реклама
             </TabButton>
@@ -2189,7 +2203,7 @@ export default function Profile() {
         />
       )}
 
-      {tab === "ads" && role === "super_admin" && (
+      {tab === "ads" && (role === "super_admin" || role === "admin") && (
         <AdsPanel token={token} />
       )}
 

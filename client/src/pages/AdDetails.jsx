@@ -436,10 +436,22 @@ export default function AdDetails() {
       : ""
   }`;
 
-  const isOwner =
-    currentUserId &&
-    ad.owner &&
-    String(currentUserId) === String(ad.owner);
+  const storedUserId = React.useMemo(() => {
+    try {
+      const user = JSON.parse(localStorage.getItem("auth_user") || "null");
+      return user?.id || user?._id || null;
+    } catch {
+      return null;
+    }
+  }, []);
+
+  const isOwner = Boolean(
+    ad?.owner &&
+      (String(currentUserId) === String(ad.owner) ||
+        String(storedUserId) === String(ad.owner))
+  );
+
+  const moderationStatus = ad.status || "pending";
 
   return (
     <div className="pb-28 xl:pb-10">
@@ -486,6 +498,30 @@ export default function AdDetails() {
       </div>
 
       <div className="container-x py-6">
+        {(moderationStatus === "pending" || moderationStatus === "rejected") && (
+          <div
+            className={`mb-6 rounded-2xl border p-4 ${
+              moderationStatus === "rejected"
+                ? "border-red-200 bg-red-50 text-red-800"
+                : "border-amber-200 bg-amber-50 text-amber-900"
+            }`}
+          >
+            {moderationStatus === "pending" ? (
+              <p>
+                {isOwner
+                  ? "Объявление на модерации. Оно появится в каталоге после одобрения."
+                  : "Объявление проходит модерацию."}
+              </p>
+            ) : (
+              <p>
+                {isOwner
+                  ? `Объявление отклонено${ad.rejectionReason ? `: ${ad.rejectionReason}` : "."} Вы можете отредактировать и отправить снова.`
+                  : "Объявление отклонено модератором."}
+              </p>
+            )}
+          </div>
+        )}
+
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 xl:gap-8">
           {/* Left column */}
           <div className="xl:col-span-7 space-y-5 animate-fade-in-up">

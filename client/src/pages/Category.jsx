@@ -237,7 +237,7 @@ export default function Category() {
 
       <section>
         <div className="rounded-2xl overflow-hidden border bg-white shadow-sm">
-          <AdSlot type="banner" id={`cat-${slug}-banner`} />
+          <AdSlot type="banner" placement="listing_top" />
         </div>
       </section>
     </div>
