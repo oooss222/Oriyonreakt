@@ -15,21 +15,14 @@ import {
   ArrowRight,
   X,
   ZoomIn,
+  Pencil,
 } from "lucide-react";
 import { api, API_BASE } from "../lib/api";
 import AdSlot from "../components/AdSlot";
 import ListingCard from "../components/ListingCard";
+import { CAT_LABELS } from "../data/listingCategories";
 
 const TOKEN_KEY = "auth_token";
-
-const CAT_LABELS = {
-  transport: "Авто",
-  furniture: "Мебель",
-  phones: "Телефоны",
-  electronics: "Бытовая техника",
-  computers: "Компьютеры",
-  repair: "Ремонт",
-};
 
 function imageUrl(src) {
   if (!src) return "/img/placeholder.jpg";
@@ -868,6 +861,16 @@ export default function AdDetails() {
                     >
                       <MessageCircle className="w-5 h-5" />
                       Сообщения покупателей
+                    </Link>
+                  )}
+
+                  {isOwner && (
+                    <Link
+                      to={`/edit/${ad._id || ad.id}`}
+                      className="btn w-full py-3 rounded-2xl border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100"
+                    >
+                      <Pencil className="w-5 h-5" />
+                      Редактировать объявление
                     </Link>
                   )}
 

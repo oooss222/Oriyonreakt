@@ -2040,8 +2040,6 @@ export default function Profile() {
   const canOpenAdmin = role === "admin" || role === "super_admin";
   const canOpenModeration =
     role === "moderator" || role === "admin" || role === "super_admin";
-    const canEditListings =
-  role === "moderator" || role === "admin" || role === "super_admin";
 
   if (!token) {
     return (
@@ -2659,7 +2657,7 @@ export default function Profile() {
   <MyListingsPanel
     items={myItems}
     loading={loadingMy}
-    canManage={canEditListings}
+    canManage={true}
     onRemove={remove}
   />
 )}
