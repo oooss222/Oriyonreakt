@@ -12,23 +12,6 @@ function requireRole(...allowedRoles) {
   };
 }
 
-const roles = {
-  USER: "user",
-  MODERATOR: "moderator",
-  ACCOUNTANT: "accountant",
-  ADMIN: "admin",
-  SUPER_ADMIN: "super_admin",
-};
-
-const permissions = {
-  canManageUsers: ["admin", "super_admin"],
-  canAssignRoles: ["super_admin"],
-  canModerateListings: ["moderator", "admin", "super_admin"],
-  canViewAccounting: ["accountant", "admin", "super_admin"],
-};
-
 module.exports = {
   requireRole,
-  roles,
-  permissions,
 };

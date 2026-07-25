@@ -112,14 +112,10 @@ router.post("/register", async (req, res) => {
 
 router.post("/login", async (req, res) => {
   try {
-    console.log("LOGIN_START");
-
     let { email, password } = req.body || {};
 
     email = String(email || "").trim().toLowerCase();
     password = String(password || "");
-
-    console.log("LOGIN_EMAIL:", email);
 
     if (!email || !password) {
       return res.status(400).json({
@@ -133,11 +129,7 @@ router.post("/login", async (req, res) => {
       });
     }
 
-    console.log("LOGIN_BEFORE_FIND_USER");
-
     const user = await User.findByEmail(email);
-
-    console.log("LOGIN_AFTER_FIND_USER:", Boolean(user));
 
     if (!user) {
       return res.status(401).json({
@@ -151,19 +143,13 @@ router.post("/login", async (req, res) => {
       });
     }
 
-    console.log("LOGIN_BEFORE_COMPARE_PASSWORD");
-
     const ok = await User.comparePassword(user, password);
-
-    console.log("LOGIN_AFTER_COMPARE_PASSWORD:", ok);
 
     if (!ok) {
       return res.status(401).json({
         error: "Invalid credentials",
       });
     }
-
-    console.log("LOGIN_SUCCESS");
 
     return res.json({
       token: makeToken(user),
