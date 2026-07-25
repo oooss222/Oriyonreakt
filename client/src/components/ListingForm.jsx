@@ -414,7 +414,7 @@ export default function ListingForm({
       <div className="rounded-2xl border bg-white p-5">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
           <div>
-            <div className="inline-flex items-center gap-2 text-sm text-blue-700 bg-blue-50 border border-blue-100 rounded-full px-3 py-1 mb-2">
+            <div className="inline-flex items-center gap-2 text-sm text-sun-700 bg-sun-50 border border-sun-100 rounded-full px-3 py-1 mb-2">
               {isEdit ? (
                 <>
                   <Pencil className="w-4 h-4" />
@@ -469,7 +469,7 @@ export default function ListingForm({
         <section className="lg:col-span-2 space-y-6">
           <div className="rounded-2xl border bg-white p-5 space-y-4">
             <div className="flex items-center gap-2">
-              <Info className="w-5 h-5 text-blue-600" />
+              <Info className="w-5 h-5 text-sun" />
               <h2 className="text-lg font-semibold">Основная информация</h2>
             </div>
 
@@ -481,7 +481,7 @@ export default function ListingForm({
                   setField("title", e.target.value.slice(0, TITLE_MAX))
                 }
                 placeholder="Например: Toyota Camry 2018"
-                className="w-full h-11 rounded-lg border px-3 outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full h-11 rounded-lg border px-3 outline-none focus:ring-2 focus:ring-sun/40"
               />
               <div className="mt-1 text-xs text-slate-500">
                 {form.title.length}/{TITLE_MAX}
@@ -501,7 +501,7 @@ export default function ListingForm({
                   placeholder="Например: 120 000"
                   inputMode="numeric"
                   autoComplete="off"
-                  className="w-full h-11 rounded-lg border px-3 outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full h-11 rounded-lg border px-3 outline-none focus:ring-2 focus:ring-sun/40"
                 />
                 <div className="mt-1 text-xs text-slate-500">
                   {priceDigits.length}/{PRICE_MAX_DIGITS} цифр
@@ -522,7 +522,7 @@ export default function ListingForm({
                         : locationOptions[0]
                     }
                     onChange={(e) => setField("location", e.target.value)}
-                    className="w-full h-11 rounded-lg border pl-9 pr-8 outline-none focus:ring-2 focus:ring-blue-500 bg-white cursor-pointer"
+                    className="w-full h-11 rounded-lg border pl-9 pr-8 outline-none focus:ring-2 focus:ring-sun/40 bg-white cursor-pointer"
                   >
                     {locationOptions.map((city) => (
                       <option key={city} value={city}>
@@ -540,7 +540,7 @@ export default function ListingForm({
                 <select
                   value={form.cat}
                   onChange={(e) => handleCatChange(e.target.value)}
-                  className="w-full h-11 rounded-lg border px-3 outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full h-11 rounded-lg border px-3 outline-none focus:ring-2 focus:ring-sun/40"
                 >
                   {Object.entries(CATS).map(([key, value]) => (
                     <option key={key} value={key}>
@@ -555,7 +555,7 @@ export default function ListingForm({
                 <select
                   value={form.subcategory}
                   onChange={(e) => handleSubcategoryChange(e.target.value)}
-                  className="w-full h-11 rounded-lg border px-3 outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full h-11 rounded-lg border px-3 outline-none focus:ring-2 focus:ring-sun/40"
                 >
                   {subs.map((sub) => (
                     <option key={sub} value={sub}>
@@ -575,7 +575,7 @@ export default function ListingForm({
                 }
                 rows={7}
                 placeholder="Опишите товар, состояние, комплектацию и условия сделки"
-                className="w-full rounded-lg border px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500 resize-y"
+                className="w-full rounded-lg border px-3 py-2 outline-none focus:ring-2 focus:ring-sun/40 resize-y"
               />
               <div className="mt-1 text-xs text-slate-500">
                 {form.description.length}/{DESC_MAX}
@@ -585,7 +585,7 @@ export default function ListingForm({
 
           <div className="rounded-2xl border bg-white p-5 space-y-4">
             <div className="flex items-center gap-2">
-              <ImageIcon className="w-5 h-5 text-blue-600" />
+              <ImageIcon className="w-5 h-5 text-sun" />
               <h2 className="text-lg font-semibold">Фотографии</h2>
             </div>
 
@@ -602,7 +602,7 @@ export default function ListingForm({
               }}
               className={`rounded-2xl border-2 border-dashed p-6 text-center transition ${
                 isDragOver
-                  ? "border-blue-500 bg-blue-50"
+                  ? "border-sun bg-sun-50"
                   : "border-slate-200 bg-slate-50"
               }`}
             >
@@ -687,7 +687,7 @@ export default function ListingForm({
           <div className="rounded-2xl border bg-white p-5 space-y-4">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">
-                <ListChecks className="w-5 h-5 text-blue-600" />
+                <ListChecks className="w-5 h-5 text-sun" />
                 <h2 className="text-lg font-semibold">Характеристики</h2>
               </div>
               <button
@@ -726,7 +726,7 @@ export default function ListingForm({
                           updateSpec(index, "name", e.target.value)
                         }
                         placeholder="Название"
-                        className="h-10 rounded-lg border px-3 outline-none focus:ring-2 focus:ring-blue-500"
+                        className="h-10 rounded-lg border px-3 outline-none focus:ring-2 focus:ring-sun/40"
                       />
                     )}
 
@@ -737,7 +737,7 @@ export default function ListingForm({
                           updateSpec(index, "value", e.target.value)
                         }
                         disabled={needsParent && !parentSelected}
-                        className="h-10 rounded-lg border px-3 outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-100 disabled:text-slate-400"
+                        className="h-10 rounded-lg border px-3 outline-none focus:ring-2 focus:ring-sun/40 disabled:bg-slate-100 disabled:text-slate-400"
                       >
                         <option value="">
                           {needsParent && !parentSelected
@@ -757,7 +757,7 @@ export default function ListingForm({
                           updateSpec(index, "value", e.target.value)
                         }
                         placeholder="Значение"
-                        className="h-10 rounded-lg border px-3 outline-none focus:ring-2 focus:ring-blue-500"
+                        className="h-10 rounded-lg border px-3 outline-none focus:ring-2 focus:ring-sun/40"
                       />
                     )}
 
@@ -789,7 +789,7 @@ export default function ListingForm({
         <aside className="space-y-6">
           <div className="rounded-2xl border bg-white p-5 space-y-4 sticky top-4">
             <div className="flex items-center gap-2">
-              <Tag className="w-5 h-5 text-blue-600" />
+              <Tag className="w-5 h-5 text-sun" />
               <h2 className="text-lg font-semibold">Публикация</h2>
             </div>
 
@@ -822,7 +822,7 @@ export default function ListingForm({
               className={`w-full inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-white transition ${
                 saving
                   ? "bg-slate-400 cursor-not-allowed"
-                  : "bg-blue-600 hover:bg-blue-700"
+                  : "bg-sun hover:bg-sun-600"
               }`}
             >
               <CheckCircle2 className="w-5 h-5" />

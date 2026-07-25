@@ -167,7 +167,7 @@ const WalletTopUp = React.memo(function WalletTopUp({ token, onSuccess }) {
               }}
               className={`rounded-xl border px-3 py-2 text-sm transition ${
                 Number(amount) === item
-                  ? "bg-blue-600 text-white border-blue-600"
+                  ? "bg-sun text-white border-blue-600"
                   : "bg-white hover:bg-slate-50"
               }`}
             >
@@ -216,7 +216,7 @@ const WalletTopUp = React.memo(function WalletTopUp({ token, onSuccess }) {
 
       <button
         disabled={loading || !isValid}
-        className="w-full inline-flex justify-center items-center gap-2 px-4 py-3 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition disabled:opacity-60 disabled:cursor-not-allowed"
+        className="w-full inline-flex justify-center items-center gap-2 px-4 py-3 rounded-xl bg-sun text-white hover:bg-sun-600 transition disabled:opacity-60 disabled:cursor-not-allowed"
       >
         {loading ? "Пополняем..." : "Пополнить баланс"}
       </button>
@@ -287,12 +287,12 @@ const ListingCard = React.memo(function ListingCard({
         </div>
 
         <div className="p-2">
-          <div className="font-semibold text-sm line-clamp-2 group-hover:text-blue-600 transition">
+          <div className="font-semibold text-sm line-clamp-2 group-hover:text-sun transition">
             {ad.title || "Без названия"}
           </div>
 
           <div className="flex items-center justify-between gap-2 mt-1">
-            <div className="text-blue-700 font-extrabold">
+            <div className="text-sun-700 font-extrabold">
               {fmtPrice(ad.price)}
             </div>
 
@@ -323,7 +323,7 @@ const ListingCard = React.memo(function ListingCard({
         <div className="px-2 pb-2 flex flex-wrap items-center gap-2">
           <Link
             to={`/edit/${id}`}
-            className="inline-flex flex-1 justify-center items-center gap-1 px-3 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition text-sm"
+            className="inline-flex flex-1 justify-center items-center gap-1 px-3 py-2 rounded-xl bg-sun text-white hover:bg-sun-600 transition text-sm"
           >
             <Pencil size={16} />
             Редактировать
@@ -353,8 +353,8 @@ const ListingsGrid = React.memo(function ListingsGrid({
   if (!items?.length) {
     return (
       <div className="rounded-3xl border bg-white p-10 text-center">
-        <div className="mx-auto w-14 h-14 rounded-2xl bg-blue-50 grid place-items-center mb-3">
-          <PlusCircle className="text-blue-600" size={26} />
+        <div className="mx-auto w-14 h-14 rounded-2xl bg-sun-50 grid place-items-center mb-3">
+          <PlusCircle className="text-sun" size={26} />
         </div>
 
         <div className="text-slate-800 font-semibold mb-1">
@@ -370,7 +370,7 @@ const ListingsGrid = React.memo(function ListingsGrid({
         {tab === "my" ? (
           <Link
             to="/add"
-            className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition"
+            className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-sun text-white hover:bg-sun-600 transition"
           >
             <PlusCircle size={18} />
             Подать объявление
@@ -451,7 +451,7 @@ function AdminPanel({ token, currentUser }) {
 
   const roleBadgeClass = (role) => {
     if (role === "super_admin") return "bg-purple-50 text-purple-700 border-purple-200";
-    if (role === "admin") return "bg-blue-50 text-blue-700 border-blue-200";
+    if (role === "admin") return "bg-sun-50 text-sun-700 border-sun-200";
     if (role === "moderator") return "bg-indigo-50 text-indigo-700 border-indigo-200";
     if (role === "accountant") return "bg-amber-50 text-amber-700 border-amber-200";
 
@@ -650,7 +650,7 @@ function AdminPanel({ token, currentUser }) {
     <div className="rounded-2xl border bg-white p-4 md:p-5 space-y-5">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
         <div>
-          <div className="inline-flex items-center gap-2 text-sm text-blue-700 bg-blue-50 border border-blue-100 rounded-full px-3 py-1 mb-2">
+          <div className="inline-flex items-center gap-2 text-sm text-sun-700 bg-sun-50 border border-sun-100 rounded-full px-3 py-1 mb-2">
             <Shield className="w-4 h-4" />
             {isSuperAdmin ? "Панель супер-админа" : "Панель администратора"}
           </div>
@@ -716,13 +716,13 @@ function AdminPanel({ token, currentUser }) {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Поиск: имя, email, телефон"
-          className="h-11 rounded-xl border px-3 outline-none focus:ring-2 focus:ring-blue-500 md:col-span-2"
+          className="h-11 rounded-xl border px-3 outline-none focus:ring-2 focus:ring-sun/40 md:col-span-2"
         />
 
         <select
           value={roleFilter}
           onChange={(e) => setRoleFilter(e.target.value)}
-          className="h-11 rounded-xl border px-3 outline-none focus:ring-2 focus:ring-blue-500"
+          className="h-11 rounded-xl border px-3 outline-none focus:ring-2 focus:ring-sun/40"
         >
           <option value="all">Все роли</option>
           {ROLES.map((role) => (
@@ -735,7 +735,7 @@ function AdminPanel({ token, currentUser }) {
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="h-11 rounded-xl border px-3 outline-none focus:ring-2 focus:ring-blue-500"
+          className="h-11 rounded-xl border px-3 outline-none focus:ring-2 focus:ring-sun/40"
         >
           <option value="all">Все статусы</option>
           <option value="active">Активные</option>
@@ -1073,7 +1073,7 @@ function ModerationPanel({ token }) {
     <div className="rounded-2xl border bg-white p-4 md:p-5 space-y-5">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
         <div>
-          <div className="inline-flex items-center gap-2 text-sm text-blue-700 bg-blue-50 border border-blue-100 rounded-full px-3 py-1 mb-2">
+          <div className="inline-flex items-center gap-2 text-sm text-sun-700 bg-sun-50 border border-sun-100 rounded-full px-3 py-1 mb-2">
             <ClipboardCheck className="w-4 h-4" />
             Панель модератора
           </div>
@@ -1140,12 +1140,12 @@ function ModerationPanel({ token }) {
           <div className="text-lg font-bold">Отклонённые</div>
         </button>
 
-        <div className="rounded-2xl border bg-blue-50 p-4">
-          <div className="text-xs text-blue-700">Показано</div>
-          <div className="text-2xl font-bold text-blue-700">
+        <div className="rounded-2xl border bg-sun-50 p-4">
+          <div className="text-xs text-sun-700">Показано</div>
+          <div className="text-2xl font-bold text-sun-700">
             {stats.filtered}
           </div>
-          <div className="text-xs text-blue-700">
+          <div className="text-xs text-sun-700">
             из {stats.loaded}
           </div>
         </div>
@@ -1156,13 +1156,13 @@ function ModerationPanel({ token }) {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Поиск: название, описание, город, категория"
-          className="h-11 rounded-xl border px-3 outline-none focus:ring-2 focus:ring-blue-500 md:col-span-2"
+          className="h-11 rounded-xl border px-3 outline-none focus:ring-2 focus:ring-sun/40 md:col-span-2"
         />
 
         <select
           value={status}
           onChange={(e) => setStatus(e.target.value)}
-          className="h-11 rounded-xl border px-3 outline-none focus:ring-2 focus:ring-blue-500"
+          className="h-11 rounded-xl border px-3 outline-none focus:ring-2 focus:ring-sun/40"
         >
           <option value="pending">На проверке</option>
           <option value="approved">Принятые</option>
@@ -1244,7 +1244,7 @@ function ModerationPanel({ token }) {
                     onClick={() =>
                       sessionStorage.setItem("ad_preview", JSON.stringify(ad))
                     }
-                    className="font-semibold text-slate-900 hover:text-blue-600 line-clamp-2"
+                    className="font-semibold text-slate-900 hover:text-sun line-clamp-2"
                   >
                     {ad.title || "Без названия"}
                   </Link>
@@ -1345,7 +1345,7 @@ function ModerationPanel({ token }) {
                 onChange={(e) => setRejectReason(e.target.value)}
                 rows={5}
                 placeholder="Например: недостаточно информации, запрещённый товар, некорректная категория..."
-                className="w-full rounded-xl border px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500 resize-y"
+                className="w-full rounded-xl border px-3 py-2 outline-none focus:ring-2 focus:ring-sun/40 resize-y"
               />
             </label>
 
@@ -1449,7 +1449,7 @@ function MyListingsPanel({ items, loading, canManage, onRemove }) {
       <div className="rounded-3xl border bg-white p-4 md:p-5 space-y-5">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div>
-            <div className="inline-flex items-center gap-2 text-sm text-blue-700 bg-blue-50 border border-blue-100 rounded-full px-3 py-1 mb-2">
+            <div className="inline-flex items-center gap-2 text-sm text-sun-700 bg-sun-50 border border-sun-100 rounded-full px-3 py-1 mb-2">
               <PlusCircle size={16} />
               Личный кабинет
             </div>
@@ -1463,7 +1463,7 @@ function MyListingsPanel({ items, loading, canManage, onRemove }) {
 
           <Link
             to="/add"
-            className="inline-flex justify-center items-center gap-2 px-5 py-3 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition"
+            className="inline-flex justify-center items-center gap-2 px-5 py-3 rounded-xl bg-sun text-white hover:bg-sun-600 transition"
           >
             <PlusCircle size={18} />
             Подать объявление
@@ -1476,7 +1476,7 @@ function MyListingsPanel({ items, loading, canManage, onRemove }) {
             onClick={() => setStatusFilter("all")}
             className={`text-left rounded-2xl border p-4 transition ${
               statusFilter === "all"
-                ? "bg-blue-50 border-blue-200"
+                ? "bg-sun-50 border-sun-200"
                 : "bg-slate-50 hover:bg-slate-100"
             }`}
           >
@@ -1535,13 +1535,13 @@ function MyListingsPanel({ items, loading, canManage, onRemove }) {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Поиск по названию, описанию, категории или городу"
-            className="h-11 rounded-xl border px-3 outline-none focus:ring-2 focus:ring-blue-500"
+            className="h-11 rounded-xl border px-3 outline-none focus:ring-2 focus:ring-sun/40"
           />
 
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="h-11 rounded-xl border px-3 outline-none focus:ring-2 focus:ring-blue-500"
+            className="h-11 rounded-xl border px-3 outline-none focus:ring-2 focus:ring-sun/40"
           >
             <option value="all">Все статусы</option>
             <option value="approved">Опубликованные</option>
@@ -1552,7 +1552,7 @@ function MyListingsPanel({ items, loading, canManage, onRemove }) {
           <select
             value={view}
             onChange={(e) => setView(e.target.value)}
-            className="h-11 rounded-xl border px-3 outline-none focus:ring-2 focus:ring-blue-500"
+            className="h-11 rounded-xl border px-3 outline-none focus:ring-2 focus:ring-sun/40"
           >
             <option value="grid">Сетка</option>
             <option value="compact">Компактно</option>
@@ -1854,7 +1854,7 @@ export default function Profile() {
               Личный кабинет
             </span>
 
-            <span className="px-2 py-0.5 text-xs rounded-full bg-blue-50 text-blue-700 border border-blue-100">
+            <span className="px-2 py-0.5 text-xs rounded-full bg-sun-50 text-sun-700 border border-sun-100">
               {role}
             </span>
 
@@ -1890,7 +1890,7 @@ export default function Profile() {
         <div className="flex gap-2">
           <Link
             to="/add"
-            className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition shadow-sm"
+            className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-sun text-white hover:bg-sun-600 transition shadow-sm"
           >
             <PlusCircle size={18} />
             Добавить
@@ -1971,7 +1971,7 @@ export default function Profile() {
     <div className="rounded-2xl border bg-white p-4 md:p-5 space-y-5">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
         <div>
-          <div className="inline-flex items-center gap-2 text-sm text-blue-700 bg-blue-50 border border-blue-100 rounded-full px-3 py-1 mb-2">
+          <div className="inline-flex items-center gap-2 text-sm text-sun-700 bg-sun-50 border border-sun-100 rounded-full px-3 py-1 mb-2">
             <Wallet className="w-4 h-4" />
             Финансы
           </div>
@@ -1985,7 +1985,7 @@ export default function Profile() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="lg:col-span-2 rounded-3xl border bg-gradient-to-br from-blue-600 to-blue-800 p-6 text-white shadow-sm overflow-hidden relative">
+        <div className="lg:col-span-2 rounded-3xl border bg-gradient-to-br from-sun to-blue-800 p-6 text-white shadow-sm overflow-hidden relative">
           <div className="absolute -right-10 -top-10 w-40 h-40 rounded-full bg-white/10" />
           <div className="absolute right-10 bottom-6 w-20 h-20 rounded-full bg-white/10" />
 
@@ -2124,7 +2124,7 @@ export default function Profile() {
                     {me?.name || "Без имени"}
                   </h2>
 
-                  <span className="px-2 py-0.5 text-xs rounded-full bg-blue-50 text-blue-700 border border-blue-100">
+                  <span className="px-2 py-0.5 text-xs rounded-full bg-sun-50 text-sun-700 border border-sun-100">
                     {role}
                   </span>
 
@@ -2166,12 +2166,12 @@ export default function Profile() {
                 </div>
               </div>
 
-              <div className="rounded-2xl border bg-blue-50 p-4">
-                <div className="text-xs text-blue-700">
+              <div className="rounded-2xl border bg-sun-50 p-4">
+                <div className="text-xs text-sun-700">
                   Баланс
                 </div>
 
-                <div className="text-2xl font-bold text-blue-700 mt-1">
+                <div className="text-2xl font-bold text-sun-700 mt-1">
                   {walletBalance.toLocaleString("ru-RU")} TJS
                 </div>
               </div>
@@ -2216,7 +2216,7 @@ export default function Profile() {
               </div>
 
               <input
-                className="h-12 rounded-2xl border px-4 w-full outline-none focus:ring-2 focus:ring-blue-500"
+                className="h-12 rounded-2xl border px-4 w-full outline-none focus:ring-2 focus:ring-sun/40"
                 value={form.name}
                 onChange={(e) =>
                   setForm((v) => ({
@@ -2247,7 +2247,7 @@ export default function Profile() {
               </div>
 
               <input
-  className="h-12 rounded-2xl border px-4 w-full outline-none focus:ring-2 focus:ring-blue-500"
+  className="h-12 rounded-2xl border px-4 w-full outline-none focus:ring-2 focus:ring-sun/40"
   placeholder="+992 ..."
   value={form.phone}
   onChange={(e) =>
@@ -2297,7 +2297,7 @@ export default function Profile() {
             <div className="rounded-2xl border bg-slate-50 p-5">
               <div className="flex items-start gap-4">
                 <div className="w-12 h-12 rounded-2xl bg-white grid place-items-center border">
-                  <Mail className="text-blue-600" />
+                  <Mail className="text-sun" />
                 </div>
 
                 <div className="flex-1">
@@ -2315,7 +2315,7 @@ export default function Profile() {
                       sendingEmail ||
                       emailStatus === "pending"
                     }
-                    className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-blue-600 text-white hover:bg-blue-700 transition disabled:opacity-60"
+                    className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-sun text-white hover:bg-sun-600 transition disabled:opacity-60"
                   >
                     <Mail size={18} />
 
@@ -2382,7 +2382,7 @@ export default function Profile() {
                 </div>
               </div>
 
-              <div className="text-sm font-bold text-blue-700 uppercase">
+              <div className="text-sm font-bold text-sun-700 uppercase">
                 {role}
               </div>
             </div>
@@ -2408,7 +2408,7 @@ export default function Profile() {
 
             <Link
               to="/add"
-              className="mt-5 inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-white text-blue-700 font-semibold hover:bg-blue-50 transition"
+              className="mt-5 inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-white text-sun-700 font-semibold hover:bg-sun-50 transition"
             >
               <PlusCircle size={18} />
               Подать объявление
@@ -2457,7 +2457,7 @@ const TabButton = React.memo(function TabButton({ active, onClick, children }) {
     <button
       className={`inline-flex items-center gap-2 px-3 py-2 rounded-xl border transition ${
         active
-          ? "bg-blue-600 text-white border-blue-600"
+          ? "bg-sun text-white border-blue-600"
           : "hover:bg-slate-50"
       }`}
       onClick={onClick}

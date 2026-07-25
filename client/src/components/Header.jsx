@@ -161,7 +161,7 @@ export default function Header() {
   const close = () => setOpen(false);
 
   return (
-    <header className="sticky top-0 z-50 bg-[#2a2a2a] text-white shadow-lg">
+    <header className="sticky top-0 z-50 bg-ink-700 text-white border-b border-white/5 shadow-soft">
       <div className="container mx-auto px-3 sm:px-4 lg:px-6">
         <div
           className={`flex items-center gap-2 sm:gap-3 transition-all duration-300 ${
@@ -182,17 +182,19 @@ export default function Header() {
             />
 
             <span
-              className={`hidden sm:block font-extrabold tracking-tight transition-all duration-300 ${
+              className={`brand-wordmark hidden sm:block transition-all duration-300 ${
                 scrolled ? "text-base" : "text-lg"
               }`}
             >
               Oriyon
+              <span className="text-sun">.</span>
+              <span className="text-white/70 font-semibold text-[0.85em]">store</span>
             </span>
           </Link>
 
           <Link
             to="/add"
-            className="hidden md:inline-flex items-center gap-1.5 shrink-0 px-3 py-2 rounded-lg border border-orange-500 text-orange-400 text-sm font-semibold hover:bg-orange-500/10 transition"
+            className="hidden md:inline-flex items-center gap-1.5 shrink-0 px-3 py-2 rounded-xl border border-sun/50 text-sun text-sm font-semibold hover:bg-sun/10 transition"
           >
             <PlusCircle size={17} />
             <span className="hidden lg:inline">Добавить объявление</span>
@@ -200,11 +202,11 @@ export default function Header() {
           </Link>
 
           <div className="flex-1 min-w-0 hidden md:block relative">
-            <div className="flex items-center w-full rounded-xl bg-[#3a3a3a] overflow-hidden ring-1 ring-white/10 focus-within:ring-orange-400/60 transition">
-              <Search size={18} className="text-slate-400 shrink-0 ml-3" />
+            <div className="flex items-center w-full rounded-xl bg-ink-600 overflow-hidden ring-1 ring-white/10 focus-within:ring-sun/70 transition">
+              <Search size={18} className="text-ink-300 shrink-0 ml-3" />
 
               <input
-                className="flex-1 h-10 sm:h-11 outline-none bg-transparent text-sm text-white placeholder:text-slate-400 px-2 min-w-0"
+                className="flex-1 h-10 sm:h-11 outline-none bg-transparent text-sm text-white placeholder:text-ink-300 px-2 min-w-0"
                 value={q}
                 onFocus={() => setShowSuggestions(true)}
                 onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
@@ -219,14 +221,14 @@ export default function Header() {
               <button
                 type="button"
                 onClick={go}
-                className="h-10 sm:h-11 px-4 sm:px-5 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold transition shrink-0"
+                className="h-10 sm:h-11 px-4 sm:px-5 bg-sun hover:bg-sun-600 text-white text-sm font-semibold transition shrink-0"
               >
                 Найти
               </button>
             </div>
 
             {showSuggestions && suggestions.length > 0 && (
-              <div className="absolute left-0 right-0 top-full mt-2 z-50 rounded-2xl border bg-white shadow-xl overflow-hidden text-slate-900">
+              <div className="absolute left-0 right-0 top-full mt-2 z-50 rounded-2xl border border-ink/10 bg-white shadow-lift overflow-hidden text-ink">
                 {suggestions.map((ad) => {
                   const id = ad.id || ad._id;
 
@@ -243,18 +245,18 @@ export default function Header() {
                         setShowSuggestions(false);
                         nav(`/ad/${id}`);
                       }}
-                      className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-50 text-left border-b last:border-b-0"
+                      className="w-full flex items-center gap-3 px-4 py-3 hover:bg-sun-50 text-left border-b border-ink/5 last:border-b-0"
                     >
                       <img
                         src={getThumb(ad)}
                         alt={ad.title || "Объявление"}
-                        className="w-12 h-12 rounded-xl object-cover bg-slate-100"
+                        className="w-12 h-12 rounded-xl object-cover bg-mist"
                       />
                       <div className="min-w-0">
                         <div className="text-sm font-semibold truncate">
                           {ad.title || "Без названия"}
                         </div>
-                        <div className="text-xs text-slate-500">
+                        <div className="text-xs text-ink-400">
                           {ad.price || "Цена не указана"}
                         </div>
                       </div>
@@ -335,11 +337,11 @@ export default function Header() {
         </div>
 
         <div className="md:hidden pb-3">
-          <div className="flex items-center w-full rounded-xl bg-[#3a3a3a] overflow-hidden ring-1 ring-white/10">
-            <Search size={18} className="text-slate-400 shrink-0 ml-3" />
+          <div className="flex items-center w-full rounded-xl bg-ink-600 overflow-hidden ring-1 ring-white/10">
+            <Search size={18} className="text-ink-300 shrink-0 ml-3" />
 
             <input
-              className="flex-1 h-10 outline-none bg-transparent text-sm text-white placeholder:text-slate-400 px-2"
+              className="flex-1 h-10 outline-none bg-transparent text-sm text-white placeholder:text-ink-300 px-2"
               value={q}
               onChange={(e) => setQ(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && go()}
@@ -349,7 +351,7 @@ export default function Header() {
             <button
               type="button"
               onClick={go}
-              className="h-10 px-4 bg-orange-500 text-white text-sm font-semibold"
+              className="h-10 px-4 bg-sun text-white text-sm font-semibold"
             >
               Найти
             </button>
@@ -358,7 +360,7 @@ export default function Header() {
 
         {open && (
           <div className="lg:hidden pb-3">
-            <div className="rounded-xl bg-[#333] p-2 grid gap-1">
+            <div className="rounded-xl bg-ink-600 p-2 grid gap-1">
               <Link
                 to="/"
                 onClick={close}
@@ -380,7 +382,7 @@ export default function Header() {
               <Link
                 to="/add"
                 onClick={close}
-                className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-orange-400 border border-orange-500/40"
+                className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-sun border border-sun/40"
               >
                 <PlusCircle size={18} />
                 Добавить объявление

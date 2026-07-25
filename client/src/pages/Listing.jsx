@@ -310,7 +310,7 @@ const specFilters = React.useMemo(() => {
       <div className="rounded-3xl border bg-white p-4 md:p-5 space-y-4">
         <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
           <div>
-            <div className="inline-flex items-center gap-2 text-sm text-blue-700 bg-blue-50 border border-blue-100 rounded-full px-3 py-1 mb-2">
+            <div className="inline-flex items-center gap-2 text-sm text-sun-700 bg-sun-50 border border-sun-100 rounded-full px-3 py-1 mb-2">
               <SlidersHorizontal size={16} />
               Фильтры поиска
             </div>
@@ -362,7 +362,7 @@ const specFilters = React.useMemo(() => {
       }
     }}
     placeholder="Поиск по названию или описанию"
-    className="h-11 w-full rounded-xl border pl-10 pr-3 outline-none focus:ring-2 focus:ring-blue-500"
+    className="h-11 w-full rounded-xl border pl-10 pr-3 outline-none focus:ring-2 focus:ring-sun/40"
   />
 
   {showSuggestions && suggestions.length > 0 && (
@@ -421,7 +421,7 @@ const specFilters = React.useMemo(() => {
         specs: {},
       }))
     }
-    className="md:col-span-2 h-11 rounded-xl border px-3 outline-none focus:ring-2 focus:ring-blue-500"
+    className="md:col-span-2 h-11 rounded-xl border px-3 outline-none focus:ring-2 focus:ring-sun/40"
   >
     {CATEGORIES.map((item) => (
       <option key={item.value} value={item.value}>
@@ -440,7 +440,7 @@ const specFilters = React.useMemo(() => {
               }))
             }
             disabled={!draft.cat}
-            className="md:col-span-2 h-11 rounded-xl border px-3 outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-100 disabled:text-slate-400"
+            className="md:col-span-2 h-11 rounded-xl border px-3 outline-none focus:ring-2 focus:ring-sun/40 disabled:bg-slate-100 disabled:text-slate-400"
           >
             <option value="">Все подкатегории</option>
 
@@ -460,7 +460,7 @@ const specFilters = React.useMemo(() => {
               }))
             }
             placeholder="Цена от"
-            className="md:col-span-1 h-11 rounded-xl border px-3 outline-none focus:ring-2 focus:ring-blue-500"
+            className="md:col-span-1 h-11 rounded-xl border px-3 outline-none focus:ring-2 focus:ring-sun/40"
           />
 
           <input
@@ -472,7 +472,7 @@ const specFilters = React.useMemo(() => {
               }))
             }
             placeholder="Цена до"
-            className="md:col-span-1 h-11 rounded-xl border px-3 outline-none focus:ring-2 focus:ring-blue-500"
+            className="md:col-span-1 h-11 rounded-xl border px-3 outline-none focus:ring-2 focus:ring-sun/40"
           />
 
           <select
@@ -483,7 +483,7 @@ const specFilters = React.useMemo(() => {
                 sort: e.target.value,
               }))
             }
-            className="md:col-span-2 h-11 rounded-xl border px-3 outline-none focus:ring-2 focus:ring-blue-500"
+            className="md:col-span-2 h-11 rounded-xl border px-3 outline-none focus:ring-2 focus:ring-sun/40"
           >
             <option value="new">Сначала новые</option>
             <option value="price_asc">Цена по возрастанию</option>
@@ -497,7 +497,7 @@ const specFilters = React.useMemo(() => {
           <button
             type="button"
             onClick={applyFilters}
-            className="inline-flex justify-center items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition"
+            className="inline-flex justify-center items-center gap-2 px-5 py-2.5 rounded-xl bg-sun text-white hover:bg-sun-600 transition"
           >
             <Search size={18} />
             Применить фильтры
@@ -551,7 +551,7 @@ const specFilters = React.useMemo(() => {
                 onClick={() =>
                   sessionStorage.setItem("ad_preview", JSON.stringify(ad))
                 }
-                className="group relative flex flex-col rounded-2xl border bg-white p-2 transition hover:shadow-lg hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-blue-500 animate-fade-in-up"
+                className="group relative flex flex-col rounded-2xl border bg-white p-2 transition hover:shadow-lg hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-sun/40 animate-fade-in-up"
                 style={{ animationDelay: `${idx * 40}ms` }}
                 aria-label={`Объявление: ${ad.title || "Без названия"}`}
               >
@@ -573,7 +573,7 @@ const specFilters = React.useMemo(() => {
                       )}
 
                       {ad.top && (
-                        <span className="px-2 py-0.5 text-[11px] rounded-full bg-indigo-600 text-white shadow">
+                        <span className="px-2 py-0.5 text-[11px] rounded-full bg-lagoon text-white shadow">
                           TOP
                         </span>
                       )}
@@ -588,12 +588,12 @@ const specFilters = React.useMemo(() => {
                 </div>
 
                 <div className="mt-2 flex-1 flex flex-col gap-1">
-                  <div className="font-semibold text-sm text-slate-900 line-clamp-2 group-hover:text-blue-600 transition">
+                  <div className="font-semibold text-sm text-slate-900 line-clamp-2 group-hover:text-sun transition">
                     {ad.title || "Без названия"}
                   </div>
 
                   <div className="flex items-center justify-between gap-2">
-                    <div className="text-blue-700 font-extrabold text-sm">
+                    <div className="text-price text-sm">
                       {formatPrice(ad.price)}
                     </div>
 

@@ -66,27 +66,27 @@ function ListingCard({ ad, listings }) {
         sessionStorage.setItem("ad_preview", JSON.stringify(ad));
         sessionStorage.setItem("ad_list", JSON.stringify(listings));
       }}
-      className="group min-w-[230px] max-w-[230px] rounded-3xl border bg-white p-2 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col overflow-hidden focus:outline-none focus:ring-2 focus:ring-blue-500"
+      className="group min-w-[230px] max-w-[230px] card p-2 hover:shadow-lift hover:-translate-y-1 transition-all duration-300 flex flex-col overflow-hidden focus:outline-none focus:ring-2 focus:ring-sun/50"
       aria-label={`Объявление: ${ad.title || "Без названия"}`}
     >
       <div className="relative overflow-hidden rounded-2xl">
         <img
           src={img}
           alt={ad.title || "Объявление"}
-          className="w-full h-44 object-cover bg-slate-100 transition-transform duration-500 group-hover:scale-105"
+          className="w-full h-44 object-cover bg-mist transition-transform duration-500 group-hover:scale-105"
           loading="lazy"
         />
 
         {(ad.vip || ad.top) && (
           <div className="absolute left-2 top-2 flex gap-2">
             {ad.vip && (
-              <span className="px-2 py-0.5 text-[11px] rounded-full bg-amber-500 text-white shadow">
+              <span className="px-2 py-0.5 text-[11px] rounded-lg bg-sun text-white shadow-soft font-semibold">
                 VIP
               </span>
             )}
 
             {ad.top && (
-              <span className="px-2 py-0.5 text-[11px] rounded-full bg-indigo-600 text-white shadow">
+              <span className="px-2 py-0.5 text-[11px] rounded-lg bg-lagoon text-white shadow-soft font-semibold">
                 TOP
               </span>
             )}
@@ -95,24 +95,24 @@ function ListingCard({ ad, listings }) {
       </div>
 
       <div className="p-2 flex-1 flex flex-col gap-1">
-        <div className="font-semibold text-sm text-slate-900 line-clamp-2 group-hover:text-blue-600 transition min-h-[40px]">
+        <div className="font-semibold text-sm text-ink line-clamp-2 group-hover:text-sun-700 transition min-h-[40px]">
           {ad.title || "Без названия"}
         </div>
 
         <div className="flex items-center justify-between gap-2">
-          <div className="text-blue-700 font-extrabold">
+          <div className="text-price">
             {fmtPrice(ad.price)}
           </div>
 
           <FavoriteButton id={id} defaultActive={ad.isFavorite} compact />
         </div>
 
-        <div className="text-xs text-slate-500 line-clamp-1 flex items-center gap-1">
+        <div className="text-xs text-ink-400 line-clamp-1 flex items-center gap-1">
           <MapPin size={13} />
           {ad.location || ad.city || "Локация не указана"}
         </div>
 
-        <div className="text-xs text-slate-400 line-clamp-1 flex items-center gap-1">
+        <div className="text-xs text-ink-300 line-clamp-1 flex items-center gap-1">
           <Clock3 size={13} />
           {ad.createdAt
             ? new Date(ad.createdAt).toLocaleDateString("ru-RU")
@@ -130,19 +130,19 @@ function HorizontalSection({ title, icon: Icon, items, linkTo = "/listing" }) {
     <section className="space-y-4">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <div className="w-10 h-10 rounded-2xl bg-blue-50 grid place-items-center">
-            <Icon className="text-blue-600" size={20} />
+          <div className="w-10 h-10 rounded-2xl bg-sun-50 grid place-items-center ring-1 ring-sun/15">
+            <Icon className="text-sun" size={20} />
           </div>
 
           <div>
-            <h2 className="text-2xl font-bold">{title}</h2>
-            <div className="text-sm text-slate-500">{items.length} объявлений</div>
+            <h2 className="section-title">{title}</h2>
+            <div className="text-sm text-ink-400">{items.length} объявлений</div>
           </div>
         </div>
 
         <Link
           to={linkTo}
-          className="hidden sm:inline-flex items-center gap-1 text-sm font-medium text-blue-700 hover:underline"
+          className="hidden sm:inline-flex items-center gap-1 text-sm font-semibold text-sun-700 hover:text-sun transition"
         >
           Смотреть все
           <ArrowRight size={16} />
@@ -164,13 +164,13 @@ function ListingSkeleton() {
       {Array.from({ length: 5 }).map((_, index) => (
         <div
           key={index}
-          className="min-w-[230px] rounded-3xl border bg-white p-2 animate-pulse"
+          className="min-w-[230px] card p-2 animate-pulse"
         >
-          <div className="h-44 rounded-2xl bg-slate-200" />
+          <div className="h-44 rounded-2xl bg-mist-200" />
           <div className="p-2 space-y-2">
-            <div className="h-4 bg-slate-200 rounded w-5/6" />
-            <div className="h-4 bg-slate-200 rounded w-1/2" />
-            <div className="h-3 bg-slate-200 rounded w-2/3" />
+            <div className="h-4 bg-mist-200 rounded w-5/6" />
+            <div className="h-4 bg-mist-200 rounded w-1/2" />
+            <div className="h-3 bg-mist-200 rounded w-2/3" />
           </div>
         </div>
       ))}
@@ -277,33 +277,33 @@ export default function Home() {
     .slice(0, 10);
 
   return (
-    <div className="bg-slate-50">
+    <div className="page-shell">
       <div className="container mx-auto px-4 py-6 space-y-10">
         {loading && <ListingSkeleton />}
 
         {!loading && error && (
-          <div className="rounded-3xl border bg-red-50 p-6 text-center text-red-700">
+          <div className="surface-panel p-6 text-center text-red-700 bg-red-50/80">
             {error}
           </div>
         )}
 
         {!loading && !error && listings.length === 0 && (
-          <div className="rounded-3xl border bg-white p-8 text-center">
-            <div className="mx-auto w-14 h-14 rounded-2xl bg-blue-50 grid place-items-center mb-3">
-              <Sparkles className="text-blue-600" />
+          <div className="surface-panel p-8 text-center">
+            <div className="mx-auto w-14 h-14 rounded-2xl bg-sun-50 grid place-items-center mb-3 ring-1 ring-sun/15">
+              <Sparkles className="text-sun" />
             </div>
 
-            <div className="font-semibold text-slate-800">
+            <div className="font-display font-semibold text-ink">
               Пока нет опубликованных объявлений
             </div>
 
-            <p className="text-sm text-slate-500 mt-1">
+            <p className="text-sm text-ink-400 mt-1">
               Добавьте объявление, после модерации оно появится здесь.
             </p>
 
             <Link
               to="/add"
-              className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition"
+              className="btn btn-primary mt-4"
             >
               <PlusCircle size={18} />
               Подать объявление
@@ -351,38 +351,38 @@ export default function Home() {
         )}
 
         <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="rounded-3xl border bg-white p-5">
-            <div className="w-11 h-11 rounded-2xl bg-blue-50 grid place-items-center mb-3">
-              <ShieldCheck className="text-blue-600" />
+          <div className="surface-panel p-5">
+            <div className="w-11 h-11 rounded-2xl bg-lagoon-50 grid place-items-center mb-3 ring-1 ring-lagoon/15">
+              <ShieldCheck className="text-lagoon" />
             </div>
 
-            <h3 className="font-bold text-lg">Модерация объявлений</h3>
+            <h3 className="font-display font-bold text-lg text-ink">Модерация объявлений</h3>
 
-            <p className="text-sm text-slate-500 mt-2">
+            <p className="text-sm text-ink-400 mt-2">
               Объявления проверяются перед публикацией, чтобы снизить риск мошенничества и спама.
             </p>
           </div>
 
-          <div className="rounded-3xl border bg-white p-5">
-            <div className="w-11 h-11 rounded-2xl bg-emerald-50 grid place-items-center mb-3">
-              <BadgeCheck className="text-emerald-600" />
+          <div className="surface-panel p-5">
+            <div className="w-11 h-11 rounded-2xl bg-sun-50 grid place-items-center mb-3 ring-1 ring-sun/15">
+              <BadgeCheck className="text-sun" />
             </div>
 
-            <h3 className="font-bold text-lg">Личный кабинет</h3>
+            <h3 className="font-display font-bold text-lg text-ink">Личный кабинет</h3>
 
-            <p className="text-sm text-slate-500 mt-2">
+            <p className="text-sm text-ink-400 mt-2">
               Управляйте объявлениями, избранным, кошельком и настройками профиля в одном месте.
             </p>
           </div>
 
-          <div className="rounded-3xl border bg-white p-5">
-            <div className="w-11 h-11 rounded-2xl bg-amber-50 grid place-items-center mb-3">
-              <Sparkles className="text-amber-600" />
+          <div className="surface-panel p-5">
+            <div className="w-11 h-11 rounded-2xl bg-ink-50 grid place-items-center mb-3 ring-1 ring-ink/10">
+              <Sparkles className="text-ink" />
             </div>
 
-            <h3 className="font-bold text-lg">Продвижение</h3>
+            <h3 className="font-display font-bold text-lg text-ink">Продвижение</h3>
 
-            <p className="text-sm text-slate-500 mt-2">
+            <p className="text-sm text-ink-400 mt-2">
               Кошелёк подготовлен для будущих VIP, TOP и платных услуг продвижения.
             </p>
           </div>

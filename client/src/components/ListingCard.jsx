@@ -37,20 +37,19 @@ export default function ListingCard({ item, onFav }) {
   return (
     <Link
       to={`/ad/${listingId}`}
-      className="card overflow-hidden block"
+      className="card overflow-hidden block group"
     >
-      <div className="relative">
+      <div className="relative overflow-hidden">
         <img
           src={
             image
               ? imageUrl(image)
-              : "https://placehold.co/600x400?text=No+Image"
+              : "/img/placeholder.jpg"
           }
           alt={item.title}
-          className="w-full h-40 object-cover bg-indigo-50"
+          className="w-full h-40 object-cover bg-mist transition-transform duration-500 group-hover:scale-105"
           onError={(e) => {
-            e.currentTarget.src =
-              "https://placehold.co/600x400?text=No+Image";
+            e.currentTarget.src = "/img/placeholder.jpg";
           }}
         />
       </div>
@@ -60,12 +59,12 @@ export default function ListingCard({ item, onFav }) {
           {item.location || "Не указано"}
         </div>
 
-        <h3 className="mt-2 text-sm font-semibold">
+        <h3 className="mt-2 text-sm font-semibold text-ink line-clamp-2 group-hover:text-sun-700 transition-colors">
           {item.title}
         </h3>
 
         <div className="mt-2 flex items-center justify-between gap-2">
-          <strong>{price}</strong>
+          <strong className="text-price text-base">{price}</strong>
 
           <FavoriteButton
             id={listingId}

@@ -46,9 +46,9 @@ const Input = React.forwardRef(function Input(
         ref={ref}
         {...props}
         className={[
-          "w-full h-11 rounded-lg border bg-white px-3 text-[15px] leading-none",
-          "placeholder:text-slate-400",
-          "focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors",
+          "w-full h-11 rounded-xl border border-ink/15 bg-white px-3 text-[15px] leading-none",
+          "placeholder:text-ink-300",
+          "focus:ring-2 focus:ring-sun/40 focus:border-sun transition-colors",
           leftIcon ? "pl-11" : "",
           right ? "pr-11" : "",
           className,
@@ -192,33 +192,41 @@ export default function Auth() {
 
   // === стиль кнопок ===
   const buttonStyle = `
-    w-full h-11 rounded-xl font-medium text-white transition-all
-    bg-gradient-to-r from-blue-600 via-blue-500 to-blue-700
-    shadow-md hover:shadow-lg hover:from-blue-500 hover:to-blue-600
+    w-full h-11 rounded-xl font-semibold text-white transition-all
+    bg-sun hover:bg-sun-600
+    shadow-soft hover:shadow-lift
     active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed
   `;
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="page-container py-8">
       <div className="mx-auto w-full max-w-xl">
-        <div className="rounded-2xl border bg-white shadow-sm overflow-hidden">
-          <div className="bg-slate-50/80 border-b px-2 py-2">
-            <div className="grid grid-cols-2 gap-2 p-1 rounded-xl bg-white border">
+        <div className="mb-6 text-center">
+          <div className="brand-wordmark text-3xl text-ink">
+            Oriyon<span className="text-sun">.</span>
+            <span className="text-ink-400 text-xl font-semibold">store</span>
+          </div>
+          <p className="text-sm text-ink-400 mt-1">Войдите, чтобы управлять объявлениями</p>
+        </div>
+
+        <div className="surface-panel overflow-hidden">
+          <div className="bg-mist-50 border-b border-ink/10 px-2 py-2">
+            <div className="grid grid-cols-2 gap-2 p-1 rounded-xl bg-white border border-ink/10">
               <button
-                className={`px-3 py-2 rounded-lg text-sm font-medium transition ${
+                className={`px-3 py-2 rounded-lg text-sm font-semibold transition ${
                   tab === "login"
-                    ? "bg-blue-600 text-white shadow-sm"
-                    : "hover:bg-slate-50"
+                    ? "bg-sun text-white shadow-soft"
+                    : "hover:bg-mist text-ink-500"
                 }`}
                 onClick={() => setTab("login")}
               >
                 Вход
               </button>
               <button
-                className={`px-3 py-2 rounded-lg text-sm font-medium transition ${
+                className={`px-3 py-2 rounded-lg text-sm font-semibold transition ${
                   tab === "register"
-                    ? "bg-blue-600 text-white shadow-sm"
-                    : "hover:bg-slate-50"
+                    ? "bg-sun text-white shadow-soft"
+                    : "hover:bg-mist text-ink-500"
                 }`}
                 onClick={() => setTab("register")}
               >

@@ -460,7 +460,7 @@ export default function AdDetails() {
       <div className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-30">
         <div className="container-x py-3">
           <nav className="flex items-center gap-1.5 text-sm text-slate-500 overflow-x-auto whitespace-nowrap">
-            <Link to="/" className="hover:text-blue-600 transition shrink-0">
+            <Link to="/" className="hover:text-sun transition shrink-0">
               Главная
             </Link>
             <ChevronRight className="w-3.5 h-3.5 shrink-0" />
@@ -469,7 +469,7 @@ export default function AdDetails() {
               <>
                 <Link
                   to={`/c/${ad.cat}`}
-                  className="hover:text-blue-600 transition shrink-0"
+                  className="hover:text-sun transition shrink-0"
                 >
                   {catLabel}
                 </Link>
@@ -481,7 +481,7 @@ export default function AdDetails() {
               <>
                 <Link
                   to={listingUrl}
-                  className="hover:text-blue-600 transition shrink-0"
+                  className="hover:text-sun transition shrink-0"
                 >
                   {ad.subcategory}
                 </Link>
@@ -579,7 +579,7 @@ export default function AdDetails() {
                       </span>
                     )}
                     {ad.top && (
-                      <span className="px-2.5 py-1 text-xs font-semibold rounded-full bg-indigo-600 text-white shadow">
+                      <span className="px-2.5 py-1 text-xs font-semibold rounded-full bg-lagoon text-white shadow">
                         TOP
                       </span>
                     )}
@@ -659,7 +659,7 @@ export default function AdDetails() {
                 {ad.cat && (
                   <Link
                     to={listingUrl}
-                    className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 hover:bg-blue-100 transition"
+                    className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full bg-sun-50 text-sun-700 hover:bg-sun-100 transition"
                   >
                     {catLabel}
                     {ad.subcategory ? ` · ${ad.subcategory}` : ""}
@@ -684,7 +684,7 @@ export default function AdDetails() {
                 )}
               </div>
 
-              <div className="text-2xl font-extrabold text-blue-700">{price}</div>
+              <div className="text-2xl text-price">{price}</div>
             </section>
 
             {/* Description */}
@@ -733,7 +733,7 @@ export default function AdDetails() {
                   </div>
                   <Link
                     to={listingUrl}
-                    className="hidden sm:inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:underline shrink-0"
+                    className="hidden sm:inline-flex items-center gap-1 text-sm font-medium text-sun hover:underline shrink-0"
                   >
                     Все
                     <ArrowRight className="w-4 h-4" />
@@ -767,7 +767,7 @@ export default function AdDetails() {
                   {ad.cat && (
                     <Link
                       to={listingUrl}
-                      className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 hover:bg-blue-100 transition"
+                      className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full bg-sun-50 text-sun-700 hover:bg-sun-100 transition"
                     >
                       {catLabel}
                       {ad.subcategory ? ` · ${ad.subcategory}` : ""}
@@ -806,7 +806,7 @@ export default function AdDetails() {
                   <div className="text-sm text-slate-500">Продавец</div>
 
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-sm shadow-sm">
+                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-sun to-lagoon flex items-center justify-center text-white font-bold text-sm shadow-sm">
                       {getInitials(sellerName)}
                     </div>
                     <div className="min-w-0">
@@ -876,7 +876,7 @@ export default function AdDetails() {
                             onChange={(e) => setMessageText(e.target.value)}
                             rows={4}
                             placeholder="Здравствуйте! Интересует ваше объявление..."
-                            className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500 resize-y bg-white"
+                            className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-sun/40 resize-y bg-white"
                           />
                           <button
                             type="button"
@@ -902,7 +902,7 @@ export default function AdDetails() {
                   {isOwner && (
                     <Link
                       to={`/edit/${ad._id || ad.id}`}
-                      className="btn w-full py-3 rounded-2xl border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100"
+                      className="btn w-full py-3 rounded-2xl border-sun-200 bg-sun-50 text-sun-700 hover:bg-sun-100"
                     >
                       <Pencil className="w-5 h-5" />
                       Редактировать объявление

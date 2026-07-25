@@ -281,7 +281,7 @@ export default function Messages() {
       <div className="max-w-[1800px] mx-auto px-2 md:px-5 py-4">
         <div className="mb-5 flex items-center justify-between gap-3">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-[22px] bg-gradient-to-br from-blue-600 to-indigo-500 text-white shadow-xl shadow-blue-200 flex items-center justify-center">
+            <div className="w-16 h-16 rounded-[22px] bg-gradient-to-br from-sun to-lagoon-600 text-white shadow-xl shadow-soft flex items-center justify-center">
               <MessageCircle size={28} />
             </div>
 
@@ -348,7 +348,7 @@ export default function Messages() {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Поиск по сообщениям..."
-                className="w-full h-14 rounded-3xl border-0 bg-[#f4f7fb] pl-11 pr-4 text-sm outline-none focus:ring-2 focus:ring-blue-500 shadow-inner"
+                className="w-full h-14 rounded-3xl border-0 bg-[#f4f7fb] pl-11 pr-4 text-sm outline-none focus:ring-2 focus:ring-sun/40 shadow-inner"
               />
             </div>
 
@@ -372,7 +372,7 @@ export default function Messages() {
                       onClick={() => openThread(item)}
                       className={`w-full text-left rounded-[28px] p-4 transition-all duration-300 border ${
                         active
-                          ? "bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200 shadow-lg shadow-blue-100 scale-[1.01]"
+                          ? "bg-gradient-to-br from-sun-50 to-lagoon-50 border-sun-200 shadow-lg shadow-soft scale-[1.01]"
                           : "bg-white/70 border-white hover:bg-white hover:shadow-xl hover:shadow-slate-200 hover:-translate-y-[2px]"
                       }`}
                     >
@@ -382,7 +382,7 @@ export default function Messages() {
                         </div>
 
                         {Number(item.unreadCount || 0) > 0 && (
-                          <div className="min-w-[24px] h-[24px] px-1 rounded-full bg-gradient-to-br from-blue-600 to-indigo-500 text-white text-xs font-bold flex items-center justify-center shadow-lg shadow-blue-200">
+                          <div className="min-w-[24px] h-[24px] px-1 rounded-full bg-gradient-to-br from-sun to-lagoon-600 text-white text-xs font-bold flex items-center justify-center shadow-lg shadow-soft">
                             {Number(item.unreadCount || 0) > 99
                               ? "99+"
                               : item.unreadCount}
@@ -415,7 +415,7 @@ export default function Messages() {
             {!selected ? (
               <div className="flex-1 grid place-items-center p-8 text-center">
                 <div>
-                  <div className="mx-auto w-20 h-20 rounded-[28px] bg-gradient-to-br from-blue-600 to-indigo-500 text-white grid place-items-center mb-4 shadow-xl shadow-blue-200">
+                  <div className="mx-auto w-20 h-20 rounded-[28px] bg-gradient-to-br from-sun to-lagoon-600 text-white grid place-items-center mb-4 shadow-xl shadow-soft">
                     <MessageCircle size={34} />
                   </div>
 
@@ -552,7 +552,7 @@ export default function Messages() {
                         }}
                         rows={1}
                         placeholder="Введите сообщение..."
-                        className="flex-1 min-h-[58px] max-h-[180px] rounded-[28px] border-0 bg-[#f4f7fb] px-6 py-4 outline-none focus:ring-2 focus:ring-blue-500 resize-none shadow-inner text-[15px]"
+                        className="flex-1 min-h-[58px] max-h-[180px] rounded-[28px] border-0 bg-[#f4f7fb] px-6 py-4 outline-none focus:ring-2 focus:ring-sun/40 resize-none shadow-inner text-[15px]"
                       />
 
                       <button

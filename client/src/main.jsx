@@ -18,17 +18,17 @@ import "./styles/index.css";
 
 function NotFound() {
   return (
-    <div className="container-x py-10">
-      <div className="card p-6 space-y-3 text-center">
-        <h1 className="text-2xl font-bold text-brand">
+    <div className="page-container py-10">
+      <div className="surface-panel p-8 space-y-3 text-center">
+        <h1 className="font-display text-2xl font-bold text-ink">
           Страница не найдена (404)
         </h1>
 
-        <p className="text-slate-600">
+        <p className="text-ink-400">
           Проверьте адрес или вернитесь на главную.
         </p>
 
-        <a className="btn mt-4" href="/">
+        <a className="btn btn-primary mt-4" href="/">
           На главную
         </a>
       </div>

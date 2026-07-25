@@ -144,7 +144,7 @@ export default function Category() {
 
         <div className="min-w-0">
           <div className="inline-flex items-center gap-2 mb-1">
-            <span className="px-2 py-0.5 text-xs rounded-full bg-blue-50 text-blue-700 border border-blue-100">
+            <span className="px-2 py-0.5 text-xs rounded-full bg-sun-50 text-sun-700 border border-sun-100">
               Категория
             </span>
 
@@ -166,7 +166,7 @@ export default function Category() {
         <div className="ml-auto flex gap-2">
           <Link
             to={`/listing?cat=${slug}`}
-            className="hidden sm:inline-flex px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition shadow-sm"
+            className="hidden sm:inline-flex px-4 py-2 rounded-xl bg-sun text-white hover:bg-sun-600 transition shadow-sm"
           >
             Все объявления
           </Link>
@@ -186,7 +186,7 @@ export default function Category() {
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Быстрый поиск по подкатегориям…"
-            className="w-full h-11 rounded-lg border px-3 outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full h-11 rounded-lg border px-3 outline-none focus:ring-2 focus:ring-sun/40"
           />
 
           <div className="text-xs text-slate-500 md:w-56">
