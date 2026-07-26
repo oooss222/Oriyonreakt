@@ -1985,12 +1985,12 @@ export default function Profile() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="lg:col-span-2 rounded-3xl border bg-gradient-to-br from-sun to-blue-800 p-6 text-white shadow-sm overflow-hidden relative">
-          <div className="absolute -right-10 -top-10 w-40 h-40 rounded-full bg-white/10" />
-          <div className="absolute right-10 bottom-6 w-20 h-20 rounded-full bg-white/10" />
+        <div className="lg:col-span-2 rounded-3xl border bg-gradient-to-br from-ink-700 to-ink-900 p-6 text-white shadow-soft overflow-hidden relative">
+          <div className="absolute -right-10 -top-10 w-40 h-40 rounded-full bg-sun/20" />
+          <div className="absolute right-10 bottom-6 w-20 h-20 rounded-full bg-lagoon/20" />
 
           <div className="relative">
-            <div className="text-sm text-blue-100">Текущий баланс</div>
+            <div className="text-sm text-white/70">Текущий баланс</div>
 
             <div className="text-4xl font-extrabold mt-2">
               {walletBalance.toLocaleString("ru-RU")} TJS
@@ -2108,8 +2108,8 @@ export default function Profile() {
     <div className="grid grid-cols-1 xl:grid-cols-3 gap-5">
       <div className="xl:col-span-2 space-y-5">
         <div className="rounded-3xl border bg-white overflow-hidden">
-          <div className="h-32 bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-700 relative">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.25),transparent_40%)]" />
+          <div className="h-32 bg-gradient-to-r from-ink-800 via-ink-700 to-lagoon-700 relative">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,106,0,0.28),transparent_42%)]" />
           </div>
 
           <div className="px-5 pb-5">
@@ -2389,20 +2389,20 @@ export default function Profile() {
           </div>
         </div>
 
-        <div className="rounded-3xl border bg-gradient-to-br from-blue-700 to-indigo-800 text-white p-5 overflow-hidden relative">
-          <div className="absolute right-0 top-0 w-40 h-40 rounded-full bg-white/10" />
+        <div className="rounded-3xl border bg-gradient-to-br from-ink-800 to-lagoon-700 text-white p-5 overflow-hidden relative">
+          <div className="absolute right-0 top-0 w-40 h-40 rounded-full bg-sun/20" />
 
           <div className="relative">
-            <div className="inline-flex items-center gap-2 text-sm bg-white/10 border border-white/20 rounded-full px-3 py-1">
+            <div className="inline-flex items-center gap-2 text-sm bg-white/10 border border-white/20 rounded-xl px-3 py-1">
               <ShieldCheck size={15} />
               Oriyon Security
             </div>
 
-            <h3 className="text-xl font-bold mt-4">
+            <h3 className="font-display text-xl font-bold mt-4">
               Безопасный аккаунт
             </h3>
 
-            <p className="text-sm text-blue-100 mt-2">
+            <p className="text-sm text-white/70 mt-2">
               Все объявления проходят модерацию для защиты пользователей.
             </p>
 

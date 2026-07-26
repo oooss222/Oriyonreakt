@@ -35,9 +35,13 @@
 
   h1,
   h2,
-  h3,
+  h3 {
+    font-family: Outfit, Manrope, ui-sans-serif, system-ui, sans-serif;
+    letter-spacing: -0.02em;
+  }
+
   .font-display {
-    @apply font-display tracking-tight;
+    font-family: Outfit, Manrope, ui-sans-serif, system-ui, sans-serif;
   }
 }
 

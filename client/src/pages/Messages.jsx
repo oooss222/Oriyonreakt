@@ -464,17 +464,17 @@ export default function Messages() {
                 </div>
 
                 <div
-                  className="flex-1 overflow-y-auto px-4 md:px-8 py-6 space-y-4 bg-[#f7f9fc]"
+                  className="flex-1 overflow-y-auto px-4 md:px-8 py-6 space-y-4 bg-mist"
                   style={{
                     backgroundImage:
-                      "radial-gradient(rgba(148,163,184,0.12) 1px, transparent 1px)",
+                      "radial-gradient(rgba(28,27,26,0.06) 1px, transparent 1px)",
                     backgroundSize: "22px 22px",
                   }}
                 >
                   {threadLoading ? (
-                    <div className="text-slate-500">Загружаем диалог...</div>
+                    <div className="text-ink-400">Загружаем диалог...</div>
                   ) : thread.length === 0 ? (
-                    <div className="text-center text-slate-500 py-10">
+                    <div className="text-center text-ink-400 py-10">
                       Сообщений пока нет.
                     </div>
                   ) : (
@@ -490,15 +490,15 @@ export default function Messages() {
                           }`}
                         >
                           <div
-                            className={`max-w-[92%] md:max-w-[72%] xl:max-w-[58%] rounded-[26px] px-5 py-3 ${
+                            className={`max-w-[92%] md:max-w-[72%] xl:max-w-[58%] rounded-2xl px-5 py-3 ${
                               mine
-                                ? "bg-gradient-to-br from-[#4f6df5] via-[#4d63ff] to-[#6d5dfc] text-white border-0 shadow-[0_10px_30px_rgba(79,109,245,0.35)]"
-                                : "bg-white text-slate-900 border border-slate-100 shadow-[0_8px_30px_rgba(15,23,42,0.06)]"
+                                ? "bg-ink-700 text-white border-0 shadow-lift"
+                                : "bg-white text-ink border border-ink/10 shadow-soft"
                             }`}
                           >
                             <div
                               className={`text-xs mb-1 ${
-                                mine ? "text-blue-100" : "text-slate-500"
+                                mine ? "text-white/65" : "text-ink-400"
                               }`}
                             >
                               <div className="flex items-center gap-2">
@@ -524,7 +524,7 @@ export default function Messages() {
 
                             <div
                               className={`text-[11px] mt-1 ${
-                                mine ? "text-blue-100" : "text-slate-400"
+                                mine ? "text-white/55" : "text-ink-300"
                               }`}
                             >
                               {formatDate(msg.createdAt)}

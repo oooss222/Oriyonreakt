@@ -673,7 +673,7 @@ export default function AdDetails() {
 
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-500">
                 <span className="inline-flex items-center gap-1">
-                  <MapPin className="w-4 h-4 text-blue-500" />
+                  <MapPin className="w-4 h-4 text-sun" />
                   {ad.location || ad.city || "Душанбе"}
                 </span>
                 {published && (
@@ -781,7 +781,7 @@ export default function AdDetails() {
 
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-500">
                   <span className="inline-flex items-center gap-1">
-                    <MapPin className="w-4 h-4 text-blue-500" />
+                    <MapPin className="w-4 h-4 text-sun" />
                     {ad.location || ad.city || "Душанбе"}
                   </span>
                   {published && (
