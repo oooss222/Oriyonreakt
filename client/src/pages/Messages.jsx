@@ -181,6 +181,7 @@ export default function Messages() {
   const [typingPeer, setTypingPeer] = React.useState(false);
   const [toast, setToast] = React.useState({ message: "", type: "info" });
   const [socketReady, setSocketReady] = React.useState(false);
+  const [socketError, setSocketError] = React.useState("");
   const [peerPresence, setPeerPresence] = React.useState({});
 
   const [loading, setLoading] = React.useState(true);
@@ -356,8 +357,15 @@ export default function Messages() {
 
     if (!socket) return undefined;
 
-    const onConnect = () => setSocketReady(true);
+    const onConnect = () => {
+      setSocketReady(true);
+      setSocketError("");
+    };
     const onDisconnect = () => setSocketReady(false);
+    const onConnectError = (err) => {
+      setSocketReady(false);
+      setSocketError(err?.message || "Ошибка подключения");
+    };
 
     const onMessageNew = ({ message }) => {
       if (!message) return;
@@ -501,6 +509,7 @@ export default function Messages() {
 
     socket.on("connect", onConnect);
     socket.on("disconnect", onDisconnect);
+    socket.on("connect_error", onConnectError);
     socket.on("message:new", onMessageNew);
     socket.on("messages:read", onMessagesRead);
     socket.on("typing:start", onTypingStart);
@@ -516,6 +525,7 @@ export default function Messages() {
     return () => {
       socket.off("connect", onConnect);
       socket.off("disconnect", onDisconnect);
+      socket.off("connect_error", onConnectError);
       socket.off("message:new", onMessageNew);
       socket.off("messages:read", onMessagesRead);
       socket.off("typing:start", onTypingStart);
@@ -734,7 +744,11 @@ export default function Messages() {
                 Сообщения
               </h1>
               <p className="text-ink-400 mt-0.5 text-sm">
-                {socketReady ? "Онлайн · мгновенные обновления" : "Общайтесь с покупателями и продавцами"}
+                {socketReady
+                  ? "Онлайн · мгновенные обновления"
+                  : socketError
+                  ? "Нет real-time · сообщения обновляются автоматически"
+                  : "Подключение к чату…"}
               </p>
               {isAdmin && (
                 <div className="mt-2 inline-flex items-center gap-2 text-xs text-purple-700 bg-purple-50 border border-purple-100 rounded-full px-3 py-1">

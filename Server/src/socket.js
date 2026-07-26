@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-const User = require("../models/User");
+const User = require("./models/User");
 
 const lastSeenUpdates = new Map();
 const SEEN_INTERVAL_MS = 30_000;
