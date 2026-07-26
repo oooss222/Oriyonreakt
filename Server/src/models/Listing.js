@@ -10,6 +10,14 @@ function toNumberOrNull(value) {
   return Number.isFinite(n) ? n : null;
 }
 
+const REGION_CITIES = {
+  Душанбе: ["Душанбе", "Вахдат", "Турсунзаде", "Рогун"],
+  "Согдийская область": ["Худжанд", "Истаравшан", "Исфара", "Пенджикент"],
+  "Хатлонская область": ["Бохтар", "Куляб"],
+  ГБАО: ["Хорог"],
+  РРП: ["Душанбе", "Турсунзаде", "Вахдат"],
+};
+
 function buildListingFilters({
   cat,
   subcategory,
@@ -18,6 +26,8 @@ function buildListingFilters({
   priceFrom,
   priceTo,
   specs,
+  location,
+  region,
 } = {}) {
   const conditions = [];
   const values = [];
@@ -73,6 +83,14 @@ function buildListingFilters({
   if (maxPrice !== null) {
     values.push(maxPrice);
     conditions.push(`${priceExpr} <= $${values.length}`);
+  }
+
+  if (location) {
+    values.push(String(location).trim());
+    conditions.push(`location = $${values.length}`);
+  } else if (region && REGION_CITIES[region]) {
+    values.push(REGION_CITIES[region]);
+    conditions.push(`location = ANY($${values.length})`);
   }
 
   if (specs && typeof specs === "object") {
@@ -159,6 +177,8 @@ class ListingModel {
     priceFrom,
     priceTo,
     specs,
+    location,
+    region,
     sort = "new",
     limit = 50,
     offset = 0,
@@ -174,6 +194,8 @@ class ListingModel {
       priceFrom,
       priceTo,
       specs,
+      location,
+      region,
     });
 
     let orderBy = "created_at DESC";
@@ -218,6 +240,8 @@ class ListingModel {
     priceFrom,
     priceTo,
     specs,
+    location,
+    region,
   } = {}) {
     const { conditions, values } = buildListingFilters({
       cat,
@@ -227,6 +251,8 @@ class ListingModel {
       priceFrom,
       priceTo,
       specs,
+      location,
+      region,
     });
 
     let sql = `

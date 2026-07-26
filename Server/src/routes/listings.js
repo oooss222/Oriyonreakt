@@ -62,25 +62,33 @@ router.get("/stats", async (req, res) => {
   }
 });
 
+function listingQueryFromReq(query) {
+  const {
+    cat,
+    subcategory,
+    search,
+    priceFrom,
+    priceTo,
+    specs,
+    location,
+    region,
+  } = query;
+
+  return {
+    cat: cat || undefined,
+    subcategory: subcategory || undefined,
+    search: search || undefined,
+    priceFrom: priceFrom || undefined,
+    priceTo: priceTo || undefined,
+    specs: parseSpecsFilter(specs),
+    location: location || undefined,
+    region: location ? undefined : region || undefined,
+  };
+}
+
 router.get("/count", async (req, res) => {
   try {
-    const {
-      cat,
-      subcategory,
-      search,
-      priceFrom,
-      priceTo,
-      specs,
-    } = req.query;
-
-    const total = await Listing.count({
-      cat: cat || undefined,
-      subcategory: subcategory || undefined,
-      search: search || undefined,
-      priceFrom: priceFrom || undefined,
-      priceTo: priceTo || undefined,
-      specs: parseSpecsFilter(specs),
-    });
+    const total = await Listing.count(listingQueryFromReq(req.query));
 
     return res.json({ total });
   } catch (e) {
@@ -95,29 +103,18 @@ router.get("/count", async (req, res) => {
 router.get("/", async (req, res) => {
   try {
     const {
-      cat,
-      subcategory,
-      search,
-      priceFrom,
-      priceTo,
       photo,
       sort,
       limit,
       offset,
-      specs,
     } = req.query;
 
     const listings = await Listing.findAll({
-      cat: cat || undefined,
-      subcategory: subcategory || undefined,
-      search: search || undefined,
-      priceFrom: priceFrom || undefined,
-      priceTo: priceTo || undefined,
+      ...listingQueryFromReq(req.query),
       photo: photo || undefined,
       sort: sort || "new",
       limit: Number(limit || 50),
       offset: Number(offset || 0),
-      specs: parseSpecsFilter(specs),
     });
 
     return res.json(listings);

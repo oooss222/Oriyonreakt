@@ -1,19 +1,15 @@
 import React from "react";
-import { Link, useSearchParams, useNavigate } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { api } from "../lib/api";
 import FavoriteButton from "../components/FavoriteButton";
 import ListingGridSkeleton from "../components/ListingGridSkeleton";
 import EmptyState from "../components/EmptyState";
 import Breadcrumbs from "../components/Breadcrumbs";
+import ListingFiltersPanel from "../components/ListingFiltersPanel";
 import { usePageMeta } from "../lib/usePageMeta";
 import { getListingThumb } from "../lib/media";
 import { formatPrice } from "../lib/format";
-import {
-  CATS,
-  CATEGORY_SELECT_OPTIONS,
-  getListSpecFilters,
-  parseSpecsParam,
-} from "../data/listingCategories";
+import { CATS, parseSpecsParam } from "../data/listingCategories";
 import {
   Search,
   SlidersHorizontal,
@@ -35,6 +31,8 @@ function buildListingParams(draft) {
   if (draft.subcategory) next.subcategory = draft.subcategory;
   if (draft.priceFrom) next.priceFrom = draft.priceFrom;
   if (draft.priceTo) next.priceTo = draft.priceTo;
+  if (draft.location) next.location = draft.location;
+  if (draft.region && !draft.location) next.region = draft.region;
   if (draft.sort && draft.sort !== "new") next.sort = draft.sort;
 
   const specEntries = Object.entries(draft.specs || {}).filter(
@@ -48,314 +46,10 @@ function buildListingParams(draft) {
   return next;
 }
 
-function SpecFilterGroup({ filters, values, onChange }) {
-  if (!filters.length) return null;
-
-  return (
-    <div className="space-y-3">
-      {filters.map((filter) => (
-        <div key={filter.name}>
-          <div className="text-xs font-medium text-slate-500 mb-2">
-            {filter.name}
-          </div>
-
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() =>
-                onChange((current) => {
-                  const next = { ...current };
-                  delete next[filter.name];
-                  return next;
-                })
-              }
-              className={`px-3 py-1.5 rounded-full text-sm border transition ${
-                !values[filter.name]
-                  ? "bg-slate-900 text-white border-slate-900"
-                  : "bg-white text-slate-700 hover:border-slate-400"
-              }`}
-            >
-              Все
-            </button>
-
-            {filter.options.map((option) => {
-              const active = values[filter.name] === option;
-
-              return (
-                <button
-                  key={option}
-                  type="button"
-                  onClick={() =>
-                    onChange((current) => ({
-                      ...current,
-                      [filter.name]: option,
-                    }))
-                  }
-                  className={`px-3 py-1.5 rounded-full text-sm border transition ${
-                    active
-                      ? "bg-sun text-white border-sun"
-                      : "bg-white text-slate-700 hover:border-slate-400"
-                  }`}
-                >
-                  {option}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function ListingFiltersForm({
-  draft,
-  setDraft,
-  activeCat,
-  availableSubcategories,
-  specFilters,
-  showCategorySelect,
-  showSuggestions,
-  setShowSuggestions,
-  suggestions,
-  onApply,
-  onReset,
-  hasActiveFilters,
-  idPrefix = "",
-}) {
-  return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
-        <div className="md:col-span-4 relative">
-          <Search
-            size={18}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-          />
-
-          <input
-            id={`${idPrefix}listing-search`}
-            value={draft.search}
-            onFocus={() => setShowSuggestions(true)}
-            onChange={(e) => {
-              setDraft((v) => ({
-                ...v,
-                search: e.target.value,
-              }));
-              setShowSuggestions(true);
-            }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                setShowSuggestions(false);
-                onApply();
-              }
-
-              if (e.key === "Escape") {
-                setShowSuggestions(false);
-              }
-            }}
-            placeholder="Поиск по названию или описанию"
-            className="h-11 w-full rounded-xl border pl-10 pr-3 outline-none focus:ring-2 focus:ring-sun/40"
-          />
-
-          {showSuggestions && suggestions.length > 0 && (
-            <div className="absolute left-0 right-0 top-12 z-50 rounded-2xl border bg-white shadow-xl overflow-hidden">
-              {suggestions.map((item, index) => (
-                <button
-                  key={`${item.type}-${item.label}-${index}`}
-                  type="button"
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-
-                    if (item.cat) {
-                      setDraft((v) => ({
-                        ...v,
-                        cat: item.cat,
-                        subcategory: "",
-                        search: "",
-                        specs: {},
-                      }));
-                    } else {
-                      setDraft((v) => ({
-                        ...v,
-                        search: item.value,
-                      }));
-                    }
-
-                    setShowSuggestions(false);
-                  }}
-                  className="w-full text-left px-4 py-3 hover:bg-slate-50 border-b last:border-b-0"
-                >
-                  <div className="text-sm font-medium text-slate-900">
-                    {item.label}
-                  </div>
-                  <div className="text-xs text-slate-500">{item.type}</div>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {showCategorySelect && (
-          <select
-            value={draft.cat}
-            onChange={(e) =>
-              setDraft((v) => ({
-                ...v,
-                cat: e.target.value,
-                subcategory: "",
-                specs: {},
-              }))
-            }
-            className="md:col-span-2 h-11 rounded-xl border px-3 outline-none focus:ring-2 focus:ring-sun/40"
-          >
-            {CATEGORY_SELECT_OPTIONS.map((item) => (
-              <option key={item.value || "all"} value={item.value}>
-                {item.label}
-              </option>
-            ))}
-          </select>
-        )}
-
-        {!activeCat && (
-          <select
-            value={draft.subcategory}
-            onChange={(e) =>
-              setDraft((v) => ({
-                ...v,
-                subcategory: e.target.value,
-              }))
-            }
-            disabled={!draft.cat}
-            className="md:col-span-2 h-11 rounded-xl border px-3 outline-none focus:ring-2 focus:ring-sun/40 disabled:bg-slate-100 disabled:text-slate-400"
-          >
-            <option value="">Все подкатегории</option>
-            {availableSubcategories.map((item) => (
-              <option key={item} value={item}>
-                {item}
-              </option>
-            ))}
-          </select>
-        )}
-
-        <input
-          value={draft.priceFrom}
-          onChange={(e) =>
-            setDraft((v) => ({
-              ...v,
-              priceFrom: e.target.value.replace(/[^\d.,]/g, ""),
-            }))
-          }
-          placeholder="Цена от"
-          className="md:col-span-1 h-11 rounded-xl border px-3 outline-none focus:ring-2 focus:ring-sun/40"
-        />
-
-        <input
-          value={draft.priceTo}
-          onChange={(e) =>
-            setDraft((v) => ({
-              ...v,
-              priceTo: e.target.value.replace(/[^\d.,]/g, ""),
-            }))
-          }
-          placeholder="Цена до"
-          className="md:col-span-1 h-11 rounded-xl border px-3 outline-none focus:ring-2 focus:ring-sun/40"
-        />
-
-        <select
-          value={draft.sort}
-          onChange={(e) =>
-            setDraft((v) => ({
-              ...v,
-              sort: e.target.value,
-            }))
-          }
-          className="md:col-span-2 h-11 rounded-xl border px-3 outline-none focus:ring-2 focus:ring-sun/40"
-        >
-          <option value="new">Сначала новые</option>
-          <option value="price_asc">Цена по возрастанию</option>
-          <option value="price_desc">Цена по убыванию</option>
-        </select>
-      </div>
-
-      {activeCat && availableSubcategories.length > 0 && (
-        <div className="space-y-2">
-          <div className="text-xs font-medium text-slate-500">Подкатегория</div>
-          <div className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            <button
-              type="button"
-              onClick={() =>
-                setDraft((v) => ({
-                  ...v,
-                  subcategory: "",
-                }))
-              }
-              className={`shrink-0 px-4 py-2 rounded-full text-sm border transition ${
-                !draft.subcategory
-                  ? "bg-slate-900 text-white border-slate-900"
-                  : "bg-white text-slate-700"
-              }`}
-            >
-              Все
-            </button>
-
-            {availableSubcategories.map((item) => (
-              <button
-                key={item}
-                type="button"
-                onClick={() =>
-                  setDraft((v) => ({
-                    ...v,
-                    subcategory: item,
-                    specs: {},
-                  }))
-                }
-                className={`shrink-0 px-4 py-2 rounded-full text-sm border transition ${
-                  draft.subcategory === item
-                    ? "bg-sun text-white border-sun"
-                    : "bg-white text-slate-700"
-                }`}
-              >
-                {item}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      <SpecFilterGroup
-        filters={specFilters}
-        values={draft.specs}
-        onChange={(updater) =>
-          setDraft((v) => ({
-            ...v,
-            specs: typeof updater === "function" ? updater(v.specs) : updater,
-          }))
-        }
-      />
-
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <button
-          type="button"
-          onClick={onApply}
-          className="inline-flex justify-center items-center gap-2 px-5 py-2.5 rounded-xl bg-sun text-white hover:bg-sun-600 transition"
-        >
-          <Search size={18} />
-          Применить фильтры
-        </button>
-
-        {hasActiveFilters && (
-          <button
-            type="button"
-            onClick={onReset}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border hover:bg-slate-50"
-          >
-            <X size={18} />
-            Сбросить
-          </button>
-        )}
-      </div>
-    </div>
-  );
+function buildListingQueryFromDraft(draft) {
+  const params = buildListingParams(draft);
+  params.limit = 100;
+  return params;
 }
 
 export default function Listing() {
@@ -364,9 +58,10 @@ export default function Listing() {
 
   const [items, setItems] = React.useState([]);
   const [total, setTotal] = React.useState(0);
+  const [previewTotal, setPreviewTotal] = React.useState(0);
+  const [previewLoading, setPreviewLoading] = React.useState(false);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState("");
-  const [showSuggestions, setShowSuggestions] = React.useState(false);
   const [mobileFiltersOpen, setMobileFiltersOpen] = React.useState(false);
 
   const cat = searchParams.get("cat") || "";
@@ -375,6 +70,8 @@ export default function Listing() {
     searchParams.get("search") || searchParams.get("q") || "";
   const priceFrom = searchParams.get("priceFrom") || "";
   const priceTo = searchParams.get("priceTo") || "";
+  const location = searchParams.get("location") || "";
+  const region = searchParams.get("region") || "";
   const sort = searchParams.get("sort") || "new";
   const activeSpecs = React.useMemo(
     () => parseSpecsParam(searchParams.get("specs")),
@@ -387,6 +84,8 @@ export default function Listing() {
     subcategory,
     priceFrom,
     priceTo,
+    location,
+    region,
     sort,
     specs: activeSpecs,
   });
@@ -398,10 +97,22 @@ export default function Listing() {
       subcategory,
       priceFrom,
       priceTo,
+      location,
+      region,
       sort,
       specs: activeSpecs,
     });
-  }, [search, cat, subcategory, priceFrom, priceTo, sort, activeSpecs]);
+  }, [
+    search,
+    cat,
+    subcategory,
+    priceFrom,
+    priceTo,
+    location,
+    region,
+    sort,
+    activeSpecs,
+  ]);
 
   React.useEffect(() => {
     if (!mobileFiltersOpen) return undefined;
@@ -421,6 +132,8 @@ export default function Listing() {
       search: search || undefined,
       priceFrom: priceFrom || undefined,
       priceTo: priceTo || undefined,
+      location: location || undefined,
+      region: location ? undefined : region || undefined,
       sort: sort || "new",
       limit: 100,
     };
@@ -430,7 +143,17 @@ export default function Listing() {
     }
 
     return params;
-  }, [cat, subcategory, search, priceFrom, priceTo, sort, activeSpecs]);
+  }, [
+    cat,
+    subcategory,
+    search,
+    priceFrom,
+    priceTo,
+    location,
+    region,
+    sort,
+    activeSpecs,
+  ]);
 
   React.useEffect(() => {
     let active = true;
@@ -448,6 +171,7 @@ export default function Listing() {
         if (active) {
           setItems(Array.isArray(data) ? data.filter(Boolean) : []);
           setTotal(Number(countData?.total || 0));
+          setPreviewTotal(Number(countData?.total || 0));
         }
       } catch (e) {
         if (active) {
@@ -467,45 +191,40 @@ export default function Listing() {
     };
   }, [listingQuery]);
 
+  React.useEffect(() => {
+    let active = true;
+    const timer = setTimeout(async () => {
+      try {
+        setPreviewLoading(true);
+        const countData = await api.listingCount(
+          buildListingQueryFromDraft(draft)
+        );
+
+        if (active) {
+          setPreviewTotal(Number(countData?.total || 0));
+        }
+      } catch {
+        if (active) {
+          setPreviewTotal(total);
+        }
+      } finally {
+        if (active) {
+          setPreviewLoading(false);
+        }
+      }
+    }, 350);
+
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
+  }, [draft, total]);
+
   const activeCat = draft.cat || cat;
   const catConfig = cat ? CATS[cat] : null;
   const availableSubcategories = React.useMemo(() => {
     return activeCat ? CATS[activeCat]?.subs || [] : [];
   }, [activeCat]);
-
-  const specFilters = React.useMemo(() => {
-    return getListSpecFilters(activeCat, draft.subcategory || subcategory);
-  }, [activeCat, draft.subcategory, subcategory]);
-
-  const suggestions = React.useMemo(() => {
-    const q = draft.search.trim().toLowerCase();
-
-    if (q.length < 2) return [];
-
-    const fromListings = items
-      .filter((item) =>
-        String(item.title || "").toLowerCase().includes(q)
-      )
-      .slice(0, 5)
-      .map((item) => ({
-        type: "Объявление",
-        label: item.title,
-        value: item.title,
-      }));
-
-    const fromCategories = CATEGORY_SELECT_OPTIONS.filter(
-      (item) => item.value && item.label.toLowerCase().includes(q)
-    )
-      .slice(0, 3)
-      .map((item) => ({
-        type: "Категория",
-        label: item.label,
-        value: item.label,
-        cat: item.value,
-      }));
-
-    return [...fromListings, ...fromCategories].slice(0, 8);
-  }, [draft.search, items]);
 
   const pageTitle = React.useMemo(() => {
     if (subcategory && catConfig) {
@@ -524,21 +243,21 @@ export default function Listing() {
   }, [subcategory, catConfig, search]);
 
   const breadcrumbItems = React.useMemo(() => {
-    const items = [{ label: "Главная", to: "/" }];
+    const crumbs = [{ label: "Главная", to: "/" }];
 
     if (catConfig) {
-      items.push({ label: catConfig.title, to: `/c/${cat}` });
+      crumbs.push({ label: catConfig.title, to: `/c/${cat}` });
     }
 
     if (subcategory) {
-      items.push({ label: subcategory });
+      crumbs.push({ label: subcategory });
     } else if (!catConfig && search) {
-      items.push({ label: "Поиск" });
+      crumbs.push({ label: "Поиск" });
     } else if (!catConfig) {
-      items.push({ label: "Объявления" });
+      crumbs.push({ label: "Объявления" });
     }
 
-    return items;
+    return crumbs;
   }, [catConfig, cat, subcategory, search]);
 
   usePageMeta({
@@ -551,39 +270,46 @@ export default function Listing() {
 
   const applyFilters = () => {
     setSearchParams(buildListingParams(draft));
-    setShowSuggestions(false);
     setMobileFiltersOpen(false);
   };
 
   const resetFilters = () => {
     setDraft({
       search: "",
-      cat: "",
+      cat: cat || "",
       subcategory: "",
       priceFrom: "",
       priceTo: "",
+      location: "",
+      region: "",
       sort: "new",
       specs: {},
     });
-    setSearchParams({});
+
+    if (cat) {
+      setSearchParams({ cat });
+    } else {
+      setSearchParams({});
+    }
+
     setMobileFiltersOpen(false);
   };
 
   const hasActiveFilters =
     search ||
-    cat ||
     subcategory ||
     priceFrom ||
     priceTo ||
+    location ||
+    region ||
     sort !== "new" ||
     Object.keys(activeSpecs).length > 0;
 
   const activeFilterCount =
     Number(Boolean(search)) +
-    Number(Boolean(cat)) +
     Number(Boolean(subcategory)) +
-    Number(Boolean(priceFrom)) +
-    Number(Boolean(priceTo)) +
+    Number(Boolean(priceFrom || priceTo)) +
+    Number(Boolean(location || region)) +
     Number(sort !== "new") +
     Object.keys(activeSpecs).length;
 
@@ -591,8 +317,8 @@ export default function Listing() {
     <div className="container mx-auto px-4 py-6 space-y-5">
       <Breadcrumbs items={breadcrumbItems} />
 
-      <div className="rounded-3xl border bg-white p-4 md:p-5 space-y-4">
-        <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
+      <div className="space-y-4">
+        <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 px-1">
           <div className="min-w-0">
             <div className="inline-flex items-center gap-2 text-sm text-sun-700 bg-sun-50 border border-sun-100 rounded-full px-3 py-1 mb-2">
               <SlidersHorizontal size={16} />
@@ -602,15 +328,15 @@ export default function Listing() {
             <h1 className="text-2xl font-bold">{pageTitle}</h1>
 
             <p className="text-sm text-slate-500 mt-1">
-              Найдено: {loading ? "…" : total}
+              Найдено: {loading ? "…" : total.toLocaleString("ru-RU")}
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 md:hidden">
             <button
               type="button"
               onClick={() => setMobileFiltersOpen(true)}
-              className="md:hidden inline-flex items-center gap-2 px-4 py-2 rounded-xl border hover:bg-slate-50"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border hover:bg-slate-50"
             >
               <SlidersHorizontal size={18} />
               Фильтры
@@ -620,63 +346,20 @@ export default function Listing() {
                 </span>
               )}
             </button>
-
-            {hasActiveFilters && (
-              <button
-                type="button"
-                onClick={resetFilters}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border hover:bg-slate-50"
-              >
-                <X size={18} />
-                <span className="hidden sm:inline">Сбросить фильтры</span>
-                <span className="sm:hidden">Сброс</span>
-              </button>
-            )}
           </div>
         </div>
 
-        {cat && availableSubcategories.length > 0 && (
-          <div className="md:hidden flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            <Link
-              to={`/listing?cat=${cat}`}
-              className={`shrink-0 px-4 py-2 rounded-full text-sm border transition ${
-                !subcategory
-                  ? "bg-slate-900 text-white border-slate-900"
-                  : "bg-white text-slate-700"
-              }`}
-            >
-              Все
-            </Link>
-
-            {availableSubcategories.map((item) => (
-              <Link
-                key={item}
-                to={`/listing?cat=${cat}&subcategory=${encodeURIComponent(item)}`}
-                className={`shrink-0 px-4 py-2 rounded-full text-sm border transition ${
-                  subcategory === item
-                    ? "bg-sun text-white border-sun"
-                    : "bg-white text-slate-700"
-                }`}
-              >
-                {item}
-              </Link>
-            ))}
-          </div>
-        )}
-
         <div className="hidden md:block">
-          <ListingFiltersForm
+          <ListingFiltersPanel
             draft={draft}
             setDraft={setDraft}
             activeCat={activeCat}
             availableSubcategories={availableSubcategories}
-            specFilters={specFilters}
             showCategorySelect={!cat}
-            showSuggestions={showSuggestions}
-            setShowSuggestions={setShowSuggestions}
-            suggestions={suggestions}
             onApply={applyFilters}
             onReset={resetFilters}
+            previewTotal={previewTotal}
+            previewLoading={previewLoading}
             hasActiveFilters={hasActiveFilters}
           />
         </div>
@@ -691,34 +374,32 @@ export default function Listing() {
             onClick={() => setMobileFiltersOpen(false)}
           />
 
-          <div className="absolute inset-x-0 bottom-0 max-h-[88vh] overflow-y-auto rounded-t-3xl bg-white p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] shadow-2xl">
-            <div className="flex items-center justify-between gap-3 mb-4">
+          <div className="absolute inset-x-0 bottom-0 max-h-[92vh] overflow-y-auto rounded-t-3xl bg-mist p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-2xl">
+            <div className="flex items-center justify-between gap-3 mb-3 px-1">
               <h2 className="text-lg font-semibold">Фильтры</h2>
 
               <button
                 type="button"
                 onClick={() => setMobileFiltersOpen(false)}
-                className="p-2 rounded-xl border hover:bg-slate-50"
+                className="p-2 rounded-xl border bg-white hover:bg-slate-50"
                 aria-label="Закрыть"
               >
                 <X size={18} />
               </button>
             </div>
 
-            <ListingFiltersForm
+            <ListingFiltersPanel
               draft={draft}
               setDraft={setDraft}
               activeCat={activeCat}
               availableSubcategories={availableSubcategories}
-              specFilters={specFilters}
               showCategorySelect={!cat}
-              showSuggestions={showSuggestions}
-              setShowSuggestions={setShowSuggestions}
-              suggestions={suggestions}
               onApply={applyFilters}
               onReset={resetFilters}
+              previewTotal={previewTotal}
+              previewLoading={previewLoading}
               hasActiveFilters={hasActiveFilters}
-              idPrefix="mobile-"
+              compact
             />
           </div>
         </div>
