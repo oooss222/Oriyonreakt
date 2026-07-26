@@ -130,6 +130,15 @@ export const api = {
     }
   ),
 
+  markMessagesRead: (token, listingId, peerId) =>
+    request(
+      `/messages/${listingId}/read?peerId=${encodeURIComponent(peerId)}`,
+      {
+        method: "POST",
+        token,
+      }
+    ),
+
   sendMessage: (token, listingId, text, receiverId) =>
   request(`/messages/${listingId}`, {
     method: "POST",

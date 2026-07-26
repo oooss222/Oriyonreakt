@@ -94,6 +94,30 @@ class MessageModel {
     return mapMessage(result.rows[0]);
   }
 
+  static async markThreadRead({ listingId, userId, role, peerId }) {
+    if (isAdminRole(role)) {
+      return { markedRead: 0, messageIds: [] };
+    }
+
+    const updateResult = await query(
+      `
+      UPDATE messages
+      SET is_read = true
+      WHERE listing_id = $1
+        AND receiver_id = $2::uuid
+        AND sender_id = $3::uuid
+        AND is_read = false
+      RETURNING id
+      `,
+      [listingId, userId, peerId]
+    );
+
+    return {
+      markedRead: updateResult.rowCount || 0,
+      messageIds: updateResult.rows.map((row) => String(row.id)),
+    };
+  }
+
   static async getThread({ listingId, userId, role, peerId }) {
     const isAdmin = isAdminRole(role);
 
@@ -141,21 +165,18 @@ class MessageModel {
       : [listingId, userId, peerId];
 
     let markedRead = 0;
+    let messageIds = [];
 
     if (!isAdmin) {
-      const updateResult = await query(
-        `
-        UPDATE messages
-        SET is_read = true
-        WHERE listing_id = $1
-          AND receiver_id = $2
-          AND sender_id = $3
-          AND is_read = false
-        `,
-        [listingId, userId, peerId]
-      );
+      const marked = await this.markThreadRead({
+        listingId,
+        userId,
+        role,
+        peerId,
+      });
 
-      markedRead = updateResult.rowCount || 0;
+      markedRead = marked.markedRead;
+      messageIds = marked.messageIds;
     }
 
     const result = await query(selectSql, params);
@@ -163,6 +184,7 @@ class MessageModel {
     return {
       messages: result.rows.map(mapMessage),
       markedRead,
+      messageIds,
     };
   }
 

@@ -6,6 +6,21 @@ const { emitNewMessage, emitMessagesRead } = require("../socket");
 
 router.use(auth);
 
+function emitReadReceipt(req, { listingId, readerId, peerId, markedRead, messageIds }) {
+  const io = req.app.get("io");
+
+  if (!io || markedRead <= 0) {
+    return;
+  }
+
+  emitMessagesRead(io, {
+    listingId,
+    readerId,
+    peerId,
+    messageIds,
+  });
+}
+
 router.get("/inbox", async (req, res) => {
   try {
     const data = await Message.inbox({
@@ -23,6 +38,45 @@ router.get("/inbox", async (req, res) => {
   }
 });
 
+router.post("/:listingId/read", async (req, res) => {
+  try {
+    const peerId = req.query.peerId || req.body?.peerId || null;
+
+    if (!peerId) {
+      return res.status(400).json({
+        error: "peerId is required",
+      });
+    }
+
+    const { markedRead, messageIds } = await Message.markThreadRead({
+      listingId: req.params.listingId,
+      userId: req.user.id,
+      role: req.user.role,
+      peerId,
+    });
+
+    emitReadReceipt(req, {
+      listingId: req.params.listingId,
+      readerId: req.user.id,
+      peerId,
+      markedRead,
+      messageIds,
+    });
+
+    return res.json({
+      ok: true,
+      markedRead,
+      messageIds,
+    });
+  } catch (e) {
+    console.error("MESSAGES_READ_ERROR:", e?.message);
+
+    return res.status(500).json({
+      error: "Failed to mark messages as read",
+    });
+  }
+});
+
 router.get("/:listingId", async (req, res) => {
   try {
     const peerId = req.query.peerId || null;
@@ -33,22 +87,20 @@ router.get("/:listingId", async (req, res) => {
       });
     }
 
-    const { messages, markedRead } = await Message.getThread({
+    const { messages, markedRead, messageIds } = await Message.getThread({
       listingId: req.params.listingId,
       userId: req.user.id,
       role: req.user.role,
       peerId,
     });
 
-    const io = req.app.get("io");
-
-    if (io && markedRead > 0) {
-      emitMessagesRead(io, {
-        listingId: req.params.listingId,
-        readerId: req.user.id,
-        peerId,
-      });
-    }
+    emitReadReceipt(req, {
+      listingId: req.params.listingId,
+      readerId: req.user.id,
+      peerId,
+      markedRead,
+      messageIds,
+    });
 
     return res.json(messages);
   } catch (e) {

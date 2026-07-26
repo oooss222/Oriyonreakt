@@ -206,6 +206,9 @@ async function initDb() {
       created_at TIMESTAMPTZ NOT NULL DEFAULT now()
     );
 
+    ALTER TABLE messages
+      ADD COLUMN IF NOT EXISTS is_read BOOLEAN NOT NULL DEFAULT false;
+
     CREATE TABLE IF NOT EXISTS wallet_transactions (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,

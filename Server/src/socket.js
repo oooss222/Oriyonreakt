@@ -64,7 +64,7 @@ function attachSocketHandlers(io) {
   io.on("connection", (socket) => {
     const userId = String(socket.userId);
 
-    socket.join(`user:${userId}`);
+    socket.join(`user:${String(userId)}`);
 
     const prev = onlineUsers.get(userId) || 0;
     onlineUsers.set(userId, prev + 1);
@@ -105,7 +105,7 @@ function attachSocketHandlers(io) {
     socket.on("typing:start", ({ listingId, peerId }) => {
       if (!listingId || !peerId) return;
 
-      io.to(`user:${peerId}`).emit("typing:start", {
+      io.to(`user:${String(peerId)}`).emit("typing:start", {
         listingId,
         peerId: socket.userId,
       });
@@ -114,7 +114,7 @@ function attachSocketHandlers(io) {
     socket.on("typing:stop", ({ listingId, peerId }) => {
       if (!listingId || !peerId) return;
 
-      io.to(`user:${peerId}`).emit("typing:stop", {
+      io.to(`user:${String(peerId)}`).emit("typing:stop", {
         listingId,
         peerId: socket.userId,
       });
@@ -179,17 +179,18 @@ function emitNewMessage(io, message) {
     listingId: message.listingId,
   };
 
-  io.to(`user:${message.senderId}`).emit("message:new", payload);
-  io.to(`user:${message.receiverId}`).emit("message:new", payload);
+  io.to(`user:${String(message.senderId)}`).emit("message:new", payload);
+  io.to(`user:${String(message.receiverId)}`).emit("message:new", payload);
 }
 
-function emitMessagesRead(io, { listingId, readerId, peerId }) {
+function emitMessagesRead(io, { listingId, readerId, peerId, messageIds = [] }) {
   if (!io) return;
 
-  io.to(`user:${peerId}`).emit("messages:read", {
+  io.to(`user:${String(peerId)}`).emit("messages:read", {
     listingId,
     readerId,
     peerId,
+    messageIds,
   });
 }
 

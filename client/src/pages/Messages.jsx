@@ -185,6 +185,7 @@ export default function Messages() {
   const deepHandledRef = React.useRef(false);
   const typingTimerRef = React.useRef(null);
   const typingEmitRef = React.useRef(null);
+  const markThreadAsReadRef = React.useRef(null);
 
   const isAdmin = me?.role === "admin" || me?.role === "super_admin";
   const myId = me?.id || me?._id;
@@ -308,6 +309,33 @@ export default function Messages() {
     [loadThread]
   );
 
+  const markThreadAsRead = React.useCallback(
+    async (listingId, peerId) => {
+      if (!token || isAdmin || !listingId || !peerId) return;
+
+      try {
+        await api.markMessagesRead(token, listingId, peerId);
+      } catch {
+        /* ignore */
+      }
+    },
+    [token, isAdmin]
+  );
+
+  React.useEffect(() => {
+    markThreadAsReadRef.current = markThreadAsRead;
+  }, [markThreadAsRead]);
+
+  React.useEffect(() => {
+    if (!selected || threadLoading || isAdmin) return;
+
+    const peerId = getPeerId(selected, me);
+
+    if (!peerId) return;
+
+    markThreadAsRead(selected.listingId, peerId);
+  }, [selected, thread.length, threadLoading, me, isAdmin, markThreadAsRead]);
+
   React.useEffect(() => {
     if (!token) {
       nav("/auth");
@@ -417,7 +445,7 @@ export default function Messages() {
         });
 
         if (String(message.receiverId) === String(myId)) {
-          loadThread(current, { silent: true });
+          markThreadAsReadRef.current?.(current.listingId, peerId);
         }
 
         return current;
@@ -428,15 +456,21 @@ export default function Messages() {
       }
     };
 
-    const onMessagesRead = ({ listingId, readerId }) => {
+    const onMessagesRead = ({ listingId, readerId, messageIds }) => {
       setThread((arr) =>
-        arr.map((msg) =>
-          String(msg.listingId) === String(listingId) &&
-          String(msg.senderId) === String(myId) &&
-          String(readerId) !== String(myId)
-            ? { ...msg, isRead: true }
-            : msg
-        )
+        arr.map((msg) => {
+          if (String(msg.listingId) !== String(listingId)) return msg;
+          if (String(msg.senderId) !== String(myId)) return msg;
+          if (String(readerId) === String(myId)) return msg;
+
+          if (Array.isArray(messageIds) && messageIds.length > 0) {
+            return messageIds.includes(String(getId(msg)))
+              ? { ...msg, isRead: true }
+              : msg;
+          }
+
+          return { ...msg, isRead: true };
+        })
       );
     };
 
@@ -996,7 +1030,7 @@ export default function Messages() {
                                   className="inline-flex"
                                   title={msg.isRead ? "Прочитано" : "Доставлено"}
                                 >
-                                  {msg.isRead ? (
+                              {msg.isRead === true ? (
                                     <CheckCheck size={14} className="text-sun-300" />
                                   ) : (
                                     <Check size={14} />
