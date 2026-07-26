@@ -17,6 +17,11 @@ import {
   getChatSocket,
 } from "../lib/chatSocket";
 import { resolveMediaUrl } from "../lib/media";
+import {
+  getUnreadTotal,
+  publishUnreadCount,
+  requestUnreadRefresh,
+} from "../lib/unread";
 
 const TOKEN_KEY = "auth_token";
 const USER_KEY = "auth_user";
@@ -242,6 +247,7 @@ export default function Messages() {
         const next = Array.isArray(data) ? data : [];
 
         setItems(next);
+        publishUnreadCount(getUnreadTotal(next));
 
         setSelected((current) => {
           if (!current) return current;
@@ -259,6 +265,7 @@ export default function Messages() {
         });
       } catch {
         if (!silent) setItems([]);
+        publishUnreadCount(0);
       } finally {
         setLoading(false);
         setRefreshing(false);
@@ -310,11 +317,29 @@ export default function Messages() {
 
       try {
         await api.markMessagesRead(token, listingId, peerId);
+
+        setItems((prev) => {
+          const next = prev.map((item) => {
+            const itemPeerId = getPeerId(item, me);
+
+            if (
+              String(item.listingId) === String(listingId) &&
+              String(itemPeerId) === String(peerId)
+            ) {
+              return { ...item, unreadCount: 0 };
+            }
+
+            return item;
+          });
+
+          publishUnreadCount(getUnreadTotal(next));
+          return next;
+        });
       } catch {
         /* ignore */
       }
     },
-    [token, isAdmin]
+    [token, isAdmin, me]
   );
 
   React.useEffect(() => {
@@ -355,6 +380,14 @@ export default function Messages() {
       clearInterval(timer);
     };
   }, [token, loadInbox, nav, socketReady]);
+
+  React.useEffect(() => {
+    publishUnreadCount(0);
+
+    return () => {
+      requestUnreadRefresh();
+    };
+  }, []);
 
   React.useEffect(() => {
     if (!token) return undefined;

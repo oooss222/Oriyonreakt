@@ -1,22 +1,28 @@
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useSearchParams } from "react-router-dom";
 import {
   Home,
-  Search,
+  Heart,
   PlusCircle,
   MessageCircle,
   User,
 } from "lucide-react";
 import { api } from "../lib/api";
 import { TOKEN_KEY } from "../lib/auth";
+import {
+  getUnreadTotal,
+  subscribeUnreadCount,
+  subscribeUnreadRefresh,
+} from "../lib/unread";
 
 const NAV_ITEMS = [
   { to: "/", label: "Главная", icon: Home, match: (path) => path === "/" },
   {
-    to: "/listing",
-    label: "Поиск",
-    icon: Search,
-    match: (path) => path === "/listing" || path.startsWith("/c/"),
+    to: "/profile?tab=fav",
+    label: "Избранное",
+    icon: Heart,
+    match: (path, tab) =>
+      path === "/profile" && (tab === "fav" || tab === "favorites"),
   },
   {
     to: "/add",
@@ -36,45 +42,40 @@ const NAV_ITEMS = [
     to: "/profile",
     label: "Профиль",
     icon: User,
-    match: (path) => path === "/profile" || path.startsWith("/profile"),
+    match: (path, tab) =>
+      path === "/profile" && tab !== "fav" && tab !== "favorites",
   },
 ];
 
 export default function MobileNav() {
   const { pathname } = useLocation();
+  const [searchParams] = useSearchParams();
+  const tab = searchParams.get("tab") || "my";
   const token = localStorage.getItem(TOKEN_KEY) || "";
   const [unreadCount, setUnreadCount] = React.useState(0);
 
-  React.useEffect(() => {
+  const loadUnread = React.useCallback(async () => {
     if (!token) {
       setUnreadCount(0);
-      return undefined;
+      return;
     }
 
-    let active = true;
-
-    async function loadUnread() {
-      try {
-        const data = await api.messageInbox(token);
-        if (!active) return;
-
-        const total = (Array.isArray(data) ? data : []).reduce(
-          (sum, item) => sum + Number(item.unreadCount || 0),
-          0
-        );
-
-        setUnreadCount(total);
-      } catch {}
+    try {
+      const data = await api.messageInbox(token);
+      setUnreadCount(getUnreadTotal(data));
+    } catch {
+      setUnreadCount(0);
     }
+  }, [token]);
 
+  React.useEffect(() => {
     loadUnread();
     const timer = setInterval(loadUnread, 15000);
+    return () => clearInterval(timer);
+  }, [loadUnread]);
 
-    return () => {
-      active = false;
-      clearInterval(timer);
-    };
-  }, [token]);
+  React.useEffect(() => subscribeUnreadCount(setUnreadCount), []);
+  React.useEffect(() => subscribeUnreadRefresh(loadUnread), [loadUnread]);
 
   if (pathname === "/messages" || pathname === "/auth") {
     return null;
@@ -87,7 +88,7 @@ export default function MobileNav() {
     >
       <div className="grid grid-cols-5 h-16 max-w-lg mx-auto">
         {NAV_ITEMS.map(({ to, label, icon: Icon, highlight, badge, match }) => {
-          const active = match(pathname);
+          const active = match(pathname, tab);
           const showBadge = badge && unreadCount > 0;
 
           return (

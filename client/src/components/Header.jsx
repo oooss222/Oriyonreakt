@@ -13,6 +13,11 @@ import {
 
 import { api } from "../lib/api";
 import { TOKEN_KEY, USER_KEY } from "../lib/auth";
+import {
+  getUnreadTotal,
+  subscribeUnreadCount,
+  subscribeUnreadRefresh,
+} from "../lib/unread";
 import CategoryStrip from "./CategoryStrip";
 import { getListingThumb } from "../lib/media";
 
@@ -38,6 +43,9 @@ export default function Header() {
   }, []);
 
   const pathname = location.pathname;
+  const onMessagesPage = pathname === "/messages";
+  const badgeCount = onMessagesPage ? 0 : unreadCount;
+
   const isBrowsePage =
     pathname === "/" ||
     pathname === "/listing" ||
@@ -45,12 +53,35 @@ export default function Header() {
 
   const compactCategories = pathname !== "/";
 
+  const loadUnread = React.useCallback(async () => {
+    if (!token || onMessagesPage) {
+      setUnreadCount(0);
+      return;
+    }
+
+    try {
+      const data = await api.messageInbox(token);
+      setUnreadCount(getUnreadTotal(data));
+    } catch {
+      setUnreadCount(0);
+    }
+  }, [token, onMessagesPage]);
+
   React.useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 48);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  React.useEffect(() => {
+    loadUnread();
+    const timer = setInterval(loadUnread, 15000);
+    return () => clearInterval(timer);
+  }, [loadUnread]);
+
+  React.useEffect(() => subscribeUnreadCount(setUnreadCount), []);
+  React.useEffect(() => subscribeUnreadRefresh(loadUnread), [loadUnread]);
 
   React.useEffect(() => {
     let active = true;
@@ -68,34 +99,6 @@ export default function Header() {
       active = false;
     };
   }, []);
-
-  React.useEffect(() => {
-    if (!token) return;
-
-    let active = true;
-
-    async function loadUnread() {
-      try {
-        const data = await api.messageInbox(token);
-        if (!active) return;
-
-        const total = (Array.isArray(data) ? data : []).reduce(
-          (sum, item) => sum + Number(item.unreadCount || 0),
-          0
-        );
-
-        setUnreadCount(total);
-      } catch {}
-    }
-
-    loadUnread();
-    const timer = setInterval(loadUnread, 15000);
-
-    return () => {
-      active = false;
-      clearInterval(timer);
-    };
-  }, [token]);
 
   const suggestions = React.useMemo(() => {
     const text = q.trim().toLowerCase();
@@ -160,12 +163,47 @@ export default function Header() {
       </div>
     ) : null;
 
+  const searchField = (compact = false) => (
+    <div
+      className={`flex items-center w-full rounded-xl bg-ink-600 overflow-hidden ring-1 ring-white/10 focus-within:ring-sun/70 transition ${
+        compact ? "min-w-0" : ""
+      }`}
+    >
+      <Search size={18} className="text-ink-300 shrink-0 ml-3" />
+
+      <input
+        className={`flex-1 outline-none bg-transparent text-sm text-white placeholder:text-ink-300 px-2 min-w-0 ${
+          compact ? "h-10" : "h-10 lg:h-11"
+        }`}
+        value={q}
+        onFocus={() => setShowSuggestions(true)}
+        onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+        onChange={(e) => {
+          setQ(e.target.value);
+          setShowSuggestions(true);
+        }}
+        onKeyDown={(e) => e.key === "Enter" && go()}
+        placeholder={listingsCountLabel}
+      />
+
+      <button
+        type="button"
+        onClick={go}
+        className={`bg-sun hover:bg-sun-600 text-white text-sm font-semibold transition shrink-0 ${
+          compact ? "h-10 px-3.5" : "h-10 lg:h-11 px-4 lg:px-5"
+        }`}
+      >
+        Найти
+      </button>
+    </div>
+  );
+
   return (
     <header className="sticky top-0 z-50 bg-ink-700 text-white border-b border-white/5 shadow-soft">
       <div className="container mx-auto px-3 sm:px-4 lg:px-6">
         <div
-          className={`flex items-center gap-2 sm:gap-3 transition-all duration-300 ${
-            scrolled ? "h-14" : "h-14 sm:h-16 lg:h-[72px]"
+          className={`hidden lg:flex items-center gap-2 sm:gap-3 transition-all duration-300 ${
+            scrolled ? "h-14" : "h-16 lg:h-[72px]"
           }`}
         >
           <Link to="/" className="flex items-center gap-2 group shrink-0 min-w-0">
@@ -173,12 +211,12 @@ export default function Header() {
               src="/oriyon.store.png"
               alt="Oriyon Store"
               className={`object-contain transition-all duration-300 group-hover:scale-105 ${
-                scrolled ? "w-9 h-9 sm:w-10 sm:h-10" : "w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14"
+                scrolled ? "w-10 h-10" : "w-12 h-12 lg:w-14 lg:h-14"
               }`}
             />
 
             <span
-              className={`brand-wordmark hidden sm:block transition-all duration-300 truncate ${
+              className={`brand-wordmark transition-all duration-300 truncate ${
                 scrolled ? "text-base" : "text-lg"
               }`}
             >
@@ -190,42 +228,15 @@ export default function Header() {
 
           <Link
             to="/add"
-            className="hidden lg:inline-flex items-center gap-1.5 shrink-0 px-3 py-2 rounded-xl border border-sun/50 text-sun text-sm font-semibold hover:bg-sun/10 transition"
+            className="inline-flex items-center gap-1.5 shrink-0 px-3 py-2 rounded-xl border border-sun/50 text-sun text-sm font-semibold hover:bg-sun/10 transition"
           >
             <PlusCircle size={17} />
             Добавить объявление
           </Link>
 
-          <div className="flex-1 min-w-0 hidden lg:block relative">
-            <div className="flex items-center w-full rounded-xl bg-ink-600 overflow-hidden ring-1 ring-white/10 focus-within:ring-sun/70 transition">
-              <Search size={18} className="text-ink-300 shrink-0 ml-3" />
+          <div className="flex-1 min-w-0 relative">{searchField(false)}{suggestionList}</div>
 
-              <input
-                className="flex-1 h-10 lg:h-11 outline-none bg-transparent text-sm text-white placeholder:text-ink-300 px-2 min-w-0"
-                value={q}
-                onFocus={() => setShowSuggestions(true)}
-                onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
-                onChange={(e) => {
-                  setQ(e.target.value);
-                  setShowSuggestions(true);
-                }}
-                onKeyDown={(e) => e.key === "Enter" && go()}
-                placeholder={listingsCountLabel}
-              />
-
-              <button
-                type="button"
-                onClick={go}
-                className="h-10 lg:h-11 px-4 lg:px-5 bg-sun hover:bg-sun-600 text-white text-sm font-semibold transition shrink-0"
-              >
-                Найти
-              </button>
-            </div>
-
-            {suggestionList}
-          </div>
-
-          <nav className="hidden lg:flex items-center gap-0.5 shrink-0">
+          <nav className="flex items-center gap-0.5 shrink-0">
             <Link
               to="/profile?tab=fav"
               className="p-2.5 rounded-lg hover:bg-white/10 transition"
@@ -240,9 +251,9 @@ export default function Header() {
               title="Сообщения"
             >
               <MessageCircle size={20} />
-              {unreadCount > 0 && (
+              {badgeCount > 0 && (
                 <span className="absolute top-1 right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">
-                  {unreadCount > 99 ? "99+" : unreadCount}
+                  {badgeCount > 99 ? "99+" : badgeCount}
                 </span>
               )}
             </Link>
@@ -283,79 +294,23 @@ export default function Header() {
               </Link>
             )}
           </nav>
-
-          <nav
-            className="lg:hidden ml-auto flex items-center gap-0.5 shrink-0"
-            aria-label="Быстрые действия"
-          >
-            <Link
-              to="/profile?tab=fav"
-              className="p-2 rounded-lg hover:bg-white/10 transition"
-              title="Избранное"
-            >
-              <Heart size={20} />
-            </Link>
-
-            <Link
-              to="/messages"
-              className="relative p-2 rounded-lg hover:bg-white/10 transition"
-              title="Сообщения"
-            >
-              <MessageCircle size={20} />
-              {unreadCount > 0 && (
-                <span className="absolute top-0.5 right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">
-                  {unreadCount > 99 ? "99+" : unreadCount}
-                </span>
-              )}
-            </Link>
-
-            {token ? (
-              <Link
-                to="/profile"
-                className="p-2 rounded-lg hover:bg-white/10 transition"
-                title={user?.name || "Профиль"}
-              >
-                <User size={20} />
-              </Link>
-            ) : (
-              <Link
-                to="/auth"
-                className="p-2 rounded-lg hover:bg-white/10 transition"
-                title="Войти"
-              >
-                <LogIn size={20} />
-              </Link>
-            )}
-          </nav>
         </div>
 
-        <div className="lg:hidden pb-2.5 relative">
-          <div className="flex items-center w-full rounded-xl bg-ink-600 overflow-hidden ring-1 ring-white/10 focus-within:ring-sun/70 transition">
-            <Search size={18} className="text-ink-300 shrink-0 ml-3" />
+        <div className="lg:hidden pt-2 pb-2.5 relative">
+          <div className="flex items-center gap-2">
+            <Link to="/" className="shrink-0" aria-label="На главную">
+              <img
+                src="/oriyon.store.png"
+                alt="Oriyon Store"
+                className="w-9 h-9 object-contain"
+              />
+            </Link>
 
-            <input
-              className="flex-1 h-10 outline-none bg-transparent text-sm text-white placeholder:text-ink-300 px-2 min-w-0"
-              value={q}
-              onFocus={() => setShowSuggestions(true)}
-              onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
-              onChange={(e) => {
-                setQ(e.target.value);
-                setShowSuggestions(true);
-              }}
-              onKeyDown={(e) => e.key === "Enter" && go()}
-              placeholder={listingsCountLabel}
-            />
-
-            <button
-              type="button"
-              onClick={go}
-              className="h-10 px-4 bg-sun hover:bg-sun-600 text-white text-sm font-semibold shrink-0"
-            >
-              Найти
-            </button>
+            <div className="flex-1 min-w-0 relative">
+              {searchField(true)}
+              {suggestionList}
+            </div>
           </div>
-
-          {suggestionList}
         </div>
       </div>
 
