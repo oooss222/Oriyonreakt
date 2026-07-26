@@ -2,12 +2,18 @@ const express = require("express");
 const cors = require("cors");
 const fs = require("fs");
 const path = require("path");
+const http = require("http");
 
 require("dotenv").config();
 
 const { initDb, pool } = require("./db");
+const { initSocket } = require("./socket");
 
 const app = express();
+const server = http.createServer(app);
+const io = initSocket(server);
+
+app.set("io", io);
 
 const PORT = Number(process.env.PORT || 4000);
 
@@ -117,10 +123,11 @@ async function start() {
   try {
     await initDb();
 
-    app.listen(PORT, "0.0.0.0", () => {
+    server.listen(PORT, "0.0.0.0", () => {
       console.log(`API running on port ${PORT}`);
 
       console.log("Database: PostgreSQL");
+      console.log("WebSocket: enabled");
 
       console.log(
         "CORS allowed origins:",

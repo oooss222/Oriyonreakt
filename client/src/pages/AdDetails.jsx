@@ -1,5 +1,5 @@
 import React from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import {
   MapPin,
   Phone,
@@ -143,6 +143,7 @@ function Toast({ message, onClose }) {
 
 export default function AdDetails() {
   const { id } = useParams();
+  const nav = useNavigate();
   const token = localStorage.getItem(TOKEN_KEY) || "";
 
   const [ad, setAd] = React.useState(null);
@@ -352,7 +353,10 @@ export default function AdDetails() {
 
       setMessageText("");
       setMessageOpen(false);
-      setToast("Сообщение отправлено");
+
+      nav(
+        `/messages?listingId=${ad._id || ad.id}&peerId=${ad.owner}&title=${encodeURIComponent(ad.title || "Объявление")}`
+      );
     } catch (e) {
       const msg = e.message || "Не удалось отправить";
 

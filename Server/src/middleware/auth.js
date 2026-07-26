@@ -1,6 +1,9 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 
+const lastSeenUpdates = new Map();
+const SEEN_INTERVAL_MS = 60_000;
+
 module.exports = async function auth(req, res, next) {
   const header = req.headers.authorization || "";
   const token = header.startsWith("Bearer ") ? header.slice(7) : "";
@@ -42,6 +45,14 @@ module.exports = async function auth(req, res, next) {
       role: user.role || "user",
       isBlocked: Boolean(user.isBlocked),
     };
+
+    const now = Date.now();
+    const last = lastSeenUpdates.get(id) || 0;
+
+    if (now - last >= SEEN_INTERVAL_MS) {
+      lastSeenUpdates.set(id, now);
+      User.touchLastSeen(id).catch(() => {});
+    }
 
     next();
   } catch (e) {

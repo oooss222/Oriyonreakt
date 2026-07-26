@@ -1,5 +1,5 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import {
   MessageCircle,
   Send,
@@ -7,11 +7,25 @@ import {
   Shield,
   Search,
   RefreshCw,
+  Check,
+  CheckCheck,
+  X,
 } from "lucide-react";
-import { api } from "../lib/api";
+import { api, API_BASE } from "../lib/api";
+import {
+  connectChatSocket,
+  disconnectChatSocket,
+  getChatSocket,
+} from "../lib/chatSocket";
 
 const TOKEN_KEY = "auth_token";
 const USER_KEY = "auth_user";
+
+const QUICK_REPLIES = [
+  "Здравствуйте! Актуально?",
+  "Можно посмотреть сегодня?",
+  "Торг возможен?",
+];
 
 const getId = (item) => item?.id || item?._id;
 
@@ -47,19 +61,104 @@ const formatLastSeen = (lastSeen) => {
   );
 };
 
-const formatDate = (value) => {
+const formatTime = (value) => {
   if (!value) return "";
 
-  return new Date(value).toLocaleString("ru-RU", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
+  return new Date(value).toLocaleTimeString("ru-RU", {
     hour: "2-digit",
     minute: "2-digit",
   });
 };
 
+const formatDayLabel = (value) => {
+  if (!value) return "";
+
+  const d = new Date(value);
+  const now = new Date();
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const startOfDay = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const diffDays = Math.round(
+    (startOfToday - startOfDay) / 86400000
+  );
+
+  if (diffDays === 0) return "Сегодня";
+  if (diffDays === 1) return "Вчера";
+
+  return d.toLocaleDateString("ru-RU", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+};
+
+function groupMessagesByDay(messages) {
+  const groups = [];
+  let currentDay = null;
+
+  for (const msg of messages) {
+    const day = formatDayLabel(msg.createdAt);
+
+    if (day !== currentDay) {
+      groups.push({ type: "day", id: `day-${day}`, label: day });
+      currentDay = day;
+    }
+
+    groups.push({ type: "message", id: getId(msg), data: msg });
+  }
+
+  return groups;
+}
+
+function listingImageUrl(src) {
+  if (!src) return "";
+
+  if (src.startsWith("http") || src.startsWith("/img/")) {
+    return src;
+  }
+
+  return API_BASE.replace("/api", "") + src;
+}
+
+function Toast({ message, type = "info", onClose }) {
+  React.useEffect(() => {
+    if (!message) return;
+
+    const timer = setTimeout(onClose, 3200);
+
+    return () => clearTimeout(timer);
+  }, [message, onClose]);
+
+  if (!message) return null;
+
+  const styles =
+    type === "error"
+      ? "bg-red-600"
+      : type === "success"
+      ? "bg-emerald-600"
+      : "bg-ink-800";
+
+  return (
+    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[120] animate-fade-in-up">
+      <div
+        className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-white text-sm shadow-lift ${styles}`}
+      >
+        <span>{message}</span>
+        <button
+          type="button"
+          onClick={onClose}
+          className="p-0.5 rounded hover:bg-white/15"
+          aria-label="Закрыть"
+        >
+          <X size={16} />
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function Messages() {
+  const nav = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const token = localStorage.getItem(TOKEN_KEY) || "";
 
   const me = React.useMemo(() => {
@@ -70,11 +169,19 @@ export default function Messages() {
     }
   }, []);
 
+  const deepListingId = searchParams.get("listingId");
+  const deepPeerId = searchParams.get("peerId");
+  const deepTitle = searchParams.get("title");
+
   const [items, setItems] = React.useState([]);
   const [selected, setSelected] = React.useState(null);
   const [thread, setThread] = React.useState([]);
   const [text, setText] = React.useState("");
   const [query, setQuery] = React.useState("");
+  const [mobileView, setMobileView] = React.useState("list");
+  const [typingPeer, setTypingPeer] = React.useState(false);
+  const [toast, setToast] = React.useState({ message: "", type: "info" });
+  const [socketReady, setSocketReady] = React.useState(false);
 
   const [loading, setLoading] = React.useState(true);
   const [threadLoading, setThreadLoading] = React.useState(false);
@@ -82,8 +189,16 @@ export default function Messages() {
   const [refreshing, setRefreshing] = React.useState(false);
 
   const chatEndRef = React.useRef(null);
+  const deepHandledRef = React.useRef(false);
+  const typingTimerRef = React.useRef(null);
+  const typingEmitRef = React.useRef(null);
 
   const isAdmin = me?.role === "admin" || me?.role === "super_admin";
+  const myId = me?.id || me?._id;
+
+  const showToast = React.useCallback((message, type = "info") => {
+    setToast({ message, type });
+  }, []);
 
   const loadInbox = React.useCallback(
     async ({ silent = false } = {}) => {
@@ -112,7 +227,7 @@ export default function Messages() {
           return updated || current;
         });
       } catch {
-        setItems([]);
+        if (!silent) setItems([]);
       } finally {
         setLoading(false);
         setRefreshing(false);
@@ -121,9 +236,55 @@ export default function Messages() {
     [token, me]
   );
 
+  const loadThread = React.useCallback(
+    async (item, { silent = false } = {}) => {
+      if (!item || !token) return;
+
+      const peerId = getPeerId(item, me);
+
+      if (!peerId) return;
+
+      try {
+        if (!silent) setThreadLoading(true);
+
+        const data = await api.messageThread(token, item.listingId, peerId);
+        const next = Array.isArray(data) ? data : [];
+
+        setThread((current) => {
+          const currentIds = current.map((msg) => String(getId(msg))).join(",");
+          const nextIds = next.map((msg) => String(getId(msg))).join(",");
+
+          if (currentIds === nextIds && current.length === next.length) {
+            return current;
+          }
+
+          return next;
+        });
+      } catch (e) {
+        if (!silent) {
+          setThread([]);
+          showToast(e.message || "Не удалось загрузить диалог", "error");
+        }
+      } finally {
+        setThreadLoading(false);
+      }
+    },
+    [token, me, showToast]
+  );
+
+  const openThread = React.useCallback(
+    async (item) => {
+      setSelected(item);
+      setMobileView("chat");
+      setTypingPeer(false);
+      await loadThread(item);
+    },
+    [loadThread]
+  );
+
   React.useEffect(() => {
     if (!token) {
-      window.location.href = "/auth";
+      nav("/auth");
       return;
     }
 
@@ -138,57 +299,167 @@ export default function Messages() {
 
     const timer = setInterval(() => {
       if (alive) loadInbox({ silent: true });
-    }, 15000);
+    }, socketReady ? 60000 : 15000);
 
     return () => {
       alive = false;
       clearInterval(timer);
     };
-  }, [token, loadInbox]);
-
-  const loadThread = React.useCallback(
-    async (item, { silent = false } = {}) => {
-      if (!item || !token) return;
-
-      try {
-        if (!silent) setThreadLoading(true);
-
-        const peerId = getPeerId(item, me);
-
-        const data = await api.messageThread(
-          token,
-          item.listingId,
-          peerId
-        );
-
-        const next = Array.isArray(data) ? data : [];
-
-        setThread((current) => {
-          const currentIds = current.map((msg) => String(getId(msg))).join(",");
-          const nextIds = next.map((msg) => String(getId(msg))).join(",");
-
-          if (currentIds === nextIds && current.length === next.length) {
-            return current;
-          }
-
-          return next;
-        });
-      } catch {
-        if (!silent) setThread([]);
-      } finally {
-        setThreadLoading(false);
-      }
-    },
-    [token, me]
-  );
-
-  const openThread = async (item) => {
-    setSelected(item);
-    await loadThread(item);
-  };
+  }, [token, loadInbox, nav, socketReady]);
 
   React.useEffect(() => {
-    if (!selected || !token) return;
+    if (!token) return undefined;
+
+    const socket = connectChatSocket(token);
+
+    if (!socket) return undefined;
+
+    const onConnect = () => setSocketReady(true);
+    const onDisconnect = () => setSocketReady(false);
+
+    const onMessageNew = ({ message }) => {
+      if (!message) return;
+
+      setItems((prev) => {
+        const peerId =
+          String(message.senderId) === String(myId)
+            ? message.receiverId
+            : message.senderId;
+
+        const idx = prev.findIndex(
+          (item) =>
+            String(item.listingId) === String(message.listingId) &&
+            String(getPeerId(item, me)) === String(peerId)
+        );
+
+        const preview = {
+          ...message,
+          text: message.text,
+          createdAt: message.createdAt,
+          unreadCount:
+            String(message.receiverId) === String(myId) ? 1 : 0,
+        };
+
+        if (idx === -1) {
+          return [preview, ...prev];
+        }
+
+        const copy = [...prev];
+        const existing = copy[idx];
+
+        copy[idx] = {
+          ...existing,
+          ...preview,
+          unreadCount:
+            String(message.receiverId) === String(myId)
+              ? Number(existing.unreadCount || 0) + 1
+              : 0,
+        };
+
+        copy.sort(
+          (a, b) =>
+            new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
+        );
+
+        return copy;
+      });
+
+      setSelected((current) => {
+        if (!current) return current;
+
+        const peerId = getPeerId(current, me);
+        const sameThread =
+          String(current.listingId) === String(message.listingId) &&
+          (String(message.senderId) === String(peerId) ||
+            String(message.receiverId) === String(peerId));
+
+        if (!sameThread) return current;
+
+        setThread((arr) => {
+          const exists = arr.some(
+            (item) => String(getId(item)) === String(getId(message))
+          );
+
+          return exists ? arr : [...arr, message];
+        });
+
+        if (String(message.receiverId) === String(myId)) {
+          loadThread(current, { silent: true });
+        }
+
+        return current;
+      });
+
+      if (String(message.receiverId) === String(myId)) {
+        showToast("Новое сообщение", "info");
+      }
+    };
+
+    const onMessagesRead = ({ listingId, readerId }) => {
+      setThread((arr) =>
+        arr.map((msg) =>
+          String(msg.listingId) === String(listingId) &&
+          String(msg.senderId) === String(myId) &&
+          String(readerId) !== String(myId)
+            ? { ...msg, isRead: true }
+            : msg
+        )
+      );
+    };
+
+    const onTypingStart = ({ listingId, peerId }) => {
+      setSelected((current) => {
+        if (
+          current &&
+          String(current.listingId) === String(listingId) &&
+          String(peerId) === String(getPeerId(current, me))
+        ) {
+          setTypingPeer(true);
+        }
+
+        return current;
+      });
+    };
+
+    const onTypingStop = ({ listingId, peerId }) => {
+      setSelected((current) => {
+        if (
+          current &&
+          String(current.listingId) === String(listingId) &&
+          String(peerId) === String(getPeerId(current, me))
+        ) {
+          setTypingPeer(false);
+        }
+
+        return current;
+      });
+    };
+
+    socket.on("connect", onConnect);
+    socket.on("disconnect", onDisconnect);
+    socket.on("message:new", onMessageNew);
+    socket.on("messages:read", onMessagesRead);
+    socket.on("typing:start", onTypingStart);
+    socket.on("typing:stop", onTypingStop);
+
+    if (socket.connected) {
+      setSocketReady(true);
+    }
+
+    return () => {
+      socket.off("connect", onConnect);
+      socket.off("disconnect", onDisconnect);
+      socket.off("message:new", onMessageNew);
+      socket.off("messages:read", onMessagesRead);
+      socket.off("typing:start", onTypingStart);
+      socket.off("typing:stop", onTypingStop);
+      disconnectChatSocket();
+      setSocketReady(false);
+    };
+  }, [token, myId, me, loadThread, showToast]);
+
+  React.useEffect(() => {
+    if (!selected || !token || socketReady) return undefined;
 
     let active = true;
 
@@ -200,22 +471,99 @@ export default function Messages() {
       active = false;
       clearInterval(timer);
     };
-  }, [selected, token, loadThread]);
+  }, [selected, token, loadThread, socketReady]);
+
+  React.useEffect(() => {
+    if (!token || !deepListingId || !deepPeerId || deepHandledRef.current) {
+      return;
+    }
+
+    if (loading) return;
+
+    deepHandledRef.current = true;
+
+    const match = items.find(
+      (item) =>
+        String(item.listingId) === String(deepListingId) &&
+        String(getPeerId(item, me)) === String(deepPeerId)
+    );
+
+    const target =
+      match ||
+      {
+        listingId: deepListingId,
+        listingTitle: deepTitle || "Объявление",
+        senderId: myId,
+        receiverId: deepPeerId,
+      };
+
+    openThread(target);
+    setSearchParams({}, { replace: true });
+  }, [
+    token,
+    deepListingId,
+    deepPeerId,
+    deepTitle,
+    loading,
+    items,
+    me,
+    myId,
+    openThread,
+    setSearchParams,
+  ]);
 
   React.useEffect(() => {
     chatEndRef.current?.scrollIntoView({
       behavior: "smooth",
       block: "end",
     });
-  }, [thread.length, selected]);
+  }, [thread.length, selected, typingPeer]);
 
-  const send = async () => {
-    const value = text.trim();
+  const emitTyping = React.useCallback(
+    (active) => {
+      if (!selected || isAdmin) return;
+
+      const socket = getChatSocket();
+      const peerId = getPeerId(selected, me);
+
+      if (!socket || !peerId) return;
+
+      const payload = {
+        listingId: selected.listingId,
+        peerId,
+      };
+
+      if (active) {
+        socket.emit("typing:start", payload);
+      } else {
+        socket.emit("typing:stop", payload);
+      }
+    },
+    [selected, me, isAdmin]
+  );
+
+  const handleTextChange = (value) => {
+    setText(value);
+
+    if (!value.trim()) {
+      emitTyping(false);
+      return;
+    }
+
+    emitTyping(true);
+
+    clearTimeout(typingEmitRef.current);
+    typingEmitRef.current = setTimeout(() => emitTyping(false), 2000);
+  };
+
+  const send = async (presetText) => {
+    const value = (presetText ?? text).trim();
 
     if (!value || !selected || sending) return;
 
     try {
       setSending(true);
+      emitTyping(false);
 
       const receiverId = getPeerId(selected, me);
 
@@ -234,11 +582,13 @@ export default function Messages() {
         return exists ? arr : [...arr, msg];
       });
 
-      setText("");
+      if (!presetText) {
+        setText("");
+      }
 
       await loadInbox({ silent: true });
     } catch (e) {
-      alert(e.message || "Не удалось отправить сообщение");
+      showToast(e.message || "Не удалось отправить сообщение", "error");
     } finally {
       setSending(false);
     }
@@ -261,39 +611,54 @@ export default function Messages() {
     });
   }, [items, query]);
 
+  const groupedThread = React.useMemo(
+    () => groupMessagesByDay(thread),
+    [thread]
+  );
+
   const selectedPeerLastSeen =
-    String(selected?.senderId) === String(me?.id || me?._id)
+    String(selected?.senderId) === String(myId)
       ? selected?.receiverLastSeen
       : selected?.senderLastSeen;
 
+  const peerName =
+    String(selected?.senderId) === String(myId)
+      ? selected?.receiverName || selected?.receiverEmail
+      : selected?.senderName || selected?.senderEmail;
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#f5f7fb] px-4 py-8">
-        <div className="max-w-[1800px] mx-auto rounded-[34px] border border-white/60 bg-white/80 backdrop-blur-xl p-6 shadow-[0_10px_40px_rgba(15,23,42,0.08)]">
-          Загрузка сообщений...
+      <div className="page-shell min-h-screen px-4 py-8">
+        <div className="max-w-[1800px] mx-auto surface-panel p-6 animate-pulse space-y-3">
+          <div className="h-8 bg-mist-200 rounded-xl w-48" />
+          <div className="h-64 bg-mist-200 rounded-2xl" />
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#f5f7fb]">
+    <div className="page-shell min-h-screen">
+      <Toast
+        message={toast.message}
+        type={toast.type}
+        onClose={() => setToast({ message: "", type: "info" })}
+      />
+
       <div className="max-w-[1800px] mx-auto px-2 md:px-5 py-4">
         <div className="mb-5 flex items-center justify-between gap-3">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-[22px] bg-gradient-to-br from-sun to-lagoon-600 text-white shadow-xl shadow-soft flex items-center justify-center">
-              <MessageCircle size={28} />
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-sun to-lagoon-600 text-white shadow-soft flex items-center justify-center">
+              <MessageCircle size={26} />
             </div>
 
             <div>
-              <h1 className="text-3xl md:text-4xl font-black tracking-tight text-slate-900">
-                Центр сообщений
+              <h1 className="font-display text-2xl md:text-3xl font-bold text-ink">
+                Сообщения
               </h1>
-
-              <p className="text-slate-500 mt-1 text-sm md:text-base">
-                Общайтесь с покупателями и продавцами
+              <p className="text-ink-400 mt-0.5 text-sm">
+                {socketReady ? "Онлайн · мгновенные обновления" : "Общайтесь с покупателями и продавцами"}
               </p>
-
               {isAdmin && (
                 <div className="mt-2 inline-flex items-center gap-2 text-xs text-purple-700 bg-purple-50 border border-purple-100 rounded-full px-3 py-1">
                   <Shield size={14} />
@@ -303,23 +668,24 @@ export default function Messages() {
             </div>
           </div>
 
-          <Link
-            to="/profile"
-            className="h-12 px-5 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 transition flex items-center gap-2 font-medium shadow-sm"
-          >
+          <Link to="/profile" className="btn hidden sm:inline-flex">
             <ArrowLeft size={18} />
             Профиль
           </Link>
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-[380px_minmax(0,1fr)] gap-5">
-          <aside className="rounded-[34px] border border-white/60 bg-white/80 backdrop-blur-xl p-4 shadow-[0_10px_40px_rgba(15,23,42,0.08)] h-[88vh] flex flex-col overflow-hidden">
-            <div className="flex items-center justify-between gap-2 px-2 py-2">
+          <aside
+            className={`surface-panel h-[calc(100vh-140px)] min-h-[480px] flex-col overflow-hidden ${
+              mobileView === "chat" ? "hidden xl:flex" : "flex"
+            }`}
+          >
+            <div className="flex items-center justify-between gap-2 px-4 py-3 border-b border-ink/10">
               <div>
-                <div className="font-black text-lg text-slate-900">
+                <div className="font-display font-bold text-lg text-ink">
                   Диалоги
                 </div>
-                <div className="text-xs text-slate-400">
+                <div className="text-xs text-ink-400">
                   {filteredItems.length} чатов
                 </div>
               </div>
@@ -328,7 +694,7 @@ export default function Messages() {
                 type="button"
                 onClick={() => loadInbox()}
                 disabled={refreshing}
-                className="inline-flex items-center justify-center w-11 h-11 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-60 shadow-sm"
+                className="btn p-2.5 disabled:opacity-60"
                 title="Обновить"
               >
                 <RefreshCw
@@ -338,26 +704,25 @@ export default function Messages() {
               </button>
             </div>
 
-            <div className="relative my-3">
+            <div className="relative px-4 py-3">
               <Search
                 size={18}
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
+                className="absolute left-7 top-1/2 -translate-y-1/2 text-ink-300"
               />
-
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Поиск по сообщениям..."
-                className="w-full h-14 rounded-3xl border-0 bg-[#f4f7fb] pl-11 pr-4 text-sm outline-none focus:ring-2 focus:ring-sun/40 shadow-inner"
+                className="input w-full h-11 pl-10"
               />
             </div>
 
             {filteredItems.length === 0 ? (
-              <div className="rounded-3xl bg-slate-50 p-6 text-center text-sm text-slate-500">
+              <div className="mx-4 mb-4 rounded-2xl bg-mist p-6 text-center text-sm text-ink-400">
                 Диалогов пока нет.
               </div>
             ) : (
-              <div className="space-y-3 overflow-y-auto pr-1 pb-2">
+              <div className="flex-1 space-y-2 overflow-y-auto px-3 pb-3">
                 {filteredItems.map((item) => {
                   const peerId = getPeerId(item, me);
 
@@ -365,44 +730,57 @@ export default function Messages() {
                     String(selected?.listingId) === String(item.listingId) &&
                     String(getPeerId(selected, me)) === String(peerId);
 
+                  const thumb = listingImageUrl(item.listingImage);
+
                   return (
                     <button
                       key={`${item.listingId}-${peerId}-${getId(item)}`}
                       type="button"
                       onClick={() => openThread(item)}
-                      className={`w-full text-left rounded-[28px] p-4 transition-all duration-300 border ${
+                      className={`w-full text-left rounded-2xl p-3 transition border ${
                         active
-                          ? "bg-gradient-to-br from-sun-50 to-lagoon-50 border-sun-200 shadow-lg shadow-soft scale-[1.01]"
-                          : "bg-white/70 border-white hover:bg-white hover:shadow-xl hover:shadow-slate-200 hover:-translate-y-[2px]"
+                          ? "bg-sun-50 border-sun-200 shadow-soft"
+                          : "bg-white border-ink/10 hover:border-sun/30 hover:shadow-soft"
                       }`}
                     >
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="font-bold text-slate-900 line-clamp-1">
-                          {item.listingTitle || "Объявление"}
+                      <div className="flex gap-3">
+                        <div className="w-12 h-12 rounded-xl bg-mist overflow-hidden shrink-0">
+                          {thumb ? (
+                            <img
+                              src={thumb}
+                              alt=""
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full grid place-items-center text-ink-300">
+                              <MessageCircle size={18} />
+                            </div>
+                          )}
                         </div>
 
-                        {Number(item.unreadCount || 0) > 0 && (
-                          <div className="min-w-[24px] h-[24px] px-1 rounded-full bg-gradient-to-br from-sun to-lagoon-600 text-white text-xs font-bold flex items-center justify-center shadow-lg shadow-soft">
-                            {Number(item.unreadCount || 0) > 99
-                              ? "99+"
-                              : item.unreadCount}
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="font-semibold text-ink line-clamp-1">
+                              {item.listingTitle || "Объявление"}
+                            </div>
+
+                            {Number(item.unreadCount || 0) > 0 && (
+                              <div className="min-w-[22px] h-[22px] px-1 rounded-full bg-sun text-white text-[11px] font-bold flex items-center justify-center">
+                                {Number(item.unreadCount || 0) > 99
+                                  ? "99+"
+                                  : item.unreadCount}
+                              </div>
+                            )}
                           </div>
-                        )}
-                      </div>
 
-                      <div className="text-xs text-slate-500 mt-1 line-clamp-1">
-                        {item.senderName || item.senderEmail || "Пользователь"} →{" "}
-                        {item.receiverName ||
-                          item.receiverEmail ||
-                          "Пользователь"}
-                      </div>
+                          <div className="text-xs text-ink-400 mt-0.5 line-clamp-1">
+                            {item.senderName || item.senderEmail || "Пользователь"}
+                          </div>
 
-                      <div className="text-sm mt-2 line-clamp-2 text-slate-700">
-                        {item.text}
-                      </div>
-
-                      <div className="text-[11px] text-slate-400 mt-2">
-                        {formatDate(item.createdAt)}
+                          <div className="text-sm mt-1 line-clamp-2 text-ink-500">
+                            {item.text}
+                          </div>
+                        </div>
                       </div>
                     </button>
                   );
@@ -411,123 +789,146 @@ export default function Messages() {
             )}
           </aside>
 
-          <main className="rounded-[36px] border border-white/60 bg-white/70 backdrop-blur-xl h-[88vh] flex flex-col overflow-hidden shadow-[0_10px_50px_rgba(15,23,42,0.08)]">
+          <main
+            className={`surface-panel h-[calc(100vh-140px)] min-h-[480px] flex-col overflow-hidden ${
+              mobileView === "list" ? "hidden xl:flex" : "flex"
+            }`}
+          >
             {!selected ? (
               <div className="flex-1 grid place-items-center p-8 text-center">
                 <div>
-                  <div className="mx-auto w-20 h-20 rounded-[28px] bg-gradient-to-br from-sun to-lagoon-600 text-white grid place-items-center mb-4 shadow-xl shadow-soft">
-                    <MessageCircle size={34} />
+                  <div className="mx-auto w-16 h-16 rounded-2xl bg-gradient-to-br from-sun to-lagoon-600 text-white grid place-items-center mb-4 shadow-soft">
+                    <MessageCircle size={30} />
                   </div>
-
-                  <div className="font-black text-2xl text-slate-900">
+                  <div className="font-display font-bold text-xl text-ink">
                     Выберите диалог
                   </div>
-
-                  <div className="text-sm text-slate-500 mt-2">
-                    Откройте диалог из списка слева.
+                  <div className="text-sm text-ink-400 mt-2">
+                    Откройте чат из списка слева.
                   </div>
                 </div>
               </div>
             ) : (
               <>
-                <div className="border-b border-white/50 bg-white/80 backdrop-blur-xl px-5 md:px-7 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-                  <div>
-                    <div className="font-black text-lg text-slate-900">
+                <div className="border-b border-ink/10 px-4 py-3 flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setMobileView("list")}
+                    className="btn p-2.5 xl:hidden shrink-0"
+                    aria-label="Назад к диалогам"
+                  >
+                    <ArrowLeft size={18} />
+                  </button>
+
+                  {listingImageUrl(selected.listingImage) ? (
+                    <img
+                      src={listingImageUrl(selected.listingImage)}
+                      alt=""
+                      className="w-11 h-11 rounded-xl object-cover bg-mist shrink-0"
+                    />
+                  ) : (
+                    <div className="w-11 h-11 rounded-xl bg-mist grid place-items-center shrink-0">
+                      <MessageCircle size={18} className="text-ink-300" />
+                    </div>
+                  )}
+
+                  <div className="min-w-0 flex-1">
+                    <div className="font-display font-bold text-ink line-clamp-1">
                       {selected.listingTitle || "Объявление"}
                     </div>
-
-                    <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
-                      <span>{selected.senderName || selected.senderEmail}</span>
-                      <span>→</span>
-                      <span>
-                        {selected.receiverName || selected.receiverEmail}
-                      </span>
-
-                      <div
-                        className={`w-2.5 h-2.5 rounded-full ${
+                    <div className="flex flex-wrap items-center gap-2 text-xs text-ink-400">
+                      <span>{peerName || "Пользователь"}</span>
+                      <span
+                        className={`w-2 h-2 rounded-full ${
                           isOnline(selectedPeerLastSeen)
-                            ? "bg-green-500"
-                            : "bg-slate-300"
+                            ? "bg-emerald-500"
+                            : "bg-ink-200"
                         }`}
                       />
-
                       <span>{formatLastSeen(selectedPeerLastSeen)}</span>
+                      {typingPeer && (
+                        <span className="text-sun font-medium">печатает…</span>
+                      )}
                     </div>
                   </div>
 
                   <Link
                     to={`/ad/${selected.listingId}`}
-                    className="h-12 px-5 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 transition flex items-center justify-center font-semibold shadow-sm"
+                    className="btn btn-primary shrink-0 text-sm hidden sm:inline-flex"
                   >
-                    Открыть объявление
+                    Объявление
                   </Link>
                 </div>
 
                 <div
-                  className="flex-1 overflow-y-auto px-4 md:px-8 py-6 space-y-4 bg-mist"
+                  className="flex-1 overflow-y-auto px-4 md:px-6 py-5 space-y-3 bg-mist"
                   style={{
                     backgroundImage:
-                      "radial-gradient(rgba(28,27,26,0.06) 1px, transparent 1px)",
+                      "radial-gradient(rgba(28,27,26,0.05) 1px, transparent 1px)",
                     backgroundSize: "22px 22px",
                   }}
                 >
                   {threadLoading ? (
-                    <div className="text-ink-400">Загружаем диалог...</div>
+                    <div className="space-y-3 animate-pulse">
+                      <div className="h-12 bg-white rounded-2xl w-2/3" />
+                      <div className="h-12 bg-white rounded-2xl w-1/2 ml-auto" />
+                    </div>
                   ) : thread.length === 0 ? (
                     <div className="text-center text-ink-400 py-10">
-                      Сообщений пока нет.
+                      Сообщений пока нет. Напишите первым!
                     </div>
                   ) : (
-                    thread.map((msg) => {
-                      const myId = me?.id || me?._id;
+                    groupedThread.map((entry) => {
+                      if (entry.type === "day") {
+                        return (
+                          <div
+                            key={entry.id}
+                            className="flex justify-center py-2"
+                          >
+                            <span className="text-xs font-medium text-ink-400 bg-white/80 border border-ink/10 rounded-full px-3 py-1">
+                              {entry.label}
+                            </span>
+                          </div>
+                        );
+                      }
+
+                      const msg = entry.data;
                       const mine = String(msg.senderId) === String(myId);
 
                       return (
                         <div
-                          key={getId(msg)}
-                          className={`flex ${
-                            mine ? "justify-end" : "justify-start"
-                          }`}
+                          key={entry.id}
+                          className={`flex ${mine ? "justify-end" : "justify-start"}`}
                         >
                           <div
-                            className={`max-w-[92%] md:max-w-[72%] xl:max-w-[58%] rounded-2xl px-5 py-3 ${
+                            className={`max-w-[88%] md:max-w-[70%] rounded-2xl px-4 py-2.5 ${
                               mine
-                                ? "bg-ink-700 text-white border-0 shadow-lift"
+                                ? "bg-ink-700 text-white shadow-soft"
                                 : "bg-white text-ink border border-ink/10 shadow-soft"
                             }`}
                           >
-                            <div
-                              className={`text-xs mb-1 ${
-                                mine ? "text-white/65" : "text-ink-400"
-                              }`}
-                            >
-                              <div className="flex items-center gap-2">
-                                <span>
-                                  {msg.senderName ||
-                                    msg.senderEmail ||
-                                    "Пользователь"}
-                                </span>
-
-                                <div
-                                  className={`w-2 h-2 rounded-full ${
-                                    isOnline(msg.senderLastSeen)
-                                      ? "bg-green-400"
-                                      : "bg-slate-300"
-                                  }`}
-                                />
-                              </div>
-                            </div>
-
-                            <div className="whitespace-pre-wrap text-[15px] leading-7 font-medium">
+                            <div className="whitespace-pre-wrap text-[15px] leading-relaxed">
                               {msg.text}
                             </div>
 
                             <div
-                              className={`text-[11px] mt-1 ${
+                              className={`flex items-center justify-end gap-1 text-[11px] mt-1 ${
                                 mine ? "text-white/55" : "text-ink-300"
                               }`}
                             >
-                              {formatDate(msg.createdAt)}
+                              <span>{formatTime(msg.createdAt)}</span>
+                              {mine && (
+                                <span
+                                  className="inline-flex"
+                                  title={msg.isRead ? "Прочитано" : "Доставлено"}
+                                >
+                                  {msg.isRead ? (
+                                    <CheckCheck size={14} className="text-sun-300" />
+                                  ) : (
+                                    <Check size={14} />
+                                  )}
+                                </span>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -539,11 +940,25 @@ export default function Messages() {
                 </div>
 
                 {!isAdmin && (
-                  <div className="border-t border-white/40 bg-white/70 backdrop-blur-xl p-4">
+                  <div className="border-t border-ink/10 bg-white p-4 space-y-3">
+                    <div className="flex flex-wrap gap-2">
+                      {QUICK_REPLIES.map((reply) => (
+                        <button
+                          key={reply}
+                          type="button"
+                          onClick={() => send(reply)}
+                          disabled={sending}
+                          className="text-xs px-3 py-1.5 rounded-full border border-ink/10 bg-mist hover:bg-sun-50 hover:border-sun/30 transition disabled:opacity-60"
+                        >
+                          {reply}
+                        </button>
+                      ))}
+                    </div>
+
                     <div className="flex items-end gap-3">
                       <textarea
                         value={text}
-                        onChange={(e) => setText(e.target.value)}
+                        onChange={(e) => handleTextChange(e.target.value)}
                         onKeyDown={(e) => {
                           if (e.key === "Enter" && !e.shiftKey) {
                             e.preventDefault();
@@ -552,28 +967,28 @@ export default function Messages() {
                         }}
                         rows={1}
                         placeholder="Введите сообщение..."
-                        className="flex-1 min-h-[58px] max-h-[180px] rounded-[28px] border-0 bg-[#f4f7fb] px-6 py-4 outline-none focus:ring-2 focus:ring-sun/40 resize-none shadow-inner text-[15px]"
+                        className="input flex-1 min-h-[52px] max-h-[160px] resize-none py-3"
                       />
 
                       <button
                         type="button"
-                        onClick={send}
+                        onClick={() => send()}
                         disabled={sending || !text.trim()}
-                        className="h-[58px] px-7 rounded-[24px] bg-gradient-to-r from-[#4f6df5] to-[#6d5dfc] text-white font-semibold inline-flex items-center gap-2 shadow-[0_10px_30px_rgba(79,109,245,0.35)] hover:scale-[1.03] active:scale-[0.98] transition-all disabled:opacity-60"
+                        className="btn btn-primary h-[52px] px-5 disabled:opacity-60"
                       >
                         <Send size={18} />
                         {sending ? "..." : "Отправить"}
                       </button>
                     </div>
 
-                    <div className="mt-2 text-xs text-slate-400 px-2">
-                      Enter — отправить, Shift + Enter — новая строка
+                    <div className="text-xs text-ink-400">
+                      Enter — отправить · Shift+Enter — новая строка
                     </div>
                   </div>
                 )}
 
                 {isAdmin && (
-                  <div className="border-t border-white/40 bg-white/70 backdrop-blur-xl p-4 text-sm text-slate-500">
+                  <div className="border-t border-ink/10 bg-white p-4 text-sm text-ink-400">
                     Администратор может просматривать диалог, но не отвечает от
                     имени пользователей.
                   </div>

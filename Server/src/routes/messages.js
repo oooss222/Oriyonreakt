@@ -2,6 +2,7 @@ const router = require("express").Router();
 
 const auth = require("../middleware/auth");
 const Message = require("../models/Message");
+const { emitNewMessage, emitMessagesRead } = require("../socket");
 
 router.use(auth);
 
@@ -24,12 +25,30 @@ router.get("/inbox", async (req, res) => {
 
 router.get("/:listingId", async (req, res) => {
   try {
+    const peerId = req.query.peerId || null;
+
+    if (!peerId) {
+      return res.status(400).json({
+        error: "peerId is required",
+      });
+    }
+
     const data = await Message.getThread({
       listingId: req.params.listingId,
       userId: req.user.id,
       role: req.user.role,
-      peerId: req.query.peerId || null,
+      peerId,
     });
+
+    const io = req.app.get("io");
+
+    if (io) {
+      emitMessagesRead(io, {
+        listingId: req.params.listingId,
+        readerId: req.user.id,
+        peerId,
+      });
+    }
 
     return res.json(data);
   } catch (e) {
@@ -57,12 +76,19 @@ router.post("/:listingId", async (req, res) => {
       });
     }
 
-    const msg = await Message.create({
-    listingId: req.params.listingId,
-    senderId: req.user.id,
-    receiverId: req.body?.receiverId || null,
-    text,
+    const created = await Message.create({
+      listingId: req.params.listingId,
+      senderId: req.user.id,
+      receiverId: req.body?.receiverId || null,
+      text,
     });
+
+    const msg = (await Message.findById(created.id)) || created;
+    const io = req.app.get("io");
+
+    if (io) {
+      emitNewMessage(io, msg);
+    }
 
     return res.status(201).json(msg);
   } catch (e) {

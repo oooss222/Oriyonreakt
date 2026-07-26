@@ -67,6 +67,33 @@ class MessageModel {
     return mapMessage(result.rows[0]);
   }
 
+  static async findById(id) {
+    const result = await query(
+      `
+      SELECT
+        m.*,
+        0::int AS unread_count,
+        l.title AS listing_title,
+        l.images->0->>'url' AS listing_image,
+        s.name AS sender_name,
+        s.email AS sender_email,
+        s.last_seen AS sender_last_seen,
+        r.name AS receiver_name,
+        r.email AS receiver_email,
+        r.last_seen AS receiver_last_seen
+      FROM messages m
+      LEFT JOIN listings l ON l.id = m.listing_id
+      LEFT JOIN users s ON s.id = m.sender_id
+      LEFT JOIN users r ON r.id = m.receiver_id
+      WHERE m.id = $1
+      LIMIT 1
+      `,
+      [id]
+    );
+
+    return mapMessage(result.rows[0]);
+  }
+
   static async getThread({ listingId, userId, role, peerId }) {
     const isAdmin = isAdminRole(role);
 
