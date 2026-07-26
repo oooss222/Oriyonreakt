@@ -8,6 +8,7 @@ require("dotenv").config();
 
 const { initDb, pool } = require("./db");
 const { initSocket } = require("./socket");
+const { getAllowedOrigins, isOriginAllowed } = require("./corsOrigins");
 
 const app = express();
 const server = http.createServer(app);
@@ -17,20 +18,11 @@ app.set("io", io);
 
 const PORT = Number(process.env.PORT || 4000);
 
-const ALLOWED_ORIGINS = (
-  process.env.CORS_ORIGIN || "http://localhost:5173"
-)
-  .split(",")
-  .map((s) => s.trim())
-  .filter(Boolean);
+const ALLOWED_ORIGINS = getAllowedOrigins();
 
 const corsMiddleware = cors({
   origin(origin, cb) {
-    if (!origin) {
-      return cb(null, true);
-    }
-
-    if (ALLOWED_ORIGINS.includes(origin)) {
+    if (isOriginAllowed(origin)) {
       return cb(null, true);
     }
 

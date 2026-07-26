@@ -38,22 +38,14 @@ const getPeerId = (item, me) => {
     : item.senderId;
 };
 
-const isOnline = (lastSeen) => {
-  if (!lastSeen) return false;
-
-  const diff = Date.now() - new Date(lastSeen).getTime();
-
-  return diff < 2 * 60 * 1000;
-};
-
 const formatLastSeen = (lastSeen) => {
   if (!lastSeen) return "не в сети";
 
-  if (isOnline(lastSeen)) return "онлайн";
-
   return (
     "был(а) " +
-    new Date(lastSeen).toLocaleTimeString("ru-RU", {
+    new Date(lastSeen).toLocaleString("ru-RU", {
+      day: "numeric",
+      month: "short",
       hour: "2-digit",
       minute: "2-digit",
     })
@@ -233,7 +225,7 @@ export default function Messages() {
           const existing = next[key];
 
           next[key] = {
-            online: existing?.online ?? isOnline(lastSeen),
+            online: existing?.online ?? false,
             lastSeen: lastSeen,
           };
         }
@@ -293,16 +285,7 @@ export default function Messages() {
         const data = await api.messageThread(token, item.listingId, peerId);
         const next = Array.isArray(data) ? data : [];
 
-        setThread((current) => {
-          const currentIds = current.map((msg) => String(getId(msg))).join(",");
-          const nextIds = next.map((msg) => String(getId(msg))).join(",");
-
-          if (currentIds === nextIds && current.length === next.length) {
-            return current;
-          }
-
-          return next;
-        });
+        setThread(next);
       } catch (e) {
         if (!silent) {
           setThread([]);
@@ -706,7 +689,7 @@ export default function Messages() {
       : selected?.senderLastSeen);
 
   const peerOnline =
-    peerPresenceInfo?.online ?? isOnline(selectedPeerLastSeen);
+    socketReady && peerPresenceInfo?.online === true;
 
   const peerName =
     String(selected?.senderId) === String(myId)
@@ -935,9 +918,7 @@ export default function Messages() {
                         }`}
                       />
                       <span>
-                        {peerOnline
-                          ? "онлайн"
-                          : formatLastSeen(selectedPeerLastSeen)}
+                        {peerOnline ? "онлайн" : formatLastSeen(selectedPeerLastSeen)}
                       </span>
                       {typingPeer && (
                         <span className="text-sun font-medium">печатает…</span>

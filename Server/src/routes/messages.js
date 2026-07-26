@@ -33,7 +33,7 @@ router.get("/:listingId", async (req, res) => {
       });
     }
 
-    const data = await Message.getThread({
+    const { messages, markedRead } = await Message.getThread({
       listingId: req.params.listingId,
       userId: req.user.id,
       role: req.user.role,
@@ -42,7 +42,7 @@ router.get("/:listingId", async (req, res) => {
 
     const io = req.app.get("io");
 
-    if (io) {
+    if (io && markedRead > 0) {
       emitMessagesRead(io, {
         listingId: req.params.listingId,
         readerId: req.user.id,
@@ -50,7 +50,7 @@ router.get("/:listingId", async (req, res) => {
       });
     }
 
-    return res.json(data);
+    return res.json(messages);
   } catch (e) {
     console.error("MESSAGES_THREAD_ERROR:", e?.message);
 

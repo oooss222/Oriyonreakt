@@ -101,8 +101,7 @@ class MessageModel {
       throw new Error("PEER_REQUIRED");
     }
 
-    const result = await query(
-      `
+    const selectSql = `
       SELECT
         m.*,
         0::int AS unread_count,
@@ -135,14 +134,16 @@ class MessageModel {
         `
         }
       ORDER BY m.created_at ASC
-      `,
-      isAdmin
-        ? [listingId, userId, peerId]
-        : [listingId, userId, peerId]
-    );
+    `;
+
+    const params = isAdmin
+      ? [listingId, userId, peerId]
+      : [listingId, userId, peerId];
+
+    let markedRead = 0;
 
     if (!isAdmin) {
-      await query(
+      const updateResult = await query(
         `
         UPDATE messages
         SET is_read = true
@@ -153,9 +154,16 @@ class MessageModel {
         `,
         [listingId, userId, peerId]
       );
+
+      markedRead = updateResult.rowCount || 0;
     }
 
-    return result.rows.map(mapMessage);
+    const result = await query(selectSql, params);
+
+    return {
+      messages: result.rows.map(mapMessage),
+      markedRead,
+    };
   }
 
   static async inbox({ userId, role }) {

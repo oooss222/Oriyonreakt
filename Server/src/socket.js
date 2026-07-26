@@ -144,19 +144,23 @@ function attachSocketHandlers(io) {
   });
 }
 
+const { getAllowedOrigins, isOriginAllowed } = require("./corsOrigins");
+
 function initSocket(server) {
   const { Server } = require("socket.io");
 
-  const allowedOrigins = (
-    process.env.CORS_ORIGIN || "http://localhost:5173"
-  )
-    .split(",")
-    .map((s) => s.trim())
-    .filter(Boolean);
+  const allowedOrigins = getAllowedOrigins();
 
   const io = new Server(server, {
     cors: {
-      origin: allowedOrigins,
+      origin(origin, callback) {
+        if (isOriginAllowed(origin)) {
+          callback(null, true);
+          return;
+        }
+
+        callback(new Error(`CORS: Origin not allowed: ${origin}`));
+      },
       credentials: true,
     },
     path: "/socket.io",
