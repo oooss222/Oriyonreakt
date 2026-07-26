@@ -192,6 +192,20 @@ class ListingModel {
   };
 }
 
+  static async incrementViews(id) {
+    const result = await query(
+      `
+      UPDATE listings
+      SET views = COALESCE(views, 0) + 1
+      WHERE id = $1
+      RETURNING views
+      `,
+      [id]
+    );
+
+    return Number(result.rows[0]?.views || 0);
+  }
+
   static async update(id, ownerId, data) {
     const existing = await this.findById(id);
 

@@ -173,6 +173,9 @@ async function initDb() {
     ALTER TABLE listings
       ADD COLUMN IF NOT EXISTS public_id BIGINT UNIQUE;
 
+    ALTER TABLE listings
+      ADD COLUMN IF NOT EXISTS views INTEGER NOT NULL DEFAULT 0;
+
     DO $$
     BEGIN
       IF NOT EXISTS (
@@ -333,6 +336,8 @@ function mapListing(row) {
     rejectionReason: row.rejection_reason || "",
     moderatedBy: row.moderated_by || null,
     moderatedAt: row.moderated_at || null,
+
+    views: Number(row.views || 0),
 
     createdAt: row.created_at,
     updatedAt: row.updated_at,

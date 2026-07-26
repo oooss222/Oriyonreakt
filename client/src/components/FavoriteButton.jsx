@@ -1,8 +1,8 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { Heart } from "lucide-react";
 import { api } from "../lib/api";
-
-const TOKEN_KEY = "auth_token";
+import { goToAuth } from "../lib/auth";
 
 export default function FavoriteButton({
   id,
@@ -10,7 +10,8 @@ export default function FavoriteButton({
   onChange,
   compact = false,
 }) {
-  const token = localStorage.getItem(TOKEN_KEY) || "";
+  const nav = useNavigate();
+  const token = localStorage.getItem("auth_token") || "";
 
   const [active, setActive] = React.useState(Boolean(defaultActive));
   const [loading, setLoading] = React.useState(false);
@@ -29,7 +30,7 @@ export default function FavoriteButton({
     }
 
     if (!token) {
-      window.location.href = "/auth";
+      goToAuth(nav);
       return;
     }
 

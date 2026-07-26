@@ -16,8 +16,10 @@ import {
   X,
   ZoomIn,
   Pencil,
+  Eye,
 } from "lucide-react";
 import { api, API_BASE } from "../lib/api";
+import { goToAuth } from "../lib/auth";
 import ListingCard from "../components/ListingCard";
 import { CAT_LABELS } from "../data/listingCategories";
 
@@ -305,7 +307,7 @@ export default function AdDetails() {
 
   const toggleFav = async () => {
     if (!token) {
-      window.location.href = "/auth";
+      goToAuth(nav);
       return;
     }
 
@@ -330,7 +332,7 @@ export default function AdDetails() {
 
   const sendSellerMessage = async () => {
     if (!token) {
-      window.location.href = "/auth";
+      goToAuth(nav);
       return;
     }
 
@@ -361,7 +363,7 @@ export default function AdDetails() {
       const msg = e.message || "Не удалось отправить";
 
       if (msg.includes("Invalid token") || msg.includes("401")) {
-        window.location.href = "/auth";
+        goToAuth(nav);
         return;
       }
 
@@ -686,6 +688,10 @@ export default function AdDetails() {
                     {published}
                   </span>
                 )}
+                <span className="inline-flex items-center gap-1">
+                  <Eye className="w-4 h-4" />
+                  {Number(ad.views || 0).toLocaleString("ru-RU")} просмотров
+                </span>
               </div>
 
               <div className="text-2xl text-price">{price}</div>
@@ -794,6 +800,10 @@ export default function AdDetails() {
                       {published}
                     </span>
                   )}
+                  <span className="inline-flex items-center gap-1">
+                    <Eye className="w-4 h-4" />
+                    {Number(ad.views || 0).toLocaleString("ru-RU")} просмотров
+                  </span>
                 </div>
               </section>
 

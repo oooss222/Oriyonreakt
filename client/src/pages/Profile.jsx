@@ -1,7 +1,9 @@
 import React from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { api, API_BASE } from "../lib/api";
+import { goToAuth, TOKEN_KEY, USER_KEY } from "../lib/auth";
 import FavoriteButton from "../components/FavoriteButton";
+import ListingGridSkeleton from "../components/ListingGridSkeleton";
 import {
   User as UserIcon,
   LogOut,
@@ -21,9 +23,6 @@ import {
   Ban,
   Unlock,
 } from "lucide-react";
-
-const TOKEN_KEY = "auth_token";
-const USER_KEY = "auth_user";
 
 const ROLES = ["user", "moderator", "accountant", "admin", "super_admin"];
 
@@ -409,21 +408,6 @@ const ListingsGrid = React.memo(function ListingsGrid({
   );
 });
 
-const SkeletonGrid = React.memo(function SkeletonGrid() {
-  return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-      {Array.from({ length: 10 }).map((_, i) => (
-        <div key={i} className="rounded-2xl border bg-white p-2 animate-pulse">
-          <div className="w-full h-40 bg-slate-200 rounded-lg mb-2" />
-          <div className="h-4 bg-slate-200 rounded w-4/5 mb-1" />
-          <div className="h-4 bg-slate-200 rounded w-1/3 mb-1" />
-          <div className="h-3 bg-slate-200 rounded w-1/2" />
-        </div>
-      ))}
-    </div>
-  );
-});
-
 function AdminPanel({ token, currentUser }) {
   const [users, setUsers] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
@@ -640,8 +624,20 @@ function AdminPanel({ token, currentUser }) {
 
   if (loading) {
     return (
-      <div className="rounded-2xl border bg-white p-5">
-        Загрузка пользователей...
+      <div className="rounded-2xl border bg-white p-4 md:p-5 space-y-4 animate-pulse">
+        <div className="h-7 bg-mist-200 rounded w-48" />
+        <div className="h-4 bg-mist-200 rounded w-full max-w-md" />
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="h-20 bg-mist-200 rounded-2xl" />
+          ))}
+        </div>
+        <div className="h-12 bg-mist-200 rounded-xl" />
+        <div className="space-y-2">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="h-14 bg-mist-200 rounded-xl" />
+          ))}
+        </div>
       </div>
     );
   }
@@ -1063,8 +1059,8 @@ function ModerationPanel({ token }) {
 
   if (loading) {
     return (
-      <div className="rounded-2xl border bg-white p-5">
-        Загрузка объявлений...
+      <div className="rounded-2xl border bg-white p-4 md:p-5">
+        <ListingGridSkeleton count={6} columns="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3" />
       </div>
     );
   }
@@ -1439,7 +1435,7 @@ function MyListingsPanel({ items, loading, canManage, onRemove }) {
   if (loading) {
     return (
       <div className="rounded-2xl border bg-white p-4 md:p-5">
-        <SkeletonGrid />
+        <ListingGridSkeleton />
       </div>
     );
   }
@@ -1591,6 +1587,7 @@ function MyListingsPanel({ items, loading, canManage, onRemove }) {
 }
 
 export default function Profile() {
+  const nav = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const token = localStorage.getItem(TOKEN_KEY) || "";
 
@@ -1794,8 +1791,8 @@ export default function Profile() {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
 
-    window.location.href = "/auth";
-  }, []);
+    nav("/auth");
+  }, [nav]);
 
   const requestVerifyEmail = React.useCallback(async () => {
     try {
@@ -2437,7 +2434,7 @@ export default function Profile() {
           </div>
 
           {loadingFav ? (
-            <SkeletonGrid />
+            <ListingGridSkeleton />
           ) : (
             <ListingsGrid
               items={favItems}

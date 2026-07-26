@@ -152,11 +152,11 @@ export default function Header() {
     setShowSuggestions(false);
 
     if (text) {
-      window.location.href = `/listing?search=${encodeURIComponent(text)}`;
+      nav(`/listing?search=${encodeURIComponent(text)}`);
     } else {
-      window.location.href = "/listing";
+      nav("/listing");
     }
-  }, [q]);
+  }, [q, nav]);
 
   const close = () => setOpen(false);
 

@@ -1,5 +1,5 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { api } from "../lib/api";
 import {
   Mail,
@@ -77,6 +77,12 @@ const Alert = ({ type = "error", children }) => {
 // === Основной компонент ===
 export default function Auth() {
   const nav = useNavigate();
+  const [searchParams] = useSearchParams();
+  const returnTo = searchParams.get("returnTo") || "/profile";
+
+  const redirectAfterAuth = React.useCallback(() => {
+    nav(returnTo.startsWith("/") ? returnTo : "/profile");
+  }, [nav, returnTo]);
   const [tab, setTab] = React.useState("login");
   const [loading, setLoading] = React.useState(false);
   const [err, setErr] = React.useState("");
@@ -119,7 +125,7 @@ export default function Auth() {
       localStorage.setItem(TOKEN_KEY, token);
       localStorage.setItem(USER_KEY, JSON.stringify(user));
       setOk("Вход выполнен! Перенаправляем…");
-      setTimeout(() => nav("/profile"), 300);
+      setTimeout(() => redirectAfterAuth(), 300);
     } catch (e) {
       setErr(e.message || "Ошибка входа");
     } finally {
@@ -165,7 +171,7 @@ export default function Auth() {
 
     setOk("Аккаунт создан! Перенаправляем…");
 
-    setTimeout(() => nav("/profile"), 300);
+    setTimeout(() => redirectAfterAuth(), 300);
   } catch (e) {
     setErr(e.message || "Ошибка регистрации");
   } finally {

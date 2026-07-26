@@ -2,9 +2,9 @@ import React from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import MobileNav from "../components/MobileNav";
 import { connectChatSocket, disconnectChatSocket, getChatSocket } from "../lib/chatSocket";
-
-const TOKEN_KEY = "auth_token";
+import { TOKEN_KEY } from "../lib/auth";
 
 export default function App() {
   const location = useLocation();
@@ -42,11 +42,12 @@ export default function App() {
     <div className="page-shell min-h-screen flex flex-col">
       <Header />
 
-      <main className="flex-1 animate-fade-in-up">
+      <main className={`flex-1 animate-fade-in-up ${isMessagesPage ? "" : "pb-20 xl:pb-0"}`}>
         <Outlet />
       </main>
 
       {!isMessagesPage && <Footer />}
+      <MobileNav />
     </div>
   );
 }

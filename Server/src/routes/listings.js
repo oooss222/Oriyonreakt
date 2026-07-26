@@ -78,7 +78,12 @@ router.get("/:id", async (req, res) => {
       });
     }
 
-    return res.json(listing);
+    const views = await Listing.incrementViews(req.params.id);
+
+    return res.json({
+      ...listing,
+      views,
+    });
   } catch (e) {
     console.error("LISTING_GET_ONE_ERROR:", e?.message);
 

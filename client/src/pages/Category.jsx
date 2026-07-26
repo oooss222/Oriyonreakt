@@ -1,5 +1,7 @@
 import React from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
+import EmptyState from "../components/EmptyState";
+import { Search, FolderOpen } from "lucide-react";
 
 const CATS = {
   transport: {
@@ -88,33 +90,14 @@ export default function Category() {
 
   if (!cat) {
     return (
-      <div className="container mx-auto px-4 py-6">
-        <div className="rounded-2xl border bg-white p-5">
-          <div className="text-sm text-slate-500 mb-2">
-            <button onClick={() => nav(-1)} className="hover:underline">
-              Назад
-            </button>
-            <span className="mx-2">/</span>
-            <Link to="/" className="hover:underline">
-              Главная
-            </Link>
-            <span className="mx-2">/</span>
-            <span className="text-slate-700">Не найдено</span>
-          </div>
-
-          <h1 className="text-xl font-bold">Категория не найдена</h1>
-
-          <p className="text-slate-600 mt-1">
-            Проверьте адрес или выберите категорию на главной.
-          </p>
-
-          <Link
-            to="/"
-            className="mt-3 inline-flex px-4 py-2 rounded-lg border hover:bg-slate-50"
-          >
-            На главную
-          </Link>
-        </div>
+      <div className="page-container py-6">
+        <EmptyState
+          icon={FolderOpen}
+          title="Категория не найдена"
+          description="Проверьте адрес или выберите категорию на главной."
+          actionLabel="На главную"
+          actionTo="/"
+        />
       </div>
     );
   }
@@ -200,18 +183,13 @@ export default function Category() {
 
       <section>
         {subs.length === 0 ? (
-          <div className="rounded-2xl border bg-white p-6 text-center">
-            <div className="text-slate-700 mb-2">
-              Ничего не найдено по запросу «{q}».
-            </div>
-
-            <button
-              onClick={() => setQ("")}
-              className="inline-flex px-4 py-2 rounded-lg border hover:bg-slate-50"
-            >
-              Сбросить поиск
-            </button>
-          </div>
+          <EmptyState
+            icon={Search}
+            title={`Ничего не найдено по запросу «${q}»`}
+            description="Попробуйте другой запрос или посмотрите все объявления категории."
+            actionLabel="Сбросить поиск"
+            onAction={() => setQ("")}
+          />
         ) : (
           <div className="flex flex-wrap gap-2">
   <Link

@@ -1,12 +1,15 @@
 import React from "react";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
-import FavoriteButton from "../components/FavoriteButton";
 import { api, API_BASE } from "../lib/api";
+import FavoriteButton from "../components/FavoriteButton";
+import ListingGridSkeleton from "../components/ListingGridSkeleton";
+import EmptyState from "../components/EmptyState";
 import {
   Search,
   SlidersHorizontal,
   X,
   MapPin,
+  PackageSearch,
 } from "lucide-react";
 
 const CATEGORIES = [
@@ -506,36 +509,26 @@ const specFilters = React.useMemo(() => {
         </div>
       </div>
 
-      {loading && (
-        <div className="rounded-3xl border bg-white p-8 text-center text-slate-500">
-          Загрузка объявлений...
-        </div>
-      )}
+      {loading && <ListingGridSkeleton />}
 
       {!loading && error && (
-        <div className="rounded-3xl border bg-red-50 text-red-700 p-8 text-center">
-          {error}
-        </div>
+        <EmptyState
+          icon={PackageSearch}
+          title="Не удалось загрузить объявления"
+          description={error}
+          actionLabel="Попробовать снова"
+          onAction={() => window.location.reload()}
+        />
       )}
 
       {!loading && !error && items.length === 0 && (
-        <div className="rounded-3xl border bg-white p-10 text-center">
-          <div className="text-slate-800 font-semibold">
-            По выбранным фильтрам ничего не найдено
-          </div>
-
-          <p className="text-sm text-slate-500 mt-1">
-            Попробуйте изменить цену, категорию или поисковый запрос.
-          </p>
-
-          <button
-            type="button"
-            onClick={resetFilters}
-            className="mt-4 px-5 py-2.5 rounded-xl border hover:bg-slate-50"
-          >
-            Сбросить фильтры
-          </button>
-        </div>
+        <EmptyState
+          icon={Search}
+          title="По выбранным фильтрам ничего не найдено"
+          description="Попробуйте изменить цену, категорию или поисковый запрос."
+          actionLabel="Сбросить фильтры"
+          onAction={resetFilters}
+        />
       )}
 
       {!loading && !error && items.length > 0 && (

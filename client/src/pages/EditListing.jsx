@@ -2,8 +2,7 @@ import React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { api } from "../lib/api";
 import ListingForm from "../components/ListingForm";
-
-const TOKEN_KEY = "auth_token";
+import { goToAuth, TOKEN_KEY } from "../lib/auth";
 
 export default function EditListing() {
   const { id } = useParams();
@@ -15,7 +14,7 @@ export default function EditListing() {
 
   React.useEffect(() => {
     if (!token) {
-      window.location.href = "/auth";
+      goToAuth(nav);
       return;
     }
 

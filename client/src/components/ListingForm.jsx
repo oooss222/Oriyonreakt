@@ -1,6 +1,7 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { api, API_BASE } from "../lib/api";
+import { goToAuth } from "../lib/auth";
 import {
   getDependentOptions,
   SPEC_DEPENDENCIES,
@@ -47,6 +48,7 @@ export default function ListingForm({
   onSuccess,
   backTo = "/profile?tab=my",
 }) {
+  const nav = useNavigate();
   const token = localStorage.getItem("auth_token") || "";
   const isEdit = mode === "edit";
 
@@ -306,7 +308,7 @@ export default function ListingForm({
     setErr("");
 
     if (!token) {
-      window.location.href = "/auth";
+      goToAuth(nav);
       return;
     }
 
