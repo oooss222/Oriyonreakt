@@ -47,7 +47,7 @@ export default function Header() {
     pathname === "/listing" ||
     pathname.startsWith("/c/");
 
-  const compactCategories = scrolled || pathname !== "/";
+  const compactCategories = pathname !== "/";
 
   React.useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 48);
