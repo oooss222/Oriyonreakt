@@ -56,17 +56,29 @@ function fmtPrice(value) {
 }
 
 function ListingCard({ ad, listings }) {
+  const nav = useNavigate();
   const id = ad.id || ad._id;
   const img = getThumb(ad);
 
+  const openAd = () => {
+    if (!id) return;
+    sessionStorage.setItem("ad_preview", JSON.stringify(ad));
+    sessionStorage.setItem("ad_list", JSON.stringify(listings));
+    nav(`/ad/${id}`);
+  };
+
   return (
-    <Link
-      to={`/ad/${id}`}
-      onClick={() => {
-        sessionStorage.setItem("ad_preview", JSON.stringify(ad));
-        sessionStorage.setItem("ad_list", JSON.stringify(listings));
+    <div
+      role="link"
+      tabIndex={0}
+      onClick={openAd}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          openAd();
+        }
       }}
-      className="group min-w-[230px] max-w-[230px] card p-2 hover:shadow-lift hover:-translate-y-1 transition-all duration-300 flex flex-col overflow-hidden focus:outline-none focus:ring-2 focus:ring-sun/50"
+      className="group min-w-[230px] max-w-[230px] card p-2 hover:shadow-lift hover:-translate-y-1 transition-all duration-300 flex flex-col overflow-hidden cursor-pointer focus:outline-none focus:ring-2 focus:ring-sun/50"
       aria-label={`Объявление: ${ad.title || "Без названия"}`}
     >
       <div className="relative overflow-hidden rounded-2xl">
@@ -119,7 +131,7 @@ function ListingCard({ ad, listings }) {
             : "Новое объявление"}
         </div>
       </div>
-    </Link>
+    </div>
   );
 }
 

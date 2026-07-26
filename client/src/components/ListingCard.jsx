@@ -1,5 +1,5 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import FavoriteButton from "./FavoriteButton";
 import { API_BASE } from "../lib/api";
 
@@ -17,7 +17,8 @@ function imageUrl(src) {
 }
 
 export default function ListingCard({ item, onFav }) {
-  const listingId = item.id || item._id;
+  const nav = useNavigate();
+  const listingId = item?.id || item?._id;
 
   const image =
     item.images?.[0]?.url ||
@@ -34,10 +35,23 @@ export default function ListingCard({ item, onFav }) {
         }).format(item.price)
       : item.price || "Цена не указана";
 
+  const openAd = () => {
+    if (!listingId) return;
+    nav(`/ad/${listingId}`);
+  };
+
   return (
-    <Link
-      to={`/ad/${listingId}`}
-      className="card overflow-hidden block group"
+    <div
+      role="link"
+      tabIndex={0}
+      onClick={openAd}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          openAd();
+        }
+      }}
+      className="card overflow-hidden block group cursor-pointer focus:outline-none focus:ring-2 focus:ring-sun/40"
     >
       <div className="relative overflow-hidden">
         <img
@@ -74,6 +88,6 @@ export default function ListingCard({ item, onFav }) {
           />
         </div>
       </div>
-    </Link>
+    </div>
   );
 }

@@ -1,5 +1,5 @@
 import React from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import FavoriteButton from "../components/FavoriteButton";
 import { api, API_BASE } from "../lib/api";
 import {
@@ -150,6 +150,7 @@ const formatPrice = (value) => {
 
 export default function Listing() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const nav = useNavigate();
 
   const [items, setItems] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
@@ -545,13 +546,24 @@ const specFilters = React.useMemo(() => {
             const more = Math.max(0, (ad.images?.length || 0) - 1);
 
             return (
-              <Link
+              <div
                 key={id}
-                to={`/ad/${id}`}
-                onClick={() =>
-                  sessionStorage.setItem("ad_preview", JSON.stringify(ad))
-                }
-                className="group relative flex flex-col rounded-2xl border bg-white p-2 transition hover:shadow-lg hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-sun/40 animate-fade-in-up"
+                role="link"
+                tabIndex={0}
+                onClick={() => {
+                  if (!id) return;
+                  sessionStorage.setItem("ad_preview", JSON.stringify(ad));
+                  nav(`/ad/${id}`);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    if (!id) return;
+                    sessionStorage.setItem("ad_preview", JSON.stringify(ad));
+                    nav(`/ad/${id}`);
+                  }
+                }}
+                className="group relative flex flex-col rounded-2xl border bg-white p-2 transition hover:shadow-lg hover:-translate-y-0.5 cursor-pointer focus:outline-none focus:ring-2 focus:ring-sun/40 animate-fade-in-up"
                 style={{ animationDelay: `${idx * 40}ms` }}
                 aria-label={`Объявление: ${ad.title || "Без названия"}`}
               >
@@ -611,7 +623,7 @@ const specFilters = React.useMemo(() => {
                       : ""}
                   </div>
                 </div>
-              </Link>
+              </div>
             );
           })}
         </div>

@@ -269,6 +269,15 @@ export default function AdDetails() {
     return ["/img/placeholder.jpg"];
   }, [ad]);
 
+  const storedUserId = React.useMemo(() => {
+    try {
+      const user = JSON.parse(localStorage.getItem("auth_user") || "null");
+      return user?.id || user?._id || null;
+    } catch {
+      return null;
+    }
+  }, []);
+
   React.useEffect(() => {
     if (!lightboxOpen) return;
 
@@ -434,15 +443,6 @@ export default function AdDetails() {
       ? `${ad.cat ? "&" : "?"}subcategory=${encodeURIComponent(ad.subcategory)}`
       : ""
   }`;
-
-  const storedUserId = React.useMemo(() => {
-    try {
-      const user = JSON.parse(localStorage.getItem("auth_user") || "null");
-      return user?.id || user?._id || null;
-    } catch {
-      return null;
-    }
-  }, []);
 
   const isOwner = Boolean(
     ad?.owner &&
