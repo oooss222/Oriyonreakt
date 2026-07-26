@@ -2,7 +2,31 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 
 const lastSeenUpdates = new Map();
-const SEEN_INTERVAL_MS = 60_000;
+const SEEN_INTERVAL_MS = 30_000;
+
+/** @type {Map<string, number>} */
+const onlineUsers = new Map();
+
+function touchLastSeenThrottled(userId) {
+  const now = Date.now();
+  const last = lastSeenUpdates.get(userId) || 0;
+
+  if (now - last < SEEN_INTERVAL_MS) {
+    return Promise.resolve(null);
+  }
+
+  lastSeenUpdates.set(userId, now);
+
+  return User.touchLastSeen(userId);
+}
+
+function broadcastPresence(io, userId, online, lastSeen) {
+  io.emit("presence:update", {
+    userId: String(userId),
+    online: Boolean(online),
+    lastSeen: lastSeen || new Date().toISOString(),
+  });
+}
 
 function attachSocketHandlers(io) {
   io.use(async (socket, next) => {
@@ -38,9 +62,45 @@ function attachSocketHandlers(io) {
   });
 
   io.on("connection", (socket) => {
-    socket.join(`user:${socket.userId}`);
+    const userId = String(socket.userId);
 
-    User.touchLastSeen(socket.userId).catch(() => {});
+    socket.join(`user:${userId}`);
+
+    const prev = onlineUsers.get(userId) || 0;
+    onlineUsers.set(userId, prev + 1);
+
+    touchLastSeenThrottled(userId)
+      .then((user) => {
+        const lastSeen = user?.lastSeen || new Date().toISOString();
+
+        socket.emit("presence:snapshot", {
+          onlineUserIds: [...onlineUsers.keys()],
+        });
+
+        if (prev === 0) {
+          broadcastPresence(io, userId, true, lastSeen);
+        }
+      })
+      .catch(() => {
+        if (prev === 0) {
+          broadcastPresence(io, userId, true, new Date().toISOString());
+        }
+      });
+
+    socket.on("presence:heartbeat", async () => {
+      try {
+        const user = await touchLastSeenThrottled(userId);
+
+        broadcastPresence(
+          io,
+          userId,
+          true,
+          user?.lastSeen || new Date().toISOString()
+        );
+      } catch {
+        /* ignore */
+      }
+    });
 
     socket.on("typing:start", ({ listingId, peerId }) => {
       if (!listingId || !peerId) return;
@@ -60,7 +120,27 @@ function attachSocketHandlers(io) {
       });
     });
 
-    socket.on("disconnect", () => {});
+    socket.on("disconnect", () => {
+      const count = onlineUsers.get(userId) || 0;
+
+      if (count <= 1) {
+        onlineUsers.delete(userId);
+        touchLastSeenThrottled(userId)
+          .then((user) => {
+            broadcastPresence(
+              io,
+              userId,
+              false,
+              user?.lastSeen || new Date().toISOString()
+            );
+          })
+          .catch(() => {
+            broadcastPresence(io, userId, false, new Date().toISOString());
+          });
+      } else {
+        onlineUsers.set(userId, count - 1);
+      }
+    });
   });
 }
 

@@ -2,7 +2,7 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 
 const lastSeenUpdates = new Map();
-const SEEN_INTERVAL_MS = 60_000;
+const SEEN_INTERVAL_MS = 30_000;
 
 module.exports = async function auth(req, res, next) {
   const header = req.headers.authorization || "";

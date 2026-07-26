@@ -14,7 +14,6 @@ import {
 import { api, API_BASE } from "../lib/api";
 import {
   connectChatSocket,
-  disconnectChatSocket,
   getChatSocket,
 } from "../lib/chatSocket";
 
@@ -182,6 +181,7 @@ export default function Messages() {
   const [typingPeer, setTypingPeer] = React.useState(false);
   const [toast, setToast] = React.useState({ message: "", type: "info" });
   const [socketReady, setSocketReady] = React.useState(false);
+  const [peerPresence, setPeerPresence] = React.useState({});
 
   const [loading, setLoading] = React.useState(true);
   const [threadLoading, setThreadLoading] = React.useState(false);
@@ -199,6 +199,48 @@ export default function Messages() {
   const showToast = React.useCallback((message, type = "info") => {
     setToast({ message, type });
   }, []);
+
+  const applyPresenceUpdate = React.useCallback(
+    ({ userId, online, lastSeen }) => {
+      if (!userId) return;
+
+      setPeerPresence((prev) => ({
+        ...prev,
+        [String(userId)]: {
+          online: Boolean(online),
+          lastSeen: lastSeen || prev[String(userId)]?.lastSeen || null,
+        },
+      }));
+    },
+    []
+  );
+
+  React.useEffect(() => {
+    setPeerPresence((prev) => {
+      const next = { ...prev };
+
+      for (const item of items) {
+        const pairs = [
+          [item.senderId, item.senderLastSeen],
+          [item.receiverId, item.receiverLastSeen],
+        ];
+
+        for (const [userId, lastSeen] of pairs) {
+          if (!userId || !lastSeen) continue;
+
+          const key = String(userId);
+          const existing = next[key];
+
+          next[key] = {
+            online: existing?.online ?? isOnline(lastSeen),
+            lastSeen: lastSeen,
+          };
+        }
+      }
+
+      return next;
+    });
+  }, [items]);
 
   const loadInbox = React.useCallback(
     async ({ silent = false } = {}) => {
@@ -435,15 +477,40 @@ export default function Messages() {
       });
     };
 
+    const onPresenceUpdate = ({ userId, online, lastSeen }) => {
+      applyPresenceUpdate({ userId, online, lastSeen });
+    };
+
+    const onPresenceSnapshot = ({ onlineUserIds }) => {
+      const now = new Date().toISOString();
+
+      setPeerPresence((prev) => {
+        const next = { ...prev };
+
+        for (const id of onlineUserIds || []) {
+          const key = String(id);
+          next[key] = {
+            online: true,
+            lastSeen: next[key]?.lastSeen || now,
+          };
+        }
+
+        return next;
+      });
+    };
+
     socket.on("connect", onConnect);
     socket.on("disconnect", onDisconnect);
     socket.on("message:new", onMessageNew);
     socket.on("messages:read", onMessagesRead);
     socket.on("typing:start", onTypingStart);
     socket.on("typing:stop", onTypingStop);
+    socket.on("presence:update", onPresenceUpdate);
+    socket.on("presence:snapshot", onPresenceSnapshot);
 
     if (socket.connected) {
       setSocketReady(true);
+      socket.emit("presence:heartbeat");
     }
 
     return () => {
@@ -453,10 +520,11 @@ export default function Messages() {
       socket.off("messages:read", onMessagesRead);
       socket.off("typing:start", onTypingStart);
       socket.off("typing:stop", onTypingStop);
-      disconnectChatSocket();
+      socket.off("presence:update", onPresenceUpdate);
+      socket.off("presence:snapshot", onPresenceSnapshot);
       setSocketReady(false);
     };
-  }, [token, myId, me, loadThread, showToast]);
+  }, [token, myId, me, loadThread, showToast, applyPresenceUpdate]);
 
   React.useEffect(() => {
     if (!selected || !token || socketReady) return undefined;
@@ -616,10 +684,19 @@ export default function Messages() {
     [thread]
   );
 
+  const selectedPeerId = selected ? getPeerId(selected, me) : null;
+  const peerPresenceInfo = selectedPeerId
+    ? peerPresence[String(selectedPeerId)]
+    : null;
+
   const selectedPeerLastSeen =
-    String(selected?.senderId) === String(myId)
+    peerPresenceInfo?.lastSeen ??
+    (String(selected?.senderId) === String(myId)
       ? selected?.receiverLastSeen
-      : selected?.senderLastSeen;
+      : selected?.senderLastSeen);
+
+  const peerOnline =
+    peerPresenceInfo?.online ?? isOnline(selectedPeerLastSeen);
 
   const peerName =
     String(selected?.senderId) === String(myId)
@@ -840,12 +917,14 @@ export default function Messages() {
                       <span>{peerName || "Пользователь"}</span>
                       <span
                         className={`w-2 h-2 rounded-full ${
-                          isOnline(selectedPeerLastSeen)
-                            ? "bg-emerald-500"
-                            : "bg-ink-200"
+                          peerOnline ? "bg-emerald-500" : "bg-ink-200"
                         }`}
                       />
-                      <span>{formatLastSeen(selectedPeerLastSeen)}</span>
+                      <span>
+                        {peerOnline
+                          ? "онлайн"
+                          : formatLastSeen(selectedPeerLastSeen)}
+                      </span>
                       {typingPeer && (
                         <span className="text-sun font-medium">печатает…</span>
                       )}
