@@ -1,7 +1,8 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { api, API_BASE } from "../lib/api";
+import { api } from "../lib/api";
 import { goToAuth } from "../lib/auth";
+import { resolveMediaUrl } from "../lib/media";
 import {
   getDependentOptions,
   SPEC_DEPENDENCIES,
@@ -32,14 +33,6 @@ import {
   RotateCcw,
   Pencil,
 } from "lucide-react";
-
-function imageUrl(src) {
-  if (!src) return "";
-  if (src.startsWith("http") || src.startsWith("data:")) return src;
-
-  const server = API_BASE.replace(/\/api$/, "");
-  return `${server}/${String(src).replace(/^\/+/, "")}`;
-}
 
 export default function ListingForm({
   mode = "create",
@@ -649,7 +642,7 @@ export default function ListingForm({
                   {existingImages.map((img, index) => (
                     <div key={`existing-${index}`} className="relative group">
                       <img
-                        src={imageUrl(img.url)}
+                        src={resolveMediaUrl(img.url, { allowEmpty: true, placeholder: "" })}
                         alt={`Фото ${index + 1}`}
                         className="w-full h-28 object-cover rounded-xl border bg-slate-100"
                       />

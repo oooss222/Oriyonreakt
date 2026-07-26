@@ -1,8 +1,9 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import FavoriteButton from "../components/FavoriteButton";
-import { api, API_BASE } from "../lib/api";
-import { HOME_CATEGORIES } from "../data/categories";
+import { api } from "../lib/api";
+import { getListingThumb } from "../lib/media";
+import { formatPrice } from "../lib/format";
 import {
   PlusCircle,
   ShieldCheck,
@@ -18,47 +19,10 @@ import {
   Monitor,
 } from "lucide-react";
 
-const cityChips = ["Душанбе", "Худжанд", "Бохтар", "Куляб", "Вахдат"];
-
-function imageUrl(src) {
-  if (!src) return "/img/placeholder.jpg";
-  if (src.startsWith("http") || src.startsWith("/img/")) return src;
-  return API_BASE.replace("/api", "") + src;
-}
-
-function getThumb(ad) {
-  const first = ad?.images?.[0];
-
-  if (typeof first === "string") return imageUrl(first);
-
-  return imageUrl(
-    first?.url ||
-      first?.src ||
-      first?.path ||
-      first?.secure_url ||
-      first?.preview ||
-      ad?.img ||
-      ad?.image ||
-      ""
-  );
-}
-
-function fmtPrice(value) {
-  if (value == null || value === "") return "Цена не указана";
-
-  const n = Number(String(value).replace(/\s/g, ""));
-
-  if (Number.isFinite(n)) {
-    return `${n.toLocaleString("ru-RU")} TJS`;
-  }
-
-  return String(value);
-}
-
 function ListingCard({ ad, listings }) {
   const nav = useNavigate();
   const id = ad.id || ad._id;
-  const img = getThumb(ad);
+  const img = getListingThumb(ad);
 
   const openAd = () => {
     if (!id) return;
@@ -113,7 +77,7 @@ function ListingCard({ ad, listings }) {
 
         <div className="flex items-center justify-between gap-2">
           <div className="text-price">
-            {fmtPrice(ad.price)}
+            {formatPrice(ad.price)}
           </div>
 
           <FavoriteButton id={id} defaultActive={ad.isFavorite} compact />
@@ -191,13 +155,9 @@ function ListingSkeleton() {
 }
 
 export default function Home() {
-  const nav = useNavigate();
-
   const [listings, setListings] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState("");
-  const [q, setQ] = React.useState("");
-  const [showSuggestions, setShowSuggestions] = React.useState(false);
 
   React.useEffect(() => {
     let active = true;
@@ -231,44 +191,6 @@ export default function Home() {
       active = false;
     };
   }, []);
-
-  const goSearch = React.useCallback(() => {
-    const text = q.trim();
-
-    if (text) {
-      nav(`/listing?search=${encodeURIComponent(text)}`);
-    } else {
-      nav("/listing");
-    }
-  }, [q, nav]);
-
-  const suggestions = React.useMemo(() => {
-  const text = q.trim().toLowerCase();
-
-  if (text.length < 2) return [];
-
-  return listings
-    .filter((ad) =>
-      String(ad.title || "").toLowerCase().includes(text)
-    )
-    .slice(0, 6);
-}, [q, listings]);
-
-  const stats = React.useMemo(() => {
-    const withPhoto = listings.filter((item) => item?.images?.length).length;
-    const locations = new Set(
-      listings.map((item) => item.location || item.city).filter(Boolean)
-    );
-
-    return {
-      listings: listings.length,
-      categories: HOME_CATEGORIES.length,
-      withPhoto,
-      locations: locations.size,
-    };
-  }, [listings]);
-
-  
 
   const hotListings = listings.slice(0, 10);
 

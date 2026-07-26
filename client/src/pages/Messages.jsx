@@ -11,11 +11,12 @@ import {
   CheckCheck,
   X,
 } from "lucide-react";
-import { api, API_BASE } from "../lib/api";
+import { api } from "../lib/api";
 import {
   connectChatSocket,
   getChatSocket,
 } from "../lib/chatSocket";
+import { resolveMediaUrl } from "../lib/media";
 
 const TOKEN_KEY = "auth_token";
 const USER_KEY = "auth_user";
@@ -101,13 +102,7 @@ function groupMessagesByDay(messages) {
 }
 
 function listingImageUrl(src) {
-  if (!src) return "";
-
-  if (src.startsWith("http") || src.startsWith("/img/")) {
-    return src;
-  }
-
-  return API_BASE.replace("/api", "") + src;
+  return resolveMediaUrl(src, { placeholder: "" });
 }
 
 function Toast({ message, type = "info", onClose }) {

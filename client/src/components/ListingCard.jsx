@@ -1,39 +1,12 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import FavoriteButton from "./FavoriteButton";
-import { API_BASE } from "../lib/api";
-
-function imageUrl(src) {
-  if (!src) return "";
-
-  if (src.startsWith("http")) {
-    return src;
-  }
-
-  const server = API_BASE.replace(/\/api$/, "");
-  const clean = String(src).replace(/^\/+/, "");
-
-  return `${server}/${clean}`;
-}
+import { getListingThumb } from "../lib/media";
+import { formatPrice } from "../lib/format";
 
 export default function ListingCard({ item, onFav }) {
   const nav = useNavigate();
   const listingId = item?.id || item?._id;
-
-  const image =
-    item.images?.[0]?.url ||
-    item.images?.[0] ||
-    item.image ||
-    "";
-
-  const price =
-    typeof item.price === "number"
-      ? new Intl.NumberFormat("ru-RU", {
-          style: "currency",
-          currency: "TJS",
-          maximumFractionDigits: 0,
-        }).format(item.price)
-      : item.price || "Цена не указана";
 
   const openAd = () => {
     if (!listingId) return;
@@ -55,11 +28,7 @@ export default function ListingCard({ item, onFav }) {
     >
       <div className="relative overflow-hidden">
         <img
-          src={
-            image
-              ? imageUrl(image)
-              : "/img/placeholder.jpg"
-          }
+          src={getListingThumb(item)}
           alt={item.title}
           className="w-full h-40 object-cover bg-mist transition-transform duration-500 group-hover:scale-105"
           onError={(e) => {
@@ -78,7 +47,9 @@ export default function ListingCard({ item, onFav }) {
         </h3>
 
         <div className="mt-2 flex items-center justify-between gap-2">
-          <strong className="text-price text-base">{price}</strong>
+          <strong className="text-price text-base">
+            {formatPrice(item.price)}
+          </strong>
 
           <FavoriteButton
             id={listingId}

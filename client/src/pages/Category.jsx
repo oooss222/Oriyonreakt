@@ -1,6 +1,7 @@
 import React from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import EmptyState from "../components/EmptyState";
+import { usePageMeta } from "../lib/usePageMeta";
 import { Search, FolderOpen } from "lucide-react";
 
 const CATS = {
@@ -87,6 +88,14 @@ export default function Category() {
 
     return cat.subs.filter((s) => s.toLowerCase().includes(t));
   }, [q, cat]);
+
+  usePageMeta({
+    title: cat ? cat.title : "Категория не найдена",
+    description: cat
+      ? `Объявления в категории «${cat.title}» на Oriyon.store. ${cat.subs.length} подкатегорий.`
+      : "Запрошенная категория не существует на Oriyon.store.",
+    url: typeof window !== "undefined" ? window.location.href : undefined,
+  });
 
   if (!cat) {
     return (

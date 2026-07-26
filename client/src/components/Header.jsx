@@ -14,40 +14,10 @@ import {
   MessageCircle,
 } from "lucide-react";
 
-import { api, API_BASE } from "../lib/api";
+import { api } from "../lib/api";
+import { TOKEN_KEY, USER_KEY } from "../lib/auth";
 import CategoryStrip from "./CategoryStrip";
-
-const TOKEN_KEY = "auth_token";
-const USER_KEY = "auth_user";
-
-function imageUrl(src) {
-  if (!src) return "/img/placeholder.jpg";
-
-  if (src.startsWith("http") || src.startsWith("/img/")) {
-    return src;
-  }
-
-  return API_BASE.replace("/api", "") + src;
-}
-
-function getThumb(ad) {
-  const first = ad?.images?.[0];
-
-  if (typeof first === "string") {
-    return imageUrl(first);
-  }
-
-  return imageUrl(
-    first?.url ||
-      first?.src ||
-      first?.path ||
-      first?.secure_url ||
-      first?.preview ||
-      ad?.img ||
-      ad?.image ||
-      ""
-  );
-}
+import { getListingThumb } from "../lib/media";
 
 export default function Header() {
   const nav = useNavigate();
@@ -248,7 +218,7 @@ export default function Header() {
                       className="w-full flex items-center gap-3 px-4 py-3 hover:bg-sun-50 text-left border-b border-ink/5 last:border-b-0"
                     >
                       <img
-                        src={getThumb(ad)}
+                        src={getListingThumb(ad)}
                         alt={ad.title || "Объявление"}
                         className="w-12 h-12 rounded-xl object-cover bg-mist"
                       />

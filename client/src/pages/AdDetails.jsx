@@ -18,32 +18,15 @@ import {
   Pencil,
   Eye,
 } from "lucide-react";
-import { api, API_BASE } from "../lib/api";
+import { api } from "../lib/api";
 import { goToAuth } from "../lib/auth";
+import { resolveMediaUrl } from "../lib/media";
+import { formatPrice } from "../lib/format";
+import { usePageMeta } from "../lib/usePageMeta";
 import ListingCard from "../components/ListingCard";
 import { CAT_LABELS } from "../data/listingCategories";
 
 const TOKEN_KEY = "auth_token";
-
-function imageUrl(src) {
-  if (!src) return "/img/placeholder.jpg";
-  if (src.startsWith("http")) return src;
-
-  const server = API_BASE.replace(/\/api$/, "");
-  const clean = String(src).replace(/^\/+/, "");
-
-  return `${server}/${clean}`;
-}
-
-function formatPrice(value) {
-  if (value == null || value === "") return "Договорная";
-
-  const n = Number(String(value).replace(/\s/g, "").replace(",", "."));
-
-  if (!Number.isFinite(n)) return String(value);
-
-  return `${n.toLocaleString("ru-RU")} TJS`;
-}
 
 function formatDate(dateStr) {
   if (!dateStr || Number.isNaN(Date.parse(dateStr))) return null;
@@ -264,13 +247,32 @@ export default function AdDetails() {
     if (!ad) return ["/img/placeholder.jpg"];
 
     if (ad.images?.length) {
-      return ad.images.map((i) => imageUrl(i.url || i));
+      return ad.images.map((i) => resolveMediaUrl(i.url || i));
     }
 
-    if (ad.img) return [imageUrl(ad.img)];
+    if (ad.img) return [resolveMediaUrl(ad.img)];
 
     return ["/img/placeholder.jpg"];
   }, [ad]);
+
+  usePageMeta({
+    enabled: Boolean(ad),
+    title: ad?.title || "Объявление",
+    description: [
+      formatPrice(ad?.price, { emptyLabel: "Договорная" }),
+      ad?.location || ad?.city,
+      ad?.description?.slice(0, 140),
+    ]
+      .filter(Boolean)
+      .join(" · "),
+    image: images[0]?.startsWith("http")
+      ? images[0]
+      : images[0]
+      ? `${window.location.origin}${images[0]}`
+      : undefined,
+    url: typeof window !== "undefined" ? window.location.href : undefined,
+    type: "product",
+  });
 
   const storedUserId = React.useMemo(() => {
     try {
@@ -439,7 +441,7 @@ export default function AdDetails() {
     return name !== "цена" && name !== "price";
   });
 
-  const price = formatPrice(ad.price);
+  const price = formatPrice(ad.price, { emptyLabel: "Договорная" });
   const sellerName = getSellerName(ad) || "Продавец";
   const publicId = ad.publicId || ad.public_id || ad._id || ad.id;
   const catLabel = CAT_LABELS[ad.cat] || ad.cat;

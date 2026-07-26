@@ -1,9 +1,11 @@
 import React from "react";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
-import { api, API_BASE } from "../lib/api";
+import { api } from "../lib/api";
 import FavoriteButton from "../components/FavoriteButton";
 import ListingGridSkeleton from "../components/ListingGridSkeleton";
 import EmptyState from "../components/EmptyState";
+import { getListingThumb } from "../lib/media";
+import { formatPrice } from "../lib/format";
 import {
   Search,
   SlidersHorizontal,
@@ -104,51 +106,6 @@ const SPEC_FILTERS = {
       options: ["Новый", "Б/у", "Требует ремонта"],
     },
   ],
-};
-
-const getThumb = (ad) => {
-  if (ad?.images?.length) {
-    const f = ad.images[0];
-
-    let src = "";
-
-    if (typeof f === "string") {
-      src = f;
-    } else {
-      src = f?.url || f?.src || f?.path || f?.secure_url || f?.preview || "";
-    }
-
-    if (!src) return "/img/placeholder.jpg";
-
-    if (src.startsWith("http") || src.startsWith("/img/")) {
-      return src;
-    }
-
-    const server = API_BASE.replace(/\/api$/, "");
-    const clean = String(src).replace(/^\/+/, "");
-
-    return `${server}/${clean}`;
-  }
-
-  return ad?.img || ad?.image || "/img/placeholder.jpg";
-};
-
-const getPriceNumber = (value) => {
-  if (value == null || value === "") return null;
-
-  const n = Number(String(value).replace(/\s/g, "").replace(",", "."));
-
-  return Number.isFinite(n) ? n : null;
-};
-
-const formatPrice = (value) => {
-  const n = getPriceNumber(value);
-
-  if (n == null) {
-    return value || "Цена не указана";
-  }
-
-  return `${n.toLocaleString("ru-RU")} TJS`;
 };
 
 export default function Listing() {
@@ -535,7 +492,7 @@ const specFilters = React.useMemo(() => {
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4">
           {items.map((ad, idx) => {
             const id = ad._id || ad.id;
-            const imgUrl = getThumb(ad);
+            const imgUrl = getListingThumb(ad);
             const more = Math.max(0, (ad.images?.length || 0) - 1);
 
             return (

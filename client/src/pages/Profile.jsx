@@ -1,9 +1,11 @@
 import React from "react";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
-import { api, API_BASE } from "../lib/api";
+import { api } from "../lib/api";
 import { goToAuth, TOKEN_KEY, USER_KEY } from "../lib/auth";
 import FavoriteButton from "../components/FavoriteButton";
 import ListingGridSkeleton from "../components/ListingGridSkeleton";
+import { getListingThumb } from "../lib/media";
+import { formatPrice } from "../lib/format";
 import {
   User as UserIcon,
   LogOut,
@@ -37,32 +39,6 @@ const normalizeTab = (value) => {
 };
 
 const getId = (item) => item?.id || item?._id;
-
-const getThumb = (ad) => {
-  let src = "";
-
-  if (ad?.images?.length) {
-    const f = ad.images[0];
-    src =
-      typeof f === "string"
-        ? f
-        : f?.url || f?.src || f?.path || f?.secure_url || f?.preview || "";
-  }
-
-  if (!src) src = ad?.img || ad?.image || "/img/placeholder.jpg";
-
-  if (src.startsWith("http") || src.startsWith("/img/")) return src;
-
-  return API_BASE.replace("/api", "") + src;
-};
-
-const fmtPrice = (v) => {
-  if (v == null || v === "") return "—";
-  if (typeof v === "number") return `${v.toLocaleString("ru-RU")} TJS`;
-
-  const n = Number(v);
-  return Number.isFinite(n) ? `${n.toLocaleString("ru-RU")} TJS` : `${v}`;
-};
 
 const EmailBadge = React.memo(function EmailBadge({ status }) {
   if (status === "verified") {
@@ -231,7 +207,7 @@ const ListingCard = React.memo(function ListingCard({
   isFavorite = false,
 }) {
   const id = getId(ad);
-  const imgUrl = getThumb(ad);
+  const imgUrl = getListingThumb(ad);
   const more = Math.max(0, (ad.images?.length || 0) - 1);
 
   const status = ad.status || "pending";
@@ -292,7 +268,7 @@ const ListingCard = React.memo(function ListingCard({
 
           <div className="flex items-center justify-between gap-2 mt-1">
             <div className="text-sun-700 font-extrabold">
-              {fmtPrice(ad.price)}
+              {formatPrice(ad.price, { emptyLabel: "—" })}
             </div>
 
             {!canManage && (
@@ -1197,7 +1173,7 @@ function ModerationPanel({ token }) {
         <div className="grid gap-4">
           {filteredItems.map((ad) => {
             const id = getId(ad);
-            const img = getThumb(ad);
+            const img = getListingThumb(ad);
             const isBusy = actionLoadingId === id;
 
             return (
@@ -1251,7 +1227,7 @@ function ModerationPanel({ token }) {
                   </div>
 
                   <div className="text-sm font-bold mt-1">
-                    {fmtPrice(ad.price)}
+                    {formatPrice(ad.price, { emptyLabel: "—" })}
                   </div>
 
                   {ad.description && (
