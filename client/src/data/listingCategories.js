@@ -22,6 +22,11 @@ export const CAT_LABELS = {
   repair: "Ремонт",
 };
 
+export const CATEGORY_SELECT_OPTIONS = [
+  { value: "", label: "Все категории" },
+  ...Object.entries(CAT_LABELS).map(([value, label]) => ({ value, label })),
+];
+
 const CAR_SPECS = [
   { name: "Марка", type: "select", options: CAR_BRANDS },
   { name: "Модель", type: "select", dependsOn: "Марка", optionsFrom: CAR_MODELS },
@@ -54,6 +59,9 @@ const AUTO_SERVICE_SPECS = [
 export const CATS = {
   transport: {
     title: "Авто",
+    shortTitle: "Авто",
+    img: "/img/car.png",
+    desc: "Авто, запчасти, техника",
     subs: [
       "Легковые авто",
       "Запчасти",
@@ -76,6 +84,9 @@ export const CATS = {
   },
   furniture: {
     title: "Мебель",
+    shortTitle: "Мебель",
+    img: "/img/furniture.png",
+    desc: "Дом, офис, интерьер",
     subs: [
       "Мебель для спальни",
       "Офисная мебель",
@@ -93,6 +104,9 @@ export const CATS = {
   },
   phones: {
     title: "Телефоны",
+    shortTitle: "Телефоны",
+    img: "/img/phone.png",
+    desc: "Смартфоны и аксессуары",
     subs: [
       "Мобильные телефоны",
       "Планшеты",
@@ -114,6 +128,9 @@ export const CATS = {
   },
   electronics: {
     title: "Бытовая техника",
+    shortTitle: "Бытовая техника",
+    img: "/img/electronics.png",
+    desc: "Техника для дома",
     subs: [
       "Техника для дома и кухни",
       "Видеонаблюдение и камеры",
@@ -135,6 +152,9 @@ export const CATS = {
   },
   computers: {
     title: "Компьютеры и оргтехника",
+    shortTitle: "Компьютеры",
+    img: "/img/computers.png",
+    desc: "ПК, ноутбуки, оргтехника",
     subs: ["Ноутбуки", "ПК", "Приставки", "Принтеры и сканеры"],
     specTemplate: [
       { name: "Тип", type: "select", options: COMMON_SPEC_OPTIONS.computerType },
@@ -154,6 +174,9 @@ export const CATS = {
   },
   repair: {
     title: "Ремонт",
+    shortTitle: "Ремонт",
+    img: "/img/repair.png",
+    desc: "Материалы и инструменты",
     subs: [
       "Окна и двери",
       "Дома, срубы и снаряжения",
@@ -170,6 +193,52 @@ export const CATS = {
     ],
   },
 };
+
+export const HOME_CATEGORIES = Object.entries(CATS).map(([slug, cat]) => ({
+  slug,
+  title: cat.shortTitle || cat.title,
+  img: cat.img,
+  desc: cat.desc,
+}));
+
+export function getCategory(slug) {
+  return CATS[slug] || null;
+}
+
+export function getListSpecFilters(catKey, subcategory = "") {
+  return getSpecTemplate(catKey, subcategory)
+    .filter(
+      (item) =>
+        item.type === "select" &&
+        Array.isArray(item.options) &&
+        item.options.length > 0 &&
+        !item.dependsOn
+    )
+    .map((item) => ({
+      name: item.name,
+      options: item.options,
+    }));
+}
+
+export function parseSpecsParam(raw) {
+  if (!raw) return {};
+
+  try {
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+      return {};
+    }
+
+    return Object.fromEntries(
+      Object.entries(parsed).filter(
+        ([name, value]) =>
+          String(name || "").trim() && String(value || "").trim()
+      )
+    );
+  } catch {
+    return {};
+  }
+}
 
 export function getSpecTemplate(catKey, subcategory = "") {
   const cat = CATS[catKey];

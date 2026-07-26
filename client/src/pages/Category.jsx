@@ -1,76 +1,17 @@
 import React from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import EmptyState from "../components/EmptyState";
+import Breadcrumbs from "../components/Breadcrumbs";
+import ListingGridSkeleton from "../components/ListingGridSkeleton";
+import FavoriteButton from "../components/FavoriteButton";
 import { usePageMeta } from "../lib/usePageMeta";
-import { Search, FolderOpen } from "lucide-react";
+import { api } from "../lib/api";
+import { CATS } from "../data/listingCategories";
+import { getListingThumb } from "../lib/media";
+import { formatPrice } from "../lib/format";
+import { Search, FolderOpen, MapPin } from "lucide-react";
 
-const CATS = {
-  transport: {
-    title: "Авто",
-    img: "/img/car.png",
-    subs: [
-      "Легковые авто",
-      "Запчасти",
-      "Услуги для авто",
-      "Грузовики и автобусы",
-      "Мототранспорт",
-      "Сельхозтехника",
-      "Спецтехника",
-      "Прицепы",
-      "Шины и диски",
-      "Автохимия и автомасла",
-    ],
-  },
-  furniture: {
-    title: "Мебель",
-    img: "/img/furniture.png",
-    subs: [
-      "Мебель для спальни",
-      "Офисная мебель",
-      "Мебель для гостиной",
-      "Мебель для прихожей",
-      "Мебель на заказ",
-    ],
-  },
-  phones: {
-    title: "Телефоны",
-    img: "/img/phone.png",
-    subs: [
-      "Мобильные телефоны",
-      "Планшеты",
-      "Мобильные аксессуары",
-      "Ремонт и сервис телефонов",
-    ],
-  },
-  electronics: {
-    title: "Бытовая техника",
-    img: "/img/electronics.png",
-    subs: [
-      "Техника для дома и кухни",
-      "Видеонаблюдение и камеры",
-      "Климатическая техника",
-      "Обогреватели",
-    ],
-  },
-  computers: {
-    title: "Компьютеры и оргтехника",
-    img: "/img/computers.png",
-    subs: ["Ноутбуки", "ПК", "Приставки", "Принтеры и сканеры"],
-  },
-  repair: {
-    title: "Ремонт",
-    img: "/img/repair.png",
-    subs: [
-      "Окна и двери",
-      "Дома, срубы и снаряжения",
-      "Средства индивидуальной защиты",
-      "Ворота и заборы",
-      "Стройматериалы",
-      "Инструменты",
-      "Прочее для ремонта",
-    ],
-  },
-};
+const PREVIEW_LIMIT = 6;
 
 export default function Category() {
   const { slug } = useParams();
@@ -78,6 +19,9 @@ export default function Category() {
   const cat = CATS[slug];
 
   const [q, setQ] = React.useState("");
+  const [stats, setStats] = React.useState({ total: 0, bySubcategory: {} });
+  const [preview, setPreview] = React.useState([]);
+  const [loadingPreview, setLoadingPreview] = React.useState(true);
 
   const subs = React.useMemo(() => {
     if (!cat) return [];
@@ -89,10 +33,47 @@ export default function Category() {
     return cat.subs.filter((s) => s.toLowerCase().includes(t));
   }, [q, cat]);
 
+  React.useEffect(() => {
+    if (!slug) return undefined;
+
+    let active = true;
+
+    async function loadData() {
+      try {
+        setLoadingPreview(true);
+
+        const [statsData, listings] = await Promise.all([
+          api.listingStats(slug),
+          api.listings({ cat: slug, limit: PREVIEW_LIMIT, sort: "new" }),
+        ]);
+
+        if (!active) return;
+
+        setStats(statsData || { total: 0, bySubcategory: {} });
+        setPreview(Array.isArray(listings) ? listings.filter(Boolean) : []);
+      } catch {
+        if (active) {
+          setStats({ total: 0, bySubcategory: {} });
+          setPreview([]);
+        }
+      } finally {
+        if (active) {
+          setLoadingPreview(false);
+        }
+      }
+    }
+
+    loadData();
+
+    return () => {
+      active = false;
+    };
+  }, [slug]);
+
   usePageMeta({
     title: cat ? cat.title : "Категория не найдена",
     description: cat
-      ? `Объявления в категории «${cat.title}» на Oriyon.store. ${cat.subs.length} подкатегорий.`
+      ? `Объявления в категории «${cat.title}» на Oriyon.store. ${stats.total || cat.subs.length} объявлений.`
       : "Запрошенная категория не существует на Oriyon.store.",
     url: typeof window !== "undefined" ? window.location.href : undefined,
   });
@@ -111,19 +92,18 @@ export default function Category() {
     );
   }
 
+  function subCount(sub) {
+    return stats.bySubcategory?.[sub] || 0;
+  }
+
   return (
     <div className="container mx-auto px-4 py-6 space-y-6">
-      <nav className="text-sm text-slate-500">
-        <button onClick={() => nav(-1)} className="hover:underline">
-          Назад
-        </button>
-        <span className="mx-2">/</span>
-        <Link to="/" className="hover:underline">
-          Главная
-        </Link>
-        <span className="mx-2">/</span>
-        <span className="text-slate-700">{cat.title}</span>
-      </nav>
+      <Breadcrumbs
+        items={[
+          { label: "Главная", to: "/" },
+          { label: cat.title },
+        ]}
+      />
 
       <header className="rounded-3xl border border-slate-200 bg-gradient-to-br from-white to-slate-50 p-4 md:p-6 flex items-center gap-4 shadow-sm">
         <div className="shrink-0 w-16 h-16 md:w-20 md:h-20 rounded-2xl border bg-slate-50 grid place-items-center overflow-hidden">
@@ -141,24 +121,20 @@ export default function Category() {
             </span>
 
             <span className="text-xs text-slate-500">
-              Подкатегорий:{" "}
-              <span className="font-medium text-slate-700">
-                {cat.subs.length}
-              </span>
+              Объявлений:{" "}
+              <span className="font-medium text-slate-700">{stats.total}</span>
             </span>
           </div>
 
           <h1 className="text-2xl font-bold leading-tight">{cat.title}</h1>
 
-          <p className="text-slate-600 text-sm mt-1">
-            Выберите подкатегорию или посмотрите все объявления.
-          </p>
+          <p className="text-slate-600 text-sm mt-1">{cat.desc}</p>
         </div>
 
-        <div className="ml-auto flex gap-2">
+        <div className="ml-auto hidden sm:flex gap-2">
           <Link
             to={`/listing?cat=${slug}`}
-            className="hidden sm:inline-flex px-4 py-2 rounded-xl bg-sun text-white hover:bg-sun-600 transition shadow-sm"
+            className="inline-flex px-4 py-2 rounded-xl bg-sun text-white hover:bg-sun-600 transition shadow-sm"
           >
             Все объявления
           </Link>
@@ -182,10 +158,8 @@ export default function Category() {
           />
 
           <div className="text-xs text-slate-500 md:w-56">
-            Найдено:{" "}
-            <span className="font-medium text-slate-700">
-              {subs.length}
-            </span>
+            Найдено подкатегорий:{" "}
+            <span className="font-medium text-slate-700">{subs.length}</span>
           </div>
         </div>
       </div>
@@ -201,26 +175,135 @@ export default function Category() {
           />
         ) : (
           <div className="flex flex-wrap gap-2">
-  <Link
-    to={`/listing?cat=${slug}`}
-    className="px-5 py-2 rounded-full bg-slate-900 text-white text-sm font-medium"
-  >
-    Все
-  </Link>
+            <Link
+              to={`/listing?cat=${slug}`}
+              className="px-5 py-2 rounded-full bg-slate-900 text-white text-sm font-medium"
+            >
+              Все
+              {stats.total > 0 && (
+                <span className="ml-1.5 opacity-80">({stats.total})</span>
+              )}
+            </Link>
 
-  {subs.map((sub) => (
-    <Link
-      key={sub}
-      to={`/listing?cat=${slug}&subcategory=${encodeURIComponent(sub)}`}
-      className="px-5 py-2 rounded-full border bg-white text-slate-800 text-sm font-medium hover:bg-slate-900 hover:text-white transition"
-    >
-      {sub}
-    </Link>
-  ))}
-</div>
+            {subs.map((sub) => {
+              const count = subCount(sub);
+              const empty = count === 0;
+
+              return (
+                <Link
+                  key={sub}
+                  to={`/listing?cat=${slug}&subcategory=${encodeURIComponent(sub)}`}
+                  className={`px-5 py-2 rounded-full border text-sm font-medium transition ${
+                    empty
+                      ? "bg-slate-50 text-slate-400 border-slate-200"
+                      : "bg-white text-slate-800 hover:bg-slate-900 hover:text-white"
+                  }`}
+                >
+                  {sub}
+                  {count > 0 && (
+                    <span className="ml-1.5 opacity-70">({count})</span>
+                  )}
+                </Link>
+              );
+            })}
+          </div>
         )}
       </section>
 
+      <section className="space-y-4">
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-lg font-semibold">Свежие объявления</h2>
+
+          <Link
+            to={`/listing?cat=${slug}`}
+            className="text-sm text-sun hover:text-sun-600 font-medium"
+          >
+            Смотреть все
+          </Link>
+        </div>
+
+        {loadingPreview && <ListingGridSkeleton count={6} />}
+
+        {!loadingPreview && preview.length === 0 && (
+          <EmptyState
+            icon={Search}
+            title="Пока нет объявлений"
+            description="Станьте первым — разместите объявление в этой категории."
+            actionLabel="Подать объявление"
+            actionTo={`/add?cat=${slug}`}
+          />
+        )}
+
+        {!loadingPreview && preview.length > 0 && (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-4">
+            {preview.map((ad, idx) => {
+              const id = ad._id || ad.id;
+              const imgUrl = getListingThumb(ad);
+
+              return (
+                <div
+                  key={id || idx}
+                  role="link"
+                  tabIndex={0}
+                  onClick={() => {
+                    if (!id) return;
+                    sessionStorage.setItem("ad_preview", JSON.stringify(ad));
+                    nav(`/ad/${id}`);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      if (!id) return;
+                      sessionStorage.setItem("ad_preview", JSON.stringify(ad));
+                      nav(`/ad/${id}`);
+                    }
+                  }}
+                  className="group flex flex-col rounded-2xl border bg-white p-2 transition hover:shadow-lg hover:-translate-y-0.5 cursor-pointer"
+                >
+                  <img
+                    src={imgUrl}
+                    alt={ad.title || "Фото"}
+                    loading="lazy"
+                    className="w-full h-32 object-cover rounded-xl bg-slate-100"
+                  />
+
+                  <div className="mt-2 flex-1 flex flex-col gap-1">
+                    <div className="font-semibold text-sm text-slate-900 line-clamp-2 group-hover:text-sun transition">
+                      {ad.title || "Без названия"}
+                    </div>
+
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="text-price text-sm">
+                        {formatPrice(ad.price)}
+                      </div>
+
+                      <FavoriteButton
+                        id={id}
+                        defaultActive={ad.isFavorite}
+                        compact
+                      />
+                    </div>
+
+                    <div className="text-xs text-slate-500 line-clamp-1 flex items-center gap-1">
+                      <MapPin size={13} />
+                      {ad.location || ad.city || "Душанбе"}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </section>
+
+      <div className="sm:hidden">
+        <Link
+          to={`/listing?cat=${slug}`}
+          className="flex w-full justify-center px-4 py-3 rounded-xl bg-sun text-white hover:bg-sun-600 transition shadow-sm font-medium"
+        >
+          Все объявления ({stats.total})
+        </Link>
+      </div>
     </div>
   );
 }

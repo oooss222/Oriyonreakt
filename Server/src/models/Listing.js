@@ -10,6 +10,97 @@ function toNumberOrNull(value) {
   return Number.isFinite(n) ? n : null;
 }
 
+function buildListingFilters({
+  cat,
+  subcategory,
+  search,
+  status = "approved",
+  priceFrom,
+  priceTo,
+  specs,
+} = {}) {
+  const conditions = [];
+  const values = [];
+
+  const minPrice = toNumberOrNull(priceFrom);
+  const maxPrice = toNumberOrNull(priceTo);
+
+  const priceExpr = `
+    NULLIF(
+      replace(
+        regexp_replace(price, '[^0-9,.-]', '', 'g'),
+        ',',
+        '.'
+      ),
+      ''
+    )::numeric
+  `;
+
+  if (status) {
+    values.push(status);
+    conditions.push(`status = $${values.length}`);
+  }
+
+  if (cat) {
+    values.push(cat);
+    conditions.push(`cat = $${values.length}`);
+  }
+
+  if (subcategory) {
+    values.push(subcategory);
+    conditions.push(`subcategory = $${values.length}`);
+  }
+
+  if (search) {
+    values.push(`%${search}%`);
+    conditions.push(`
+      (
+        title ILIKE $${values.length}
+        OR description ILIKE $${values.length}
+        OR location ILIKE $${values.length}
+        OR cat ILIKE $${values.length}
+        OR subcategory ILIKE $${values.length}
+        OR specs::text ILIKE $${values.length}
+      )
+    `);
+  }
+
+  if (minPrice !== null) {
+    values.push(minPrice);
+    conditions.push(`${priceExpr} >= $${values.length}`);
+  }
+
+  if (maxPrice !== null) {
+    values.push(maxPrice);
+    conditions.push(`${priceExpr} <= $${values.length}`);
+  }
+
+  if (specs && typeof specs === "object") {
+    for (const [name, value] of Object.entries(specs)) {
+      const specName = String(name || "").trim();
+      const specValue = String(value || "").trim();
+
+      if (!specName || !specValue) continue;
+
+      values.push(specName);
+      const nameIdx = values.length;
+      values.push(specValue);
+      const valueIdx = values.length;
+
+      conditions.push(`
+        EXISTS (
+          SELECT 1
+          FROM jsonb_array_elements(specs) AS spec
+          WHERE spec->>'name' = $${nameIdx}
+            AND spec->>'value' = $${valueIdx}
+        )
+      `);
+    }
+  }
+
+  return { conditions, values, priceExpr };
+}
+
 class ListingModel {
   static async create(data) {
   const result = await query(
@@ -67,68 +158,23 @@ class ListingModel {
     status = "approved",
     priceFrom,
     priceTo,
+    specs,
     sort = "new",
     limit = 50,
     offset = 0,
   } = {}) {
-    const conditions = [];
-    const values = [];
-
     const safeLimit = Math.min(Math.max(Number(limit) || 50, 1), 100);
     const safeOffset = Math.max(Number(offset) || 0, 0);
 
-    const minPrice = toNumberOrNull(priceFrom);
-    const maxPrice = toNumberOrNull(priceTo);
-
-    const priceExpr = `
-      NULLIF(
-        replace(
-          regexp_replace(price, '[^0-9,.-]', '', 'g'),
-          ',',
-          '.'
-        ),
-        ''
-      )::numeric
-    `;
-
-    if (status) {
-      values.push(status);
-      conditions.push(`status = $${values.length}`);
-    }
-
-    if (cat) {
-      values.push(cat);
-      conditions.push(`cat = $${values.length}`);
-    }
-
-    if (subcategory) {
-      values.push(subcategory);
-      conditions.push(`subcategory = $${values.length}`);
-    }
-
-    if (search) {
-      values.push(`%${search}%`);
-      conditions.push(`
-        (
-          title ILIKE $${values.length}
-          OR description ILIKE $${values.length}
-          OR location ILIKE $${values.length}
-          OR cat ILIKE $${values.length}
-          OR subcategory ILIKE $${values.length}
-          OR specs::text ILIKE $${values.length}
-        )
-      `);
-    }
-
-    if (minPrice !== null) {
-      values.push(minPrice);
-      conditions.push(`${priceExpr} >= $${values.length}`);
-    }
-
-    if (maxPrice !== null) {
-      values.push(maxPrice);
-      conditions.push(`${priceExpr} <= $${values.length}`);
-    }
+    const { conditions, values, priceExpr } = buildListingFilters({
+      cat,
+      subcategory,
+      search,
+      status,
+      priceFrom,
+      priceTo,
+      specs,
+    });
 
     let orderBy = "created_at DESC";
 
@@ -162,6 +208,71 @@ class ListingModel {
     const result = await query(sql, values);
 
     return result.rows.map(mapListing);
+  }
+
+  static async count({
+    cat,
+    subcategory,
+    search,
+    status = "approved",
+    priceFrom,
+    priceTo,
+    specs,
+  } = {}) {
+    const { conditions, values } = buildListingFilters({
+      cat,
+      subcategory,
+      search,
+      status,
+      priceFrom,
+      priceTo,
+      specs,
+    });
+
+    let sql = `
+      SELECT COUNT(*)::int AS count
+      FROM listings
+    `;
+
+    if (conditions.length) {
+      sql += ` WHERE ${conditions.join(" AND ")}`;
+    }
+
+    const result = await query(sql, values);
+
+    return Number(result.rows[0]?.count || 0);
+  }
+
+  static async statsByCategory(cat, status = "approved") {
+    const totalResult = await query(
+      `
+      SELECT COUNT(*)::int AS count
+      FROM listings
+      WHERE cat = $1 AND status = $2
+      `,
+      [cat, status]
+    );
+
+    const subResult = await query(
+      `
+      SELECT subcategory, COUNT(*)::int AS count
+      FROM listings
+      WHERE cat = $1 AND status = $2 AND COALESCE(subcategory, '') <> ''
+      GROUP BY subcategory
+      `,
+      [cat, status]
+    );
+
+    const bySubcategory = {};
+
+    for (const row of subResult.rows) {
+      bySubcategory[row.subcategory] = row.count;
+    }
+
+    return {
+      total: Number(totalResult.rows[0]?.count || 0),
+      bySubcategory,
+    };
   }
 
  static async findById(id) {

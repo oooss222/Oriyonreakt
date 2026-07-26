@@ -18,6 +18,80 @@ function normalizeArray(value) {
   return [];
 }
 
+function parseSpecsFilter(value) {
+  if (!value) return undefined;
+
+  if (typeof value === "object" && !Array.isArray(value)) {
+    return value;
+  }
+
+  if (typeof value !== "string") return undefined;
+
+  try {
+    const parsed = JSON.parse(value);
+
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+      return undefined;
+    }
+
+    return parsed;
+  } catch {
+    return undefined;
+  }
+}
+
+router.get("/stats", async (req, res) => {
+  try {
+    const { cat } = req.query;
+
+    if (!cat) {
+      return res.status(400).json({
+        error: "cat required",
+      });
+    }
+
+    const stats = await Listing.statsByCategory(String(cat).trim());
+
+    return res.json(stats);
+  } catch (e) {
+    console.error("LISTINGS_STATS_ERROR:", e?.message);
+
+    return res.status(500).json({
+      error: "Failed to load listing stats",
+    });
+  }
+});
+
+router.get("/count", async (req, res) => {
+  try {
+    const {
+      cat,
+      subcategory,
+      search,
+      priceFrom,
+      priceTo,
+      specs,
+    } = req.query;
+
+    const total = await Listing.count({
+      cat: cat || undefined,
+      subcategory: subcategory || undefined,
+      search: search || undefined,
+      priceFrom: priceFrom || undefined,
+      priceTo: priceTo || undefined,
+      specs: parseSpecsFilter(specs),
+    });
+
+    return res.json({ total });
+  } catch (e) {
+    console.error("LISTINGS_COUNT_ERROR:", e?.message);
+
+    return res.status(500).json({
+      error: "Failed to count listings",
+    });
+  }
+});
+
 router.get("/", async (req, res) => {
   try {
     const {
@@ -30,6 +104,7 @@ router.get("/", async (req, res) => {
       sort,
       limit,
       offset,
+      specs,
     } = req.query;
 
     const listings = await Listing.findAll({
@@ -42,6 +117,7 @@ router.get("/", async (req, res) => {
       sort: sort || "new",
       limit: Number(limit || 50),
       offset: Number(offset || 0),
+      specs: parseSpecsFilter(specs),
     });
 
     return res.json(listings);

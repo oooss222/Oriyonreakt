@@ -114,6 +114,15 @@ export const api = {
     );
   },
 
+  listingStats: (cat) =>
+    request(`/listings/stats?cat=${encodeURIComponent(cat)}`),
+
+  listingCount: (params = {}) => {
+    const q = new URLSearchParams(params).toString();
+
+    return request(`/listings/count${q ? `?${q}` : ""}`);
+  },
+
   listingById: (id) =>
     request(`/listings/${id}`),
 
