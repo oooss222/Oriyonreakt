@@ -7,10 +7,8 @@ import {
   X,
 } from "lucide-react";
 import { CATEGORY_SELECT_OPTIONS } from "../data/listingCategories";
-import {
-  getListingFilterGrid,
-  PRICE_PRESETS,
-} from "../data/filterGrids";
+import { getListingFilterGrid } from "../data/filterGrids";
+import { formatPriceInput, getPriceDigits } from "../data/specOptions";
 
 function FilterSelect({
   label,
@@ -49,33 +47,40 @@ function FilterSelect({
   );
 }
 
-function PriceFilterSelect({ draft, setDraft }) {
-  const selectedLabel =
-    PRICE_PRESETS.find(
-      (item) =>
-        item.from === (draft.priceFrom || "") && item.to === (draft.priceTo || "")
-    )?.label || "";
-
+function PriceRangeInput({ draft, setDraft }) {
   return (
-    <FilterSelect
-      label="Цена"
-      placeholder="Цена"
-      value={selectedLabel === "Любая" ? "" : selectedLabel}
-      options={PRICE_PRESETS.filter((item) => item.label !== "Любая").map(
-        (item) => item.label
-      )}
-      onChange={(label) => {
-        const selected =
-          PRICE_PRESETS.find((item) => item.label === label) ||
-          PRICE_PRESETS[0];
+    <div
+      className="flex h-12 rounded-xl bg-white shadow-sm border border-slate-200 overflow-hidden focus-within:ring-2 focus-within:ring-lagoon/30 transition"
+      aria-label="Цена от и до"
+    >
+      <input
+        type="text"
+        inputMode="numeric"
+        placeholder="от"
+        value={draft.priceFrom ? formatPriceInput(draft.priceFrom) : ""}
+        onChange={(e) =>
+          setDraft((current) => ({
+            ...current,
+            priceFrom: getPriceDigits(e.target.value),
+          }))
+        }
+        className="w-1/2 h-full px-4 text-sm outline-none border-r border-slate-200 placeholder:text-slate-400"
+      />
 
-        setDraft((current) => ({
-          ...current,
-          priceFrom: selected.from,
-          priceTo: selected.to,
-        }));
-      }}
-    />
+      <input
+        type="text"
+        inputMode="numeric"
+        placeholder="до"
+        value={draft.priceTo ? formatPriceInput(draft.priceTo) : ""}
+        onChange={(e) =>
+          setDraft((current) => ({
+            ...current,
+            priceTo: getPriceDigits(e.target.value),
+          }))
+        }
+        className="w-1/2 h-full px-4 text-sm outline-none placeholder:text-slate-400"
+      />
+    </div>
   );
 }
 
@@ -142,7 +147,7 @@ function renderField(
   }
 
   if (field.type === "price") {
-    return <PriceFilterSelect draft={draft} setDraft={setDraft} />;
+    return <PriceRangeInput draft={draft} setDraft={setDraft} />;
   }
 
   if (field.type === "spec") {
