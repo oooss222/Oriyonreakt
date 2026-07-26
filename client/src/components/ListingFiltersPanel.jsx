@@ -47,39 +47,121 @@ function FilterSelect({
   );
 }
 
-function PriceRangeInput({ draft, setDraft }) {
-  return (
-    <div
-      className="flex h-12 rounded-xl bg-white shadow-sm border border-slate-200 overflow-hidden focus-within:ring-2 focus-within:ring-lagoon/30 transition"
-      aria-label="Цена от и до"
-    >
-      <input
-        type="text"
-        inputMode="numeric"
-        placeholder="от"
-        value={draft.priceFrom ? formatPriceInput(draft.priceFrom) : ""}
-        onChange={(e) =>
-          setDraft((current) => ({
-            ...current,
-            priceFrom: getPriceDigits(e.target.value),
-          }))
-        }
-        className="w-1/2 h-full px-4 text-sm outline-none border-r border-slate-200 placeholder:text-slate-400"
-      />
+function formatPriceSummary(from, to, currency = "с.") {
+  const fromLabel = from ? formatPriceInput(from) : "";
+  const toLabel = to ? formatPriceInput(to) : "";
 
-      <input
-        type="text"
-        inputMode="numeric"
-        placeholder="до"
-        value={draft.priceTo ? formatPriceInput(draft.priceTo) : ""}
-        onChange={(e) =>
-          setDraft((current) => ({
-            ...current,
-            priceTo: getPriceDigits(e.target.value),
-          }))
-        }
-        className="w-1/2 h-full px-4 text-sm outline-none placeholder:text-slate-400"
-      />
+  if (fromLabel && toLabel) {
+    return `${fromLabel} – ${toLabel} ${currency}`;
+  }
+
+  if (fromLabel) {
+    return `от ${fromLabel} ${currency}`;
+  }
+
+  if (toLabel) {
+    return `до ${toLabel} ${currency}`;
+  }
+
+  return "";
+}
+
+function PriceFilterPopover({ draft, setDraft }) {
+  const [open, setOpen] = React.useState(false);
+  const rootRef = React.useRef(null);
+  const currency = draft.priceCurrency || "с.";
+
+  React.useEffect(() => {
+    if (!open) return undefined;
+
+    const handleOutside = (event) => {
+      if (!rootRef.current?.contains(event.target)) {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleOutside);
+    };
+  }, [open]);
+
+  const summary = formatPriceSummary(draft.priceFrom, draft.priceTo, currency);
+
+  return (
+    <div ref={rootRef} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((value) => !value)}
+        className={`w-full h-12 flex items-center justify-between gap-3 rounded-xl bg-white px-4 text-sm outline-none transition shadow-sm border border-white/80 hover:border-slate-200 focus:ring-2 focus:ring-lagoon/30 ${
+          summary ? "text-slate-900 font-medium" : "text-slate-500"
+        }`}
+      >
+        <span className="truncate">{summary || "Цена"}</span>
+        {open ? (
+          <ChevronUp size={18} className="shrink-0 text-slate-400" />
+        ) : (
+          <ChevronDown size={18} className="shrink-0 text-slate-400" />
+        )}
+      </button>
+
+      {open && (
+        <div className="absolute left-0 right-0 top-[calc(100%+8px)] z-50 rounded-xl border border-slate-200 bg-white p-3 shadow-xl">
+          <div className="flex items-stretch gap-2">
+            <div className="flex flex-1 h-11 rounded-lg border border-slate-200 overflow-hidden">
+              <input
+                type="text"
+                inputMode="numeric"
+                placeholder="от"
+                value={draft.priceFrom ? formatPriceInput(draft.priceFrom) : ""}
+                onChange={(e) =>
+                  setDraft((current) => ({
+                    ...current,
+                    priceFrom: getPriceDigits(e.target.value),
+                  }))
+                }
+                className="w-1/2 h-full px-3 text-sm outline-none border-r border-slate-200 placeholder:text-slate-400"
+              />
+
+              <input
+                type="text"
+                inputMode="numeric"
+                placeholder="до"
+                value={draft.priceTo ? formatPriceInput(draft.priceTo) : ""}
+                onChange={(e) =>
+                  setDraft((current) => ({
+                    ...current,
+                    priceTo: getPriceDigits(e.target.value),
+                  }))
+                }
+                className="w-1/2 h-full px-3 text-sm outline-none placeholder:text-slate-400"
+              />
+            </div>
+
+            <div className="relative shrink-0">
+              <select
+                value={currency}
+                onChange={(e) =>
+                  setDraft((current) => ({
+                    ...current,
+                    priceCurrency: e.target.value,
+                  }))
+                }
+                className="h-11 min-w-[4.5rem] appearance-none rounded-lg border border-slate-200 bg-white pl-3 pr-8 text-sm outline-none focus:ring-2 focus:ring-lagoon/30"
+              >
+                <option value="с.">с.</option>
+                <option value="$">$</option>
+              </select>
+
+              <ChevronDown
+                size={16}
+                className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-slate-400"
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -147,7 +229,7 @@ function renderField(
   }
 
   if (field.type === "price") {
-    return <PriceRangeInput draft={draft} setDraft={setDraft} />;
+    return <PriceFilterPopover draft={draft} setDraft={setDraft} />;
   }
 
   if (field.type === "spec") {
