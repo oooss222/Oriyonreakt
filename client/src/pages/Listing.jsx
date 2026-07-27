@@ -47,10 +47,40 @@ function buildListingParams(draft, urlCat = "") {
   return next;
 }
 
+function searchParamsToDraft(params) {
+  return {
+    search: params.get("search") || params.get("q") || "",
+    cat: params.get("cat") || "",
+    subcategory: params.get("subcategory") || "",
+    priceFrom: params.get("priceFrom") || "",
+    priceTo: params.get("priceTo") || "",
+    location: params.get("location") || "",
+    region: params.get("region") || "",
+    sort: params.get("sort") || "new",
+    specs: parseSpecsParam(params.get("specs")),
+  };
+}
+
+function buildListingQueryFromSearchParams(params) {
+  const draft = searchParamsToDraft(params);
+  return {
+    ...buildListingParams(draft, draft.cat),
+    limit: 100,
+  };
+}
+
 function buildListingQueryFromDraft(draft, urlCat = "") {
-  const params = buildListingParams(draft, urlCat);
-  params.limit = 100;
-  return params;
+  return {
+    ...buildListingParams(draft, urlCat),
+    limit: 100,
+  };
+}
+
+function draftsMatch(appliedDraft, nextDraft, urlCat = "") {
+  return (
+    JSON.stringify(buildListingParams(appliedDraft, urlCat)) ===
+    JSON.stringify(buildListingParams(nextDraft, urlCat))
+  );
 }
 
 export default function Listing() {
@@ -69,51 +99,25 @@ export default function Listing() {
   const subcategory = searchParams.get("subcategory") || "";
   const search =
     searchParams.get("search") || searchParams.get("q") || "";
-  const priceFrom = searchParams.get("priceFrom") || "";
-  const priceTo = searchParams.get("priceTo") || "";
-  const location = searchParams.get("location") || "";
-  const region = searchParams.get("region") || "";
-  const sort = searchParams.get("sort") || "new";
-  const activeSpecs = React.useMemo(
-    () => parseSpecsParam(searchParams.get("specs")),
-    [searchParams]
+  const paramsKey = searchParams.toString();
+
+  const appliedDraft = React.useMemo(
+    () => searchParamsToDraft(searchParams),
+    [paramsKey, searchParams]
   );
 
-  const [draft, setDraft] = React.useState({
-    search,
-    cat,
-    subcategory,
-    priceFrom,
-    priceTo,
-    location,
-    region,
-    sort,
-    specs: activeSpecs,
-  });
+  const activeSpecs = appliedDraft.specs;
+  const priceFrom = appliedDraft.priceFrom;
+  const priceTo = appliedDraft.priceTo;
+  const location = appliedDraft.location;
+  const region = appliedDraft.region;
+  const sort = appliedDraft.sort;
+
+  const [draft, setDraft] = React.useState(appliedDraft);
 
   React.useEffect(() => {
-    setDraft({
-      search,
-      cat,
-      subcategory,
-      priceFrom,
-      priceTo,
-      location,
-      region,
-      sort,
-      specs: activeSpecs,
-    });
-  }, [
-    search,
-    cat,
-    subcategory,
-    priceFrom,
-    priceTo,
-    location,
-    region,
-    sort,
-    activeSpecs,
-  ]);
+    setDraft(appliedDraft);
+  }, [paramsKey, appliedDraft]);
 
   React.useEffect(() => {
     if (!mobileFiltersOpen) return undefined;
@@ -126,35 +130,15 @@ export default function Listing() {
     };
   }, [mobileFiltersOpen]);
 
-  const listingQuery = React.useMemo(() => {
-    const params = {
-      cat: cat || undefined,
-      subcategory: subcategory || undefined,
-      search: search || undefined,
-      priceFrom: priceFrom || undefined,
-      priceTo: priceTo || undefined,
-      location: location || undefined,
-      region: location ? undefined : region || undefined,
-      sort: sort || "new",
-      limit: 100,
-    };
+  const listingQuery = React.useMemo(
+    () => buildListingQueryFromSearchParams(searchParams),
+    [paramsKey, searchParams]
+  );
 
-    if (Object.keys(activeSpecs).length) {
-      params.specs = JSON.stringify(activeSpecs);
-    }
-
-    return params;
-  }, [
-    cat,
-    subcategory,
-    search,
-    priceFrom,
-    priceTo,
-    location,
-    region,
-    sort,
-    activeSpecs,
-  ]);
+  const draftIsDirty = React.useMemo(
+    () => !draftsMatch(appliedDraft, draft, cat),
+    [appliedDraft, draft, cat]
+  );
 
   React.useEffect(() => {
     let active = true;
@@ -198,6 +182,11 @@ export default function Listing() {
   }, [listingQuery]);
 
   React.useEffect(() => {
+    if (!draftIsDirty) {
+      setPreviewTotal(total);
+      return undefined;
+    }
+
     let active = true;
     const timer = setTimeout(async () => {
       try {
@@ -224,7 +213,7 @@ export default function Listing() {
       active = false;
       clearTimeout(timer);
     };
-  }, [draft, total, cat]);
+  }, [draft, total, cat, draftIsDirty]);
 
   const activeCat = draft.cat || cat;
   const catConfig = cat ? CATS[cat] : null;
@@ -275,8 +264,10 @@ export default function Listing() {
   });
 
   const applyFilters = React.useCallback(
-    (nextDraft = draft) => {
-      setSearchParams(buildListingParams(nextDraft, cat));
+    (nextDraft) => {
+      const payload = nextDraft || draft;
+      setDraft(payload);
+      setSearchParams(buildListingParams(payload, payload.cat || cat));
       setMobileFiltersOpen(false);
     },
     [draft, cat, setSearchParams]
@@ -367,7 +358,7 @@ export default function Listing() {
             showCategorySelect={!cat}
             onApply={applyFilters}
             onReset={resetFilters}
-            previewTotal={previewTotal}
+            previewTotal={draftIsDirty ? previewTotal : total}
             previewLoading={previewLoading}
             hasActiveFilters={hasActiveFilters}
           />
@@ -405,7 +396,7 @@ export default function Listing() {
               showCategorySelect={!cat}
               onApply={applyFilters}
               onReset={resetFilters}
-              previewTotal={previewTotal}
+              previewTotal={draftIsDirty ? previewTotal : total}
               previewLoading={previewLoading}
               hasActiveFilters={hasActiveFilters}
               compact
@@ -426,7 +417,7 @@ export default function Listing() {
         />
       )}
 
-      {!loading && !error && items.length === 0 && (
+      {!loading && !error && items.length === 0 && total === 0 && (
         <EmptyState
           icon={Search}
           title="По выбранным фильтрам ничего не найдено"

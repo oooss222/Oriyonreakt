@@ -179,12 +179,10 @@ function PriceFilterPopover({ draft, setDraft, onApply }) {
   );
 }
 
-function updateDraft(setDraft, onApply, updater) {
-  setDraft((current) => {
-    const next = updater(current);
-    onApply?.(next);
-    return next;
-  });
+function commitDraft(setDraft, onApply, updater, current) {
+  const next = updater(current);
+  setDraft(next);
+  onApply?.(next);
 }
 
 function renderField(
@@ -207,11 +205,11 @@ function renderField(
         value={draft.subcategory}
         options={availableSubcategories}
         onChange={(value) =>
-          updateDraft(setDraft, onApply, (current) => ({
+          commitDraft(setDraft, onApply, (current) => ({
             ...current,
             subcategory: value,
             specs: {},
-          }))
+          }), draft)
         }
       />
     );
@@ -239,12 +237,12 @@ function renderField(
             CATEGORY_SELECT_OPTIONS.find((item) => item.label === nextLabel)
               ?.value || "";
 
-          updateDraft(setDraft, onApply, (current) => ({
+          commitDraft(setDraft, onApply, (current) => ({
             ...current,
             cat: nextCat,
             subcategory: "",
             specs: {},
-          }));
+          }), draft);
         }}
       />
     );
@@ -270,7 +268,7 @@ function renderField(
         value={draft.specs?.[specKey] || ""}
         options={field.options || []}
         onChange={(value) =>
-          updateDraft(setDraft, onApply, (current) => {
+          commitDraft(setDraft, onApply, (current) => {
             const nextSpecs = { ...current.specs };
 
             if (value) {
@@ -291,7 +289,7 @@ function renderField(
               ...current,
               specs: nextSpecs,
             };
-          })
+          }, draft)
         }
       />
     );
@@ -309,7 +307,7 @@ function renderField(
         options={options}
         disabled={!parentValue}
         onChange={(value) =>
-          updateDraft(setDraft, onApply, (current) => {
+          commitDraft(setDraft, onApply, (current) => {
             const nextSpecs = { ...current.specs };
 
             if (value) {
@@ -322,7 +320,7 @@ function renderField(
               ...current,
               specs: nextSpecs,
             };
-          })
+          }, draft)
         }
       />
     );
@@ -336,10 +334,10 @@ function renderField(
         value={draft.region || ""}
         options={field.options || []}
         onChange={(value) =>
-          updateDraft(setDraft, onApply, (current) => ({
+          commitDraft(setDraft, onApply, (current) => ({
             ...current,
             region: value,
-          }))
+          }), draft)
         }
       />
     );
@@ -353,10 +351,10 @@ function renderField(
         value={draft.location || ""}
         options={field.options || []}
         onChange={(value) =>
-          updateDraft(setDraft, onApply, (current) => ({
+          commitDraft(setDraft, onApply, (current) => ({
             ...current,
             location: value,
-          }))
+          }), draft)
         }
       />
     );
@@ -396,10 +394,10 @@ function renderField(
             Object.entries(sortLabels).find(([, value]) => value === label)?.[0] ||
             "new";
 
-          updateDraft(setDraft, onApply, (current) => ({
+          commitDraft(setDraft, onApply, (current) => ({
             ...current,
             sort: nextSort,
-          }));
+          }), draft);
         }}
       />
     );

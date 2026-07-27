@@ -57,8 +57,8 @@ function buildListingFilters({
   }
 
   if (subcategory) {
-    values.push(subcategory);
-    conditions.push(`subcategory = $${values.length}`);
+    values.push(String(subcategory).trim());
+    conditions.push(`TRIM(subcategory) = $${values.length}`);
   }
 
   if (search) {
