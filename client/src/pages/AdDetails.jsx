@@ -139,9 +139,6 @@ export default function AdDetails() {
   const [loading, setLoading] = React.useState(true);
   const [isFav, setIsFav] = React.useState(false);
   const [phoneVisible, setPhoneVisible] = React.useState(false);
-  const [messageOpen, setMessageOpen] = React.useState(false);
-  const [messageText, setMessageText] = React.useState("");
-  const [messageSending, setMessageSending] = React.useState(false);
   const [toast, setToast] = React.useState("");
   const [copied, setCopied] = React.useState(false);
   const [currentUserId, setCurrentUserId] = React.useState(null);
@@ -182,7 +179,6 @@ export default function AdDetails() {
           setAd(data);
           setActiveImageIndex(0);
           setPhoneVisible(false);
-          setMessageOpen(false);
         }
       } catch {
         if (active) setAd(null);
@@ -333,47 +329,22 @@ export default function AdDetails() {
     }
   };
 
-  const sendSellerMessage = async () => {
+  const openSellerChat = () => {
     if (!token) {
       goToAuth(nav);
       return;
     }
 
-    const text = messageText.trim();
-
-    if (!text) {
-      setToast("Введите сообщение");
+    if (!ad?.owner) {
+      setToast("Продавец недоступен");
       return;
     }
 
-    try {
-      setMessageSending(true);
+    const listingId = ad._id || ad.id;
 
-      await api.sendMessage(
-        token,
-        ad._id || ad.id,
-        text,
-        ad.owner
-      );
-
-      setMessageText("");
-      setMessageOpen(false);
-
-      nav(
-        `/messages?listingId=${ad._id || ad.id}&peerId=${ad.owner}&title=${encodeURIComponent(ad.title || "Объявление")}`
-      );
-    } catch (e) {
-      const msg = e.message || "Не удалось отправить";
-
-      if (msg.includes("Invalid token") || msg.includes("401")) {
-        goToAuth(nav);
-        return;
-      }
-
-      setToast(msg);
-    } finally {
-      setMessageSending(false);
-    }
+    nav(
+      `/messages?listingId=${listingId}&peerId=${ad.owner}&title=${encodeURIComponent(ad.title || "Объявление")}`
+    );
   };
 
   const shareAd = async () => {
@@ -853,36 +824,14 @@ export default function AdDetails() {
                   )}
 
                   {!isOwner ? (
-                    <>
-                      <button
-                        type="button"
-                        className="btn w-full py-3 rounded-2xl"
-                        onClick={() => setMessageOpen((v) => !v)}
-                      >
-                        <MessageCircle className="w-5 h-5" />
-                        Написать продавцу
-                      </button>
-
-                      {messageOpen && (
-                        <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 space-y-3 animate-fade-in-up">
-                          <textarea
-                            value={messageText}
-                            onChange={(e) => setMessageText(e.target.value)}
-                            rows={4}
-                            placeholder="Здравствуйте! Интересует ваше объявление..."
-                            className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-sun/40 resize-y bg-white"
-                          />
-                          <button
-                            type="button"
-                            onClick={sendSellerMessage}
-                            disabled={messageSending}
-                            className="btn btn-primary w-full rounded-xl disabled:opacity-60"
-                          >
-                            {messageSending ? "Отправляем..." : "Отправить"}
-                          </button>
-                        </div>
-                      )}
-                    </>
+                    <button
+                      type="button"
+                      className="btn w-full py-3 rounded-2xl"
+                      onClick={openSellerChat}
+                    >
+                      <MessageCircle className="w-5 h-5" />
+                      Написать продавцу
+                    </button>
                   ) : (
                     <Link
                       to="/messages"
@@ -972,10 +921,7 @@ export default function AdDetails() {
             <button
               type="button"
               className="btn shrink-0 rounded-2xl px-4"
-              onClick={() => {
-                setMessageOpen(true);
-                window.scrollTo({ top: 0, behavior: "smooth" });
-              }}
+              onClick={openSellerChat}
             >
               <MessageCircle className="w-4 h-4" />
             </button>
