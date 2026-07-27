@@ -18,16 +18,17 @@ import {
   PackageSearch,
 } from "lucide-react";
 
-function buildListingParams(draft) {
+function buildListingParams(draft, urlCat = "") {
   const next = {};
   const normalizedSearch = draft.search.trim();
+  const effectiveCat = draft.cat || urlCat;
 
   if (normalizedSearch) {
     next.search = normalizedSearch;
     next.q = normalizedSearch;
   }
 
-  if (draft.cat) next.cat = draft.cat;
+  if (effectiveCat) next.cat = effectiveCat;
   if (draft.subcategory) next.subcategory = draft.subcategory;
   if (draft.priceFrom) next.priceFrom = draft.priceFrom;
   if (draft.priceTo) next.priceTo = draft.priceTo;
@@ -46,8 +47,8 @@ function buildListingParams(draft) {
   return next;
 }
 
-function buildListingQueryFromDraft(draft) {
-  const params = buildListingParams(draft);
+function buildListingQueryFromDraft(draft, urlCat = "") {
+  const params = buildListingParams(draft, urlCat);
   params.limit = 100;
   return params;
 }
@@ -163,15 +164,20 @@ export default function Listing() {
         setLoading(true);
         setError("");
 
-        const [data, countData] = await Promise.all([
-          api.listings(listingQuery),
-          api.listingCount(listingQuery),
-        ]);
+        const data = await api.listings(listingQuery);
+        let count = Array.isArray(data) ? data.length : 0;
+
+        try {
+          const countData = await api.listingCount(listingQuery);
+          count = Number(countData?.total ?? count);
+        } catch {
+          // Count endpoint may be unavailable on older API builds.
+        }
 
         if (active) {
           setItems(Array.isArray(data) ? data.filter(Boolean) : []);
-          setTotal(Number(countData?.total || 0));
-          setPreviewTotal(Number(countData?.total || 0));
+          setTotal(count);
+          setPreviewTotal(count);
         }
       } catch (e) {
         if (active) {
@@ -197,7 +203,7 @@ export default function Listing() {
       try {
         setPreviewLoading(true);
         const countData = await api.listingCount(
-          buildListingQueryFromDraft(draft)
+          buildListingQueryFromDraft(draft, cat)
         );
 
         if (active) {
@@ -218,7 +224,7 @@ export default function Listing() {
       active = false;
       clearTimeout(timer);
     };
-  }, [draft, total]);
+  }, [draft, total, cat]);
 
   const activeCat = draft.cat || cat;
   const catConfig = cat ? CATS[cat] : null;
@@ -268,10 +274,13 @@ export default function Listing() {
     url: typeof window !== "undefined" ? window.location.href : undefined,
   });
 
-  const applyFilters = () => {
-    setSearchParams(buildListingParams(draft));
-    setMobileFiltersOpen(false);
-  };
+  const applyFilters = React.useCallback(
+    (nextDraft = draft) => {
+      setSearchParams(buildListingParams(nextDraft, cat));
+      setMobileFiltersOpen(false);
+    },
+    [draft, cat, setSearchParams]
+  );
 
   const resetFilters = () => {
     setDraft({

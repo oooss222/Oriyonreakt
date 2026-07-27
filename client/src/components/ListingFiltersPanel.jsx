@@ -66,17 +66,30 @@ function formatPriceSummary(from, to, currency = "с.") {
   return "";
 }
 
-function PriceFilterPopover({ draft, setDraft }) {
+function PriceFilterPopover({ draft, setDraft, onApply }) {
   const [open, setOpen] = React.useState(false);
   const rootRef = React.useRef(null);
+  const draftRef = React.useRef(draft);
   const currency = draft.priceCurrency || "с.";
+
+  draftRef.current = draft;
+
+  const closePopover = React.useCallback(
+    (shouldApply = false) => {
+      setOpen(false);
+      if (shouldApply) {
+        onApply?.(draftRef.current);
+      }
+    },
+    [onApply]
+  );
 
   React.useEffect(() => {
     if (!open) return undefined;
 
     const handleOutside = (event) => {
       if (!rootRef.current?.contains(event.target)) {
-        setOpen(false);
+        closePopover(true);
       }
     };
 
@@ -85,7 +98,7 @@ function PriceFilterPopover({ draft, setDraft }) {
     return () => {
       document.removeEventListener("mousedown", handleOutside);
     };
-  }, [open]);
+  }, [open, closePopover]);
 
   const summary = formatPriceSummary(draft.priceFrom, draft.priceTo, currency);
 
@@ -166,6 +179,14 @@ function PriceFilterPopover({ draft, setDraft }) {
   );
 }
 
+function updateDraft(setDraft, onApply, updater) {
+  setDraft((current) => {
+    const next = updater(current);
+    onApply?.(next);
+    return next;
+  });
+}
+
 function renderField(
   field,
   {
@@ -173,6 +194,7 @@ function renderField(
     setDraft,
     availableSubcategories,
     showCategorySelect,
+    onApply,
   }
 ) {
   if (!field) return <div className="hidden xl:block" aria-hidden="true" />;
@@ -181,11 +203,11 @@ function renderField(
     return (
       <FilterSelect
         label={field.label}
-        placeholder={field.label}
+        placeholder="Все подкатегории"
         value={draft.subcategory}
         options={availableSubcategories}
         onChange={(value) =>
-          setDraft((current) => ({
+          updateDraft(setDraft, onApply, (current) => ({
             ...current,
             subcategory: value,
             specs: {},
@@ -217,7 +239,7 @@ function renderField(
             CATEGORY_SELECT_OPTIONS.find((item) => item.label === nextLabel)
               ?.value || "";
 
-          setDraft((current) => ({
+          updateDraft(setDraft, onApply, (current) => ({
             ...current,
             cat: nextCat,
             subcategory: "",
@@ -229,7 +251,13 @@ function renderField(
   }
 
   if (field.type === "price") {
-    return <PriceFilterPopover draft={draft} setDraft={setDraft} />;
+    return (
+      <PriceFilterPopover
+        draft={draft}
+        setDraft={setDraft}
+        onApply={onApply}
+      />
+    );
   }
 
   if (field.type === "spec") {
@@ -242,7 +270,7 @@ function renderField(
         value={draft.specs?.[specKey] || ""}
         options={field.options || []}
         onChange={(value) =>
-          setDraft((current) => {
+          updateDraft(setDraft, onApply, (current) => {
             const nextSpecs = { ...current.specs };
 
             if (value) {
@@ -281,7 +309,7 @@ function renderField(
         options={options}
         disabled={!parentValue}
         onChange={(value) =>
-          setDraft((current) => {
+          updateDraft(setDraft, onApply, (current) => {
             const nextSpecs = { ...current.specs };
 
             if (value) {
@@ -308,7 +336,7 @@ function renderField(
         value={draft.region || ""}
         options={field.options || []}
         onChange={(value) =>
-          setDraft((current) => ({
+          updateDraft(setDraft, onApply, (current) => ({
             ...current,
             region: value,
           }))
@@ -325,7 +353,7 @@ function renderField(
         value={draft.location || ""}
         options={field.options || []}
         onChange={(value) =>
-          setDraft((current) => ({
+          updateDraft(setDraft, onApply, (current) => ({
             ...current,
             location: value,
           }))
@@ -368,7 +396,7 @@ function renderField(
             Object.entries(sortLabels).find(([, value]) => value === label)?.[0] ||
             "new";
 
-          setDraft((current) => ({
+          updateDraft(setDraft, onApply, (current) => ({
             ...current,
             sort: nextSort,
           }));
@@ -439,6 +467,7 @@ export default function ListingFiltersPanel({
                   setDraft,
                   availableSubcategories,
                   showCategorySelect,
+                  onApply,
                 })}
               </div>
             ))}
@@ -460,6 +489,7 @@ export default function ListingFiltersPanel({
                 setDraft,
                 availableSubcategories,
                 showCategorySelect,
+                onApply,
               })}
             </div>
           ))}
