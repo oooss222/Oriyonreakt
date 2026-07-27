@@ -193,11 +193,16 @@ function renderField(
     availableSubcategories,
     showCategorySelect,
     onApply,
+    hideSubcategoryField = false,
   }
 ) {
   if (!field) return <div className="hidden xl:block" aria-hidden="true" />;
 
   if (field.type === "subcategory") {
+    if (hideSubcategoryField) {
+      return null;
+    }
+
     return (
       <FilterSelect
         label={field.label}
@@ -379,6 +384,7 @@ function renderField(
   if (field.type === "sort") {
     const sortLabels = {
       new: "Сначала новые",
+      views_desc: "Сначала популярные",
       price_asc: "Цена по возрастанию",
       price_desc: "Цена по убыванию",
     };
@@ -418,6 +424,7 @@ export default function ListingFiltersPanel({
   previewLoading = false,
   hasActiveFilters = false,
   compact = false,
+  hideSubcategoryField = false,
 }) {
   const [moreOpen, setMoreOpen] = React.useState(false);
   const grid = React.useMemo(
@@ -449,10 +456,10 @@ export default function ListingFiltersPanel({
   return (
     <div
       className={`rounded-2xl border border-lagoon/15 bg-gradient-to-br from-lagoon-50/80 to-emerald-50/50 ${
-        compact ? "p-3" : "p-4 md:p-5"
+        compact ? "p-0 border-0 bg-transparent" : "p-4 md:p-5"
       }`}
     >
-      <div className="space-y-3">
+      <div className={`space-y-3 ${compact ? "pb-24" : ""}`}>
         {grid.rows.map((row, rowIndex) => (
           <div
             key={`row-${rowIndex}`}
@@ -466,6 +473,7 @@ export default function ListingFiltersPanel({
                   availableSubcategories,
                   showCategorySelect,
                   onApply,
+                  hideSubcategoryField,
                 })}
               </div>
             ))}
@@ -488,13 +496,20 @@ export default function ListingFiltersPanel({
                 availableSubcategories,
                 showCategorySelect,
                 onApply,
+                hideSubcategoryField,
               })}
             </div>
           ))}
         </div>
       )}
 
-      <div className="mt-4 pt-4 border-t border-lagoon/10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+      <div
+        className={`mt-4 pt-4 border-t border-lagoon/10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 ${
+          compact
+            ? "sticky bottom-0 z-10 -mx-0 px-3 py-3 bg-white border-t border-slate-200 shadow-[0_-8px_24px_rgba(0,0,0,0.06)]"
+            : ""
+        }`}
+      >
         <div className="flex flex-wrap items-center gap-4">
           {grid.more?.length > 0 && (
             <button

@@ -24,6 +24,7 @@ import { resolveMediaUrl } from "../lib/media";
 import { formatPrice } from "../lib/format";
 import { usePageMeta } from "../lib/usePageMeta";
 import ListingCard from "../components/ListingCard";
+import Breadcrumbs from "../components/Breadcrumbs";
 import { CAT_LABELS } from "../data/listingCategories";
 
 const TOKEN_KEY = "auth_token";
@@ -460,47 +461,24 @@ export default function AdDetails() {
 
   const moderationStatus = ad.status || "pending";
 
+  const breadcrumbItems = [
+    { label: "Главная", to: "/" },
+    ...(ad.cat
+      ? [{ label: catLabel, to: `/c/${ad.cat}` }]
+      : []),
+    ...(ad.subcategory
+      ? [{ label: ad.subcategory, to: listingUrl }]
+      : []),
+    { label: ad.title || "Объявление" },
+  ];
+
   return (
     <div className="pb-28 xl:pb-10">
       <Toast message={toast} onClose={() => setToast("")} />
 
-      {/* Breadcrumbs */}
       <div className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-30">
-        <div className="container-x py-3">
-          <nav className="flex items-center gap-1.5 text-sm text-slate-500 overflow-x-auto whitespace-nowrap">
-            <Link to="/" className="hover:text-sun transition shrink-0">
-              Главная
-            </Link>
-            <ChevronRight className="w-3.5 h-3.5 shrink-0" />
-
-            {ad.cat && (
-              <>
-                <Link
-                  to={`/c/${ad.cat}`}
-                  className="hover:text-sun transition shrink-0"
-                >
-                  {catLabel}
-                </Link>
-                <ChevronRight className="w-3.5 h-3.5 shrink-0" />
-              </>
-            )}
-
-            {ad.subcategory && (
-              <>
-                <Link
-                  to={listingUrl}
-                  className="hover:text-sun transition shrink-0"
-                >
-                  {ad.subcategory}
-                </Link>
-                <ChevronRight className="w-3.5 h-3.5 shrink-0" />
-              </>
-            )}
-
-            <span className="text-slate-800 font-medium truncate max-w-[200px] sm:max-w-xs">
-              {ad.title || "Объявление"}
-            </span>
-          </nav>
+        <div className="container-x py-3 overflow-x-auto">
+          <Breadcrumbs items={breadcrumbItems} />
         </div>
       </div>
 

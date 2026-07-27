@@ -6,6 +6,8 @@ import ListingGridSkeleton from "../components/ListingGridSkeleton";
 import EmptyState from "../components/EmptyState";
 import Breadcrumbs from "../components/Breadcrumbs";
 import ListingFiltersPanel from "../components/ListingFiltersPanel";
+import SubcategoryChips from "../components/SubcategoryChips";
+import SimilarListingsSection from "../components/SimilarListingsSection";
 import { usePageMeta } from "../lib/usePageMeta";
 import { getListingThumb } from "../lib/media";
 import { formatPrice } from "../lib/format";
@@ -319,6 +321,21 @@ export default function Listing() {
     Number(sort !== "new") +
     Object.keys(activeSpecs).length;
 
+  const showSubcategoryChips =
+    Boolean(cat) && availableSubcategories.length > 0;
+
+  const selectSubcategory = React.useCallback(
+    (value) => {
+      applyFilters({ ...appliedDraft, subcategory: value });
+    },
+    [appliedDraft, applyFilters]
+  );
+
+  const visibleListingIds = React.useMemo(
+    () => items.map((ad) => ad._id || ad.id).filter(Boolean),
+    [items]
+  );
+
   return (
     <div className="container mx-auto px-4 py-6 space-y-5">
       <Breadcrumbs items={breadcrumbItems} />
@@ -355,6 +372,16 @@ export default function Listing() {
           </div>
         </div>
 
+        {showSubcategoryChips && (
+          <div className="md:hidden sticky top-0 z-20 -mx-4 px-4 py-2 bg-mist/95 backdrop-blur border-b border-slate-200/80">
+            <SubcategoryChips
+              subcategories={availableSubcategories}
+              activeSubcategory={subcategory}
+              onSelect={selectSubcategory}
+            />
+          </div>
+        )}
+
         <div className="hidden md:block">
           <ListingFiltersPanel
             draft={draft}
@@ -380,8 +407,8 @@ export default function Listing() {
             onClick={() => setMobileFiltersOpen(false)}
           />
 
-          <div className="absolute inset-x-0 bottom-0 max-h-[92vh] overflow-y-auto rounded-t-3xl bg-mist p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-2xl">
-            <div className="flex items-center justify-between gap-3 mb-3 px-1">
+          <div className="absolute inset-x-0 bottom-0 flex max-h-[92vh] flex-col rounded-t-3xl bg-mist shadow-2xl">
+            <div className="flex shrink-0 items-center justify-between gap-3 border-b border-slate-200/80 px-4 py-3">
               <h2 className="text-lg font-semibold">Фильтры</h2>
 
               <button
@@ -394,19 +421,22 @@ export default function Listing() {
               </button>
             </div>
 
-            <ListingFiltersPanel
-              draft={draft}
-              setDraft={setDraft}
-              activeCat={activeCat}
-              availableSubcategories={availableSubcategories}
-              showCategorySelect={!cat}
-              onApply={applyFilters}
-              onReset={resetFilters}
-              previewTotal={draftIsDirty ? previewTotal : total}
-              previewLoading={previewLoading}
-              hasActiveFilters={hasActiveFilters}
-              compact
-            />
+            <div className="min-h-0 flex-1 overflow-y-auto px-3 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
+              <ListingFiltersPanel
+                draft={draft}
+                setDraft={setDraft}
+                activeCat={activeCat}
+                availableSubcategories={availableSubcategories}
+                showCategorySelect={!cat}
+                onApply={applyFilters}
+                onReset={resetFilters}
+                previewTotal={draftIsDirty ? previewTotal : total}
+                previewLoading={previewLoading}
+                hasActiveFilters={hasActiveFilters}
+                hideSubcategoryField={showSubcategoryChips}
+                compact
+              />
+            </div>
           </div>
         </div>
       )}
@@ -526,6 +556,14 @@ export default function Listing() {
             );
           })}
         </div>
+      )}
+
+      {cat && !loading && !error && (
+        <SimilarListingsSection
+          cat={cat}
+          subcategory={subcategory}
+          excludeIds={visibleListingIds}
+        />
       )}
     </div>
   );

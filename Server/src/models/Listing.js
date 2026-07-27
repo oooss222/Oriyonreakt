@@ -212,6 +212,10 @@ class ListingModel {
       orderBy = `${priceExpr} DESC NULLS LAST, created_at DESC`;
     }
 
+    if (sort === "views_desc") {
+      orderBy = "COALESCE(views, 0) DESC, created_at DESC";
+    }
+
     let sql = `
       SELECT *
       FROM listings
