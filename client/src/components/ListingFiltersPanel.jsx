@@ -531,7 +531,7 @@ export default function ListingFiltersPanel({
 
           <button
             type="button"
-            onClick={onApply}
+            onClick={() => onApply()}
             className="inline-flex justify-center items-center gap-2 h-11 px-5 rounded-xl bg-lagoon text-white hover:bg-lagoon-700 transition text-sm font-semibold shadow-sm"
           >
             <Search size={16} />

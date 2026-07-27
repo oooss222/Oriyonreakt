@@ -20,7 +20,7 @@ import {
 
 function buildListingParams(draft, urlCat = "") {
   const next = {};
-  const normalizedSearch = draft.search.trim();
+  const normalizedSearch = String(draft?.search || "").trim();
   const effectiveCat = draft.cat || urlCat;
 
   if (normalizedSearch) {
@@ -265,7 +265,13 @@ export default function Listing() {
 
   const applyFilters = React.useCallback(
     (nextDraft) => {
-      const payload = nextDraft || draft;
+      const payload =
+        nextDraft &&
+        typeof nextDraft === "object" &&
+        typeof nextDraft.search === "string"
+          ? nextDraft
+          : draft;
+
       setDraft(payload);
       setSearchParams(buildListingParams(payload, payload.cat || cat));
       setMobileFiltersOpen(false);
