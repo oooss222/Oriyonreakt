@@ -30,6 +30,7 @@ import AdminAuditSection from "../components/admin/AdminAuditSection";
 import AdminAnalyticsSection from "../components/admin/AdminAnalyticsSection";
 import AdminSettingsSection from "../components/admin/AdminSettingsSection";
 import AdminExportSection from "../components/admin/AdminExportSection";
+import AdminFinancePanel from "../components/admin/AdminFinancePanel";
 import ModerationListingsPanel from "../components/admin/ModerationListingsPanel";
 import ModerationReports from "../components/ModerationReports";
 
@@ -45,47 +46,6 @@ const SECTIONS = [
   { id: "export", label: "Экспорт", icon: Download },
   { id: "audit", label: "Журнал", icon: ScrollText },
 ];
-
-function AdminFinanceSection({ stats, loading, error }) {
-  if (loading) {
-    return (
-      <div className="rounded-2xl border bg-white p-5 animate-pulse h-40" />
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="rounded-2xl border border-red-200 bg-red-50 text-red-700 p-4">
-        {error}
-      </div>
-    );
-  }
-
-  return (
-    <div className="rounded-2xl border bg-white p-4 md:p-5 space-y-4">
-      <div>
-        <div className="inline-flex items-center gap-2 text-sm text-sun-700 bg-sun-50 border border-sun-100 rounded-full px-3 py-1 mb-2">
-          <Wallet className="w-4 h-4" />
-          Финансы
-        </div>
-        <h2 className="text-xl font-bold">Кошельки системы</h2>
-        <p className="text-sm text-slate-500 mt-1">
-          Сводная информация по балансам. Корректировка — в карточке пользователя.
-        </p>
-      </div>
-
-      <div className="rounded-2xl border bg-gradient-to-br from-ink-700 to-ink-900 p-6 text-white">
-        <div className="text-sm text-white/70">Суммарный баланс</div>
-        <div className="text-3xl font-bold mt-2">
-          {Number(stats?.wallet?.totalBalance || 0).toLocaleString("ru-RU")} TJS
-        </div>
-        <div className="text-sm text-white/70 mt-2">
-          Пользователей на платформе: {stats?.users?.total || 0}
-        </div>
-      </div>
-    </div>
-  );
-}
 
 export default function Admin() {
   const navigate = useNavigate();
@@ -144,7 +104,7 @@ export default function Admin() {
   ]);
 
   React.useEffect(() => {
-    if (!token || (!isAdmin && !isAccountant)) return;
+    if (!token || !isAdmin) return;
 
     let alive = true;
 
@@ -166,7 +126,7 @@ export default function Admin() {
     return () => {
       alive = false;
     };
-  }, [token, isAdmin, isAccountant]);
+  }, [token, isAdmin]);
 
   React.useEffect(() => {
     if (!token) return;
@@ -271,10 +231,10 @@ export default function Admin() {
           {section === "reports" && <ModerationReports token={token} />}
 
           {section === "finance" && (isSuperAdmin || isAccountant) && (
-            <AdminFinanceSection
-              stats={stats}
-              loading={statsLoading}
-              error={statsError}
+            <AdminFinancePanel
+              token={token}
+              currentUser={me}
+              isSuperAdmin={isSuperAdmin}
             />
           )}
 

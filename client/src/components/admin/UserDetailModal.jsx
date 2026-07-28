@@ -1,5 +1,5 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   X,
   ExternalLink,
@@ -24,6 +24,7 @@ export default function UserDetailModal({
   token,
   userId,
   currentUser,
+  readOnly = false,
   onClose,
   onUserUpdated,
 }) {
@@ -149,7 +150,11 @@ export default function UserDetailModal({
         <div className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b bg-white px-4 md:px-5 py-4">
           <div>
             <h3 className="text-lg font-bold">Карточка пользователя</h3>
-            <p className="text-sm text-slate-500">Подробная информация и управление</p>
+            <p className="text-sm text-slate-500">
+              {readOnly
+                ? "Просмотр баланса и истории операций"
+                : "Подробная информация и управление"}
+            </p>
           </div>
           <button
             type="button"
@@ -224,22 +229,24 @@ export default function UserDetailModal({
                     Публичная страница
                   </Link>
 
-                  <button
-                    type="button"
-                    disabled={!manageable || actionLoading}
-                    onClick={toggleBlock}
-                    className={`inline-flex items-center gap-1 px-3 py-2 rounded-xl border text-sm disabled:opacity-40 ${
-                      user.isBlocked
-                        ? "hover:bg-emerald-50 text-emerald-700"
-                        : "hover:bg-red-50 text-red-700"
-                    }`}
-                  >
-                    {user.isBlocked ? <Unlock size={16} /> : <Ban size={16} />}
-                    {user.isBlocked ? "Разблокировать" : "Заблокировать"}
-                  </button>
+                  {!readOnly && (
+                    <button
+                      type="button"
+                      disabled={!manageable || actionLoading}
+                      onClick={toggleBlock}
+                      className={`inline-flex items-center gap-1 px-3 py-2 rounded-xl border text-sm disabled:opacity-40 ${
+                        user.isBlocked
+                          ? "hover:bg-emerald-50 text-emerald-700"
+                          : "hover:bg-red-50 text-red-700"
+                      }`}
+                    >
+                      {user.isBlocked ? <Unlock size={16} /> : <Ban size={16} />}
+                      {user.isBlocked ? "Разблокировать" : "Заблокировать"}
+                    </button>
+                  )}
                 </div>
 
-                {isSuperAdmin && (
+                {isSuperAdmin && !readOnly && (
                   <div>
                     <div className="text-sm font-medium mb-1">Роль</div>
                     <select
@@ -284,7 +291,7 @@ export default function UserDetailModal({
                   {Number(user.walletBalance || 0).toLocaleString("ru-RU")} TJS
                 </div>
 
-                {isSuperAdmin && (
+                {isSuperAdmin && !readOnly && (
                   <div className="rounded-xl border bg-slate-50 p-3 space-y-3">
                     <div className="text-sm font-medium">Корректировка баланса</div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">

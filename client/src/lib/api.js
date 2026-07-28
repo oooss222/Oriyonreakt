@@ -298,6 +298,27 @@ export const api = {
       token,
     }),
 
+  adminFinanceSummary: (token) =>
+    request("/admin/finance/summary", { token }),
+
+  adminFinanceTransactions: (token, params = {}) => {
+    const qs = new URLSearchParams();
+
+    if (params.type) qs.set("type", params.type);
+    if (params.q) qs.set("q", params.q);
+    if (params.from) qs.set("from", params.from);
+    if (params.to) qs.set("to", params.to);
+    if (params.userId) qs.set("userId", params.userId);
+    if (params.page) qs.set("page", String(params.page));
+    if (params.limit) qs.set("limit", String(params.limit));
+
+    const query = qs.toString();
+
+    return request(`/admin/finance/transactions${query ? `?${query}` : ""}`, {
+      token,
+    });
+  },
+
   adminGetUser: (token, userId) =>
     request(`/admin/users/${userId}`, {
       token,
@@ -480,14 +501,22 @@ export const api = {
       body,
     }),
 
-  adminExport: async (token, type) => {
+  adminExport: async (token, type, params = {}) => {
     const headers = {};
 
     if (token) {
       headers.Authorization = `Bearer ${token}`;
     }
 
-    const res = await fetch(`${API}/admin/export/${encodeURIComponent(type)}`, {
+    const qs = new URLSearchParams();
+
+    if (params.from) qs.set("from", params.from);
+    if (params.to) qs.set("to", params.to);
+
+    const query = qs.toString();
+    const url = `${API}/admin/export/${encodeURIComponent(type)}${query ? `?${query}` : ""}`;
+
+    const res = await fetch(url, {
       headers,
     });
 
@@ -505,14 +534,14 @@ export const api = {
     }
 
     const blob = await res.blob();
-    const url = URL.createObjectURL(blob);
+    const blobUrl = URL.createObjectURL(blob);
     const link = document.createElement("a");
-    link.href = url;
+    link.href = blobUrl;
     link.download = `${type}.csv`;
     document.body.appendChild(link);
     link.click();
     link.remove();
-    URL.revokeObjectURL(url);
+    URL.revokeObjectURL(blobUrl);
   },
 };
 

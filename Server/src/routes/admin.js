@@ -2,7 +2,7 @@ const router = require("express").Router();
 
 const auth = require("../middleware/auth");
 const { requireRole } = require("../middleware/role");
-const { query } = require("../db");
+const { query, mapUser } = require("../db");
 const User = require("../models/User");
 const Listing = require("../models/Listing");
 const Wallet = require("../models/Wallet");
@@ -202,8 +202,44 @@ router.get(
       let csv = "";
       let filename = "export.csv";
 
+      const from = String(req.query.from || "").trim();
+      const to = String(req.query.to || "").trim();
+
       if (type === "users") {
-        const users = await User.getAll();
+        let users;
+
+        if (from || to) {
+          const conditions = [];
+          const values = [];
+
+          if (from) {
+            values.push(from);
+            conditions.push(`created_at >= $${values.length}::date`);
+          }
+
+          if (to) {
+            values.push(to);
+            conditions.push(`created_at < ($${values.length}::date + interval '1 day')`);
+          }
+
+          const whereSql = conditions.length
+            ? `WHERE ${conditions.join(" AND ")}`
+            : "";
+
+          const result = await query(
+            `
+            SELECT *
+            FROM users
+            ${whereSql}
+            ORDER BY created_at DESC
+            `,
+            values
+          );
+
+          users = result.rows.map(mapUser);
+        } else {
+          users = await User.getAll();
+        }
 
         csv = toCsv(users, [
           { label: "ID", value: (row) => row.id },
@@ -251,21 +287,40 @@ router.get(
       }
 
       if (type === "transactions") {
+        const conditions = ["wt.status = 'completed'"];
+        const values = [];
+
+        if (from) {
+          values.push(from);
+          conditions.push(`wt.created_at >= $${values.length}::date`);
+        }
+
+        if (to) {
+          values.push(to);
+          conditions.push(`wt.created_at < ($${values.length}::date + interval '1 day')`);
+        }
+
+        const whereSql = `WHERE ${conditions.join(" AND ")}`;
+
         const result = await query(
           `
           SELECT
             wt.*,
-            u.email AS user_email
+            u.email AS user_email,
+            u.name AS user_name
           FROM wallet_transactions wt
           LEFT JOIN users u ON u.id = wt.user_id
+          ${whereSql}
           ORDER BY wt.created_at DESC
-          `
+          `,
+          values
         );
 
         csv = toCsv(result.rows, [
           { label: "ID", value: (row) => row.id },
           { label: "User ID", value: (row) => row.user_id },
           { label: "Email", value: (row) => row.user_email },
+          { label: "Имя", value: (row) => row.user_name },
           { label: "Тип", value: (row) => row.type },
           { label: "Сумма", value: (row) => row.amount },
           { label: "Статус", value: (row) => row.status },
@@ -293,7 +348,66 @@ router.get(
   }
 );
 
-router.get("/stats", requireRole("admin", "super_admin", "accountant"), async (req, res) => {
+router.get(
+  "/finance/summary",
+  requireRole("super_admin", "accountant"),
+  async (req, res) => {
+    try {
+      const summary = await Wallet.getFinanceSummary();
+
+      return res.json(summary);
+    } catch (e) {
+      console.error("ADMIN_FINANCE_SUMMARY_ERROR:", e?.message);
+
+      return res.status(500).json({
+        error: "Failed to load finance summary",
+      });
+    }
+  }
+);
+
+router.get(
+  "/finance/transactions",
+  requireRole("super_admin", "accountant"),
+  async (req, res) => {
+    try {
+      const type = String(req.query.type || "all").trim();
+      const q = String(req.query.q || "").trim();
+      const from = String(req.query.from || "").trim();
+      const to = String(req.query.to || "").trim();
+      const userId = String(req.query.userId || "").trim();
+      const limit = Number(req.query.limit || 25);
+      const page = Math.max(Number(req.query.page) || 1, 1);
+      const offset = (page - 1) * Math.min(Math.max(limit, 1), 100);
+
+      const result = await Wallet.findPaginated({
+        type,
+        q,
+        from,
+        to,
+        userId,
+        limit,
+        offset,
+      });
+
+      return res.json({
+        items: result.items,
+        total: result.total,
+        page: result.page,
+        limit: result.limit,
+        totalPages: result.totalPages,
+      });
+    } catch (e) {
+      console.error("ADMIN_FINANCE_TX_ERROR:", e?.message);
+
+      return res.status(500).json({
+        error: "Failed to load transactions",
+      });
+    }
+  }
+);
+
+router.get("/stats", requireRole("admin", "super_admin"), async (req, res) => {
   try {
     const [usersResult, listingsResult, reportsResult, walletResult] =
       await Promise.all([
@@ -456,9 +570,12 @@ router.post(
   }
 );
 
-router.get("/users", requireRole("admin", "super_admin"), async (req, res) => {
-  try {
-    const q = String(req.query.q || "").trim();
+router.get(
+  "/users",
+  requireRole("admin", "super_admin", "accountant"),
+  async (req, res) => {
+    try {
+      const q = String(req.query.q || "").trim();
     const role = String(req.query.role || "all").trim();
     const status = String(req.query.status || "all").trim();
     const sort = String(req.query.sort || "created_desc").trim();
@@ -489,11 +606,12 @@ router.get("/users", requireRole("admin", "super_admin"), async (req, res) => {
       error: "Failed to load users",
     });
   }
-});
+  }
+);
 
 router.get(
   "/users/:id",
-  requireRole("admin", "super_admin"),
+  requireRole("admin", "super_admin", "accountant"),
   async (req, res) => {
     try {
       const user = await User.findById(req.params.id);
@@ -546,7 +664,7 @@ router.get(
 
 router.get(
   "/users/:id/wallet/transactions",
-  requireRole("admin", "super_admin"),
+  requireRole("admin", "super_admin", "accountant"),
   async (req, res) => {
     try {
       const user = await User.findById(req.params.id);

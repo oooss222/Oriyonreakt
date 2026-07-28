@@ -1,5 +1,5 @@
 import React from "react";
-import { Download, FileSpreadsheet } from "lucide-react";
+import { Download, FileSpreadsheet, CalendarRange } from "lucide-react";
 import { api } from "../../lib/api";
 
 const EXPORT_ITEMS = [
@@ -7,28 +7,39 @@ const EXPORT_ITEMS = [
     type: "users",
     title: "Пользователи",
     description: "Email, роль, баланс, дата регистрации",
+    dateFilter: true,
   },
   {
     type: "listings",
     title: "Объявления",
     description: "Название, категория, статус, владелец",
+    dateFilter: false,
   },
   {
     type: "transactions",
     title: "Транзакции кошелька",
     description: "Тип операции, сумма, пользователь",
+    dateFilter: true,
   },
 ];
 
 export default function AdminExportSection({ token }) {
   const [loadingType, setLoadingType] = React.useState("");
   const [error, setError] = React.useState("");
+  const [from, setFrom] = React.useState("");
+  const [to, setTo] = React.useState("");
 
   const download = async (type) => {
     try {
       setLoadingType(type);
       setError("");
-      await api.adminExport(token, type);
+
+      const params = {};
+
+      if (from) params.from = from;
+      if (to) params.to = to;
+
+      await api.adminExport(token, type, params);
     } catch (e) {
       setError(e.message || "Не удалось скачать файл");
     } finally {
@@ -49,6 +60,36 @@ export default function AdminExportSection({ token }) {
         </p>
       </div>
 
+      <div className="rounded-2xl border bg-slate-50 p-4 space-y-3">
+        <div className="flex items-center gap-2 text-sm font-medium text-slate-700">
+          <CalendarRange size={16} />
+          Период (необязательно)
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <label className="text-sm">
+            <span className="text-slate-500 block mb-1">С даты</span>
+            <input
+              type="date"
+              value={from}
+              onChange={(e) => setFrom(e.target.value)}
+              className="h-11 w-full rounded-xl border px-3 bg-white"
+            />
+          </label>
+          <label className="text-sm">
+            <span className="text-slate-500 block mb-1">По дату</span>
+            <input
+              type="date"
+              value={to}
+              onChange={(e) => setTo(e.target.value)}
+              className="h-11 w-full rounded-xl border px-3 bg-white"
+            />
+          </label>
+        </div>
+        <p className="text-xs text-slate-500">
+          Фильтр по дате применяется к пользователям (регистрация) и транзакциям кошелька.
+        </p>
+      </div>
+
       {error && (
         <div className="rounded-xl border border-red-200 bg-red-50 text-red-700 p-3">
           {error}
@@ -61,6 +102,13 @@ export default function AdminExportSection({ token }) {
             <div>
               <div className="font-semibold">{item.title}</div>
               <div className="text-sm text-slate-500 mt-1">{item.description}</div>
+              {item.dateFilter && (from || to) && (
+                <div className="text-xs text-emerald-700 mt-2">
+                  Будет выгружено за период
+                  {from ? ` с ${from}` : ""}
+                  {to ? ` по ${to}` : ""}
+                </div>
+              )}
             </div>
 
             <button
