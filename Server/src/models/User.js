@@ -159,6 +159,58 @@ class UserModel {
     return mapUser(result.rows[0]);
   }
 
+  static async adjustWallet(id, amount, { description = "", createdBy = null } = {}) {
+    const numericAmount = Number(amount);
+
+    if (!Number.isFinite(numericAmount) || numericAmount === 0) {
+      throw new Error("INVALID_AMOUNT");
+    }
+
+    if (numericAmount < 0) {
+      const current = await this.findById(id);
+
+      if (!current) {
+        throw new Error("NOT_FOUND");
+      }
+
+      if (Number(current.walletBalance || 0) + numericAmount < 0) {
+        throw new Error("INSUFFICIENT_BALANCE");
+      }
+    }
+
+    const result = await query(
+      `
+      UPDATE users
+      SET
+        wallet_balance = wallet_balance + $2,
+        updated_at = now()
+      WHERE id = $1
+      RETURNING *
+      `,
+      [id, numericAmount]
+    );
+
+    const user = mapUser(result.rows[0]);
+
+    if (user) {
+      const Wallet = require("./Wallet");
+
+      await Wallet.recordTransaction({
+        userId: id,
+        type: "manual_adjustment",
+        amount: numericAmount,
+        description:
+          description ||
+          (numericAmount > 0
+            ? "Начисление администратором"
+            : "Списание администратором"),
+        createdBy,
+      });
+    }
+
+    return user;
+  }
+
   static async topUpWallet(id, amount) {
     const result = await query(
       `

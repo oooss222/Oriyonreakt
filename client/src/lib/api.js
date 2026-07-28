@@ -283,6 +283,29 @@ export const api = {
       token,
     }),
 
+  adminStats: (token) =>
+    request("/admin/stats", {
+      token,
+    }),
+
+  adminGetUser: (token, userId) =>
+    request(`/admin/users/${userId}`, {
+      token,
+    }),
+
+  adminUserWalletTransactions: (token, userId, limit = 50) =>
+    request(
+      `/admin/users/${userId}/wallet/transactions?limit=${encodeURIComponent(limit)}`,
+      { token }
+    ),
+
+  adminAdjustUserWallet: (token, userId, amount, description = "") =>
+    request(`/admin/users/${userId}/wallet/adjust`, {
+      method: "POST",
+      token,
+      body: { amount, description },
+    }),
+
   adminSetUserRole: (
     token,
     userId,

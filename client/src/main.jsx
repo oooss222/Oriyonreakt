@@ -14,6 +14,7 @@ import Profile from "./pages/Profile.jsx";
 import AddListing from "./pages/AddListing.jsx";
 import EditListing from "./pages/EditListing.jsx";
 import Seller from "./pages/Seller.jsx";
+import Admin from "./pages/Admin.jsx";
 
 import "./styles/index.css";
 
@@ -74,6 +75,10 @@ const router = createBrowserRouter([
       {
         path: "profile",
         element: <Profile />,
+      },
+      {
+        path: "admin",
+        element: <Admin />,
       },
 
       {
