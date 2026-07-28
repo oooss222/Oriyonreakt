@@ -52,16 +52,34 @@ class AdminAuditModel {
     limit = 50,
     offset = 0,
     action = "",
+    actions = [],
+    from = "",
+    to = "",
   } = {}) {
     const safeLimit = Math.min(Math.max(Number(limit) || 50, 1), 100);
     const safeOffset = Math.max(Number(offset) || 0, 0);
     const values = [];
-    let actionFilter = "";
+    const conditions = [];
 
     if (action) {
       values.push(action);
-      actionFilter = `WHERE a.action = $${values.length}`;
+      conditions.push(`a.action = $${values.length}`);
+    } else if (Array.isArray(actions) && actions.length) {
+      values.push(actions);
+      conditions.push(`a.action = ANY($${values.length}::text[])`);
     }
+
+    if (from) {
+      values.push(from);
+      conditions.push(`a.created_at >= $${values.length}::date`);
+    }
+
+    if (to) {
+      values.push(to);
+      conditions.push(`a.created_at < ($${values.length}::date + interval '1 day')`);
+    }
+
+    const whereSql = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
 
     values.push(safeLimit);
     const limitIdx = values.length;
@@ -76,7 +94,7 @@ class AdminAuditModel {
         u.email AS actor_email
       FROM admin_audit_log a
       LEFT JOIN users u ON u.id = a.actor_id
-      ${actionFilter}
+      ${whereSql}
       ORDER BY a.created_at DESC
       LIMIT $${limitIdx} OFFSET $${offsetIdx}
       `,

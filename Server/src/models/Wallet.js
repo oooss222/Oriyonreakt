@@ -244,6 +244,209 @@ class WalletModel {
       })),
     };
   }
+
+  static _dateConditions(from, to, column, values) {
+    const conditions = [];
+
+    if (from) {
+      values.push(from);
+      conditions.push(`${column} >= $${values.length}::date`);
+    }
+
+    if (to) {
+      values.push(to);
+      conditions.push(`${column} < ($${values.length}::date + interval '1 day')`);
+    }
+
+    return conditions;
+  }
+
+  static async getPeriodReport({ from = "", to = "" } = {}) {
+    const values = [];
+    const dateConditions = this._dateConditions(from, to, "created_at", values);
+    const whereParts = ["status = 'completed'"];
+
+    if (dateConditions.length) {
+      whereParts.push(...dateConditions);
+    }
+
+    const whereSql = `WHERE ${whereParts.join(" AND ")}`;
+
+    const [summaryResult, byTypeResult] = await Promise.all([
+      query(
+        `
+        SELECT
+          COUNT(*)::int AS total,
+          COALESCE(SUM(amount) FILTER (WHERE amount > 0), 0)::numeric AS credits,
+          COALESCE(SUM(amount) FILTER (WHERE amount < 0), 0)::numeric AS debits,
+          COUNT(*) FILTER (WHERE type = 'manual_adjustment')::int AS manual_count,
+          COALESCE(SUM(amount) FILTER (WHERE type = 'manual_adjustment'), 0)::numeric AS manual_sum
+        FROM wallet_transactions
+        ${whereSql}
+        `,
+        values
+      ),
+      query(
+        `
+        SELECT
+          type,
+          COUNT(*)::int AS count,
+          COALESCE(SUM(amount), 0)::numeric AS sum
+        FROM wallet_transactions
+        ${whereSql}
+        GROUP BY type
+        ORDER BY count DESC
+        `,
+        values
+      ),
+    ]);
+
+    const summary = summaryResult.rows[0] || {};
+    const credits = Number(summary.credits || 0);
+    const debits = Number(summary.debits || 0);
+
+    return {
+      from: from || null,
+      to: to || null,
+      totalTransactions: Number(summary.total || 0),
+      credits,
+      debits,
+      netTurnover: credits + debits,
+      manualAdjustments: Number(summary.manual_count || 0),
+      manualAdjustmentsSum: Number(summary.manual_sum || 0),
+      byType: byTypeResult.rows.map((row) => ({
+        type: row.type,
+        count: Number(row.count || 0),
+        sum: Number(row.sum || 0),
+      })),
+    };
+  }
+
+  static async getPaymentOverview({ limit = 20 } = {}) {
+    const safeLimit = Math.min(Math.max(Number(limit) || 20, 1), 50);
+
+    const [statusResult, recentResult] = await Promise.all([
+      query(`
+        SELECT
+          status,
+          COUNT(*)::int AS count,
+          COALESCE(SUM(amount), 0)::numeric AS sum
+        FROM wallet_transactions
+        GROUP BY status
+        ORDER BY count DESC
+      `),
+      query(
+        `
+        SELECT
+          wt.*,
+          u.name AS user_name,
+          u.email AS user_email
+        FROM wallet_transactions wt
+        LEFT JOIN users u ON u.id = wt.user_id
+        WHERE wt.status IN ('pending', 'failed', 'cancelled')
+        ORDER BY wt.created_at DESC
+        LIMIT $1
+        `,
+        [safeLimit]
+      ),
+    ]);
+
+    return {
+      byStatus: statusResult.rows.map((row) => ({
+        status: row.status,
+        count: Number(row.count || 0),
+        sum: Number(row.sum || 0),
+      })),
+      attention: recentResult.rows.map(mapTransactionRow),
+    };
+  }
+
+  static async getPromotionRevenue({ from = "", to = "" } = {}) {
+    const values = [];
+    const dateConditions = this._dateConditions(from, to, "wt.created_at", values);
+    const whereParts = [
+      "wt.status = 'completed'",
+      "wt.type = 'payment'",
+      `(
+        wt.description ILIKE '%VIP%'
+        OR wt.description ILIKE '%TOP%'
+        OR wt.description ILIKE '%продвиж%'
+        OR wt.description ILIKE '%vip%'
+        OR wt.description ILIKE '%top%'
+      )`,
+    ];
+
+    if (dateConditions.length) {
+      whereParts.push(...dateConditions.map((c) => c.replace("created_at", "wt.created_at")));
+    }
+
+    const whereSql = `WHERE ${whereParts.join(" AND ")}`;
+
+    const [summaryResult, itemsResult] = await Promise.all([
+      query(
+        `
+        SELECT
+          COUNT(*)::int AS count,
+          COALESCE(SUM(ABS(wt.amount)), 0)::numeric AS revenue
+        FROM wallet_transactions wt
+        ${whereSql}
+        `,
+        values
+      ),
+      query(
+        `
+        SELECT
+          wt.*,
+          u.name AS user_name,
+          u.email AS user_email
+        FROM wallet_transactions wt
+        LEFT JOIN users u ON u.id = wt.user_id
+        ${whereSql}
+        ORDER BY wt.created_at DESC
+        LIMIT 20
+        `,
+        values
+      ),
+    ]);
+
+    const summary = summaryResult.rows[0] || {};
+
+    return {
+      from: from || null,
+      to: to || null,
+      count: Number(summary.count || 0),
+      revenue: Number(summary.revenue || 0),
+      recent: itemsResult.rows.map(mapTransactionRow),
+    };
+  }
+
+  static async getTransactionsCsv({ from = "", to = "" } = {}) {
+    const values = [];
+    const dateConditions = this._dateConditions(from, to, "wt.created_at", values);
+    const whereParts = ["wt.status = 'completed'"];
+
+    if (dateConditions.length) {
+      whereParts.push(...dateConditions.map((c) => c.replace("created_at", "wt.created_at")));
+    }
+
+    const whereSql = `WHERE ${whereParts.join(" AND ")}`;
+
+    const result = await query(
+      `
+      SELECT
+        wt.*,
+        u.email AS user_email,
+        u.name AS user_name
+      FROM wallet_transactions wt
+      LEFT JOIN users u ON u.id = wt.user_id
+      ${whereSql}
+      ORDER BY wt.created_at DESC
+      `,
+      values
+    );
+
+    return result.rows;
+  }
 }
 
 module.exports = WalletModel;

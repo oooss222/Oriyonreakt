@@ -319,6 +319,51 @@ export const api = {
     });
   },
 
+  adminFinanceReports: (token, params = {}) => {
+    const qs = new URLSearchParams();
+
+    if (params.from) qs.set("from", params.from);
+    if (params.to) qs.set("to", params.to);
+
+    const query = qs.toString();
+
+    return request(`/admin/finance/reports${query ? `?${query}` : ""}`, { token });
+  },
+
+  adminFinancePayments: (token) =>
+    request("/admin/finance/payments", { token }),
+
+  adminFinancePromotions: (token, params = {}) => {
+    const qs = new URLSearchParams();
+
+    if (params.from) qs.set("from", params.from);
+    if (params.to) qs.set("to", params.to);
+
+    const query = qs.toString();
+
+    return request(`/admin/finance/promotions${query ? `?${query}` : ""}`, { token });
+  },
+
+  adminFinanceAudit: (token, params = {}) => {
+    const qs = new URLSearchParams();
+
+    if (params.from) qs.set("from", params.from);
+    if (params.to) qs.set("to", params.to);
+    if (params.limit) qs.set("limit", String(params.limit));
+    if (params.offset) qs.set("offset", String(params.offset));
+
+    const query = qs.toString();
+
+    return request(`/admin/finance/audit${query ? `?${query}` : ""}`, { token });
+  },
+
+  adminFinanceSendReport: (token, body = {}) =>
+    request("/admin/finance/send-report", {
+      method: "POST",
+      token,
+      body,
+    }),
+
   adminGetUser: (token, userId) =>
     request(`/admin/users/${userId}`, {
       token,

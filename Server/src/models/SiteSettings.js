@@ -27,6 +27,9 @@ const DEFAULTS = {
   topPrice: 15,
   registrationEnabled: true,
   policyContent: DEFAULT_POLICY,
+  accountantReportEmail: "",
+  monthlyReportEnabled: false,
+  lastFinanceReportSent: "",
 };
 
 function normalizeSettings(row) {
@@ -40,6 +43,9 @@ function normalizeSettings(row) {
     topPrice: Number(data.topPrice) || DEFAULTS.topPrice,
     registrationEnabled: Boolean(data.registrationEnabled),
     policyContent: String(data.policyContent || DEFAULTS.policyContent),
+    accountantReportEmail: String(data.accountantReportEmail || ""),
+    monthlyReportEnabled: Boolean(data.monthlyReportEnabled),
+    lastFinanceReportSent: String(data.lastFinanceReportSent || ""),
     updatedAt: row?.updated_at || null,
     updatedBy: row?.updated_by || null,
   };
@@ -133,6 +139,18 @@ class SiteSettingsModel {
         payload.policyContent !== undefined
           ? String(payload.policyContent)
           : current.policyContent,
+      accountantReportEmail:
+        payload.accountantReportEmail !== undefined
+          ? String(payload.accountantReportEmail || "").trim()
+          : current.accountantReportEmail,
+      monthlyReportEnabled:
+        payload.monthlyReportEnabled !== undefined
+          ? Boolean(payload.monthlyReportEnabled)
+          : current.monthlyReportEnabled,
+      lastFinanceReportSent:
+        payload.lastFinanceReportSent !== undefined
+          ? String(payload.lastFinanceReportSent || "")
+          : current.lastFinanceReportSent,
     };
 
     const result = await query(

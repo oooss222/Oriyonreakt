@@ -9,6 +9,7 @@ require("dotenv").config();
 const { initDb, pool } = require("./db");
 const { initSocket } = require("./socket");
 const { getAllowedOrigins, isOriginAllowed } = require("./corsOrigins");
+const { startMonthlyReportScheduler } = require("./lib/financeReport");
 
 const app = express();
 const server = http.createServer(app);
@@ -127,6 +128,8 @@ async function start() {
         "CORS allowed origins:",
         ALLOWED_ORIGINS.join(", ")
       );
+
+      startMonthlyReportScheduler();
     });
   } catch (e) {
     console.error(

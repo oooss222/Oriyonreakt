@@ -12,6 +12,8 @@ export default function AdminSettingsSection({ token }) {
     topPrice: 15,
     registrationEnabled: true,
     policyContent: "",
+    accountantReportEmail: "",
+    monthlyReportEnabled: false,
   });
 
   React.useEffect(() => {
@@ -27,6 +29,8 @@ export default function AdminSettingsSection({ token }) {
           topPrice: data.topPrice ?? 15,
           registrationEnabled: Boolean(data.registrationEnabled),
           policyContent: data.policyContent || "",
+          accountantReportEmail: data.accountantReportEmail || "",
+          monthlyReportEnabled: Boolean(data.monthlyReportEnabled),
         });
       })
       .catch((e) => {
@@ -54,6 +58,8 @@ export default function AdminSettingsSection({ token }) {
         topPrice: Number(form.topPrice),
         registrationEnabled: form.registrationEnabled,
         policyContent: form.policyContent,
+        accountantReportEmail: form.accountantReportEmail.trim(),
+        monthlyReportEnabled: form.monthlyReportEnabled,
       });
 
       setForm({
@@ -61,6 +67,8 @@ export default function AdminSettingsSection({ token }) {
         topPrice: updated.topPrice,
         registrationEnabled: updated.registrationEnabled,
         policyContent: updated.policyContent,
+        accountantReportEmail: updated.accountantReportEmail || "",
+        monthlyReportEnabled: Boolean(updated.monthlyReportEnabled),
       });
 
       setSuccess("Настройки сохранены");
@@ -128,6 +136,44 @@ export default function AdminSettingsSection({ token }) {
               }
               className="h-11 w-full rounded-xl border px-3"
             />
+          </label>
+        </div>
+
+        <div className="rounded-2xl border bg-slate-50 p-4 space-y-3">
+          <div className="font-medium">Бухгалтерия</div>
+          <label className="block">
+            <div className="text-sm font-medium mb-1">Email для отчётов</div>
+            <input
+              type="email"
+              value={form.accountantReportEmail}
+              onChange={(e) =>
+                setForm((prev) => ({
+                  ...prev,
+                  accountantReportEmail: e.target.value,
+                }))
+              }
+              placeholder="accountant@example.com"
+              className="h-11 w-full rounded-xl border px-3 bg-white"
+            />
+          </label>
+          <label className="flex items-center gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={form.monthlyReportEnabled}
+              onChange={(e) =>
+                setForm((prev) => ({
+                  ...prev,
+                  monthlyReportEnabled: e.target.checked,
+                }))
+              }
+              className="w-4 h-4"
+            />
+            <div>
+              <div className="font-medium">Автоотчёт 1-го числа</div>
+              <div className="text-sm text-slate-500">
+                CSV транзакций за прошлый месяц на email бухгалтера (нужен SMTP на сервере).
+              </div>
+            </div>
           </label>
         </div>
 

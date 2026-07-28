@@ -91,6 +91,18 @@ export const defaultAdminSection = (role) => {
 export const canAccessAdminSection = (role, sectionId) =>
   (sectionRoles[sectionId] || []).includes(role);
 
+export const ACCOUNTANT_EXPORT_TYPES = ["users", "transactions"];
+
+export const getExportTypesForRole = (role) => {
+  if (role === "accountant") {
+    return ACCOUNTANT_EXPORT_TYPES;
+  }
+
+  return ["users", "listings", "transactions"];
+};
+
+export const FINANCE_AUDIT_ACTIONS = ["wallet.adjust"];
+
 export const AUDIT_ACTION_LABELS = {
   "user.block": "Блокировка пользователя",
   "user.unblock": "Разблокировка пользователя",

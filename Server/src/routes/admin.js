@@ -9,6 +9,11 @@ const Wallet = require("../models/Wallet");
 const AdminAudit = require("../models/AdminAudit");
 const SiteSettings = require("../models/SiteSettings");
 const { toCsv } = require("../lib/csv");
+const { isMailConfigured } = require("../lib/mailer");
+const { sendFinanceReport } = require("../lib/financeReport");
+
+const FINANCE_AUDIT_ACTIONS = ["wallet.adjust"];
+const ACCOUNTANT_EXPORT_TYPES = ["users", "transactions"];
 
 async function audit(req, action, targetType, targetId, details = {}) {
   try {
@@ -196,6 +201,14 @@ router.get(
       if (!["users", "listings", "transactions"].includes(type)) {
         return res.status(400).json({
           error: "Invalid export type",
+        });
+      }
+
+      const actorRole = req.user?.role || "user";
+
+      if (actorRole === "accountant" && !ACCOUNTANT_EXPORT_TYPES.includes(type)) {
+        return res.status(403).json({
+          error: "Accountant can export only users and transactions",
         });
       }
 
@@ -402,6 +415,148 @@ router.get(
 
       return res.status(500).json({
         error: "Failed to load transactions",
+      });
+    }
+  }
+);
+
+router.get(
+  "/finance/reports",
+  requireRole("super_admin", "accountant"),
+  async (req, res) => {
+    try {
+      const from = String(req.query.from || "").trim();
+      const to = String(req.query.to || "").trim();
+
+      const report = await Wallet.getPeriodReport({ from, to });
+
+      return res.json(report);
+    } catch (e) {
+      console.error("ADMIN_FINANCE_REPORTS_ERROR:", e?.message);
+
+      return res.status(500).json({
+        error: "Failed to load finance report",
+      });
+    }
+  }
+);
+
+router.get(
+  "/finance/payments",
+  requireRole("super_admin", "accountant"),
+  async (req, res) => {
+    try {
+      const overview = await Wallet.getPaymentOverview({
+        limit: Number(req.query.limit) || 20,
+      });
+
+      return res.json({
+        ...overview,
+        gatewayConfigured: false,
+        mailConfigured: isMailConfigured(),
+      });
+    } catch (e) {
+      console.error("ADMIN_FINANCE_PAYMENTS_ERROR:", e?.message);
+
+      return res.status(500).json({
+        error: "Failed to load payment overview",
+      });
+    }
+  }
+);
+
+router.get(
+  "/finance/promotions",
+  requireRole("super_admin", "accountant"),
+  async (req, res) => {
+    try {
+      const from = String(req.query.from || "").trim();
+      const to = String(req.query.to || "").trim();
+
+      const [promotions, settings] = await Promise.all([
+        Wallet.getPromotionRevenue({ from, to }),
+        SiteSettings.getPublic(),
+      ]);
+
+      return res.json({
+        ...promotions,
+        vipPrice: settings.vipPrice,
+        topPrice: settings.topPrice,
+      });
+    } catch (e) {
+      console.error("ADMIN_FINANCE_PROMOTIONS_ERROR:", e?.message);
+
+      return res.status(500).json({
+        error: "Failed to load promotion revenue",
+      });
+    }
+  }
+);
+
+router.get(
+  "/finance/audit",
+  requireRole("super_admin", "accountant"),
+  async (req, res) => {
+    try {
+      const from = String(req.query.from || "").trim();
+      const to = String(req.query.to || "").trim();
+      const limit = Math.min(Math.max(Number(req.query.limit) || 50, 1), 100);
+      const offset = Math.max(Number(req.query.offset) || 0, 0);
+
+      const items = await AdminAudit.findRecent({
+        actions: FINANCE_AUDIT_ACTIONS,
+        from,
+        to,
+        limit,
+        offset,
+      });
+
+      return res.json(items);
+    } catch (e) {
+      console.error("ADMIN_FINANCE_AUDIT_ERROR:", e?.message);
+
+      return res.status(500).json({
+        error: "Failed to load finance audit log",
+      });
+    }
+  }
+);
+
+router.post(
+  "/finance/send-report",
+  requireRole("super_admin", "accountant"),
+  async (req, res) => {
+    try {
+      const from = String(req.body?.from || "").trim();
+      const to = String(req.body?.to || "").trim();
+      let email = String(req.body?.email || "").trim();
+
+      if (!email) {
+        const settings = await SiteSettings.get();
+        email = settings.accountantReportEmail;
+      }
+
+      if (!email) {
+        return res.status(400).json({
+          error: "Report email is not configured",
+        });
+      }
+
+      const result = await sendFinanceReport({
+        to: email,
+        from,
+        toDate: to,
+      });
+
+      return res.json({
+        ok: true,
+        ...result,
+      });
+    } catch (e) {
+      console.error("ADMIN_FINANCE_SEND_REPORT_ERROR:", e?.message);
+
+      return res.status(500).json({
+        error: e.message || "Failed to send finance report",
       });
     }
   }

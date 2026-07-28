@@ -247,7 +247,7 @@ export default function Admin() {
           )}
 
           {section === "export" && canAccessAdminSection(role, "export") && (
-            <AdminExportSection token={token} />
+            <AdminExportSection token={token} role={role} />
           )}
 
           {!isSectionAllowed && <Navigate to={`/admin?section=${defaultSection}`} replace />}

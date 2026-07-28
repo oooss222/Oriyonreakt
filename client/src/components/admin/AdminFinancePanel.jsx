@@ -11,6 +11,12 @@ import {
 import { api } from "../../lib/api";
 import { WALLET_TYPE_LABELS } from "../../lib/adminUtils";
 import AdminFinanceUsersSection from "./AdminFinanceUsersSection";
+import {
+  FinanceReportsTab,
+  FinanceAuditTab,
+  FinancePaymentsTab,
+  FinancePromotionsTab,
+} from "./AdminFinanceExtended";
 
 const PAGE_SIZE = 25;
 
@@ -300,8 +306,12 @@ function TransactionsTable({ token }) {
 
 const TABS = [
   { id: "overview", label: "Сводка" },
+  { id: "reports", label: "Отчёты" },
   { id: "transactions", label: "Операции" },
   { id: "wallets", label: "Кошельки" },
+  { id: "audit", label: "Журнал" },
+  { id: "payments", label: "Платежи" },
+  { id: "promotions", label: "VIP/TOP" },
 ];
 
 export default function AdminFinancePanel({ token, currentUser, isSuperAdmin }) {
@@ -392,11 +402,19 @@ export default function AdminFinancePanel({ token, currentUser, isSuperAdmin }) 
         </>
       )}
 
+      {tab === "reports" && <FinanceReportsTab token={token} />}
+
       {tab === "transactions" && <TransactionsTable token={token} />}
 
       {tab === "wallets" && (
         <AdminFinanceUsersSection token={token} currentUser={currentUser} />
       )}
+
+      {tab === "audit" && <FinanceAuditTab token={token} />}
+
+      {tab === "payments" && <FinancePaymentsTab token={token} />}
+
+      {tab === "promotions" && <FinancePromotionsTab token={token} />}
     </div>
   );
 }
