@@ -84,6 +84,8 @@ export const api = {
       token,
     }),
 
+  sellerPublic: (id) => request(`/users/${id}/public`),
+
   updateMe: (token, data) =>
     request("/users/me", {
       method: "PUT",

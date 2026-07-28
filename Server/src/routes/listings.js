@@ -72,6 +72,7 @@ function listingQueryFromReq(query) {
     specs,
     location,
     region,
+    owner,
   } = query;
 
   return {
@@ -83,6 +84,7 @@ function listingQueryFromReq(query) {
     specs: parseSpecsFilter(specs),
     location: location || undefined,
     region: location ? undefined : region || undefined,
+    owner: owner || undefined,
   };
 }
 

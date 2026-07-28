@@ -13,6 +13,7 @@ import AdDetails from "./pages/AdDetails.jsx";
 import Profile from "./pages/Profile.jsx";
 import AddListing from "./pages/AddListing.jsx";
 import EditListing from "./pages/EditListing.jsx";
+import Seller from "./pages/Seller.jsx";
 
 import "./styles/index.css";
 
@@ -53,6 +54,10 @@ const router = createBrowserRouter([
       {
         path: "ad/:id",
         element: <AdDetails />,
+      },
+      {
+        path: "seller/:id",
+        element: <Seller />,
       },
       {
         path: "auth",

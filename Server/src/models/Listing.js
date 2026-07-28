@@ -28,6 +28,7 @@ function buildListingFilters({
   specs,
   location,
   region,
+  owner,
 } = {}) {
   const conditions = [];
   const values = [];
@@ -49,6 +50,11 @@ function buildListingFilters({
   if (status) {
     values.push(status);
     conditions.push(`status = $${values.length}`);
+  }
+
+  if (owner) {
+    values.push(owner);
+    conditions.push(`owner = $${values.length}`);
   }
 
   if (cat) {
@@ -179,6 +185,7 @@ class ListingModel {
     specs,
     location,
     region,
+    owner,
     sort = "new",
     limit = 50,
     offset = 0,
@@ -196,6 +203,7 @@ class ListingModel {
       specs,
       location,
       region,
+      owner,
     });
 
     let orderBy = "created_at DESC";
@@ -246,6 +254,7 @@ class ListingModel {
     specs,
     location,
     region,
+    owner,
   } = {}) {
     const { conditions, values } = buildListingFilters({
       cat,
@@ -257,6 +266,7 @@ class ListingModel {
       specs,
       location,
       region,
+      owner,
     });
 
     let sql = `

@@ -2,6 +2,26 @@ const router = require("express").Router();
 const auth = require("../middleware/auth");
 const User = require("../models/User");
 
+router.get("/:id/public", async (req, res) => {
+  try {
+    const profile = await User.getPublicProfile(req.params.id);
+
+    if (!profile) {
+      return res.status(404).json({
+        error: "Seller not found",
+      });
+    }
+
+    return res.json(profile);
+  } catch (e) {
+    console.error("USER_PUBLIC_ERROR:", e?.message);
+
+    return res.status(500).json({
+      error: "Failed to load seller profile",
+    });
+  }
+});
+
 router.get("/me", auth, async (req, res) => {
   try {
     const user = await User.findById(req.user.id);

@@ -771,13 +771,32 @@ export default function AdDetails() {
                   <div className="text-sm text-slate-500">Продавец</div>
 
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-sun to-lagoon flex items-center justify-center text-white font-bold text-sm shadow-sm">
-                      {getInitials(sellerName)}
-                    </div>
-                    <div className="min-w-0">
-                      <div className="font-bold text-slate-900 truncate">
-                        {sellerName}
+                    {ad.owner ? (
+                      <Link
+                        to={`/seller/${ad.owner}`}
+                        className="w-12 h-12 rounded-2xl bg-gradient-to-br from-sun to-lagoon flex items-center justify-center text-white font-bold text-sm shadow-sm shrink-0 hover:opacity-90 transition"
+                      >
+                        {getInitials(sellerName)}
+                      </Link>
+                    ) : (
+                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-sun to-lagoon flex items-center justify-center text-white font-bold text-sm shadow-sm shrink-0">
+                        {getInitials(sellerName)}
                       </div>
+                    )}
+
+                    <div className="min-w-0">
+                      {ad.owner ? (
+                        <Link
+                          to={`/seller/${ad.owner}`}
+                          className="font-bold text-slate-900 truncate block hover:text-sun transition"
+                        >
+                          {sellerName}
+                        </Link>
+                      ) : (
+                        <div className="font-bold text-slate-900 truncate">
+                          {sellerName}
+                        </div>
+                      )}
                       <div className="text-xs text-slate-500">
                         {published ? `Объявление ${published.toLowerCase()}` : "На сайте"}
                       </div>

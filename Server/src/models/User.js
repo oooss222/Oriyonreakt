@@ -75,6 +75,43 @@ class UserModel {
     return bcrypt.compare(password, user.password);
   }
 
+  static sanitizePublic(user, { listingsCount = 0 } = {}) {
+    if (!user || user.isBlocked) return null;
+
+    return {
+      id: user.id,
+      _id: user.id,
+      name: user.name || "Продавец",
+      sellerType: user.sellerType || "private",
+      whatsapp: user.whatsapp || "",
+      telegram: user.telegram || "",
+      emailVerified: Boolean(user.emailVerified),
+      createdAt: user.createdAt,
+      listingsCount,
+    };
+  }
+
+  static async getPublicProfile(id) {
+    const user = await this.findById(id);
+
+    if (!user || user.isBlocked) {
+      return null;
+    }
+
+    const countResult = await query(
+      `
+      SELECT COUNT(*)::int AS count
+      FROM listings
+      WHERE owner = $1 AND status = 'approved'
+      `,
+      [id]
+    );
+
+    const listingsCount = Number(countResult.rows[0]?.count || 0);
+
+    return this.sanitizePublic(user, { listingsCount });
+  }
+
   static sanitize(user) {
     if (!user) return null;
 
