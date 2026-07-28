@@ -696,6 +696,10 @@ export default function Profile() {
   );
 
   React.useEffect(() => {
+    setTabState(normalizeTab(searchParams.get("tab")));
+  }, [searchParams]);
+
+  React.useEffect(() => {
     if (searchParams.get("tab") === "admin") {
       nav("/admin", { replace: true });
     }
