@@ -6,6 +6,21 @@ const { query } = require("../db");
 const User = require("../models/User");
 const Listing = require("../models/Listing");
 const Wallet = require("../models/Wallet");
+const AdminAudit = require("../models/AdminAudit");
+
+async function audit(req, action, targetType, targetId, details = {}) {
+  try {
+    await AdminAudit.log({
+      actorId: req.user.id,
+      action,
+      targetType,
+      targetId,
+      details,
+    });
+  } catch (e) {
+    console.error("ADMIN_AUDIT_LOG_ERROR:", e?.message);
+  }
+}
 
 const ALLOWED_ROLES = [
   "user",
@@ -128,6 +143,95 @@ router.get("/stats", requireRole("admin", "super_admin"), async (req, res) => {
     });
   }
 });
+
+router.get("/audit", requireRole("admin", "super_admin"), async (req, res) => {
+  try {
+    const limit = Math.min(Math.max(Number(req.query.limit) || 50, 1), 100);
+    const offset = Math.max(Number(req.query.offset) || 0, 0);
+    const action = String(req.query.action || "").trim();
+
+    const items = await AdminAudit.findRecent({ limit, offset, action });
+
+    return res.json(items);
+  } catch (e) {
+    console.error("ADMIN_AUDIT_GET_ERROR:", e?.message);
+
+    return res.status(500).json({
+      error: "Failed to load audit log",
+    });
+  }
+});
+
+router.get("/listings", requireRole("admin", "super_admin"), async (req, res) => {
+  try {
+    const status = String(req.query.status || "all");
+    const search = String(req.query.q || "").trim();
+    const cat = String(req.query.cat || "").trim();
+    const owner = String(req.query.owner || "").trim();
+    const limit = Number(req.query.limit || 50);
+    const offset = Number(req.query.offset || 0);
+
+    const listings = await Listing.findForAdmin({
+      status,
+      search,
+      cat,
+      owner,
+      limit,
+      offset,
+    });
+
+    return res.json(listings);
+  } catch (e) {
+    console.error("ADMIN_LISTINGS_GET_ERROR:", e?.message);
+
+    return res.status(500).json({
+      error: "Failed to load listings",
+    });
+  }
+});
+
+router.post(
+  "/listings/:id/status",
+  requireRole("admin", "super_admin"),
+  async (req, res) => {
+    try {
+      const status = String(req.body?.status || "").trim();
+
+      let listing;
+
+      try {
+        listing = await Listing.adminSetStatus(req.params.id, status);
+      } catch (e) {
+        if (e.message === "INVALID_STATUS") {
+          return res.status(400).json({
+            error: "Invalid status",
+          });
+        }
+
+        throw e;
+      }
+
+      if (!listing) {
+        return res.status(404).json({
+          error: "Listing not found",
+        });
+      }
+
+      await audit(req, "listing.status_change", "listing", listing.id, {
+        status,
+        title: listing.title,
+      });
+
+      return res.json(listing);
+    } catch (e) {
+      console.error("ADMIN_LISTING_STATUS_ERROR:", e?.message);
+
+      return res.status(500).json({
+        error: "Failed to update listing status",
+      });
+    }
+  }
+);
 
 router.get("/users", requireRole("admin", "super_admin"), async (req, res) => {
   try {
@@ -275,6 +379,12 @@ router.post(
 
       const transactions = await Wallet.findByUser(req.params.id, { limit: 30 });
 
+      await audit(req, "wallet.adjust", "user", req.params.id, {
+        amount,
+        description,
+        email: target.email,
+      });
+
       return res.json({
         user: User.sanitize(updated),
         transactions,
@@ -314,6 +424,11 @@ router.put("/users/:id/role", requireRole("super_admin"), async (req, res) => {
     }
 
     const updated = await User.setRole(req.params.id, role);
+
+    await audit(req, "user.role_change", "user", req.params.id, {
+      role,
+      email: target.email,
+    });
 
     return res.json(User.sanitize(updated));
   } catch (e) {
@@ -355,6 +470,10 @@ router.post(
       }
 
       const updated = await User.blockUser(req.params.id);
+
+      await audit(req, "user.block", "user", req.params.id, {
+        email: target.email,
+      });
 
       return res.json(User.sanitize(updated));
     } catch (e) {
@@ -398,6 +517,10 @@ router.post(
 
       const updated = await User.unblockUser(req.params.id);
 
+      await audit(req, "user.unblock", "user", req.params.id, {
+        email: target.email,
+      });
+
       return res.json(User.sanitize(updated));
     } catch (e) {
       console.error("ADMIN_USER_UNBLOCK_ERROR:", e?.message);
@@ -421,6 +544,10 @@ router.delete(
           error: "Listing not found",
         });
       }
+
+      await audit(req, "listing.delete", "listing", listing.id, {
+        title: listing.title,
+      });
 
       return res.json({
         ok: true,

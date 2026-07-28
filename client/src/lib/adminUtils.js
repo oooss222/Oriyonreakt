@@ -56,3 +56,18 @@ export const canAccessAdmin = (role) => role === "admin" || role === "super_admi
 
 export const canAccessModeration = (role) =>
   ["moderator", "admin", "super_admin"].includes(role);
+
+export const AUDIT_ACTION_LABELS = {
+  "user.block": "Блокировка пользователя",
+  "user.unblock": "Разблокировка пользователя",
+  "user.role_change": "Смена роли",
+  "wallet.adjust": "Корректировка баланса",
+  "listing.delete": "Удаление объявления",
+  "listing.status_change": "Смена статуса объявления",
+  "listing.approve": "Одобрение объявления",
+  "listing.reject": "Отклонение объявления",
+  "report.review": "Жалоба рассмотрена",
+  "report.dismiss": "Жалоба отклонена",
+  "report.delete_listing": "Удаление объявления по жалобе",
+  "report.block_owner": "Блокировка продавца по жалобе",
+};

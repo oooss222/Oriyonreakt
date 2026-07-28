@@ -346,6 +346,40 @@ export const api = {
       }
     ),
 
+  adminListings: (token, params = {}) => {
+    const qs = new URLSearchParams();
+
+    if (params.status) qs.set("status", params.status);
+    if (params.q) qs.set("q", params.q);
+    if (params.cat) qs.set("cat", params.cat);
+    if (params.owner) qs.set("owner", params.owner);
+    if (params.limit) qs.set("limit", String(params.limit));
+    if (params.offset) qs.set("offset", String(params.offset));
+
+    const query = qs.toString();
+
+    return request(`/admin/listings${query ? `?${query}` : ""}`, { token });
+  },
+
+  adminSetListingStatus: (token, listingId, status) =>
+    request(`/admin/listings/${listingId}/status`, {
+      method: "POST",
+      token,
+      body: { status },
+    }),
+
+  adminAuditLog: (token, params = {}) => {
+    const qs = new URLSearchParams();
+
+    if (params.action) qs.set("action", params.action);
+    if (params.limit) qs.set("limit", String(params.limit));
+    if (params.offset) qs.set("offset", String(params.offset));
+
+    const query = qs.toString();
+
+    return request(`/admin/audit${query ? `?${query}` : ""}`, { token });
+  },
+
   moderationListings: (
     token,
     status = "pending"
@@ -403,6 +437,18 @@ export const api = {
 
   moderationDismissReport: (token, reportId) =>
     request(`/moderation/reports/${reportId}/dismiss`, {
+      method: "POST",
+      token,
+    }),
+
+  moderationReportDeleteListing: (token, reportId) =>
+    request(`/moderation/reports/${reportId}/delete-listing`, {
+      method: "POST",
+      token,
+    }),
+
+  moderationReportBlockOwner: (token, reportId) =>
+    request(`/moderation/reports/${reportId}/block-owner`, {
       method: "POST",
       token,
     }),

@@ -3,11 +3,13 @@ import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import {
   LayoutDashboard,
   Users,
+  FileText,
   ClipboardCheck,
   Flag,
   Wallet,
   Shield,
   ArrowLeft,
+  ScrollText,
 } from "lucide-react";
 import { api } from "../lib/api";
 import { goToAuth, TOKEN_KEY, USER_KEY } from "../lib/auth";
@@ -17,15 +19,19 @@ import {
 } from "../lib/adminUtils";
 import AdminDashboard from "../components/admin/AdminDashboard";
 import AdminUsersSection from "../components/admin/AdminUsersSection";
+import AdminListingsSection from "../components/admin/AdminListingsSection";
+import AdminAuditSection from "../components/admin/AdminAuditSection";
 import ModerationListingsPanel from "../components/admin/ModerationListingsPanel";
 import ModerationReports from "../components/ModerationReports";
 
 const SECTIONS = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, adminOnly: true },
   { id: "users", label: "Пользователи", icon: Users, adminOnly: true },
+  { id: "listings", label: "Объявления", icon: FileText, adminOnly: true },
   { id: "moderation", label: "Модерация", icon: ClipboardCheck, adminOnly: false },
   { id: "reports", label: "Жалобы", icon: Flag, adminOnly: false },
   { id: "finance", label: "Финансы", icon: Wallet, superAdminOnly: true },
+  { id: "audit", label: "Журнал", icon: ScrollText, adminOnly: true },
 ];
 
 function AdminFinanceSection({ stats, loading, error }) {
@@ -237,6 +243,10 @@ export default function Admin() {
             <AdminUsersSection token={token} currentUser={me} />
           )}
 
+          {section === "listings" && isAdmin && (
+            <AdminListingsSection token={token} />
+          )}
+
           {section === "moderation" && (
             <ModerationListingsPanel token={token} embedded />
           )}
@@ -249,6 +259,10 @@ export default function Admin() {
               loading={statsLoading}
               error={statsError}
             />
+          )}
+
+          {section === "audit" && isAdmin && (
+            <AdminAuditSection token={token} />
           )}
 
           {!isSectionAllowed && <Navigate to={`/admin?section=${defaultSection}`} replace />}

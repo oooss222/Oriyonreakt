@@ -416,6 +416,106 @@ class ListingModel {
   return mapListing(result.rows[0]);
 }
 
+  static async adminSetStatus(id, status) {
+    const allowed = new Set([
+      "pending",
+      "approved",
+      "rejected",
+      "sold",
+      "archived",
+    ]);
+
+    if (!allowed.has(status)) {
+      throw new Error("INVALID_STATUS");
+    }
+
+    const result = await query(
+      `
+      UPDATE listings
+      SET
+        status = $2,
+        updated_at = now()
+      WHERE id = $1
+      RETURNING *
+      `,
+      [id, status]
+    );
+
+    return mapListing(result.rows[0]);
+  }
+
+  static async findForAdmin({
+    status,
+    search,
+    cat,
+    owner,
+    limit = 50,
+    offset = 0,
+  } = {}) {
+    const safeLimit = Math.min(Math.max(Number(limit) || 50, 1), 100);
+    const safeOffset = Math.max(Number(offset) || 0, 0);
+    const conditions = [];
+    const values = [];
+
+    if (status && status !== "all") {
+      values.push(status);
+      conditions.push(`l.status = $${values.length}`);
+    }
+
+    if (cat) {
+      values.push(cat);
+      conditions.push(`l.cat = $${values.length}`);
+    }
+
+    if (owner) {
+      values.push(owner);
+      conditions.push(`l.owner = $${values.length}`);
+    }
+
+    if (search) {
+      values.push(`%${String(search).trim()}%`);
+      conditions.push(`
+        (
+          l.title ILIKE $${values.length}
+          OR l.description ILIKE $${values.length}
+          OR l.location ILIKE $${values.length}
+          OR u.name ILIKE $${values.length}
+          OR u.email ILIKE $${values.length}
+        )
+      `);
+    }
+
+    const whereSql = conditions.length
+      ? `WHERE ${conditions.join(" AND ")}`
+      : "";
+
+    values.push(safeLimit);
+    const limitIdx = values.length;
+    values.push(safeOffset);
+    const offsetIdx = values.length;
+
+    const result = await query(
+      `
+      SELECT
+        l.*,
+        u.name AS owner_name,
+        u.email AS owner_email
+      FROM listings l
+      LEFT JOIN users u ON u.id = l.owner
+      ${whereSql}
+      ORDER BY l.created_at DESC
+      LIMIT $${limitIdx} OFFSET $${offsetIdx}
+      `,
+      values
+    );
+
+    return result.rows.map((row) => ({
+      ...mapListing(row),
+      ownerName: row.owner_name || "",
+      ownerEmail: row.owner_email || "",
+    }));
+  }
+
   static async deleteById(id) {
   await query(
     `

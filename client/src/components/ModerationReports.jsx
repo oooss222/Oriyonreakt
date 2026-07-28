@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { Flag, ExternalLink } from "lucide-react";
+import { Flag, ExternalLink, Trash2, Ban } from "lucide-react";
 import { api } from "../lib/api";
 import { REPORT_REASON_LABELS } from "../data/reportReasons";
 
@@ -52,6 +52,39 @@ export default function ModerationReports({ token }) {
       setItems((prev) => prev.filter((item) => item.id !== id));
     } catch (e) {
       alert(e.message || "Не удалось отклонить жалобу");
+    } finally {
+      setActionLoadingId("");
+    }
+  };
+
+  const handleDeleteListing = async (item) => {
+    const ok = confirm(
+      `Удалить объявление «${item.listingTitle || "Без названия"}»? Это действие необратимо.`
+    );
+    if (!ok) return;
+
+    try {
+      setActionLoadingId(item.id);
+      await api.moderationReportDeleteListing(token, item.id);
+      setItems((prev) => prev.filter((row) => row.id !== item.id));
+    } catch (e) {
+      alert(e.message || "Не удалось удалить объявление");
+    } finally {
+      setActionLoadingId("");
+    }
+  };
+
+  const handleBlockOwner = async (item) => {
+    const ownerLabel = item.listingOwnerName || "продавца";
+    const ok = confirm(`Заблокировать ${ownerLabel}?`);
+    if (!ok) return;
+
+    try {
+      setActionLoadingId(item.id);
+      await api.moderationReportBlockOwner(token, item.id);
+      setItems((prev) => prev.filter((row) => row.id !== item.id));
+    } catch (e) {
+      alert(e.message || "Не удалось заблокировать продавца");
     } finally {
       setActionLoadingId("");
     }
@@ -154,6 +187,12 @@ export default function ModerationReports({ token }) {
                       : ""}
                   </div>
 
+                  {item.listingOwnerName && (
+                    <div className="text-sm text-slate-500">
+                      Продавец: {item.listingOwnerName}
+                    </div>
+                  )}
+
                   {item.details && (
                     <p className="text-sm text-slate-700 bg-slate-50 rounded-xl p-3 mt-2">
                       {item.details}
@@ -172,6 +211,28 @@ export default function ModerationReports({ token }) {
 
                   {status === "pending" && (
                     <>
+                      <button
+                        type="button"
+                        className="btn py-2 rounded-xl disabled:opacity-60 text-red-700 border-red-200 hover:bg-red-50"
+                        disabled={actionLoadingId === item.id}
+                        onClick={() => handleDeleteListing(item)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        Удалить объявление
+                      </button>
+
+                      {item.listingOwnerId && (
+                        <button
+                          type="button"
+                          className="btn py-2 rounded-xl disabled:opacity-60 text-red-700 border-red-200 hover:bg-red-50"
+                          disabled={actionLoadingId === item.id}
+                          onClick={() => handleBlockOwner(item)}
+                        >
+                          <Ban className="w-4 h-4" />
+                          Заблокировать продавца
+                        </button>
+                      )}
+
                       <button
                         type="button"
                         className="btn btn-primary py-2 rounded-xl disabled:opacity-60"
