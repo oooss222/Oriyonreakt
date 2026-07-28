@@ -161,6 +161,7 @@ export default function Home() {
 
         const data = await api.listings({
           limit: 50,
+          sort: "promoted",
         });
 
         if (active) {

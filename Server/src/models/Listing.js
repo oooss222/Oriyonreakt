@@ -224,6 +224,11 @@ class ListingModel {
       orderBy = "COALESCE(views, 0) DESC, created_at DESC";
     }
 
+    if (sort === "new" || sort === "promoted" || sort === "hot") {
+      orderBy =
+        "(vip_until > now()) DESC, (top_until > now()) DESC, COALESCE(bumped_at, created_at) DESC, created_at DESC";
+    }
+
     let sql = `
       SELECT *
       FROM listings
@@ -644,6 +649,78 @@ class ListingModel {
       RETURNING *
       `,
       [id, ownerId, status]
+    );
+
+    return mapListing(result.rows[0]);
+  }
+
+  static async promote(id, userId, type) {
+    const normalizedType = String(type || "").trim().toLowerCase();
+
+    if (!["vip", "top"].includes(normalizedType)) {
+      throw new Error("INVALID_TYPE");
+    }
+
+    const listing = await this.findById(id);
+
+    if (!listing) {
+      return null;
+    }
+
+    if (String(listing.owner) !== String(userId)) {
+      throw new Error("FORBIDDEN");
+    }
+
+    if (listing.status !== "approved") {
+      throw new Error("NOT_APPROVED");
+    }
+
+    const SiteSettings = require("./SiteSettings");
+    const User = require("./User");
+    const settings = await SiteSettings.get();
+
+    const isVip = normalizedType === "vip";
+    const price = isVip ? settings.vipPrice : settings.topPrice;
+    const days = isVip ? 7 : 3;
+    const now = new Date();
+    const msPerDay = 86400000;
+
+    const currentVipUntil =
+      listing.vipUntil && new Date(listing.vipUntil) > now
+        ? new Date(listing.vipUntil)
+        : null;
+    const currentTopUntil =
+      listing.topUntil && new Date(listing.topUntil) > now
+        ? new Date(listing.topUntil)
+        : null;
+
+    const nextVipUntil = isVip
+      ? new Date((currentVipUntil || now).getTime() + days * msPerDay)
+      : currentVipUntil;
+    const nextTopUntil = !isVip
+      ? new Date((currentTopUntil || now).getTime() + days * msPerDay)
+      : currentTopUntil;
+
+    const safeTitle = String(listing.title || "объявление").slice(0, 120);
+
+    await User.chargeWallet(userId, price, {
+      description: isVip
+        ? `VIP продвижение: ${safeTitle}`
+        : `TOP продвижение: ${safeTitle}`,
+    });
+
+    const result = await query(
+      `
+      UPDATE listings
+      SET
+        vip_until = COALESCE($3, vip_until),
+        top_until = COALESCE($4, top_until),
+        bumped_at = now(),
+        updated_at = now()
+      WHERE id = $1 AND owner = $2
+      RETURNING *
+      `,
+      [id, userId, nextVipUntil, nextTopUntil]
     );
 
     return mapListing(result.rows[0]);

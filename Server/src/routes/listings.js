@@ -285,6 +285,55 @@ router.post("/:id/republish", auth, (req, res) =>
   updateListingOwnerStatus(req, res, "approved")
 );
 
+router.post("/:id/promote", auth, async (req, res) => {
+  try {
+    const { type } = req.body || {};
+    const listing = await Listing.promote(
+      req.params.id,
+      req.user.id,
+      type
+    );
+
+    if (!listing) {
+      return res.status(404).json({
+        error: "Listing not found",
+      });
+    }
+
+    return res.json(listing);
+  } catch (e) {
+    if (e?.message === "FORBIDDEN") {
+      return res.status(403).json({
+        error: "Forbidden",
+      });
+    }
+
+    if (e?.message === "NOT_APPROVED") {
+      return res.status(400).json({
+        error: "Only approved listings can be promoted",
+      });
+    }
+
+    if (e?.message === "INVALID_TYPE") {
+      return res.status(400).json({
+        error: "Invalid promotion type",
+      });
+    }
+
+    if (e?.message === "INSUFFICIENT_BALANCE") {
+      return res.status(402).json({
+        error: "Insufficient balance",
+      });
+    }
+
+    console.error("LISTING_PROMOTE_ERROR:", e?.message);
+
+    return res.status(500).json({
+      error: "Failed to promote listing",
+    });
+  }
+});
+
 router.get("/:id", async (req, res) => {
   try {
     const listing = await Listing.findById(req.params.id);

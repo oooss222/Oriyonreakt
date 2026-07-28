@@ -27,6 +27,7 @@ import {
   canAccessAccountant,
 } from "../lib/adminUtils";
 import ModerationListingsPanel from "../components/admin/ModerationListingsPanel";
+import ListingPromotionActions from "../components/ListingPromotionActions";
 
 const WALLET_TYPE_LABELS = {
   top_up: "Пополнение",
@@ -211,6 +212,10 @@ const ListingCard = React.memo(function ListingCard({
   canManage,
   onRemove,
   onStatusAction,
+  onPromote,
+  promotionPrices,
+  walletBalance,
+  promotingId,
   compact = false,
   isFavorite = false,
 }) {
@@ -268,6 +273,18 @@ const ListingCard = React.memo(function ListingCard({
             >
               {statusInfo.label}
             </span>
+
+            {ad.vip && (
+              <span className="inline-flex px-2 py-0.5 text-[11px] rounded-full bg-sun text-white font-semibold">
+                VIP
+              </span>
+            )}
+
+            {ad.top && (
+              <span className="inline-flex px-2 py-0.5 text-[11px] rounded-full bg-lagoon text-white font-semibold">
+                TOP
+              </span>
+            )}
           </div>
 
           {more > 0 && (
@@ -351,6 +368,18 @@ const ListingCard = React.memo(function ListingCard({
             </div>
           )}
 
+          {status === "approved" && onPromote && (
+            <ListingPromotionActions
+              listing={ad}
+              vipPrice={promotionPrices?.vipPrice}
+              topPrice={promotionPrices?.topPrice}
+              walletBalance={walletBalance}
+              promoting={promotingId}
+              compact
+              onPromote={(type) => onPromote(id, type)}
+            />
+          )}
+
           {(status === "sold" || status === "archived") && (
             <button
               type="button"
@@ -372,6 +401,10 @@ const ListingsGrid = React.memo(function ListingsGrid({
   canManage,
   onRemove,
   onStatusAction,
+  onPromote,
+  promotionPrices,
+  walletBalance,
+  promotingId,
   compact = false,
 }) {
   if (!items?.length) {
@@ -426,6 +459,10 @@ const ListingsGrid = React.memo(function ListingsGrid({
           canManage={canManage}
           onRemove={onRemove}
           onStatusAction={onStatusAction}
+          onPromote={onPromote}
+          promotionPrices={promotionPrices}
+          walletBalance={walletBalance}
+          promotingId={promotingId}
           compact={compact}
           isFavorite={tab === "fav"}
         />
@@ -434,7 +471,17 @@ const ListingsGrid = React.memo(function ListingsGrid({
   );
 });
 
-function MyListingsPanel({ items, loading, canManage, onRemove, onStatusAction }) {
+function MyListingsPanel({
+  items,
+  loading,
+  canManage,
+  onRemove,
+  onStatusAction,
+  onPromote,
+  promotionPrices,
+  walletBalance,
+  promotingId,
+}) {
   const [query, setQuery] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState("all");
   const [view, setView] = React.useState("grid");
@@ -639,6 +686,10 @@ function MyListingsPanel({ items, loading, canManage, onRemove, onStatusAction }
         canManage={canManage}
         onRemove={onRemove}
         onStatusAction={onStatusAction}
+        onPromote={onPromote}
+        promotionPrices={promotionPrices}
+        walletBalance={walletBalance}
+        promotingId={promotingId}
         compact={view === "compact"}
       />
     </div>
@@ -679,6 +730,11 @@ export default function Profile() {
   const [loadingMy, setLoadingMy] = React.useState(false);
   const [loadingFav, setLoadingFav] = React.useState(false);
   const [walletHistory, setWalletHistory] = React.useState([]);
+  const [promotionPrices, setPromotionPrices] = React.useState({
+    vipPrice: 25,
+    topPrice: 15,
+  });
+  const [promotingId, setPromotingId] = React.useState(null);
 
   const meRef = React.useRef(me);
   const firstProfileSave = React.useRef(true);
@@ -704,6 +760,20 @@ export default function Profile() {
       nav("/admin", { replace: true });
     }
   }, [searchParams, nav]);
+
+  React.useEffect(() => {
+    api
+      .siteSettings()
+      .then((settings) => {
+        if (!settings) return;
+
+        setPromotionPrices({
+          vipPrice: settings.vipPrice ?? 25,
+          topPrice: settings.topPrice ?? 15,
+        });
+      })
+      .catch(() => {});
+  }, []);
 
   React.useEffect(() => {
     if (!token) return;
@@ -937,6 +1007,69 @@ export default function Profile() {
       }
     },
     [token]
+  );
+
+  const promoteListing = React.useCallback(
+    async (id, type) => {
+      const price =
+        type === "vip" ? promotionPrices.vipPrice : promotionPrices.topPrice;
+      const label = type === "vip" ? "VIP (7 дней)" : "TOP (3 дня)";
+
+      if (
+        !confirm(
+          `Подключить ${label} за ${Number(price).toLocaleString("ru-RU")} TJS?`
+        )
+      ) {
+        return;
+      }
+
+      try {
+        setPromotingId(`${id}-${type}`);
+
+        const updated = await api.promoteListing(token, id, type);
+
+        setMyItems((items) =>
+          items.map((item) =>
+            String(getId(item)) === String(id) ? { ...item, ...updated } : item
+          )
+        );
+
+        const user = await api.me(token);
+
+        if (user) {
+          setMe(user);
+          localStorage.setItem(USER_KEY, JSON.stringify(user));
+        }
+
+        alert(
+          type === "vip"
+            ? "VIP продвижение активировано"
+            : "TOP продвижение активировано"
+        );
+      } catch (e) {
+        const message = e?.message || "";
+
+        if (
+          message.includes("Insufficient balance") ||
+          message.includes("402")
+        ) {
+          if (
+            confirm(
+              "Недостаточно средств на кошельке. Перейти к пополнению?"
+            )
+          ) {
+            setTab("wallet");
+          }
+
+          return;
+        }
+
+        alert(message || "Не удалось подключить продвижение");
+      } finally {
+        setPromotingId(null);
+      }
+    },
+    [token, promotionPrices, setTab]
   );
 
   const walletBalance = Number(me?.walletBalance || 0);
@@ -1555,6 +1688,10 @@ export default function Profile() {
     canManage={true}
     onRemove={remove}
     onStatusAction={updateListingStatus}
+    onPromote={promoteListing}
+    promotionPrices={promotionPrices}
+    walletBalance={walletBalance}
+    promotingId={promotingId}
   />
 )}
 

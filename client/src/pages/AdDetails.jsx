@@ -29,6 +29,7 @@ import { usePageMeta } from "../lib/usePageMeta";
 import ListingCard from "../components/ListingCard";
 import Breadcrumbs from "../components/Breadcrumbs";
 import EmptyState from "../components/EmptyState";
+import ListingPromotionActions from "../components/ListingPromotionActions";
 import { CAT_LABELS } from "../data/listingCategories";
 import { REPORT_REASONS } from "../data/reportReasons";
 
@@ -151,6 +152,26 @@ export default function AdDetails() {
   const [reportReason, setReportReason] = React.useState("fraud");
   const [reportDetails, setReportDetails] = React.useState("");
   const [reportSending, setReportSending] = React.useState(false);
+  const [promotionPrices, setPromotionPrices] = React.useState({
+    vipPrice: 25,
+    topPrice: 15,
+  });
+  const [promotingType, setPromotingType] = React.useState(null);
+  const [walletBalance, setWalletBalance] = React.useState(0);
+
+  React.useEffect(() => {
+    api
+      .siteSettings()
+      .then((settings) => {
+        if (!settings) return;
+
+        setPromotionPrices({
+          vipPrice: settings.vipPrice ?? 25,
+          topPrice: settings.topPrice ?? 15,
+        });
+      })
+      .catch(() => {});
+  }, []);
 
   React.useEffect(() => {
     if (!token) {
@@ -163,7 +184,10 @@ export default function AdDetails() {
     api
       .me(token)
       .then((user) => {
-        if (active) setCurrentUserId(user?.id || user?._id || null);
+        if (active) {
+          setCurrentUserId(user?.id || user?._id || null);
+          setWalletBalance(Number(user?.walletBalance || 0));
+        }
       })
       .catch(() => {
         if (active) setCurrentUserId(null);
@@ -482,6 +506,67 @@ export default function AdDetails() {
     }
   };
 
+  const promoteListing = async (type) => {
+    if (!token || !ad) {
+      goToAuth(nav);
+      return;
+    }
+
+    const price =
+      type === "vip" ? promotionPrices.vipPrice : promotionPrices.topPrice;
+    const label = type === "vip" ? "VIP (7 дней)" : "TOP (3 дня)";
+
+    if (
+      !confirm(
+        `Подключить ${label} за ${Number(price).toLocaleString("ru-RU")} TJS?`
+      )
+    ) {
+      return;
+    }
+
+    const listingId = ad._id || ad.id;
+
+    try {
+      setPromotingType(type);
+
+      const updated = await api.promoteListing(token, listingId, type);
+      setAd((current) => ({ ...current, ...updated }));
+
+      const user = await api.me(token);
+
+      if (user) {
+        setWalletBalance(Number(user.walletBalance || 0));
+      }
+
+      setToast(
+        type === "vip"
+          ? "VIP продвижение активировано"
+          : "TOP продвижение активировано"
+      );
+    } catch (e) {
+      const message = e?.message || "";
+
+      if (
+        message.includes("Insufficient balance") ||
+        message.includes("402")
+      ) {
+        if (
+          confirm(
+            "Недостаточно средств на кошельке. Перейти к пополнению?"
+          )
+        ) {
+          nav("/profile?tab=wallet");
+        }
+
+        return;
+      }
+
+      setToast(message || "Не удалось подключить продвижение");
+    } finally {
+      setPromotingType(null);
+    }
+  };
+
   const shareAd = async () => {
     const url = window.location.href;
     const title = ad?.title || "Объявление";
@@ -551,6 +636,7 @@ export default function AdDetails() {
   const price = formatPrice(ad.price, { emptyLabel: "Договорная" });
   const sellerName = getSellerName(ad) || "Продавец";
   const publicId = ad.publicId || ad.public_id || ad._id || ad.id;
+  const listingId = ad._id || ad.id;
   const catLabel = CAT_LABELS[ad.cat] || ad.cat;
   const published = formatDate(ad.createdAt);
   const listingUrl = `/listing${ad.cat ? `?cat=${encodeURIComponent(ad.cat)}` : ""}${
@@ -1022,6 +1108,21 @@ export default function AdDetails() {
 
                   {isOwner ? (
                     <>
+                      {moderationStatus === "approved" && (
+                        <ListingPromotionActions
+                          listing={ad}
+                          vipPrice={promotionPrices.vipPrice}
+                          topPrice={promotionPrices.topPrice}
+                          walletBalance={walletBalance}
+                          promoting={
+                            promotingType
+                              ? `${listingId}-${promotingType}`
+                              : null
+                          }
+                          onPromote={promoteListing}
+                        />
+                      )}
+
                       {moderationStatus === "approved" && (
                         <div className="grid grid-cols-1 gap-2">
                           <button

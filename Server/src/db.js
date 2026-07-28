@@ -178,6 +178,15 @@ async function initDb() {
     ALTER TABLE listings
       ADD COLUMN IF NOT EXISTS views INTEGER NOT NULL DEFAULT 0;
 
+    ALTER TABLE listings
+      ADD COLUMN IF NOT EXISTS vip_until TIMESTAMPTZ;
+
+    ALTER TABLE listings
+      ADD COLUMN IF NOT EXISTS top_until TIMESTAMPTZ;
+
+    ALTER TABLE listings
+      ADD COLUMN IF NOT EXISTS bumped_at TIMESTAMPTZ;
+
     DO $$
     BEGIN
       IF EXISTS (
@@ -372,6 +381,18 @@ function mapUser(row) {
 function mapListing(row) {
   if (!row) return null;
 
+  const now = Date.now();
+  const vipUntil = row.vip_until || null;
+  const topUntil = row.top_until || null;
+  const vip =
+    vipUntil && !Number.isNaN(Date.parse(vipUntil))
+      ? Date.parse(vipUntil) > now
+      : false;
+  const top =
+    topUntil && !Number.isNaN(Date.parse(topUntil))
+      ? Date.parse(topUntil) > now
+      : false;
+
   return {
   id: row.id,
   _id: row.id,
@@ -401,6 +422,12 @@ function mapListing(row) {
     moderatedAt: row.moderated_at || null,
 
     views: Number(row.views || 0),
+
+    vip,
+    top,
+    vipUntil,
+    topUntil,
+    bumpedAt: row.bumped_at || null,
 
     createdAt: row.created_at,
     updatedAt: row.updated_at,

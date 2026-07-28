@@ -301,6 +301,52 @@ class UserModel {
     return user;
   }
 
+  static async chargeWallet(id, amount, { description = "" } = {}) {
+    const numericAmount = Math.abs(Number(amount));
+
+    if (!Number.isFinite(numericAmount) || numericAmount <= 0) {
+      throw new Error("INVALID_AMOUNT");
+    }
+
+    const current = await this.findById(id);
+
+    if (!current) {
+      throw new Error("NOT_FOUND");
+    }
+
+    if (Number(current.walletBalance || 0) < numericAmount) {
+      throw new Error("INSUFFICIENT_BALANCE");
+    }
+
+    const result = await query(
+      `
+      UPDATE users
+      SET
+        wallet_balance = wallet_balance - $2,
+        updated_at = now()
+      WHERE id = $1
+      RETURNING *
+      `,
+      [id, numericAmount]
+    );
+
+    const user = mapUser(result.rows[0]);
+
+    if (user) {
+      const Wallet = require("./Wallet");
+
+      await Wallet.recordTransaction({
+        userId: id,
+        type: "payment",
+        amount: -numericAmount,
+        description,
+        createdBy: id,
+      });
+    }
+
+    return user;
+  }
+
   static async topUpWallet(id, amount) {
     const result = await query(
       `
