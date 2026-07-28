@@ -186,21 +186,34 @@ export default function Home() {
     };
   }, []);
 
-  const hotListings = listings.slice(0, 10);
+  const sortedListings = React.useMemo(
+    () => sortListingsByPromotion(listings),
+    [listings]
+  );
 
-  const electronicsListings = listings
+  const promotedListings = React.useMemo(
+    () => sortedListings.filter((item) => item.vip || item.top),
+    [sortedListings]
+  );
+
+  const hotListings = React.useMemo(() => {
+    const source = promotedListings.length ? promotedListings : sortedListings;
+    return source.slice(0, 10);
+  }, [promotedListings, sortedListings]);
+
+  const electronicsListings = sortedListings
     .filter((item) => item.cat === "electronics")
     .slice(0, 10);
 
-  const phonesListings = listings
+  const phonesListings = sortedListings
     .filter((item) => item.cat === "phones")
     .slice(0, 10);
 
-  const computersListings = listings
+  const computersListings = sortedListings
     .filter((item) => item.cat === "computers")
     .slice(0, 10);
 
-  const newestListings = sortListingsByPromotion(listings).slice(0, 10);
+  const newestListings = sortedListings.slice(0, 10);
 
   return (
     <div className="page-shell">
@@ -309,7 +322,7 @@ export default function Home() {
             <h3 className="font-display font-bold text-lg text-ink">Продвижение</h3>
 
             <p className="text-sm text-ink-400 mt-2">
-              Кошелёк подготовлен для будущих VIP, TOP и платных услуг продвижения.
+              Поднимайте объявления в TOP и VIP прямо из личного кабинета или со страницы объявления.
             </p>
           </div>
         </section>
