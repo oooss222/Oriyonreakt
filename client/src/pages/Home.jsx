@@ -191,15 +191,7 @@ export default function Home() {
     [listings]
   );
 
-  const promotedListings = React.useMemo(
-    () => sortedListings.filter((item) => item.vip || item.top),
-    [sortedListings]
-  );
-
-  const hotListings = React.useMemo(() => {
-    const source = promotedListings.length ? promotedListings : sortedListings;
-    return source.slice(0, 10);
-  }, [promotedListings, sortedListings]);
+  const hotListings = sortedListings.slice(0, 10);
 
   const electronicsListings = sortedListings
     .filter((item) => item.cat === "electronics")
