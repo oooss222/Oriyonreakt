@@ -22,7 +22,8 @@ import {
 import { api } from "../lib/api";
 import { goToAuth } from "../lib/auth";
 import { resolveMediaUrl } from "../lib/media";
-import { formatPrice, formatViews } from "../lib/format";
+import { formatPrice, formatViewsLabel } from "../lib/format";
+import { markListingViewed, markViewRecorded, wasViewRecorded } from "../lib/viewedListings";
 import { usePageMeta } from "../lib/usePageMeta";
 import ListingCard from "../components/ListingCard";
 import Breadcrumbs from "../components/Breadcrumbs";
@@ -204,9 +205,10 @@ export default function AdDetails() {
     if (!ad) return undefined;
 
     const adId = String(ad._id || ad.id);
-    const storageKey = `listing_view_${adId}`;
 
-    if (sessionStorage.getItem(storageKey)) {
+    markListingViewed(adId);
+
+    if (wasViewRecorded(adId)) {
       return undefined;
     }
 
@@ -217,7 +219,7 @@ export default function AdDetails() {
       .then((data) => {
         if (!active) return;
 
-        sessionStorage.setItem(storageKey, "1");
+        markViewRecorded(adId);
 
         if (data?.views != null) {
           setAd((current) =>
@@ -731,7 +733,7 @@ export default function AdDetails() {
                 )}
                 <span className="inline-flex items-center gap-1">
                   <Eye className="w-4 h-4" />
-                  {formatViews(ad.views)}
+                  {formatViewsLabel(ad.views)}
                 </span>
               </div>
 
@@ -843,7 +845,7 @@ export default function AdDetails() {
                   )}
                   <span className="inline-flex items-center gap-1">
                     <Eye className="w-4 h-4" />
-                    {formatViews(ad.views)}
+                    {formatViewsLabel(ad.views)}
                   </span>
                 </div>
               </section>

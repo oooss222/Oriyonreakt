@@ -6,11 +6,12 @@ import ListingGridSkeleton from "../components/ListingGridSkeleton";
 import EmptyState from "../components/EmptyState";
 import Breadcrumbs from "../components/Breadcrumbs";
 import ListingFiltersPanel from "../components/ListingFiltersPanel";
+import ListingCardOverlays from "../components/ListingCardOverlays";
 import SubcategoryChips from "../components/SubcategoryChips";
 import SimilarListingsSection from "../components/SimilarListingsSection";
 import { usePageMeta } from "../lib/usePageMeta";
 import { getListingThumb } from "../lib/media";
-import { formatPrice, formatViews } from "../lib/format";
+import { formatPrice } from "../lib/format";
 import { CATS, parseSpecsParam } from "../data/listingCategories";
 import {
   Search,
@@ -18,7 +19,6 @@ import {
   X,
   MapPin,
   PackageSearch,
-  Eye,
 } from "lucide-react";
 
 function buildListingParams(draft, urlCat = "") {
@@ -502,27 +502,13 @@ export default function Listing() {
                     sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
                   />
 
-                  {(ad.vip || ad.top) && (
-                    <div className="absolute left-2 top-2 flex gap-2">
-                      {ad.vip && (
-                        <span className="px-2 py-0.5 text-[11px] rounded-full bg-amber-500 text-white shadow">
-                          VIP
-                        </span>
-                      )}
-
-                      {ad.top && (
-                        <span className="px-2 py-0.5 text-[11px] rounded-full bg-lagoon text-white shadow">
-                          TOP
-                        </span>
-                      )}
-                    </div>
-                  )}
-
-                  {more > 0 && (
-                    <span className="absolute right-2 bottom-2 text-[11px] bg-black/70 text-white rounded px-1">
-                      +{more}
-                    </span>
-                  )}
+                  <ListingCardOverlays
+                    listingId={id}
+                    views={ad.views}
+                    vip={ad.vip}
+                    top={ad.top}
+                    morePhotos={more}
+                  />
                 </div>
 
                 <div className="mt-2 flex-1 flex flex-col gap-1">
@@ -545,11 +531,6 @@ export default function Listing() {
                   <div className="text-xs text-slate-500 line-clamp-1 flex items-center gap-1">
                     <MapPin size={13} />
                     {ad.location || ad.city || "Душанбе"}
-                  </div>
-
-                  <div className="text-xs text-slate-400 flex items-center gap-1">
-                    <Eye size={13} />
-                    {formatViews(ad.views)}
                   </div>
 
                   <div className="text-xs text-slate-400">

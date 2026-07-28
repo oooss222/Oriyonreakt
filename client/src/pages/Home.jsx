@@ -1,6 +1,7 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import FavoriteButton from "../components/FavoriteButton";
+import ListingCardOverlays from "../components/ListingCardOverlays";
 import { api } from "../lib/api";
 import { getListingThumb } from "../lib/media";
 import { formatPrice } from "../lib/format";
@@ -53,21 +54,12 @@ function ListingCard({ ad, listings }) {
           loading="lazy"
         />
 
-        {(ad.vip || ad.top) && (
-          <div className="absolute left-2 top-2 flex gap-2">
-            {ad.vip && (
-              <span className="px-2 py-0.5 text-[11px] rounded-lg bg-sun text-white shadow-soft font-semibold">
-                VIP
-              </span>
-            )}
-
-            {ad.top && (
-              <span className="px-2 py-0.5 text-[11px] rounded-lg bg-lagoon text-white shadow-soft font-semibold">
-                TOP
-              </span>
-            )}
-          </div>
-        )}
+        <ListingCardOverlays
+          listingId={id}
+          views={ad.views}
+          vip={ad.vip}
+          top={ad.top}
+        />
       </div>
 
       <div className="p-2 flex-1 flex flex-col gap-1">

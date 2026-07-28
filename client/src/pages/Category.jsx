@@ -4,6 +4,7 @@ import EmptyState from "../components/EmptyState";
 import Breadcrumbs from "../components/Breadcrumbs";
 import ListingGridSkeleton from "../components/ListingGridSkeleton";
 import FavoriteButton from "../components/FavoriteButton";
+import ListingCardOverlays from "../components/ListingCardOverlays";
 import { usePageMeta } from "../lib/usePageMeta";
 import { api } from "../lib/api";
 import { CATS } from "../data/listingCategories";
@@ -260,12 +261,22 @@ export default function Category() {
                   }}
                   className="group flex flex-col rounded-2xl border bg-white p-2 transition hover:shadow-lg hover:-translate-y-0.5 cursor-pointer"
                 >
-                  <img
-                    src={imgUrl}
-                    alt={ad.title || "Фото"}
-                    loading="lazy"
-                    className="w-full h-32 object-cover rounded-xl bg-slate-100"
-                  />
+                  <div className="relative">
+                    <img
+                      src={imgUrl}
+                      alt={ad.title || "Фото"}
+                      loading="lazy"
+                      className="w-full h-32 object-cover rounded-xl bg-slate-100"
+                    />
+
+                    <ListingCardOverlays
+                      listingId={id}
+                      views={ad.views}
+                      vip={ad.vip}
+                      top={ad.top}
+                      morePhotos={Math.max(0, (ad.images?.length || 0) - 1)}
+                    />
+                  </div>
 
                   <div className="mt-2 flex-1 flex flex-col gap-1">
                     <div className="font-semibold text-sm text-slate-900 line-clamp-2 group-hover:text-sun transition">

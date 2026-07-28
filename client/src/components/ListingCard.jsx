@@ -1,13 +1,14 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { Eye } from "lucide-react";
 import FavoriteButton from "./FavoriteButton";
+import ListingCardOverlays from "./ListingCardOverlays";
 import { getListingThumb } from "../lib/media";
-import { formatPrice, formatViews } from "../lib/format";
+import { formatPrice } from "../lib/format";
 
 export default function ListingCard({ item, onFav }) {
   const nav = useNavigate();
   const listingId = item?.id || item?._id;
+  const morePhotos = Math.max(0, (item?.images?.length || 0) - 1);
 
   const openAd = () => {
     if (!listingId) return;
@@ -36,6 +37,14 @@ export default function ListingCard({ item, onFav }) {
             e.currentTarget.src = "/img/placeholder.jpg";
           }}
         />
+
+        <ListingCardOverlays
+          listingId={listingId}
+          views={item?.views}
+          vip={item?.vip}
+          top={item?.top}
+          morePhotos={morePhotos}
+        />
       </div>
 
       <div className="p-3">
@@ -46,11 +55,6 @@ export default function ListingCard({ item, onFav }) {
         <h3 className="mt-2 text-sm font-semibold text-ink line-clamp-2 group-hover:text-sun-700 transition-colors">
           {item.title}
         </h3>
-
-        <div className="mt-1 text-xs text-slate-400 inline-flex items-center gap-1">
-          <Eye className="w-3.5 h-3.5" />
-          {formatViews(item.views)}
-        </div>
 
         <div className="mt-2 flex items-center justify-between gap-2">
           <strong className="text-price text-base">
