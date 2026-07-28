@@ -21,36 +21,21 @@ const SORT_OPTIONS = [
   { value: "name_asc", label: "Имя A→Z" },
 ];
 
-function sortUsers(list, sortKey) {
-  const items = [...list];
+function useDebouncedValue(value, delay = 350) {
+  const [debounced, setDebounced] = React.useState(value);
 
-  items.sort((a, b) => {
-    if (sortKey === "created_desc") {
-      return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
-    }
-    if (sortKey === "created_asc") {
-      return new Date(a.createdAt || 0) - new Date(b.createdAt || 0);
-    }
-    if (sortKey === "balance_desc") {
-      return Number(b.walletBalance || 0) - Number(a.walletBalance || 0);
-    }
-    if (sortKey === "balance_asc") {
-      return Number(a.walletBalance || 0) - Number(b.walletBalance || 0);
-    }
-    if (sortKey === "role_asc") {
-      return String(a.role || "").localeCompare(String(b.role || ""), "ru");
-    }
-    if (sortKey === "name_asc") {
-      return String(a.name || "").localeCompare(String(b.name || ""), "ru");
-    }
-    return 0;
-  });
+  React.useEffect(() => {
+    const timer = setTimeout(() => setDebounced(value), delay);
+    return () => clearTimeout(timer);
+  }, [value, delay]);
 
-  return items;
+  return debounced;
 }
 
 export default function AdminUsersSection({ token, currentUser }) {
   const [users, setUsers] = React.useState([]);
+  const [total, setTotal] = React.useState(0);
+  const [totalPages, setTotalPages] = React.useState(1);
   const [loading, setLoading] = React.useState(true);
   const [refreshing, setRefreshing] = React.useState(false);
   const [error, setError] = React.useState("");
@@ -62,6 +47,8 @@ export default function AdminUsersSection({ token, currentUser }) {
   const [page, setPage] = React.useState(1);
   const [selectedUserId, setSelectedUserId] = React.useState(null);
 
+  const debouncedQuery = useDebouncedValue(query);
+
   const currentRole = currentUser?.role || "user";
   const isSuperAdmin = currentRole === "super_admin";
 
@@ -70,15 +57,25 @@ export default function AdminUsersSection({ token, currentUser }) {
       setRefreshing(true);
       setError("");
 
-      const data = await api.adminUsers(token);
-      setUsers(Array.isArray(data) ? data : []);
+      const data = await api.adminUsers(token, {
+        q: debouncedQuery,
+        role: roleFilter,
+        status: statusFilter,
+        sort: sortKey,
+        page,
+        limit: PAGE_SIZE,
+      });
+
+      setUsers(Array.isArray(data.items) ? data.items : []);
+      setTotal(Number(data.total || 0));
+      setTotalPages(Math.max(1, Number(data.totalPages || 1)));
     } catch (e) {
       setError(e.message || "Ошибка загрузки пользователей");
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [token]);
+  }, [token, debouncedQuery, roleFilter, statusFilter, sortKey, page]);
 
   React.useEffect(() => {
     loadUsers();
@@ -86,44 +83,7 @@ export default function AdminUsersSection({ token, currentUser }) {
 
   React.useEffect(() => {
     setPage(1);
-  }, [query, roleFilter, statusFilter, sortKey]);
-
-  const filteredUsers = React.useMemo(() => {
-    const q = query.trim().toLowerCase();
-
-    const filtered = users.filter((user) => {
-      if (roleFilter !== "all" && user.role !== roleFilter) {
-        return false;
-      }
-
-      if (statusFilter === "active" && user.isBlocked) {
-        return false;
-      }
-
-      if (statusFilter === "blocked" && !user.isBlocked) {
-        return false;
-      }
-
-      if (!q) {
-        return true;
-      }
-
-      const name = String(user.name || "").toLowerCase();
-      const email = String(user.email || "").toLowerCase();
-      const phone = String(user.phone || "").toLowerCase();
-
-      return name.includes(q) || email.includes(q) || phone.includes(q);
-    });
-
-    return sortUsers(filtered, sortKey);
-  }, [users, query, roleFilter, statusFilter, sortKey]);
-
-  const totalPages = Math.max(1, Math.ceil(filteredUsers.length / PAGE_SIZE));
-  const safePage = Math.min(page, totalPages);
-  const pageUsers = filteredUsers.slice(
-    (safePage - 1) * PAGE_SIZE,
-    safePage * PAGE_SIZE
-  );
+  }, [debouncedQuery, roleFilter, statusFilter, sortKey]);
 
   const changeRole = async (userId, nextRole) => {
     if (!isSuperAdmin) {
@@ -132,10 +92,8 @@ export default function AdminUsersSection({ token, currentUser }) {
     }
 
     try {
-      const updated = await api.adminSetUserRole(token, userId, nextRole);
-      setUsers((arr) =>
-        arr.map((u) => (String(getId(u)) === String(userId) ? updated : u))
-      );
+      await api.adminSetUserRole(token, userId, nextRole);
+      await loadUsers();
     } catch (e) {
       alert(e.message || "Ошибка изменения роли");
     }
@@ -153,23 +111,20 @@ export default function AdminUsersSection({ token, currentUser }) {
     if (!ok) return;
 
     try {
-      const updated = user.isBlocked
-        ? await api.adminUnblockUser(token, userId)
-        : await api.adminBlockUser(token, userId);
+      if (user.isBlocked) {
+        await api.adminUnblockUser(token, userId);
+      } else {
+        await api.adminBlockUser(token, userId);
+      }
 
-      setUsers((arr) =>
-        arr.map((u) => (String(getId(u)) === String(userId) ? updated : u))
-      );
+      await loadUsers();
     } catch (e) {
       alert(e.message || "Ошибка блокировки");
     }
   };
 
-  const handleUserUpdated = (updated) => {
-    if (!updated) return;
-    setUsers((arr) =>
-      arr.map((u) => (String(getId(u)) === String(getId(updated)) ? updated : u))
-    );
+  const handleUserUpdated = () => {
+    loadUsers();
   };
 
   if (loading) {
@@ -264,12 +219,13 @@ export default function AdminUsersSection({ token, currentUser }) {
 
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-sm text-slate-500">
           <div>
-            Показано: {pageUsers.length} из {filteredUsers.length} (всего {users.length})
+            Показано: {users.length} из {total}
+            {query !== debouncedQuery ? " · ищем..." : ""}
           </div>
           <div className="flex items-center gap-2">
             <button
               type="button"
-              disabled={safePage <= 1}
+              disabled={page <= 1 || refreshing}
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border disabled:opacity-40"
             >
@@ -277,11 +233,11 @@ export default function AdminUsersSection({ token, currentUser }) {
               Назад
             </button>
             <span>
-              {safePage} / {totalPages}
+              {page} / {totalPages}
             </span>
             <button
               type="button"
-              disabled={safePage >= totalPages}
+              disabled={page >= totalPages || refreshing}
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border disabled:opacity-40"
             >
@@ -291,7 +247,7 @@ export default function AdminUsersSection({ token, currentUser }) {
           </div>
         </div>
 
-        {pageUsers.length === 0 ? (
+        {users.length === 0 ? (
           <div className="rounded-2xl border bg-slate-50 p-8 text-center text-slate-500">
             Пользователи не найдены.
           </div>
@@ -311,7 +267,7 @@ export default function AdminUsersSection({ token, currentUser }) {
               </thead>
 
               <tbody>
-                {pageUsers.map((user) => {
+                {users.map((user) => {
                   const id = getId(user);
                   const role = user.role || "user";
                   const manageable = canManageUser(currentUser, user);

@@ -57,6 +57,40 @@ export const canAccessAdmin = (role) => role === "admin" || role === "super_admi
 export const canAccessModeration = (role) =>
   ["moderator", "admin", "super_admin"].includes(role);
 
+export const canAccessAccountant = (role) => role === "accountant";
+
+export const canAccessFinance = (role) =>
+  role === "super_admin" || role === "accountant";
+
+export const canAccessExport = (role) =>
+  ["admin", "super_admin", "accountant"].includes(role);
+
+export const canAccessAdminPanel = (role) =>
+  canAccessModeration(role) || canAccessAccountant(role);
+
+export const sectionRoles = {
+  dashboard: ["admin", "super_admin"],
+  analytics: ["admin", "super_admin"],
+  users: ["admin", "super_admin"],
+  listings: ["admin", "super_admin"],
+  moderation: ["moderator", "admin", "super_admin"],
+  reports: ["moderator", "admin", "super_admin"],
+  finance: ["super_admin", "accountant"],
+  export: ["admin", "super_admin", "accountant"],
+  settings: ["super_admin"],
+  audit: ["admin", "super_admin"],
+};
+
+export const defaultAdminSection = (role) => {
+  if (role === "accountant") return "finance";
+  if (canAccessAdmin(role)) return "dashboard";
+  if (canAccessModeration(role)) return "moderation";
+  return "finance";
+};
+
+export const canAccessAdminSection = (role, sectionId) =>
+  (sectionRoles[sectionId] || []).includes(role);
+
 export const AUDIT_ACTION_LABELS = {
   "user.block": "Блокировка пользователя",
   "user.unblock": "Разблокировка пользователя",

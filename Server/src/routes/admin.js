@@ -188,7 +188,7 @@ router.put("/settings", requireRole("super_admin"), async (req, res) => {
 
 router.get(
   "/export/:type",
-  requireRole("admin", "super_admin"),
+  requireRole("admin", "super_admin", "accountant"),
   async (req, res) => {
     try {
       const type = String(req.params.type || "").trim();
@@ -293,7 +293,7 @@ router.get(
   }
 );
 
-router.get("/stats", requireRole("admin", "super_admin"), async (req, res) => {
+router.get("/stats", requireRole("admin", "super_admin", "accountant"), async (req, res) => {
   try {
     const [usersResult, listingsResult, reportsResult, walletResult] =
       await Promise.all([
@@ -458,9 +458,30 @@ router.post(
 
 router.get("/users", requireRole("admin", "super_admin"), async (req, res) => {
   try {
-    const users = await User.getAll();
+    const q = String(req.query.q || "").trim();
+    const role = String(req.query.role || "all").trim();
+    const status = String(req.query.status || "all").trim();
+    const sort = String(req.query.sort || "created_desc").trim();
+    const limit = Number(req.query.limit || 25);
+    const page = Math.max(Number(req.query.page) || 1, 1);
+    const offset = (page - 1) * Math.min(Math.max(limit, 1), 100);
 
-    return res.json(users.map(User.sanitize));
+    const result = await User.findPaginated({
+      q,
+      role,
+      status,
+      sort,
+      limit,
+      offset,
+    });
+
+    return res.json({
+      items: result.items.map(User.sanitize),
+      total: result.total,
+      page: result.page,
+      limit: result.limit,
+      totalPages: result.totalPages,
+    });
   } catch (e) {
     console.error("ADMIN_USERS_GET_ERROR:", e?.message);
 

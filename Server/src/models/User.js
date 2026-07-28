@@ -71,6 +71,96 @@ class UserModel {
     return result.rows.map(mapUser);
   }
 
+  static async findPaginated({
+    q = "",
+    role = "",
+    status = "",
+    sort = "created_desc",
+    limit = 25,
+    offset = 0,
+  } = {}) {
+    const conditions = [];
+    const values = [];
+
+    if (role && role !== "all") {
+      values.push(role);
+      conditions.push(`role = $${values.length}`);
+    }
+
+    if (status === "active") {
+      conditions.push("is_blocked = false");
+    } else if (status === "blocked") {
+      conditions.push("is_blocked = true");
+    }
+
+    const search = String(q || "").trim();
+
+    if (search) {
+      values.push(`%${search}%`);
+      const idx = values.length;
+
+      conditions.push(`
+        (
+          name ILIKE $${idx}
+          OR email ILIKE $${idx}
+          OR phone ILIKE $${idx}
+        )
+      `);
+    }
+
+    const whereSql = conditions.length
+      ? `WHERE ${conditions.join(" AND ")}`
+      : "";
+
+    const sortMap = {
+      created_desc: "created_at DESC",
+      created_asc: "created_at ASC",
+      balance_desc: "wallet_balance DESC NULLS LAST",
+      balance_asc: "wallet_balance ASC NULLS LAST",
+      role_asc: "role ASC, name ASC",
+      name_asc: "name ASC",
+    };
+
+    const orderBy = sortMap[sort] || sortMap.created_desc;
+    const safeLimit = Math.min(Math.max(Number(limit) || 25, 1), 100);
+    const safeOffset = Math.max(Number(offset) || 0, 0);
+
+    const countResult = await query(
+      `
+      SELECT COUNT(*)::int AS total
+      FROM users
+      ${whereSql}
+      `,
+      values
+    );
+
+    const listValues = [...values, safeLimit, safeOffset];
+    const limitIdx = listValues.length - 1;
+    const offsetIdx = listValues.length;
+
+    const result = await query(
+      `
+      SELECT *
+      FROM users
+      ${whereSql}
+      ORDER BY ${orderBy}
+      LIMIT $${limitIdx} OFFSET $${offsetIdx}
+      `,
+      listValues
+    );
+
+    const total = Number(countResult.rows[0]?.total || 0);
+
+    return {
+      items: result.rows.map(mapUser),
+      total,
+      limit: safeLimit,
+      offset: safeOffset,
+      page: Math.floor(safeOffset / safeLimit) + 1,
+      totalPages: Math.max(1, Math.ceil(total / safeLimit)),
+    };
+  }
+
   static async comparePassword(user, password) {
     return bcrypt.compare(password, user.password);
   }

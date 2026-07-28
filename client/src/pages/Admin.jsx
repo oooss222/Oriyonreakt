@@ -18,7 +18,10 @@ import { api } from "../lib/api";
 import { goToAuth, TOKEN_KEY, USER_KEY } from "../lib/auth";
 import {
   canAccessAdmin,
-  canAccessModeration,
+  canAccessAdminPanel,
+  canAccessAdminSection,
+  canAccessAccountant,
+  defaultAdminSection,
 } from "../lib/adminUtils";
 import AdminDashboard from "../components/admin/AdminDashboard";
 import AdminUsersSection from "../components/admin/AdminUsersSection";
@@ -31,16 +34,16 @@ import ModerationListingsPanel from "../components/admin/ModerationListingsPanel
 import ModerationReports from "../components/ModerationReports";
 
 const SECTIONS = [
-  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, adminOnly: true },
-  { id: "analytics", label: "Аналитика", icon: BarChart3, adminOnly: true },
-  { id: "users", label: "Пользователи", icon: Users, adminOnly: true },
-  { id: "listings", label: "Объявления", icon: FileText, adminOnly: true },
-  { id: "moderation", label: "Модерация", icon: ClipboardCheck, adminOnly: false },
-  { id: "reports", label: "Жалобы", icon: Flag, adminOnly: false },
-  { id: "finance", label: "Финансы", icon: Wallet, superAdminOnly: true },
-  { id: "settings", label: "Настройки", icon: Settings, superAdminOnly: true },
-  { id: "export", label: "Экспорт", icon: Download, adminOnly: true },
-  { id: "audit", label: "Журнал", icon: ScrollText, adminOnly: true },
+  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { id: "analytics", label: "Аналитика", icon: BarChart3 },
+  { id: "users", label: "Пользователи", icon: Users },
+  { id: "listings", label: "Объявления", icon: FileText },
+  { id: "moderation", label: "Модерация", icon: ClipboardCheck },
+  { id: "reports", label: "Жалобы", icon: Flag },
+  { id: "finance", label: "Финансы", icon: Wallet },
+  { id: "settings", label: "Настройки", icon: Settings },
+  { id: "export", label: "Экспорт", icon: Download },
+  { id: "audit", label: "Журнал", icon: ScrollText },
 ];
 
 function AdminFinanceSection({ stats, loading, error }) {
@@ -103,18 +106,17 @@ export default function Admin() {
 
   const role = me?.role || "user";
   const isAdmin = canAccessAdmin(role);
-  const isModerator = canAccessModeration(role);
+  const isAccountant = canAccessAccountant(role);
   const isSuperAdmin = role === "super_admin";
+  const canOpenPanel = canAccessAdminPanel(role);
 
   const sectionParam = searchParams.get("section") || "";
-  const defaultSection = isAdmin ? "dashboard" : "moderation";
+  const defaultSection = defaultAdminSection(role);
   const section = sectionParam || defaultSection;
 
-  const visibleSections = SECTIONS.filter((item) => {
-    if (item.superAdminOnly && !isSuperAdmin) return false;
-    if (item.adminOnly && !isAdmin) return false;
-    return true;
-  });
+  const visibleSections = SECTIONS.filter((item) =>
+    canAccessAdminSection(role, item.id)
+  );
 
   const isSectionAllowed = visibleSections.some((item) => item.id === section);
 
@@ -124,7 +126,7 @@ export default function Admin() {
       return;
     }
 
-    if (!isModerator) {
+    if (!canOpenPanel) {
       navigate("/profile");
       return;
     }
@@ -134,7 +136,7 @@ export default function Admin() {
     }
   }, [
     token,
-    isModerator,
+    canOpenPanel,
     isSectionAllowed,
     defaultSection,
     navigate,
@@ -142,7 +144,7 @@ export default function Admin() {
   ]);
 
   React.useEffect(() => {
-    if (!token || !isAdmin) return;
+    if (!token || (!isAdmin && !isAccountant)) return;
 
     let alive = true;
 
@@ -164,7 +166,7 @@ export default function Admin() {
     return () => {
       alive = false;
     };
-  }, [token, isAdmin]);
+  }, [token, isAdmin, isAccountant]);
 
   React.useEffect(() => {
     if (!token) return;
@@ -178,7 +180,7 @@ export default function Admin() {
       .catch(() => {});
   }, [token]);
 
-  if (!token || !isModerator) {
+  if (!token || !canOpenPanel) {
     return null;
   }
 
@@ -206,7 +208,9 @@ export default function Admin() {
               ? "Полный доступ: пользователи, модерация, финансы."
               : isAdmin
                 ? "Управление пользователями и модерация."
-                : "Модерация объявлений и жалоб."}
+                : isAccountant
+                  ? "Финансы и экспорт данных."
+                  : "Модерация объявлений и жалоб."}
           </p>
         </div>
       </div>
@@ -266,7 +270,7 @@ export default function Admin() {
 
           {section === "reports" && <ModerationReports token={token} />}
 
-          {section === "finance" && isSuperAdmin && (
+          {section === "finance" && (isSuperAdmin || isAccountant) && (
             <AdminFinanceSection
               stats={stats}
               loading={statsLoading}
@@ -282,7 +286,7 @@ export default function Admin() {
             <AdminSettingsSection token={token} />
           )}
 
-          {section === "export" && isAdmin && (
+          {section === "export" && canAccessAdminSection(role, "export") && (
             <AdminExportSection token={token} />
           )}
 

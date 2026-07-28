@@ -22,6 +22,10 @@ import {
   Shield,
   ClipboardCheck,
 } from "lucide-react";
+import {
+  canAccessAdminPanel,
+  canAccessAccountant,
+} from "../lib/adminUtils";
 import ModerationListingsPanel from "../components/admin/ModerationListingsPanel";
 
 const WALLET_TYPE_LABELS = {
@@ -934,7 +938,7 @@ export default function Profile() {
   const walletBalance = Number(me?.walletBalance || 0);
   const role = me?.role || "user";
 
-  const canOpenAdmin = role === "admin" || role === "super_admin";
+  const canOpenAdmin = canAccessAdminPanel(role);
   const canOpenModeration =
     role === "moderator" || role === "admin" || role === "super_admin";
 
@@ -1032,11 +1036,15 @@ export default function Profile() {
 
           {canOpenAdmin && (
             <Link
-              to="/admin"
+              to={canAccessAccountant(role) ? "/admin?section=finance" : "/admin"}
               className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-medium hover:bg-slate-50 transition"
             >
-              <Shield size={18} />
-              Админка
+              {canAccessAccountant(role) ? (
+                <Wallet size={18} />
+              ) : (
+                <Shield size={18} />
+              )}
+              {canAccessAccountant(role) ? "Финансы" : "Админка"}
             </Link>
           )}
 

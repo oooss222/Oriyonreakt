@@ -278,10 +278,20 @@ export const api = {
       token,
     }),
 
-  adminUsers: (token) =>
-    request("/admin/users", {
-      token,
-    }),
+  adminUsers: (token, params = {}) => {
+    const qs = new URLSearchParams();
+
+    if (params.q) qs.set("q", params.q);
+    if (params.role) qs.set("role", params.role);
+    if (params.status) qs.set("status", params.status);
+    if (params.sort) qs.set("sort", params.sort);
+    if (params.page) qs.set("page", String(params.page));
+    if (params.limit) qs.set("limit", String(params.limit));
+
+    const query = qs.toString();
+
+    return request(`/admin/users${query ? `?${query}` : ""}`, { token });
+  },
 
   adminStats: (token) =>
     request("/admin/stats", {
