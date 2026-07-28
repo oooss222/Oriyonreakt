@@ -37,7 +37,7 @@ function buildListingParams(draft, urlCat = "") {
   if (draft.priceTo) next.priceTo = draft.priceTo;
   if (draft.location) next.location = draft.location;
   if (draft.region && !draft.location) next.region = draft.region;
-  if (draft.sort && draft.sort !== "new") next.sort = draft.sort;
+  if (draft.sort) next.sort = draft.sort;
 
   const specEntries = Object.entries(draft.specs || {}).filter(
     ([name, value]) => String(name).trim() && String(value).trim()

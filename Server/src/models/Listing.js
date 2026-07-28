@@ -18,6 +18,29 @@ const REGION_CITIES = {
   РРП: ["Душанбе", "Турсунзаде", "Вахдат"],
 };
 
+const PROMOTION_ORDER =
+  "(vip_until > now()) DESC, (top_until > now()) DESC";
+
+function buildListingOrderBy(sort, priceExpr) {
+  if (sort === "old") {
+    return "created_at ASC";
+  }
+
+  if (sort === "price_asc") {
+    return `${PROMOTION_ORDER}, ${priceExpr} ASC NULLS LAST, created_at DESC`;
+  }
+
+  if (sort === "price_desc") {
+    return `${PROMOTION_ORDER}, ${priceExpr} DESC NULLS LAST, created_at DESC`;
+  }
+
+  if (sort === "views_desc") {
+    return `${PROMOTION_ORDER}, COALESCE(views, 0) DESC, created_at DESC`;
+  }
+
+  return `${PROMOTION_ORDER}, COALESCE(bumped_at, created_at) DESC, created_at DESC`;
+}
+
 function buildListingFilters({
   cat,
   subcategory,
@@ -206,28 +229,7 @@ class ListingModel {
       owner,
     });
 
-    let orderBy = "created_at DESC";
-
-    if (sort === "old") {
-      orderBy = "created_at ASC";
-    }
-
-    if (sort === "price_asc") {
-      orderBy = `${priceExpr} ASC NULLS LAST, created_at DESC`;
-    }
-
-    if (sort === "price_desc") {
-      orderBy = `${priceExpr} DESC NULLS LAST, created_at DESC`;
-    }
-
-    if (sort === "views_desc") {
-      orderBy = "COALESCE(views, 0) DESC, created_at DESC";
-    }
-
-    if (sort === "new" || sort === "promoted" || sort === "hot") {
-      orderBy =
-        "(vip_until > now()) DESC, (top_until > now()) DESC, COALESCE(bumped_at, created_at) DESC, created_at DESC";
-    }
+    let orderBy = buildListingOrderBy(sort, priceExpr);
 
     let sql = `
       SELECT *
@@ -737,11 +739,12 @@ class ListingModel {
 
     const result = await query(
       `
-      SELECT id, title, price, images, location, cat, subcategory, views
+      SELECT id, title, price, images, location, cat, subcategory, views,
+        vip_until, top_until, bumped_at, created_at
       FROM listings
       WHERE status = 'approved'
         AND title ILIKE $1
-      ORDER BY created_at DESC
+      ORDER BY ${PROMOTION_ORDER}, COALESCE(bumped_at, created_at) DESC, created_at DESC
       LIMIT $2
       `,
       [`%${text}%`, safeLimit]

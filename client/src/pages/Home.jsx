@@ -5,6 +5,7 @@ import ListingCardOverlays from "../components/ListingCardOverlays";
 import { api } from "../lib/api";
 import { getListingThumb } from "../lib/media";
 import { formatPrice } from "../lib/format";
+import { sortListingsByPromotion } from "../lib/listingSort";
 import {
   PlusCircle,
   ShieldCheck,
@@ -199,9 +200,7 @@ export default function Home() {
     .filter((item) => item.cat === "computers")
     .slice(0, 10);
 
-  const newestListings = [...listings]
-    .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
-    .slice(0, 10);
+  const newestListings = sortListingsByPromotion(listings).slice(0, 10);
 
   return (
     <div className="page-shell">
