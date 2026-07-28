@@ -22,3 +22,9 @@ export function formatPrice(
 
   return `${n.toLocaleString("ru-RU")} ${currency}`;
 }
+
+export function formatViews(count) {
+  const value = Number(count || 0);
+
+  return `Просмотрено: ${value.toLocaleString("ru-RU")}`;
+}

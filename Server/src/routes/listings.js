@@ -2,6 +2,7 @@ const router = require("express").Router();
 
 const auth = require("../middleware/auth");
 const Listing = require("../models/Listing");
+const Report = require("../models/Report");
 
 function normalizeArray(value) {
   if (Array.isArray(value)) return value;
@@ -143,7 +144,7 @@ router.get("/mine", auth, async (req, res) => {
   }
 });
 
-router.get("/:id", async (req, res) => {
+router.post("/:id/view", async (req, res) => {
   try {
     const listing = await Listing.findById(req.params.id);
 
@@ -155,10 +156,81 @@ router.get("/:id", async (req, res) => {
 
     const views = await Listing.incrementViews(req.params.id);
 
-    return res.json({
-      ...listing,
-      views,
+    return res.json({ views });
+  } catch (e) {
+    console.error("LISTING_VIEW_ERROR:", e?.message);
+
+    return res.status(500).json({
+      error: "Failed to record view",
     });
+  }
+});
+
+router.post("/:id/report", auth, async (req, res) => {
+  try {
+    const listing = await Listing.findById(req.params.id);
+
+    if (!listing) {
+      return res.status(404).json({
+        error: "Listing not found",
+      });
+    }
+
+    if (String(listing.owner) === String(req.user.id)) {
+      return res.status(400).json({
+        error: "Cannot report your own listing",
+      });
+    }
+
+    const reason = String(req.body?.reason || "").trim();
+    const details = String(req.body?.details || "").trim();
+
+    if (!Report.isValidReason(reason)) {
+      return res.status(400).json({
+        error: "Invalid report reason",
+      });
+    }
+
+    if (reason === "other" && details.length < 5) {
+      return res.status(400).json({
+        error: "Please describe the issue",
+      });
+    }
+
+    const report = await Report.create({
+      listingId: req.params.id,
+      reporterId: req.user.id,
+      reason,
+      details,
+    });
+
+    return res.status(201).json(report);
+  } catch (e) {
+    if (e?.message === "ALREADY_REPORTED") {
+      return res.status(409).json({
+        error: "You have already reported this listing",
+      });
+    }
+
+    console.error("LISTING_REPORT_ERROR:", e?.message);
+
+    return res.status(500).json({
+      error: "Failed to submit report",
+    });
+  }
+});
+
+router.get("/:id", async (req, res) => {
+  try {
+    const listing = await Listing.findById(req.params.id);
+
+    if (!listing) {
+      return res.status(404).json({
+        error: "Listing not found",
+      });
+    }
+
+    return res.json(listing);
   } catch (e) {
     console.error("LISTING_GET_ONE_ERROR:", e?.message);
 

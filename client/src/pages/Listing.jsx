@@ -10,7 +10,7 @@ import SubcategoryChips from "../components/SubcategoryChips";
 import SimilarListingsSection from "../components/SimilarListingsSection";
 import { usePageMeta } from "../lib/usePageMeta";
 import { getListingThumb } from "../lib/media";
-import { formatPrice } from "../lib/format";
+import { formatPrice, formatViews } from "../lib/format";
 import { CATS, parseSpecsParam } from "../data/listingCategories";
 import {
   Search,
@@ -18,6 +18,7 @@ import {
   X,
   MapPin,
   PackageSearch,
+  Eye,
 } from "lucide-react";
 
 function buildListingParams(draft, urlCat = "") {
@@ -544,6 +545,11 @@ export default function Listing() {
                   <div className="text-xs text-slate-500 line-clamp-1 flex items-center gap-1">
                     <MapPin size={13} />
                     {ad.location || ad.city || "Душанбе"}
+                  </div>
+
+                  <div className="text-xs text-slate-400 flex items-center gap-1">
+                    <Eye size={13} />
+                    {formatViews(ad.views)}
                   </div>
 
                   <div className="text-xs text-slate-400">

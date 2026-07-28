@@ -128,6 +128,18 @@ export const api = {
   listingById: (id) =>
     request(`/listings/${id}`),
 
+  recordListingView: (id) =>
+    request(`/listings/${id}/view`, {
+      method: "POST",
+    }),
+
+  reportListing: (token, id, body) =>
+    request(`/listings/${id}/report`, {
+      method: "POST",
+      token,
+      body,
+    }),
+
   messageInbox: (token) =>
   request("/messages/inbox", {
     token,
@@ -323,6 +335,26 @@ export const api = {
         },
       }
     ),
+
+  moderationReports: (token, status = "pending") =>
+    request(
+      `/moderation/reports?status=${encodeURIComponent(status)}`,
+      {
+        token,
+      }
+    ),
+
+  moderationReviewReport: (token, reportId) =>
+    request(`/moderation/reports/${reportId}/review`, {
+      method: "POST",
+      token,
+    }),
+
+  moderationDismissReport: (token, reportId) =>
+    request(`/moderation/reports/${reportId}/dismiss`, {
+      method: "POST",
+      token,
+    }),
 };
 
 export const API_BASE = API;

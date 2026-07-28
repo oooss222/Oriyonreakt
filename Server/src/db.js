@@ -275,6 +275,29 @@ async function initDb() {
 
     CREATE INDEX IF NOT EXISTS idx_messages_created_at
       ON messages(created_at DESC);
+
+    CREATE TABLE IF NOT EXISTS listing_reports (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      listing_id UUID NOT NULL REFERENCES listings(id) ON DELETE CASCADE,
+      reporter_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      reason TEXT NOT NULL,
+      details TEXT NOT NULL DEFAULT '',
+      status TEXT NOT NULL DEFAULT 'pending'
+        CHECK (status IN ('pending', 'reviewed', 'dismissed')),
+      reviewed_by UUID REFERENCES users(id) ON DELETE SET NULL,
+      reviewed_at TIMESTAMPTZ,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+      UNIQUE (listing_id, reporter_id)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_listing_reports_status
+      ON listing_reports(status);
+
+    CREATE INDEX IF NOT EXISTS idx_listing_reports_listing
+      ON listing_reports(listing_id);
+
+    CREATE INDEX IF NOT EXISTS idx_listing_reports_created_at
+      ON listing_reports(created_at DESC);
   `);
 }
 

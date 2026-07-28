@@ -17,15 +17,17 @@ import {
   ZoomIn,
   Pencil,
   Eye,
+  Flag,
 } from "lucide-react";
 import { api } from "../lib/api";
 import { goToAuth } from "../lib/auth";
 import { resolveMediaUrl } from "../lib/media";
-import { formatPrice } from "../lib/format";
+import { formatPrice, formatViews } from "../lib/format";
 import { usePageMeta } from "../lib/usePageMeta";
 import ListingCard from "../components/ListingCard";
 import Breadcrumbs from "../components/Breadcrumbs";
 import { CAT_LABELS } from "../data/listingCategories";
+import { REPORT_REASONS } from "../data/reportReasons";
 
 const TOKEN_KEY = "auth_token";
 
@@ -142,6 +144,10 @@ export default function AdDetails() {
   const [toast, setToast] = React.useState("");
   const [copied, setCopied] = React.useState(false);
   const [currentUserId, setCurrentUserId] = React.useState(null);
+  const [reportOpen, setReportOpen] = React.useState(false);
+  const [reportReason, setReportReason] = React.useState("fraud");
+  const [reportDetails, setReportDetails] = React.useState("");
+  const [reportSending, setReportSending] = React.useState(false);
 
   React.useEffect(() => {
     if (!token) {
@@ -193,6 +199,38 @@ export default function AdDetails() {
       active = false;
     };
   }, [id]);
+
+  React.useEffect(() => {
+    if (!ad) return undefined;
+
+    const adId = String(ad._id || ad.id);
+    const storageKey = `listing_view_${adId}`;
+
+    if (sessionStorage.getItem(storageKey)) {
+      return undefined;
+    }
+
+    let active = true;
+
+    api
+      .recordListingView(adId)
+      .then((data) => {
+        if (!active) return;
+
+        sessionStorage.setItem(storageKey, "1");
+
+        if (data?.views != null) {
+          setAd((current) =>
+            current ? { ...current, views: data.views } : current
+          );
+        }
+      })
+      .catch(() => {});
+
+    return () => {
+      active = false;
+    };
+  }, [ad]);
 
   React.useEffect(() => {
     if (!ad) return;
@@ -345,6 +383,58 @@ export default function AdDetails() {
     nav(
       `/messages?listingId=${listingId}&peerId=${ad.owner}&title=${encodeURIComponent(ad.title || "Объявление")}`
     );
+  };
+
+  const openReport = () => {
+    if (!token) {
+      goToAuth(nav);
+      return;
+    }
+
+    setReportReason("fraud");
+    setReportDetails("");
+    setReportOpen(true);
+  };
+
+  const submitReport = async () => {
+    if (!token || !ad) {
+      goToAuth(nav);
+      return;
+    }
+
+    if (reportReason === "other" && reportDetails.trim().length < 5) {
+      setToast("Опишите проблему подробнее");
+      return;
+    }
+
+    try {
+      setReportSending(true);
+
+      await api.reportListing(token, ad._id || ad.id, {
+        reason: reportReason,
+        details: reportDetails.trim(),
+      });
+
+      setReportOpen(false);
+      setToast("Жалоба отправлена. Спасибо!");
+    } catch (e) {
+      const message = e.message || "Не удалось отправить жалобу";
+
+      if (message.includes("already reported") || message.includes("409")) {
+        setToast("Вы уже жаловались на это объявление");
+        setReportOpen(false);
+        return;
+      }
+
+      if (message.includes("Invalid token") || message.includes("401")) {
+        goToAuth(nav);
+        return;
+      }
+
+      setToast(message);
+    } finally {
+      setReportSending(false);
+    }
   };
 
   const shareAd = async () => {
@@ -641,7 +731,7 @@ export default function AdDetails() {
                 )}
                 <span className="inline-flex items-center gap-1">
                   <Eye className="w-4 h-4" />
-                  {Number(ad.views || 0).toLocaleString("ru-RU")} просмотров
+                  {formatViews(ad.views)}
                 </span>
               </div>
 
@@ -753,7 +843,7 @@ export default function AdDetails() {
                   )}
                   <span className="inline-flex items-center gap-1">
                     <Eye className="w-4 h-4" />
-                    {Number(ad.views || 0).toLocaleString("ru-RU")} просмотров
+                    {formatViews(ad.views)}
                   </span>
                 </div>
               </section>
@@ -898,6 +988,17 @@ export default function AdDetails() {
                       Поделиться
                     </button>
                   </div>
+
+                  {!isOwner && (
+                    <button
+                      type="button"
+                      className="btn w-full py-2.5 rounded-2xl text-slate-600 hover:text-red-600 hover:border-red-200 hover:bg-red-50"
+                      onClick={openReport}
+                    >
+                      <Flag className="w-4 h-4" />
+                      Пожаловаться
+                    </button>
+                  )}
                 </div>
               </section>
             </div>
@@ -951,6 +1052,85 @@ export default function AdDetails() {
           )}
         </div>
       </div>
+
+      {/* Report modal */}
+      {reportOpen && (
+        <div className="fixed inset-0 z-[110] bg-black/40 flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="w-full sm:max-w-lg rounded-t-3xl sm:rounded-2xl bg-white shadow-xl border p-5 space-y-4">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h3 className="text-lg font-bold">Пожаловаться</h3>
+                <p className="text-sm text-slate-500 mt-1">
+                  Расскажите, что не так с этим объявлением.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setReportOpen(false)}
+                className="p-2 rounded-xl border hover:bg-slate-50"
+                aria-label="Закрыть"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-2">
+              {REPORT_REASONS.map((item) => (
+                <label
+                  key={item.id}
+                  className={`flex items-center gap-3 rounded-xl border px-3 py-2.5 cursor-pointer transition ${
+                    reportReason === item.id
+                      ? "border-sun bg-sun-50"
+                      : "border-slate-200 hover:border-slate-300"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="report-reason"
+                    value={item.id}
+                    checked={reportReason === item.id}
+                    onChange={() => setReportReason(item.id)}
+                    className="accent-sun"
+                  />
+                  <span className="text-sm font-medium text-slate-800">
+                    {item.label}
+                  </span>
+                </label>
+              ))}
+            </div>
+
+            {reportReason === "other" && (
+              <textarea
+                value={reportDetails}
+                onChange={(e) => setReportDetails(e.target.value)}
+                rows={4}
+                placeholder="Опишите проблему..."
+                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-sun/40 resize-y"
+              />
+            )}
+
+            <div className="flex flex-col-reverse sm:flex-row justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setReportOpen(false)}
+                className="btn rounded-xl"
+              >
+                Отмена
+              </button>
+
+              <button
+                type="button"
+                onClick={submitReport}
+                disabled={reportSending}
+                className="btn btn-primary rounded-xl disabled:opacity-60"
+              >
+                {reportSending ? "Отправляем..." : "Отправить жалобу"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Lightbox */}
       {lightboxOpen && (

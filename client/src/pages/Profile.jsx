@@ -25,6 +25,7 @@ import {
   Ban,
   Unlock,
 } from "lucide-react";
+import ModerationReports from "../components/ModerationReports";
 
 const ROLES = ["user", "moderator", "accountant", "admin", "super_admin"];
 
@@ -851,6 +852,7 @@ function AdminPanel({ token, currentUser }) {
 }
 
 function ModerationPanel({ token }) {
+  const [panelMode, setPanelMode] = React.useState("listings");
   const [items, setItems] = React.useState([]);
   const [status, setStatus] = React.useState("pending");
   const [query, setQuery] = React.useState("");
@@ -1035,13 +1037,87 @@ function ModerationPanel({ token }) {
 
   if (loading) {
     return (
-      <div className="rounded-2xl border bg-white p-4 md:p-5">
-        <ListingGridSkeleton count={6} columns="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3" />
+      <div className="space-y-4">
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => setPanelMode("listings")}
+            className={`px-4 py-2 rounded-xl border text-sm font-medium ${
+              panelMode === "listings"
+                ? "bg-slate-900 text-white border-slate-900"
+                : "bg-white"
+            }`}
+          >
+            Объявления
+          </button>
+          <button
+            type="button"
+            onClick={() => setPanelMode("reports")}
+            className={`px-4 py-2 rounded-xl border text-sm font-medium ${
+              panelMode === "reports"
+                ? "bg-slate-900 text-white border-slate-900"
+                : "bg-white"
+            }`}
+          >
+            Жалобы
+          </button>
+        </div>
+
+        {panelMode === "reports" ? (
+          <ModerationReports token={token} />
+        ) : (
+          <div className="rounded-2xl border bg-white p-4 md:p-5">
+            <ListingGridSkeleton count={6} columns="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3" />
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  if (panelMode === "reports") {
+    return (
+      <div className="space-y-4">
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => setPanelMode("listings")}
+            className="px-4 py-2 rounded-xl border text-sm font-medium bg-white"
+          >
+            Объявления
+          </button>
+          <button
+            type="button"
+            onClick={() => setPanelMode("reports")}
+            className="px-4 py-2 rounded-xl border text-sm font-medium bg-slate-900 text-white border-slate-900"
+          >
+            Жалобы
+          </button>
+        </div>
+
+        <ModerationReports token={token} />
       </div>
     );
   }
 
   return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap gap-2">
+        <button
+          type="button"
+          onClick={() => setPanelMode("listings")}
+          className="px-4 py-2 rounded-xl border text-sm font-medium bg-slate-900 text-white border-slate-900"
+        >
+          Объявления
+        </button>
+        <button
+          type="button"
+          onClick={() => setPanelMode("reports")}
+          className="px-4 py-2 rounded-xl border text-sm font-medium bg-white"
+        >
+          Жалобы
+        </button>
+      </div>
+
     <div className="rounded-2xl border bg-white p-4 md:p-5 space-y-5">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
         <div>
@@ -1352,9 +1428,9 @@ function ModerationPanel({ token }) {
         </div>
       )}
     </div>
+    </div>
   );
 }
-
 
 function MyListingsPanel({ items, loading, canManage, onRemove }) {
   const [query, setQuery] = React.useState("");
