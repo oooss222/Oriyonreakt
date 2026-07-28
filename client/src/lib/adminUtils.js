@@ -70,4 +70,5 @@ export const AUDIT_ACTION_LABELS = {
   "report.dismiss": "Жалоба отклонена",
   "report.delete_listing": "Удаление объявления по жалобе",
   "report.block_owner": "Блокировка продавца по жалобе",
+  "settings.update": "Изменение настроек сайта",
 };

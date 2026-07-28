@@ -10,6 +10,9 @@ import {
   Shield,
   ArrowLeft,
   ScrollText,
+  BarChart3,
+  Settings,
+  Download,
 } from "lucide-react";
 import { api } from "../lib/api";
 import { goToAuth, TOKEN_KEY, USER_KEY } from "../lib/auth";
@@ -21,16 +24,22 @@ import AdminDashboard from "../components/admin/AdminDashboard";
 import AdminUsersSection from "../components/admin/AdminUsersSection";
 import AdminListingsSection from "../components/admin/AdminListingsSection";
 import AdminAuditSection from "../components/admin/AdminAuditSection";
+import AdminAnalyticsSection from "../components/admin/AdminAnalyticsSection";
+import AdminSettingsSection from "../components/admin/AdminSettingsSection";
+import AdminExportSection from "../components/admin/AdminExportSection";
 import ModerationListingsPanel from "../components/admin/ModerationListingsPanel";
 import ModerationReports from "../components/ModerationReports";
 
 const SECTIONS = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, adminOnly: true },
+  { id: "analytics", label: "Аналитика", icon: BarChart3, adminOnly: true },
   { id: "users", label: "Пользователи", icon: Users, adminOnly: true },
   { id: "listings", label: "Объявления", icon: FileText, adminOnly: true },
   { id: "moderation", label: "Модерация", icon: ClipboardCheck, adminOnly: false },
   { id: "reports", label: "Жалобы", icon: Flag, adminOnly: false },
   { id: "finance", label: "Финансы", icon: Wallet, superAdminOnly: true },
+  { id: "settings", label: "Настройки", icon: Settings, superAdminOnly: true },
+  { id: "export", label: "Экспорт", icon: Download, adminOnly: true },
   { id: "audit", label: "Журнал", icon: ScrollText, adminOnly: true },
 ];
 
@@ -239,6 +248,10 @@ export default function Admin() {
             </div>
           )}
 
+          {section === "analytics" && isAdmin && (
+            <AdminAnalyticsSection token={token} />
+          )}
+
           {section === "users" && isAdmin && (
             <AdminUsersSection token={token} currentUser={me} />
           )}
@@ -263,6 +276,14 @@ export default function Admin() {
 
           {section === "audit" && isAdmin && (
             <AdminAuditSection token={token} />
+          )}
+
+          {section === "settings" && isSuperAdmin && (
+            <AdminSettingsSection token={token} />
+          )}
+
+          {section === "export" && isAdmin && (
+            <AdminExportSection token={token} />
           )}
 
           {!isSectionAllowed && <Navigate to={`/admin?section=${defaultSection}`} replace />}

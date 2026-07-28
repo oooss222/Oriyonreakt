@@ -7,6 +7,8 @@ const User = require("../models/User");
 const Listing = require("../models/Listing");
 const Wallet = require("../models/Wallet");
 const AdminAudit = require("../models/AdminAudit");
+const SiteSettings = require("../models/SiteSettings");
+const { toCsv } = require("../lib/csv");
 
 async function audit(req, action, targetType, targetId, details = {}) {
   try {
@@ -69,6 +71,227 @@ function canManageTarget(actor, target) {
 }
 
 router.use(auth);
+
+router.get("/analytics", requireRole("admin", "super_admin"), async (req, res) => {
+  try {
+    const days = Math.min(Math.max(Number(req.query.days) || 30, 7), 90);
+
+    const [registrationsResult, categoriesResult, moderatorsResult] =
+      await Promise.all([
+        query(
+          `
+          SELECT
+            to_char(date_trunc('day', created_at), 'YYYY-MM-DD') AS day,
+            COUNT(*)::int AS count
+          FROM users
+          WHERE created_at >= now() - ($1::int || ' days')::interval
+          GROUP BY 1
+          ORDER BY 1 ASC
+          `,
+          [days]
+        ),
+        query(
+          `
+          SELECT
+            COALESCE(NULLIF(cat, ''), 'unknown') AS cat,
+            COUNT(*)::int AS count
+          FROM listings
+          WHERE status = 'approved'
+          GROUP BY 1
+          ORDER BY count DESC, cat ASC
+          LIMIT 12
+          `
+        ),
+        query(
+          `
+          SELECT
+            a.actor_id,
+            u.name AS actor_name,
+            u.email AS actor_email,
+            COUNT(*) FILTER (WHERE a.action = 'listing.approve')::int AS approvals,
+            COUNT(*) FILTER (WHERE a.action = 'listing.reject')::int AS rejections,
+            COUNT(*) FILTER (WHERE a.action LIKE 'report.%')::int AS report_actions,
+            COUNT(*)::int AS total_actions
+          FROM admin_audit_log a
+          LEFT JOIN users u ON u.id = a.actor_id
+          WHERE a.created_at >= now() - ($1::int || ' days')::interval
+          GROUP BY a.actor_id, u.name, u.email
+          HAVING COUNT(*) > 0
+          ORDER BY total_actions DESC, actor_name ASC
+          LIMIT 20
+          `,
+          [days]
+        ),
+      ]);
+
+    return res.json({
+      days,
+      registrationsByDay: registrationsResult.rows.map((row) => ({
+        day: row.day,
+        count: Number(row.count || 0),
+      })),
+      listingsByCategory: categoriesResult.rows.map((row) => ({
+        cat: row.cat,
+        count: Number(row.count || 0),
+      })),
+      moderatorActivity: moderatorsResult.rows.map((row) => ({
+        actorId: row.actor_id,
+        name: row.actor_name || "—",
+        email: row.actor_email || "",
+        approvals: Number(row.approvals || 0),
+        rejections: Number(row.rejections || 0),
+        reportActions: Number(row.report_actions || 0),
+        totalActions: Number(row.total_actions || 0),
+      })),
+    });
+  } catch (e) {
+    console.error("ADMIN_ANALYTICS_ERROR:", e?.message);
+
+    return res.status(500).json({
+      error: "Failed to load analytics",
+    });
+  }
+});
+
+router.get("/settings", requireRole("super_admin"), async (req, res) => {
+  try {
+    const settings = await SiteSettings.get();
+    return res.json(settings);
+  } catch (e) {
+    console.error("ADMIN_SETTINGS_GET_ERROR:", e?.message);
+
+    return res.status(500).json({
+      error: "Failed to load settings",
+    });
+  }
+});
+
+router.put("/settings", requireRole("super_admin"), async (req, res) => {
+  try {
+    const updated = await SiteSettings.update(req.body || {}, req.user.id);
+
+    await audit(req, "settings.update", "settings", null, {
+      vipPrice: updated.vipPrice,
+      topPrice: updated.topPrice,
+      registrationEnabled: updated.registrationEnabled,
+    });
+
+    return res.json(updated);
+  } catch (e) {
+    console.error("ADMIN_SETTINGS_PUT_ERROR:", e?.message);
+
+    return res.status(500).json({
+      error: "Failed to update settings",
+    });
+  }
+});
+
+router.get(
+  "/export/:type",
+  requireRole("admin", "super_admin"),
+  async (req, res) => {
+    try {
+      const type = String(req.params.type || "").trim();
+
+      if (!["users", "listings", "transactions"].includes(type)) {
+        return res.status(400).json({
+          error: "Invalid export type",
+        });
+      }
+
+      let csv = "";
+      let filename = "export.csv";
+
+      if (type === "users") {
+        const users = await User.getAll();
+
+        csv = toCsv(users, [
+          { label: "ID", value: (row) => row.id },
+          { label: "Email", value: (row) => row.email },
+          { label: "Имя", value: (row) => row.name },
+          { label: "Телефон", value: (row) => row.phone },
+          { label: "Роль", value: (row) => row.role },
+          {
+            label: "Заблокирован",
+            value: (row) => (row.isBlocked ? "yes" : "no"),
+          },
+          { label: "Баланс", value: (row) => row.walletBalance },
+          { label: "Создан", value: (row) => row.createdAt },
+        ]);
+
+        filename = "users.csv";
+      }
+
+      if (type === "listings") {
+        const result = await query(
+          `
+          SELECT
+            l.*,
+            u.email AS owner_email
+          FROM listings l
+          LEFT JOIN users u ON u.id = l.owner
+          ORDER BY l.created_at DESC
+          `
+        );
+
+        csv = toCsv(result.rows, [
+          { label: "ID", value: (row) => row.id },
+          { label: "Название", value: (row) => row.title },
+          { label: "Цена", value: (row) => row.price },
+          { label: "Категория", value: (row) => row.cat },
+          { label: "Подкатегория", value: (row) => row.subcategory },
+          { label: "Статус", value: (row) => row.status },
+          { label: "Город", value: (row) => row.location },
+          { label: "Владелец", value: (row) => row.owner },
+          { label: "Email владельца", value: (row) => row.owner_email },
+          { label: "Создано", value: (row) => row.created_at },
+        ]);
+
+        filename = "listings.csv";
+      }
+
+      if (type === "transactions") {
+        const result = await query(
+          `
+          SELECT
+            wt.*,
+            u.email AS user_email
+          FROM wallet_transactions wt
+          LEFT JOIN users u ON u.id = wt.user_id
+          ORDER BY wt.created_at DESC
+          `
+        );
+
+        csv = toCsv(result.rows, [
+          { label: "ID", value: (row) => row.id },
+          { label: "User ID", value: (row) => row.user_id },
+          { label: "Email", value: (row) => row.user_email },
+          { label: "Тип", value: (row) => row.type },
+          { label: "Сумма", value: (row) => row.amount },
+          { label: "Статус", value: (row) => row.status },
+          { label: "Описание", value: (row) => row.description },
+          { label: "Создано", value: (row) => row.created_at },
+        ]);
+
+        filename = "transactions.csv";
+      }
+
+      res.setHeader("Content-Type", "text/csv; charset=utf-8");
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename="${filename}"`
+      );
+
+      return res.send(csv);
+    } catch (e) {
+      console.error("ADMIN_EXPORT_ERROR:", e?.message);
+
+      return res.status(500).json({
+        error: "Failed to export data",
+      });
+    }
+  }
+);
 
 router.get("/stats", requireRole("admin", "super_admin"), async (req, res) => {
   try {

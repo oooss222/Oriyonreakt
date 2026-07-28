@@ -452,6 +452,58 @@ export const api = {
       method: "POST",
       token,
     }),
+
+  siteSettings: () => request("/settings"),
+
+  sitePolicy: () => request("/settings/policy"),
+
+  adminAnalytics: (token, days = 30) =>
+    request(`/admin/analytics?days=${encodeURIComponent(days)}`, { token }),
+
+  adminGetSettings: (token) =>
+    request("/admin/settings", { token }),
+
+  adminUpdateSettings: (token, body) =>
+    request("/admin/settings", {
+      method: "PUT",
+      token,
+      body,
+    }),
+
+  adminExport: async (token, type) => {
+    const headers = {};
+
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+
+    const res = await fetch(`${API}/admin/export/${encodeURIComponent(type)}`, {
+      headers,
+    });
+
+    if (!res.ok) {
+      let message = "Export failed";
+
+      try {
+        const data = await res.json();
+        message = data.error || message;
+      } catch {
+        // ignore
+      }
+
+      throw new Error(message);
+    }
+
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${type}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  },
 };
 
 export const API_BASE = API;

@@ -328,6 +328,13 @@ async function initDb() {
 
     CREATE INDEX IF NOT EXISTS idx_admin_audit_log_action
       ON admin_audit_log(action);
+
+    CREATE TABLE IF NOT EXISTS site_settings (
+      id SMALLINT PRIMARY KEY DEFAULT 1 CHECK (id = 1),
+      data JSONB NOT NULL DEFAULT '{}'::jsonb,
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+      updated_by UUID REFERENCES users(id) ON DELETE SET NULL
+    );
   `);
 }
 

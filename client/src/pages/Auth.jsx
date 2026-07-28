@@ -106,10 +106,26 @@ export default function Auth() {
   const [capsLogin, setCapsLogin] = React.useState(false);
   const [capsReg1, setCapsReg1] = React.useState(false);
   const [capsReg2, setCapsReg2] = React.useState(false);
+  const [registrationEnabled, setRegistrationEnabled] = React.useState(true);
+
+  React.useEffect(() => {
+    api
+      .siteSettings()
+      .then((data) => {
+        setRegistrationEnabled(Boolean(data.registrationEnabled));
+      })
+      .catch(() => {});
+  }, []);
 
   React.useEffect(() => {
     emailRef.current?.focus();
   }, [tab]);
+
+  React.useEffect(() => {
+    if (!registrationEnabled && tab === "register") {
+      setTab("login");
+    }
+  }, [registrationEnabled, tab]);
 
   const onLogin = async (e) => {
     e.preventDefault();
@@ -217,7 +233,7 @@ export default function Auth() {
 
         <div className="surface-panel overflow-hidden">
           <div className="bg-mist-50 border-b border-ink/10 px-2 py-2">
-            <div className="grid grid-cols-2 gap-2 p-1 rounded-xl bg-white border border-ink/10">
+            <div className={`grid gap-2 p-1 rounded-xl bg-white border border-ink/10 ${registrationEnabled ? "grid-cols-2" : "grid-cols-1"}`}>
               <button
                 className={`px-3 py-2 rounded-lg text-sm font-semibold transition ${
                   tab === "login"
@@ -228,16 +244,18 @@ export default function Auth() {
               >
                 Вход
               </button>
-              <button
-                className={`px-3 py-2 rounded-lg text-sm font-semibold transition ${
-                  tab === "register"
-                    ? "bg-sun text-white shadow-soft"
-                    : "hover:bg-mist text-ink-500"
-                }`}
-                onClick={() => setTab("register")}
-              >
-                Регистрация
-              </button>
+              {registrationEnabled && (
+                <button
+                  className={`px-3 py-2 rounded-lg text-sm font-semibold transition ${
+                    tab === "register"
+                      ? "bg-sun text-white shadow-soft"
+                      : "hover:bg-mist text-ink-500"
+                  }`}
+                  onClick={() => setTab("register")}
+                >
+                  Регистрация
+                </button>
+              )}
             </div>
           </div>
 
@@ -294,7 +312,7 @@ export default function Auth() {
             )}
 
             {/* === РЕГИСТРАЦИЯ === */}
-            {tab === "register" && (
+            {tab === "register" && registrationEnabled && (
               <form onSubmit={onRegister} className="space-y-4">
                 <Field label="Имя" icon={UserIcon}>
                   <Input

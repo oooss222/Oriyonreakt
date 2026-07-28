@@ -1,68 +1,89 @@
 import React from "react";
+import { api } from "../lib/api";
+
+function PolicyContent({ content }) {
+  const blocks = String(content || "")
+    .split(/\n{2,}/)
+    .map((block) => block.trim())
+    .filter(Boolean);
+
+  return (
+    <div className="space-y-4 text-slate-600">
+      {blocks.map((block, index) => {
+        const lines = block.split("\n");
+        const firstLine = lines[0] || "";
+        const isHeading =
+          /^\d+\.\s/.test(firstLine) ||
+          firstLine.length < 80 && lines.length === 1 && !firstLine.startsWith("-");
+
+        if (isHeading) {
+          return (
+            <section key={index} className="space-y-2">
+              <h2 className="text-lg font-semibold text-slate-900">{firstLine}</h2>
+              {lines.slice(1).length > 0 && (
+                <div className="space-y-1">
+                  {lines.slice(1).map((line, lineIndex) => (
+                    <p key={lineIndex}>{line.replace(/^-\s*/, "")}</p>
+                  ))}
+                </div>
+              )}
+            </section>
+          );
+        }
+
+        if (lines.every((line) => line.startsWith("-"))) {
+          return (
+            <ul key={index} className="list-disc pl-5 space-y-1">
+              {lines.map((line, lineIndex) => (
+                <li key={lineIndex}>{line.replace(/^-\s*/, "")}</li>
+              ))}
+            </ul>
+          );
+        }
+
+        return (
+          <p key={index} className="whitespace-pre-wrap">
+            {block}
+          </p>
+        );
+      })}
+    </div>
+  );
+}
 
 export default function Policy() {
+  const [content, setContent] = React.useState("");
+  const [updatedAt, setUpdatedAt] = React.useState(null);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    api
+      .sitePolicy()
+      .then((data) => {
+        setContent(data.content || "");
+        setUpdatedAt(data.updatedAt || null);
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
   return (
     <div className="container-x py-6">
       <div className="max-w-3xl mx-auto card p-6 space-y-4">
-        <h1 className="text-2xl font-bold mb-2">Политика конфиденциальности и условия использования</h1>
-        <p className="text-slate-600">
-          Настоящая Политика конфиденциальности описывает, какие данные собираются при использовании
-          сайта <span className="font-semibold">Oriyon.store</span>, как они обрабатываются и защищаются.
-          Используя сайт, вы соглашаетесь с этой Политикой.
-        </p>
+        <h1 className="text-2xl font-bold mb-2">
+          Политика конфиденциальности и условия использования
+        </h1>
 
-        <section className="space-y-2">
-          <h2 className="text-lg font-semibold">1. Общие положения</h2>
-          <ul className="list-disc pl-5 text-slate-600 space-y-1">
-            <li>Сайт Oriyon.store предоставляет пользователям возможность размещать и просматривать объявления.</li>
-            <li>При регистрации вы предоставляете имя, адрес электронной почты и пароль для входа.</li>
-            <li>Администрация сайта обязуется не передавать персональные данные третьим лицам без вашего согласия, за исключением случаев, предусмотренных законом.</li>
-          </ul>
-        </section>
-
-        <section className="space-y-2">
-          <h2 className="text-lg font-semibold">2. Сбор и использование информации</h2>
-          <ul className="list-disc pl-5 text-slate-600 space-y-1">
-            <li>Мы можем собирать технические данные о вашем устройстве, IP-адрес, время посещения и страницы сайта для анализа работы сервиса.</li>
-            <li>Эти данные используются исключительно для улучшения качества обслуживания и не передаются третьим лицам.</li>
-          </ul>
-        </section>
-
-        <section className="space-y-2">
-          <h2 className="text-lg font-semibold">3. Объявления и пользовательский контент</h2>
-          <p className="text-slate-600">
-            Пользователь несет полную ответственность за содержание размещаемых объявлений.
-            Запрещено публиковать материалы, нарушающие законы Республики Таджикистан, авторские права или права третьих лиц.
-          </p>
-        </section>
-
-        <section className="space-y-2">
-          <h2 className="text-lg font-semibold">4. Cookies</h2>
-          <p className="text-slate-600">
-            Сайт может использовать файлы cookies для сохранения пользовательских настроек и улучшения работы интерфейса.
-            Вы можете отключить cookies в настройках браузера, однако это может повлиять на функциональность сайта.
-          </p>
-        </section>
-
-        <section className="space-y-2">
-          <h2 className="text-lg font-semibold">5. Изменения политики</h2>
-          <p className="text-slate-600">
-            Мы оставляем за собой право изменять данную Политику в любое время. Актуальная версия всегда доступна на странице <code>/policy</code>.
-          </p>
-        </section>
-
-        <section className="space-y-2">
-          <h2 className="text-lg font-semibold">6. Контакты</h2>
-          <p className="text-slate-600">
-            Если у вас возникли вопросы по обработке данных или работе сайта, свяжитесь с нами:
-          </p>
-          <ul className="list-disc pl-5 text-slate-600 space-y-1">
-            <li>Email: <a href="mailto:info@oriyon.store " className="text-accent"> info@oriyon.store </a></li>
-          </ul>
-        </section>
+        {loading ? (
+          <div className="text-sm text-slate-500 animate-pulse">Загрузка...</div>
+        ) : (
+          <PolicyContent content={content} />
+        )}
 
         <div className="text-sm text-slate-500 border-t pt-3">
-          Последнее обновление: 15 октября 2025 г.
+          {updatedAt
+            ? `Последнее обновление: ${new Date(updatedAt).toLocaleDateString("ru-RU")}`
+            : "Последнее обновление: —"}
         </div>
       </div>
     </div>

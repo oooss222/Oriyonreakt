@@ -1,6 +1,7 @@
 const router = require("express").Router();
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
+const SiteSettings = require("../models/SiteSettings");
 
 function makeToken(user) {
   if (!process.env.JWT_SECRET) {
@@ -30,6 +31,14 @@ function safeUser(user) {
 
 router.post("/register", async (req, res) => {
   try {
+    const registrationEnabled = await SiteSettings.isRegistrationEnabled();
+
+    if (!registrationEnabled) {
+      return res.status(403).json({
+        error: "Registration is temporarily disabled",
+      });
+    }
+
     let {
       email,
       password,
