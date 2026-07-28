@@ -518,6 +518,60 @@ class ListingModel {
 
     return mapListing(result.rows[0]);
   }
+
+  static async updateOwnerStatus(id, ownerId, status) {
+    const allowed = new Set(["approved", "sold", "archived"]);
+
+    if (!allowed.has(status)) {
+      throw new Error("INVALID_STATUS");
+    }
+
+    const existing = await this.findById(id);
+
+    if (!existing) return null;
+
+    if (String(existing.owner) !== String(ownerId)) {
+      throw new Error("FORBIDDEN");
+    }
+
+    const result = await query(
+      `
+      UPDATE listings
+      SET
+        status = $3,
+        updated_at = now()
+      WHERE id = $1 AND owner = $2
+      RETURNING *
+      `,
+      [id, ownerId, status]
+    );
+
+    return mapListing(result.rows[0]);
+  }
+
+  static async suggest(search = "", limit = 8) {
+    const text = String(search || "").trim();
+
+    if (text.length < 2) {
+      return [];
+    }
+
+    const safeLimit = Math.min(Math.max(Number(limit) || 8, 1), 20);
+
+    const result = await query(
+      `
+      SELECT id, title, price, images, location, cat, subcategory, views
+      FROM listings
+      WHERE status = 'approved'
+        AND title ILIKE $1
+      ORDER BY created_at DESC
+      LIMIT $2
+      `,
+      [`%${text}%`, safeLimit]
+    );
+
+    return result.rows.map(mapListing);
+  }
 }
 
 module.exports = ListingModel;

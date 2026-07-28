@@ -29,6 +29,13 @@ import ModerationReports from "../components/ModerationReports";
 
 const ROLES = ["user", "moderator", "accountant", "admin", "super_admin"];
 
+const WALLET_TYPE_LABELS = {
+  top_up: "Пополнение",
+  payment: "Списание",
+  refund: "Возврат",
+  manual_adjustment: "Корректировка",
+};
+
 const normalizeTab = (value) => {
   if (value === "favorites") return "fav";
   if (
@@ -204,6 +211,7 @@ const ListingCard = React.memo(function ListingCard({
   ad,
   canManage,
   onRemove,
+  onStatusAction,
   compact = false,
   isFavorite = false,
 }) {
@@ -225,6 +233,14 @@ const ListingCard = React.memo(function ListingCard({
     rejected: {
       label: "Отклонено",
       className: "bg-red-50 text-red-700 border-red-200",
+    },
+    sold: {
+      label: "Продано",
+      className: "bg-slate-100 text-slate-700 border-slate-200",
+    },
+    archived: {
+      label: "Снято",
+      className: "bg-slate-100 text-slate-600 border-slate-200",
     },
   };
 
@@ -296,23 +312,55 @@ const ListingCard = React.memo(function ListingCard({
       )}
 
       {canManage && (
-        <div className="px-2 pb-2 flex flex-wrap items-center gap-2">
-          <Link
-            to={`/edit/${id}`}
-            className="inline-flex flex-1 justify-center items-center gap-1 px-3 py-2 rounded-xl bg-sun text-white hover:bg-sun-600 transition text-sm"
-          >
-            <Pencil size={16} />
-            Редактировать
-          </Link>
+        <div className="px-2 pb-2 flex flex-col gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <Link
+              to={`/edit/${id}`}
+              className="inline-flex flex-1 justify-center items-center gap-1 px-3 py-2 rounded-xl bg-sun text-white hover:bg-sun-600 transition text-sm"
+            >
+              <Pencil size={16} />
+              Редактировать
+            </Link>
 
-          <button
-            type="button"
-            className="inline-flex justify-center items-center gap-1 px-3 py-2 rounded-xl border text-red-600 hover:bg-red-50 transition text-sm"
-            onClick={() => onRemove(id)}
-          >
-            <Trash2 size={16} />
-            Удалить
-          </button>
+            <button
+              type="button"
+              className="inline-flex justify-center items-center gap-1 px-3 py-2 rounded-xl border text-red-600 hover:bg-red-50 transition text-sm"
+              onClick={() => onRemove(id)}
+            >
+              <Trash2 size={16} />
+              Удалить
+            </button>
+          </div>
+
+          {status === "approved" && (
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                className="inline-flex flex-1 justify-center px-3 py-2 rounded-xl border text-slate-700 hover:bg-slate-50 transition text-sm"
+                onClick={() => onStatusAction?.(id, "sold")}
+              >
+                Продано
+              </button>
+
+              <button
+                type="button"
+                className="inline-flex flex-1 justify-center px-3 py-2 rounded-xl border text-slate-700 hover:bg-slate-50 transition text-sm"
+                onClick={() => onStatusAction?.(id, "archive")}
+              >
+                Снять с публикации
+              </button>
+            </div>
+          )}
+
+          {(status === "sold" || status === "archived") && (
+            <button
+              type="button"
+              className="inline-flex w-full justify-center px-3 py-2 rounded-xl border border-emerald-200 text-emerald-700 hover:bg-emerald-50 transition text-sm"
+              onClick={() => onStatusAction?.(id, "republish")}
+            >
+              Опубликовать снова
+            </button>
+          )}
         </div>
       )}
     </div>
@@ -324,6 +372,7 @@ const ListingsGrid = React.memo(function ListingsGrid({
   tab,
   canManage,
   onRemove,
+  onStatusAction,
   compact = false,
 }) {
   if (!items?.length) {
@@ -377,6 +426,7 @@ const ListingsGrid = React.memo(function ListingsGrid({
           ad={ad}
           canManage={canManage}
           onRemove={onRemove}
+          onStatusAction={onStatusAction}
           compact={compact}
           isFavorite={tab === "fav"}
         />
@@ -1432,7 +1482,7 @@ function ModerationPanel({ token }) {
   );
 }
 
-function MyListingsPanel({ items, loading, canManage, onRemove }) {
+function MyListingsPanel({ items, loading, canManage, onRemove, onStatusAction }) {
   const [query, setQuery] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState("all");
   const [view, setView] = React.useState("grid");
@@ -1452,6 +1502,8 @@ function MyListingsPanel({ items, loading, canManage, onRemove }) {
         pending: 0,
         approved: 0,
         rejected: 0,
+        sold: 0,
+        archived: 0,
       }
     );
   }, [items]);
@@ -1595,6 +1647,8 @@ function MyListingsPanel({ items, loading, canManage, onRemove }) {
             <option value="approved">Опубликованные</option>
             <option value="pending">На модерации</option>
             <option value="rejected">Отклонённые</option>
+            <option value="sold">Проданные</option>
+            <option value="archived">Снятые</option>
           </select>
 
           <select
@@ -1632,6 +1686,7 @@ function MyListingsPanel({ items, loading, canManage, onRemove }) {
         tab="my"
         canManage={canManage}
         onRemove={onRemove}
+        onStatusAction={onStatusAction}
         compact={view === "compact"}
       />
     </div>
@@ -1823,6 +1878,27 @@ export default function Profile() {
     };
   }, [tab, token]);
 
+  React.useEffect(() => {
+    if (!token || tab !== "wallet") return undefined;
+
+    let alive = true;
+
+    api
+      .walletTransactions(token)
+      .then((data) => {
+        if (alive) {
+          setWalletHistory(Array.isArray(data) ? data : []);
+        }
+      })
+      .catch(() => {
+        if (alive) setWalletHistory([]);
+      });
+
+    return () => {
+      alive = false;
+    };
+  }, [token, tab]);
+
   const remove = React.useCallback(
     async (id) => {
       if (!confirm("Удалить объявление?")) return;
@@ -1859,14 +1935,52 @@ export default function Profile() {
     }
   }, [token]);
 
-  const onWalletSuccess = React.useCallback((user, operation) => {
-  setMe(user);
-  localStorage.setItem(USER_KEY, JSON.stringify(user));
+  const onWalletSuccess = React.useCallback((user) => {
+    setMe(user);
+    localStorage.setItem(USER_KEY, JSON.stringify(user));
 
-  if (operation) {
-    setWalletHistory((arr) => [operation, ...arr].slice(0, 5));
-  }
-}, []);
+    api
+      .walletTransactions(token)
+      .then((data) => {
+        setWalletHistory(Array.isArray(data) ? data : []);
+      })
+      .catch(() => {});
+  }, [token]);
+
+  const updateListingStatus = React.useCallback(
+    async (id, action) => {
+      const prompts = {
+        sold: "Отметить объявление как проданное?",
+        archive: "Снять объявление с публикации?",
+        republish: "Опубликовать объявление снова?",
+      };
+
+      if (!confirm(prompts[action] || "Изменить статус объявления?")) {
+        return;
+      }
+
+      try {
+        let updated;
+
+        if (action === "sold") {
+          updated = await api.markListingSold(token, id);
+        } else if (action === "archive") {
+          updated = await api.archiveListing(token, id);
+        } else {
+          updated = await api.republishListing(token, id);
+        }
+
+        setMyItems((items) =>
+          items.map((item) =>
+            String(getId(item)) === String(id) ? updated : item
+          )
+        );
+      } catch (e) {
+        alert(e.message || "Не удалось обновить статус");
+      }
+    },
+    [token]
+  );
 
   const walletBalance = Number(me?.walletBalance || 0);
   const role = me?.role || "user";
@@ -2116,7 +2230,7 @@ export default function Profile() {
         <h3 className="text-lg font-semibold">Последние операции</h3>
 
         <span className="text-sm text-slate-500">
-          Локальная история текущей сессии
+          История операций
         </span>
       </div>
 
@@ -2126,23 +2240,32 @@ export default function Profile() {
         </div>
       ) : (
         <div className="space-y-2">
-          {walletHistory.map((operation, index) => (
+          {walletHistory.map((operation) => (
             <div
-              key={`${operation.createdAt}-${index}`}
+              key={operation.id || operation._id}
               className="rounded-xl border p-3 flex items-center justify-between gap-3"
             >
               <div>
                 <div className="font-medium">
-                  Пополнение баланса
+                  {WALLET_TYPE_LABELS[operation.type] || operation.description || "Операция"}
                 </div>
 
                 <div className="text-xs text-slate-500">
-                  {new Date(operation.createdAt).toLocaleString("ru-RU")}
+                  {operation.createdAt
+                    ? new Date(operation.createdAt).toLocaleString("ru-RU")
+                    : ""}
                 </div>
               </div>
 
-              <div className="font-bold text-emerald-700">
-                +{Number(operation.amount || 0).toLocaleString("ru-RU")} TJS
+              <div
+                className={`font-bold ${
+                  Number(operation.amount || 0) >= 0
+                    ? "text-emerald-700"
+                    : "text-red-600"
+                }`}
+              >
+                {Number(operation.amount || 0) >= 0 ? "+" : ""}
+                {Number(operation.amount || 0).toLocaleString("ru-RU")} TJS
               </div>
             </div>
           ))}
@@ -2475,6 +2598,7 @@ export default function Profile() {
     loading={loadingMy}
     canManage={true}
     onRemove={remove}
+    onStatusAction={updateListingStatus}
   />
 )}
 

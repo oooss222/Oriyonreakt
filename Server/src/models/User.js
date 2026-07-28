@@ -172,7 +172,21 @@ class UserModel {
       [id, amount]
     );
 
-    return mapUser(result.rows[0]);
+    const user = mapUser(result.rows[0]);
+
+    if (user) {
+      const Wallet = require("./Wallet");
+
+      await Wallet.recordTransaction({
+        userId: id,
+        type: "top_up",
+        amount,
+        description: "Пополнение баланса",
+        createdBy: id,
+      });
+    }
+
+    return user;
   }
 
   static async setRole(id, role) {

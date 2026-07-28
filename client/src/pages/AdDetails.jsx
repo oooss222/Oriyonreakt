@@ -18,6 +18,7 @@ import {
   Pencil,
   Eye,
   Flag,
+  PackageSearch,
 } from "lucide-react";
 import { api } from "../lib/api";
 import { goToAuth } from "../lib/auth";
@@ -27,6 +28,7 @@ import { markListingViewed, markViewRecorded, wasViewRecorded } from "../lib/vie
 import { usePageMeta } from "../lib/usePageMeta";
 import ListingCard from "../components/ListingCard";
 import Breadcrumbs from "../components/Breadcrumbs";
+import EmptyState from "../components/EmptyState";
 import { CAT_LABELS } from "../data/listingCategories";
 import { REPORT_REASONS } from "../data/reportReasons";
 
@@ -439,6 +441,47 @@ export default function AdDetails() {
     }
   };
 
+  const updateListingStatus = async (action) => {
+    if (!token || !ad) {
+      goToAuth(nav);
+      return;
+    }
+
+    const prompts = {
+      sold: "Отметить объявление как проданное?",
+      archive: "Снять объявление с публикации?",
+      republish: "Опубликовать объявление снова?",
+    };
+
+    if (!confirm(prompts[action] || "Изменить статус объявления?")) {
+      return;
+    }
+
+    try {
+      const listingId = ad._id || ad.id;
+      let updated;
+
+      if (action === "sold") {
+        updated = await api.markListingSold(token, listingId);
+      } else if (action === "archive") {
+        updated = await api.archiveListing(token, listingId);
+      } else {
+        updated = await api.republishListing(token, listingId);
+      }
+
+      setAd((current) => ({ ...current, ...updated }));
+      setToast(
+        action === "sold"
+          ? "Объявление отмечено как проданное"
+          : action === "archive"
+          ? "Объявление снято с публикации"
+          : "Объявление снова опубликовано"
+      );
+    } catch (e) {
+      setToast(e.message || "Не удалось обновить статус");
+    }
+  };
+
   const shareAd = async () => {
     const url = window.location.href;
     const title = ad?.title || "Объявление";
@@ -523,6 +566,24 @@ export default function AdDetails() {
   );
 
   const moderationStatus = ad.status || "pending";
+  const isSold = moderationStatus === "sold";
+  const isArchived = moderationStatus === "archived";
+  const isInactive = isSold || isArchived;
+  const canContact = moderationStatus === "approved" && !isOwner;
+
+  if (isArchived && !isOwner) {
+    return (
+      <div className="container-x py-10">
+        <EmptyState
+          icon={PackageSearch}
+          title="Объявление снято с публикации"
+          description="Продавец временно убрал это объявление из каталога."
+          actionLabel="К каталогу"
+          onAction={() => nav("/listing")}
+        />
+      </div>
+    );
+  }
 
   const breadcrumbItems = [
     { label: "Главная", to: "/" },
@@ -567,6 +628,16 @@ export default function AdDetails() {
                   : "Объявление отклонено модератором."}
               </p>
             )}
+          </div>
+        )}
+
+        {(isSold || isArchived) && (
+          <div className="mb-6 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-slate-700">
+            {isSold
+              ? isOwner
+                ? "Вы отметили это объявление как проданное. Оно больше не показывается в каталоге."
+                : "Это объявление уже продано."
+              : "Объявление снято с публикации и скрыто из каталога."}
           </div>
         )}
 
@@ -904,7 +975,7 @@ export default function AdDetails() {
                 </div>
 
                 <div className="space-y-2.5">
-                  {ad.phone ? (
+                  {canContact && ad.phone ? (
                     phoneVisible ? (
                       <a
                         href={`tel:${ad.phone}`}
@@ -923,7 +994,7 @@ export default function AdDetails() {
                         Показать телефон
                       </button>
                     )
-                  ) : (
+                  ) : canContact ? (
                     <button
                       type="button"
                       className="btn w-full py-3 rounded-2xl opacity-60 cursor-not-allowed"
@@ -932,9 +1003,9 @@ export default function AdDetails() {
                       <Phone className="w-5 h-5" />
                       Телефон не указан
                     </button>
-                  )}
+                  ) : null}
 
-                  {!isOwner ? (
+                  {canContact ? (
                     <button
                       type="button"
                       className="btn w-full py-3 rounded-2xl"
@@ -943,15 +1014,53 @@ export default function AdDetails() {
                       <MessageCircle className="w-5 h-5" />
                       Написать продавцу
                     </button>
-                  ) : (
-                    <Link
-                      to="/messages"
-                      className="btn w-full py-3 rounded-2xl"
-                    >
-                      <MessageCircle className="w-5 h-5" />
-                      Сообщения покупателей
-                    </Link>
-                  )}
+                  ) : !isOwner && isInactive ? (
+                    <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+                      Связаться с продавцом по этому объявлению нельзя.
+                    </div>
+                  ) : null}
+
+                  {isOwner ? (
+                    <>
+                      {moderationStatus === "approved" && (
+                        <div className="grid grid-cols-1 gap-2">
+                          <button
+                            type="button"
+                            className="btn w-full py-3 rounded-2xl"
+                            onClick={() => updateListingStatus("sold")}
+                          >
+                            Отметить как проданное
+                          </button>
+
+                          <button
+                            type="button"
+                            className="btn w-full py-3 rounded-2xl"
+                            onClick={() => updateListingStatus("archive")}
+                          >
+                            Снять с публикации
+                          </button>
+                        </div>
+                      )}
+
+                      {(isSold || isArchived) && (
+                        <button
+                          type="button"
+                          className="btn w-full py-3 rounded-2xl border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+                          onClick={() => updateListingStatus("republish")}
+                        >
+                          Опубликовать снова
+                        </button>
+                      )}
+
+                      <Link
+                        to="/messages"
+                        className="btn w-full py-3 rounded-2xl"
+                      >
+                        <MessageCircle className="w-5 h-5" />
+                        Сообщения покупателей
+                      </Link>
+                    </>
+                  ) : null}
 
                   {isOwner && (
                     <Link
@@ -1018,7 +1127,7 @@ export default function AdDetails() {
             </div>
           </div>
 
-          {!isOwner && ad.phone ? (
+          {canContact && ad.phone ? (
             phoneVisible ? (
               <a
                 href={`tel:${ad.phone}`}
@@ -1039,7 +1148,7 @@ export default function AdDetails() {
             )
           ) : null}
 
-          {!isOwner ? (
+          {canContact ? (
             <button
               type="button"
               className="btn shrink-0 rounded-2xl px-4"
@@ -1047,11 +1156,11 @@ export default function AdDetails() {
             >
               <MessageCircle className="w-4 h-4" />
             </button>
-          ) : (
+          ) : isOwner ? (
             <Link to="/messages" className="btn shrink-0 rounded-2xl px-4">
               <MessageCircle className="w-4 h-4" />
             </Link>
-          )}
+          ) : null}
         </div>
       </div>
 

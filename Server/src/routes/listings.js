@@ -130,6 +130,23 @@ router.get("/", async (req, res) => {
   }
 });
 
+router.get("/suggest", async (req, res) => {
+  try {
+    const q = String(req.query.q || "").trim();
+    const limit = Number(req.query.limit || 8);
+
+    const items = await Listing.suggest(q, limit);
+
+    return res.json(items);
+  } catch (e) {
+    console.error("LISTINGS_SUGGEST_ERROR:", e?.message);
+
+    return res.status(500).json({
+      error: "Failed to load suggestions",
+    });
+  }
+});
+
 router.get("/mine", auth, async (req, res) => {
   try {
     const listings = await Listing.findByOwner(req.user.id);
@@ -219,6 +236,54 @@ router.post("/:id/report", auth, async (req, res) => {
     });
   }
 });
+
+async function updateListingOwnerStatus(req, res, status) {
+  try {
+    const listing = await Listing.updateOwnerStatus(
+      req.params.id,
+      req.user.id,
+      status
+    );
+
+    if (!listing) {
+      return res.status(404).json({
+        error: "Listing not found",
+      });
+    }
+
+    return res.json(listing);
+  } catch (e) {
+    if (e?.message === "FORBIDDEN") {
+      return res.status(403).json({
+        error: "Forbidden",
+      });
+    }
+
+    if (e?.message === "INVALID_STATUS") {
+      return res.status(400).json({
+        error: "Invalid status",
+      });
+    }
+
+    console.error("LISTING_STATUS_ERROR:", e?.message);
+
+    return res.status(500).json({
+      error: "Failed to update listing status",
+    });
+  }
+}
+
+router.post("/:id/sold", auth, (req, res) =>
+  updateListingOwnerStatus(req, res, "sold")
+);
+
+router.post("/:id/archive", auth, (req, res) =>
+  updateListingOwnerStatus(req, res, "archived")
+);
+
+router.post("/:id/republish", auth, (req, res) =>
+  updateListingOwnerStatus(req, res, "approved")
+);
 
 router.get("/:id", async (req, res) => {
   try {

@@ -15,6 +15,8 @@ const LISTING_STATUSES = [
   "pending",
   "approved",
   "rejected",
+  "sold",
+  "archived",
 ];
 
 const TRANSACTION_TYPES = [
@@ -178,6 +180,18 @@ async function initDb() {
 
     DO $$
     BEGIN
+      IF EXISTS (
+        SELECT 1
+        FROM pg_constraint
+        WHERE conname = 'listings_status_check'
+      ) THEN
+        ALTER TABLE listings
+          DROP CONSTRAINT listings_status_check;
+      END IF;
+    END $$;
+
+    DO $$
+    BEGIN
       IF NOT EXISTS (
         SELECT 1
         FROM pg_constraint
@@ -185,7 +199,7 @@ async function initDb() {
       ) THEN
         ALTER TABLE listings
           ADD CONSTRAINT listings_status_check
-          CHECK (status IN ('pending', 'approved', 'rejected'));
+          CHECK (status IN ('pending', 'approved', 'rejected', 'sold', 'archived'));
       END IF;
     END $$;
 

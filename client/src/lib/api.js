@@ -125,6 +125,11 @@ export const api = {
     return request(`/listings/count${q ? `?${q}` : ""}`);
   },
 
+  listingSuggest: (q, limit = 8) =>
+    request(
+      `/listings/suggest?q=${encodeURIComponent(q)}&limit=${encodeURIComponent(limit)}`
+    ),
+
   listingById: (id) =>
     request(`/listings/${id}`),
 
@@ -209,6 +214,24 @@ export const api = {
       token,
     }),
 
+  markListingSold: (token, id) =>
+    request(`/listings/${id}/sold`, {
+      method: "POST",
+      token,
+    }),
+
+  archiveListing: (token, id) =>
+    request(`/listings/${id}/archive`, {
+      method: "POST",
+      token,
+    }),
+
+  republishListing: (token, id) =>
+    request(`/listings/${id}/republish`, {
+      method: "POST",
+      token,
+    }),
+
   adminDeleteListing: (token, id) =>
   request(`/admin/listings/${id}`, {
     method: "DELETE",
@@ -249,6 +272,11 @@ export const api = {
         },
       }
     ),
+
+  walletTransactions: (token, limit = 50) =>
+    request(`/users/me/wallet/transactions?limit=${encodeURIComponent(limit)}`, {
+      token,
+    }),
 
   adminUsers: (token) =>
     request("/admin/users", {

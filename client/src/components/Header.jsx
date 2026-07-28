@@ -19,7 +19,7 @@ import {
   subscribeUnreadRefresh,
 } from "../lib/unread";
 import CategoryStrip from "./CategoryStrip";
-import { getListingThumb } from "../lib/media";
+import HeaderSearchSuggestions from "./HeaderSearchSuggestions";
 
 export default function Header() {
   const nav = useNavigate();
@@ -27,7 +27,7 @@ export default function Header() {
   const [sp] = useSearchParams();
 
   const [q, setQ] = React.useState(sp.get("search") || sp.get("q") || "");
-  const [listings, setListings] = React.useState([]);
+  const [catalogTotal, setCatalogTotal] = React.useState(0);
   const [showSuggestions, setShowSuggestions] = React.useState(false);
   const [unreadCount, setUnreadCount] = React.useState(0);
   const [scrolled, setScrolled] = React.useState(false);
@@ -86,34 +86,28 @@ export default function Header() {
   React.useEffect(() => {
     let active = true;
 
-    async function loadListings() {
+    async function loadCount() {
       try {
-        const data = await api.listings({ limit: 30 });
-        if (active) setListings(Array.isArray(data) ? data : []);
-      } catch {}
+        const data = await api.listingCount({});
+        if (active) {
+          setCatalogTotal(Number(data?.total || 0));
+        }
+      } catch {
+        if (active) setCatalogTotal(0);
+      }
     }
 
-    loadListings();
+    loadCount();
 
     return () => {
       active = false;
     };
   }, []);
 
-  const suggestions = React.useMemo(() => {
-    const text = q.trim().toLowerCase();
-    if (text.length < 2) return [];
-
-    return listings
-      .filter((ad) => String(ad.title || "").toLowerCase().includes(text))
-      .slice(0, 6);
-  }, [q, listings]);
-
   const listingsCountLabel = React.useMemo(() => {
-    const count = listings.length;
-    if (!count) return "Поиск объявлений";
-    return `${count.toLocaleString("ru-RU")} объявлений`;
-  }, [listings.length]);
+    if (!catalogTotal) return "Поиск объявлений";
+    return `Поиск среди ${catalogTotal.toLocaleString("ru-RU")} объявлений`;
+  }, [catalogTotal]);
 
   const go = React.useCallback(() => {
     const text = q.trim();
@@ -126,49 +120,29 @@ export default function Header() {
     }
   }, [q, nav]);
 
-  const suggestionList =
-    showSuggestions && suggestions.length > 0 ? (
-      <div className="absolute left-0 right-0 top-full mt-2 z-50 rounded-2xl border border-ink/10 bg-white shadow-lift overflow-hidden text-ink">
-        {suggestions.map((ad) => {
-          const id = ad.id || ad._id;
-
-          return (
-            <button
-              key={id}
-              type="button"
-              onMouseDown={(e) => {
-                e.preventDefault();
-                sessionStorage.setItem("ad_preview", JSON.stringify(ad));
-                setShowSuggestions(false);
-                nav(`/ad/${id}`);
-              }}
-              className="w-full flex items-center gap-3 px-4 py-3 hover:bg-sun-50 text-left border-b border-ink/5 last:border-b-0"
-            >
-              <img
-                src={getListingThumb(ad)}
-                alt={ad.title || "Объявление"}
-                className="w-12 h-12 rounded-xl object-cover bg-mist"
-              />
-              <div className="min-w-0">
-                <div className="text-sm font-semibold truncate">
-                  {ad.title || "Без названия"}
-                </div>
-                <div className="text-xs text-ink-400">
-                  {ad.price || "Цена не указана"}
-                </div>
-              </div>
-            </button>
-          );
-        })}
-      </div>
-    ) : null;
+  const suggestionList = (
+    <HeaderSearchSuggestions
+      query={q}
+      visible={showSuggestions}
+      onSelect={(ad, id) => {
+        sessionStorage.setItem("ad_preview", JSON.stringify(ad));
+        setShowSuggestions(false);
+        nav(`/ad/${id}`);
+      }}
+      onNavigate={() => {
+        setShowSuggestions(false);
+        go();
+      }}
+    />
+  );
 
   const searchField = (compact = false) => (
     <div
-      className={`flex items-center w-full rounded-xl bg-ink-600 overflow-hidden ring-1 ring-white/10 focus-within:ring-sun/70 transition ${
+      className={`relative flex items-center w-full rounded-xl bg-ink-600 overflow-visible ring-1 ring-white/10 focus-within:ring-sun/70 transition ${
         compact ? "min-w-0" : ""
       }`}
     >
+      <div className="flex items-center w-full rounded-xl overflow-hidden bg-ink-600">
       <Search size={18} className="text-ink-300 shrink-0 ml-3" />
 
       <input
@@ -195,6 +169,9 @@ export default function Header() {
       >
         Найти
       </button>
+      </div>
+
+      {suggestionList}
     </div>
   );
 

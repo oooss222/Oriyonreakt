@@ -1,6 +1,7 @@
 const router = require("express").Router();
 const auth = require("../middleware/auth");
 const User = require("../models/User");
+const Wallet = require("../models/Wallet");
 
 router.get("/:id/public", async (req, res) => {
   try {
@@ -89,6 +90,26 @@ router.put("/me", auth, async (req, res) => {
 
     return res.status(500).json({
       error: "Failed to update profile",
+    });
+  }
+});
+
+router.get("/me/wallet/transactions", auth, async (req, res) => {
+  try {
+    const limit = Number(req.query.limit || 50);
+    const offset = Number(req.query.offset || 0);
+
+    const transactions = await Wallet.findByUser(req.user.id, {
+      limit,
+      offset,
+    });
+
+    return res.json(transactions);
+  } catch (e) {
+    console.error("WALLET_TRANSACTIONS_ERROR:", e?.message);
+
+    return res.status(500).json({
+      error: "Failed to load wallet transactions",
     });
   }
 });
