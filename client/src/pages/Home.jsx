@@ -49,7 +49,7 @@ function ListingCard({ ad, listings }) {
           openAd();
         }
       }}
-      className={`group min-w-[230px] max-w-[230px] card p-2 hover:shadow-lift transition-all duration-300 flex flex-col overflow-hidden cursor-pointer focus:outline-none focus:ring-2 focus:ring-sun/50 relative ${getPromotionCardClass(
+      className={`group card p-1.5 hover:shadow-lift transition-all duration-300 flex flex-col overflow-hidden cursor-pointer focus:outline-none focus:ring-2 focus:ring-sun/50 relative ${getPromotionCardClass(
         { vip: ad.vip, top: ad.top }
       )}`}
       aria-label={`Объявление: ${ad.title || "Без названия"}`}
@@ -62,7 +62,7 @@ function ListingCard({ ad, listings }) {
         <img
           src={img}
           alt={ad.title || "Объявление"}
-          className="w-full h-44 object-cover bg-mist transition-transform duration-500 group-hover:scale-105"
+          className="w-full h-32 object-cover bg-mist transition-transform duration-500 group-hover:scale-105"
           loading="lazy"
         />
 
@@ -74,8 +74,8 @@ function ListingCard({ ad, listings }) {
         />
       </div>
 
-      <div className="p-2 flex-1 flex flex-col gap-1">
-        <div className="font-semibold text-sm text-ink line-clamp-2 group-hover:text-sun-700 transition min-h-[40px]">
+      <div className="p-1.5 flex-1 flex flex-col gap-0.5">
+        <div className="font-semibold text-xs sm:text-sm text-ink line-clamp-2 group-hover:text-sun-700 transition min-h-[32px]">
           {ad.title || "Без названия"}
         </div>
 
@@ -127,7 +127,7 @@ function HorizontalSection({ title, icon: Icon, items, linkTo = "/listing" }) {
         </Link>
       </div>
 
-      <div className="flex gap-4 overflow-x-auto pb-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
         {items.map((ad) => (
           <ListingCard key={ad.id || ad._id} ad={ad} listings={items} />
         ))}
@@ -138,14 +138,14 @@ function HorizontalSection({ title, icon: Icon, items, linkTo = "/listing" }) {
 
 function ListingSkeleton() {
   return (
-    <div className="flex gap-4 overflow-hidden">
-      {Array.from({ length: 5 }).map((_, index) => (
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+      {Array.from({ length: 6 }).map((_, index) => (
         <div
           key={index}
-          className="min-w-[230px] card p-2 animate-pulse"
+          className="card p-1.5 animate-pulse"
         >
-          <div className="h-44 rounded-2xl bg-mist-200" />
-          <div className="p-2 space-y-2">
+          <div className="h-32 rounded-xl bg-mist-200" />
+          <div className="p-1.5 space-y-2">
             <div className="h-4 bg-mist-200 rounded w-5/6" />
             <div className="h-4 bg-mist-200 rounded w-1/2" />
             <div className="h-3 bg-mist-200 rounded w-2/3" />

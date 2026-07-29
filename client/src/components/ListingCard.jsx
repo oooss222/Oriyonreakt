@@ -46,7 +46,7 @@ export default function ListingCard({ item, onFav }) {
         <img
           src={getListingThumb(item)}
           alt={item.title}
-          className="w-full h-40 object-cover bg-mist transition-transform duration-500 group-hover:scale-105"
+          className="w-full h-32 object-cover bg-mist transition-transform duration-500 group-hover:scale-105"
           onError={(e) => {
             e.currentTarget.src = "/img/placeholder.jpg";
           }}
@@ -61,17 +61,17 @@ export default function ListingCard({ item, onFav }) {
         />
       </div>
 
-      <div className="p-3">
-        <div className="badge">
+      <div className="p-2">
+        <div className="badge text-[10px] px-1.5 py-0.5">
           {item.location || "Не указано"}
         </div>
 
-        <h3 className="mt-2 text-sm font-semibold text-ink line-clamp-2 group-hover:text-sun-700 transition-colors">
+        <h3 className="mt-1.5 text-xs sm:text-sm font-semibold text-ink line-clamp-2 group-hover:text-sun-700 transition-colors">
           {item.title}
         </h3>
 
-        <div className="mt-2 flex items-center justify-between gap-2">
-          <strong className="text-price text-base">
+        <div className="mt-1.5 flex items-center justify-between gap-2">
+          <strong className="text-price text-sm">
             {formatPrice(item.price)}
           </strong>
 

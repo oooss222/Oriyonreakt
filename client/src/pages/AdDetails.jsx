@@ -1032,14 +1032,9 @@ export default function AdDetails() {
                   </Link>
                 </div>
 
-                <div className="flex gap-4 overflow-x-auto pb-2 snap-x scrollbar-thin">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                   {related.map((item) => (
-                    <div
-                      key={item._id || item.id}
-                      className="min-w-[200px] sm:min-w-[230px] max-w-[230px] snap-start"
-                    >
-                      <ListingCard item={item} />
-                    </div>
+                    <ListingCard key={item._id || item.id} item={item} />
                   ))}
                 </div>
               </section>

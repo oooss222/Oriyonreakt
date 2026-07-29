@@ -249,7 +249,7 @@ export default function Category() {
               className="mb-4"
             />
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3">
             {preview.map((ad, idx) => {
               const id = ad._id || ad.id;
               const imgUrl = getListingThumb(ad);
@@ -272,7 +272,7 @@ export default function Category() {
                       nav(`/ad/${id}`);
                     }
                   }}
-                  className={`group relative flex flex-col rounded-2xl border bg-white p-2 transition hover:shadow-lg cursor-pointer ${getPromotionCardClass(
+                  className={`group relative flex flex-col rounded-2xl border bg-white p-1.5 transition hover:shadow-lg cursor-pointer ${getPromotionCardClass(
                     { vip: ad.vip, top: ad.top }
                   )}`}
                 >
@@ -285,7 +285,7 @@ export default function Category() {
                       src={imgUrl}
                       alt={ad.title || "Фото"}
                       loading="lazy"
-                      className="w-full h-32 object-cover rounded-xl bg-slate-100"
+                      className="w-full h-28 object-cover rounded-xl bg-slate-100"
                     />
 
                     <ListingCardOverlays

@@ -14,11 +14,11 @@
   }
 
   html {
-    @apply scroll-smooth;
+    @apply scroll-smooth overflow-x-hidden;
   }
 
   body {
-    @apply font-sans text-ink antialiased;
+    @apply font-sans text-ink antialiased overflow-x-hidden;
     background-color: var(--mist);
     background-image:
       radial-gradient(ellipse 90% 50% at 50% -12%, rgb(255 106 0 / 0.1), transparent 55%),
@@ -106,7 +106,7 @@
   }
 
   .grid-items {
-    @apply grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4;
+    @apply grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5;
   }
 }
 

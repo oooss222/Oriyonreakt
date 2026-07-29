@@ -381,7 +381,7 @@ const ListingCard = React.memo(function ListingCard({
 
   return (
     <div
-      className={`group relative rounded-3xl border bg-white p-2 hover:shadow-xl transition-all duration-300 overflow-hidden ${getPromotionCardClass(
+      className={`group relative rounded-2xl border bg-white p-1.5 hover:shadow-xl transition-all duration-300 overflow-hidden ${getPromotionCardClass(
         { vip: ad.vip, top: ad.top }
       )}`}
     >
@@ -399,7 +399,7 @@ const ListingCard = React.memo(function ListingCard({
             src={imgUrl}
             alt={ad.title || "Объявление"}
             className={`w-full object-cover bg-slate-100 transition-transform duration-500 group-hover:scale-105 ${
-              compact ? "h-36" : "h-44"
+              compact ? "h-32" : "h-36"
             }`}
             loading="lazy"
           />
@@ -572,10 +572,10 @@ const ListingsGrid = React.memo(function ListingsGrid({
 
   return (
     <div
-      className={`grid gap-4 ${
+      className={`grid gap-3 ${
         compact
           ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
-          : "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
+          : "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
       }`}
     >
       {items.map((ad) => (

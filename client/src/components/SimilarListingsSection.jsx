@@ -100,7 +100,7 @@ export default function SimilarListingsSection({
       {loading && <ListingGridSkeleton count={4} columns="grid-cols-2 sm:grid-cols-4" />}
 
       {!loading && items.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
           {items.map((item) => (
             <ListingCard key={item._id || item.id} item={item} />
           ))}
