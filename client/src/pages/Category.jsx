@@ -263,7 +263,7 @@ export default function Category() {
                       nav(`/ad/${id}`);
                     }
                   }}
-                  className={`group relative flex flex-col rounded-2xl border bg-white p-2 transition hover:shadow-lg hover:-translate-y-0.5 cursor-pointer ${getPromotionCardClass(
+                  className={`group relative flex flex-col rounded-2xl border bg-white p-2 transition hover:shadow-lg cursor-pointer ${getPromotionCardClass(
                     { vip: ad.vip, top: ad.top }
                   )}`}
                 >

@@ -352,7 +352,7 @@ const ListingCard = React.memo(function ListingCard({
 
   return (
     <div
-      className={`group relative rounded-3xl border bg-white p-2 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden ${getPromotionCardClass(
+      className={`group relative rounded-3xl border bg-white p-2 hover:shadow-xl transition-all duration-300 overflow-hidden ${getPromotionCardClass(
         { vip: ad.vip, top: ad.top }
       )}`}
     >

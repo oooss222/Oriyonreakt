@@ -60,7 +60,7 @@
   }
 
   .card:hover {
-    @apply shadow-lift -translate-y-px border-ink/15;
+    @apply shadow-lift border-ink/15;
   }
 
   .btn {
@@ -208,6 +208,7 @@
     top: 0;
     height: 3px;
     z-index: 20;
+    border-radius: inherit;
   }
 
   .promotion-card-accent-vip {
