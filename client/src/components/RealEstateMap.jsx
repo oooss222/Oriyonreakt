@@ -1,7 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { Lasso, List, RotateCcw, MapPin } from "lucide-react";
-import { loadLeafletGeoman, fixLeafletIcons } from "../lib/useLeaflet";
+import { Lasso, List, RotateCcw, MapPin, RefreshCw } from "lucide-react";
+import { getLeaflet, loadLeaflet, loadLeafletGeoman } from "../lib/useLeaflet";
 import { enrichRealEstateListing } from "../lib/realEstate";
 import { getCityCoordinates } from "../data/realEstate";
 import { formatPrice } from "../lib/format";
@@ -35,6 +35,8 @@ export default function RealEstateMap({
   const drawCleanupRef = React.useRef(null);
   const [drawing, setDrawing] = React.useState(false);
   const [mapReady, setMapReady] = React.useState(false);
+  const [loadError, setLoadError] = React.useState(false);
+  const [retryKey, setRetryKey] = React.useState(0);
 
   const ring = React.useMemo(() => normalizePolygon(polygon), [polygon]);
 
@@ -96,31 +98,43 @@ export default function RealEstateMap({
     [points, ring, nav]
   );
 
-  const renderAreaLayer = React.useCallback((L, map) => {
-    if (areaLayerRef.current) {
-      areaLayerRef.current.remove();
-      areaLayerRef.current = null;
-    }
+  const renderAreaLayer = React.useCallback(
+    (L, map) => {
+      if (areaLayerRef.current) {
+        areaLayerRef.current.remove();
+        areaLayerRef.current = null;
+      }
 
-    if (!ring.length) return;
+      if (!ring.length) return;
 
-    areaLayerRef.current = L.polygon(polygonToLatLngs(ring), {
-      color: "#ff6a00",
-      weight: 2,
-      fillColor: "#ff6a00",
-      fillOpacity: 0.12,
-    }).addTo(map);
-  }, [ring]);
+      areaLayerRef.current = L.polygon(polygonToLatLngs(ring), {
+        color: "#ff6a00",
+        weight: 2,
+        fillColor: "#ff6a00",
+        fillOpacity: 0.12,
+      }).addTo(map);
+    },
+    [ring]
+  );
+
+  const refreshMapLayers = React.useCallback(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    const L = getLeaflet();
+    renderAreaLayer(L, map);
+    renderMarkers(L, map);
+  }, [renderAreaLayer, renderMarkers]);
 
   React.useEffect(() => {
     let active = true;
 
     async function initMap() {
-      try {
-        const L = await loadLeafletGeoman();
-        if (!active || !containerRef.current) return;
+      setLoadError(false);
+      setMapReady(false);
 
-        fixLeafletIcons(L);
+      try {
+        const L = enableAreaDraw ? await loadLeafletGeoman() : await loadLeaflet();
+        if (!active || !containerRef.current) return;
 
         if (mapRef.current) {
           mapRef.current.remove();
@@ -138,6 +152,8 @@ export default function RealEstateMap({
         }).addTo(map);
 
         mapRef.current = map;
+        renderAreaLayer(L, map);
+        renderMarkers(L, map);
 
         if (enableAreaDraw) {
           const onCreate = (event) => {
@@ -158,9 +174,18 @@ export default function RealEstateMap({
         }
 
         setMapReady(true);
-        setTimeout(() => map.invalidateSize(), 100);
-      } catch {
-        setMapReady(false);
+
+        requestAnimationFrame(() => {
+          if (!mapRef.current) return;
+          mapRef.current.invalidateSize();
+          renderAreaLayer(L, mapRef.current);
+          renderMarkers(L, mapRef.current);
+        });
+
+        setTimeout(() => mapRef.current?.invalidateSize(), 200);
+      } catch (error) {
+        console.error("RealEstateMap init failed:", error);
+        if (active) setLoadError(true);
       }
     }
 
@@ -182,17 +207,26 @@ export default function RealEstateMap({
       }
       setMapReady(false);
     };
-  }, [city, enableAreaDraw]);
+  }, [city, enableAreaDraw, retryKey, renderAreaLayer, renderMarkers, onPolygonChange]);
 
   React.useEffect(() => {
-    const map = mapRef.current;
-    if (!map || !window.L) return;
+    if (!mapReady) return;
+    refreshMapLayers();
+  }, [points, ring, mapReady, refreshMapLayers]);
 
-    renderAreaLayer(window.L, map);
-    renderMarkers(window.L, map);
-  }, [points, ring, renderAreaLayer, renderMarkers]);
+  React.useEffect(() => {
+    const container = containerRef.current;
+    if (!container || !mapReady) return;
 
-  const startDraw = async () => {
+    const observer = new ResizeObserver(() => {
+      mapRef.current?.invalidateSize();
+    });
+
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, [mapReady]);
+
+  const startDraw = () => {
     const map = mapRef.current;
     if (!map?.pm) return;
 
@@ -282,10 +316,24 @@ export default function RealEstateMap({
       )}
 
       <div
-        className={`overflow-hidden rounded-2xl border bg-slate-100 ${drawing ? "ring-2 ring-sun/40" : ""}`}
-        style={{ height }}
+        className={`relative overflow-hidden rounded-2xl border bg-slate-100 ${drawing ? "ring-2 ring-sun/40" : ""}`}
+        style={{ height, minHeight: 280 }}
       >
-        <div ref={containerRef} className="h-full w-full touch-none" />
+        {loadError && (
+          <div className="absolute inset-0 z-[600] flex flex-col items-center justify-center gap-3 bg-slate-100 p-4 text-center">
+            <p className="text-sm text-slate-600">Не удалось загрузить карту</p>
+            <button
+              type="button"
+              onClick={() => setRetryKey((key) => key + 1)}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border shadow-sm text-sm font-semibold hover:bg-slate-50"
+            >
+              <RefreshCw size={15} />
+              Повторить
+            </button>
+          </div>
+        )}
+
+        <div ref={containerRef} className="h-full w-full touch-none z-0" />
       </div>
     </div>
   );

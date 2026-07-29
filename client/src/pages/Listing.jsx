@@ -601,7 +601,7 @@ export default function Listing() {
         />
       )}
 
-      {!loading && !error && items.length > 0 && viewMode === "map" && isRealEstate && (
+      {!loading && !error && viewMode === "map" && isRealEstate && (
         <RealEstateMap
           listings={items}
           city={location || draft.location || "Душанбе"}
