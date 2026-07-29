@@ -972,15 +972,16 @@ export default function AdDetails() {
             )}
 
             {isRealEstateListing(ad) && (
-              <section className="card p-5 md:p-6 rounded-3xl space-y-3">
-                <h2 className="text-lg font-bold text-slate-900">Расположение на карте</h2>
-                <RealEstateMap
-                  listings={[ad]}
-                  city={ad.location || "Душанбе"}
-                  district={getSpecValue(ad.specs, "Район")}
-                  address={getSpecValue(ad.specs, "Адрес")}
-                  height={320}
-                />
+              <section className="card p-5 md:p-6 rounded-3xl space-y-2">
+                <h2 className="text-lg font-bold text-slate-900">Расположение</h2>
+                <p className="text-slate-700 flex items-start gap-2">
+                  <MapPin className="w-4 h-4 text-sun shrink-0 mt-1" />
+                  <span>
+                    {[ad.location || "Душанбе", getSpecValue(ad.specs, "Район"), getSpecValue(ad.specs, "Адрес")]
+                      .filter(Boolean)
+                      .join(", ")}
+                  </span>
+                </p>
               </section>
             )}
 

@@ -3,7 +3,6 @@ import { Link, useParams } from "react-router-dom";
 import { Building2, Calendar, MapPin, ArrowRight } from "lucide-react";
 import Breadcrumbs from "../components/Breadcrumbs";
 import RealEstateListingCard from "../components/RealEstateListingCard";
-import RealEstateMap from "../components/RealEstateMap";
 import ListingGridSkeleton from "../components/ListingGridSkeleton";
 import { api } from "../lib/api";
 import { usePageMeta } from "../lib/usePageMeta";
@@ -145,14 +144,6 @@ export default function RealEstateDevelopment() {
           </div>
         </div>
       </section>
-
-      <RealEstateMap
-        listings={listings.slice(0, 12)}
-        city={development.city}
-        district={development.district}
-        address={development.address}
-        height={360}
-      />
 
       <section className="space-y-4">
         <h2 className="text-xl font-bold">Квартиры в {development.name}</h2>
