@@ -1,4 +1,5 @@
 let leafletPromise = null;
+let geomanPromise = null;
 
 export function loadLeaflet() {
   if (typeof window !== "undefined" && window.L) {
@@ -25,6 +26,37 @@ export function loadLeaflet() {
   });
 
   return leafletPromise;
+}
+
+export async function loadLeafletGeoman() {
+  const L = await loadLeaflet();
+
+  if (L.PM) return L;
+
+  if (!geomanPromise) {
+    geomanPromise = new Promise((resolve, reject) => {
+      if (!document.querySelector('link[data-leaflet-geoman="1"]')) {
+        const link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href =
+          "https://unpkg.com/@geoman-io/leaflet-geoman-free@2.17.1/dist/leaflet-geoman.css";
+        link.dataset.leafletGeoman = "1";
+        document.head.appendChild(link);
+      }
+
+      const script = document.createElement("script");
+      script.src =
+        "https://unpkg.com/@geoman-io/leaflet-geoman-free@2.17.1/dist/leaflet-geoman.min.js";
+      script.async = true;
+      script.onload = () => resolve(window.L);
+      script.onerror = () =>
+        reject(new Error("Не удалось загрузить инструмент рисования"));
+      document.body.appendChild(script);
+    });
+  }
+
+  await geomanPromise;
+  return window.L;
 }
 
 export function fixLeafletIcons(L) {
