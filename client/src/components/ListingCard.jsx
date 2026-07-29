@@ -2,6 +2,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import FavoriteButton from "./FavoriteButton";
 import ListingCardOverlays from "./ListingCardOverlays";
+import BusinessBadge from "./BusinessBadge";
 import { getListingThumb } from "../lib/media";
 import { formatPrice } from "../lib/format";
 import {
@@ -62,8 +63,14 @@ export default function ListingCard({ item, onFav }) {
       </div>
 
       <div className="p-2">
-        <div className="badge text-[10px] px-1.5 py-0.5">
-          {item.location || "Не указано"}
+        <div className="flex flex-wrap items-center gap-1.5">
+          <div className="badge text-[10px] px-1.5 py-0.5">
+            {item.location || "Не указано"}
+          </div>
+          <BusinessBadge
+            sellerType={item.ownerSellerType}
+            businessVerified={item.ownerBusinessVerified}
+          />
         </div>
 
         <h3 className="mt-1.5 text-xs sm:text-sm font-semibold text-ink line-clamp-2 group-hover:text-sun-700 transition-colors">

@@ -3,6 +3,9 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   BadgeCheck,
   Building2,
+  Globe,
+  Instagram,
+  MapPin,
   MessageCircle,
   Package,
   ShieldCheck,
@@ -14,7 +17,9 @@ import ListingGridSkeleton from "../components/ListingGridSkeleton";
 import EmptyState from "../components/EmptyState";
 import { StarRating } from "../components/SellerReviewsPanel";
 import SellerReviewsPanel from "../components/SellerReviewsPanel";
+import BusinessBadge from "../components/BusinessBadge";
 import { usePageMeta } from "../lib/usePageMeta";
+import { getDisplayName } from "../lib/businessAccount";
 import { api } from "../lib/api";
 import { goToAuth } from "../lib/auth";
 
@@ -43,6 +48,12 @@ function formatMemberSince(value) {
 
 function sellerTypeLabel(type) {
   return type === "company" ? "Компания" : "Частное лицо";
+}
+
+function normalizeExternalUrl(value = "") {
+  const trimmed = String(value || "").trim();
+  if (!trimmed) return "";
+  return /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
 }
 
 export default function Seller() {
@@ -124,7 +135,7 @@ export default function Seller() {
     };
   }, [id]);
 
-  const sellerName = seller?.name || "Продавец";
+  const sellerName = getDisplayName(seller);
   const memberSince = formatMemberSince(seller?.createdAt);
   const isOwner = Boolean(
     currentUserId && seller?.id && String(currentUserId) === String(seller.id)
@@ -205,13 +216,27 @@ export default function Seller() {
 
       <section className="card rounded-3xl p-5 md:p-6 shadow-sm space-y-5">
         <div className="flex flex-col sm:flex-row sm:items-start gap-4">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-sun to-lagoon flex items-center justify-center text-white font-bold text-lg shadow-sm shrink-0">
-            {getInitials(sellerName)}
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-sun to-lagoon flex items-center justify-center text-white font-bold text-lg shadow-sm shrink-0 overflow-hidden">
+            {seller.sellerType === "company" && seller.companyLogo ? (
+              <img
+                src={seller.companyLogo}
+                alt={sellerName}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              getInitials(sellerName)
+            )}
           </div>
 
           <div className="min-w-0 flex-1 space-y-2">
             <div className="flex flex-wrap items-center gap-2">
               <h1 className="text-2xl font-bold text-slate-900">{sellerName}</h1>
+
+              <BusinessBadge
+                sellerType={seller.sellerType}
+                businessVerified={seller.businessVerified}
+                size="lg"
+              />
 
               {seller.emailVerified && (
                 <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-100">
@@ -254,6 +279,48 @@ export default function Seller() {
             </div>
           </div>
         </div>
+
+        {seller.sellerType === "company" && seller.companyDescription && (
+          <div className="rounded-2xl border bg-slate-50 p-4 text-sm text-slate-700 leading-relaxed">
+            {seller.companyDescription}
+          </div>
+        )}
+
+        {seller.sellerType === "company" &&
+          (seller.companyAddress ||
+            seller.companyWebsite ||
+            seller.companyInstagram) && (
+            <div className="flex flex-wrap gap-3 text-sm">
+              {seller.companyAddress && (
+                <span className="inline-flex items-center gap-1.5 text-slate-600">
+                  <MapPin className="w-4 h-4 text-slate-400" />
+                  {seller.companyAddress}
+                </span>
+              )}
+              {seller.companyWebsite && (
+                <a
+                  href={normalizeExternalUrl(seller.companyWebsite)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-blue-600 hover:underline"
+                >
+                  <Globe className="w-4 h-4" />
+                  Сайт
+                </a>
+              )}
+              {seller.companyInstagram && (
+                <a
+                  href={normalizeExternalUrl(seller.companyInstagram)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-pink-600 hover:underline"
+                >
+                  <Instagram className="w-4 h-4" />
+                  Instagram
+                </a>
+              )}
+            </div>
+          )}
 
         <div className="flex items-start gap-2 text-xs text-emerald-800 bg-emerald-50 border border-emerald-100 rounded-2xl p-3">
           <ShieldCheck className="w-4 h-4 shrink-0 mt-0.5 text-emerald-600" />

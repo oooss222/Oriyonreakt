@@ -10,6 +10,7 @@ import { CATEGORY_SELECT_OPTIONS } from "../data/listingCategories";
 import { getListingFilterGrid } from "../data/filterGrids";
 import { getDistrictsForCity } from "../data/realEstate";
 import { formatPriceInput, getPriceDigits } from "../data/specOptions";
+import { Building2 } from "lucide-react";
 
 function FilterSelect({
   label,
@@ -546,6 +547,9 @@ export default function ListingFiltersPanel({
     [activeCat, draft.subcategory]
   );
 
+  const showCompanyFilter =
+    activeCat === "realestate" || activeCat === "auto";
+
   const saveSearch = () => {
     const key = "oriyon_saved_searches";
     const saved = JSON.parse(localStorage.getItem(key) || "[]");
@@ -553,6 +557,7 @@ export default function ListingFiltersPanel({
       draft.subcategory,
       draft.specs?.Марка || draft.specs?.Производитель,
       draft.location || draft.region,
+      draft.sellerType === "company" ? "Компании" : "",
     ]
       .filter(Boolean)
       .join(" · ");
@@ -595,6 +600,31 @@ export default function ListingFiltersPanel({
           </div>
         ))}
       </div>
+
+      {showCompanyFilter && (
+        <div className="mt-3">
+          <button
+            type="button"
+            onClick={() =>
+              commitDraft(setDraft, onApply, (current) => ({
+                ...current,
+                sellerType:
+                  current.sellerType === "company" ? "" : "company",
+              }), draft)
+            }
+            className={`h-12 w-full rounded-xl border px-4 text-sm font-semibold transition inline-flex items-center justify-center gap-2 ${
+              draft.sellerType === "company"
+                ? "bg-blue-600 text-white border-blue-600"
+                : "bg-white text-slate-600 border-white/80 shadow-sm hover:border-blue-200"
+            }`}
+          >
+            <Building2 size={16} />
+            {draft.sellerType === "company"
+              ? "Только компании"
+              : "Показать объявления компаний"}
+          </button>
+        </div>
+      )}
 
       {moreOpen && grid.more?.length > 0 && (
         <div className="mt-3 pt-3 border-t border-lagoon/10 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">

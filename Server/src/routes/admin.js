@@ -1050,6 +1050,50 @@ router.put("/users/:id/role", requireRole("super_admin"), async (req, res) => {
 });
 
 router.post(
+  "/users/:id/business-verify",
+  requireRole("admin", "super_admin"),
+  async (req, res) => {
+    try {
+      const target = await User.findById(req.params.id);
+
+      if (!target) {
+        return res.status(404).json({
+          error: "User not found",
+        });
+      }
+
+      if (target.sellerType !== "company") {
+        return res.status(400).json({
+          error: "User is not a business account",
+        });
+      }
+
+      const verified = req.body?.verified !== false;
+      const updated = await User.setBusinessVerified(req.params.id, verified);
+
+      if (!updated) {
+        return res.status(404).json({
+          error: "User not found",
+        });
+      }
+
+      await audit(req, verified ? "user.business_verify" : "user.business_unverify", "user", req.params.id, {
+        email: target.email,
+        companyName: target.companyName,
+      });
+
+      return res.json(User.sanitize(updated));
+    } catch (e) {
+      console.error("ADMIN_BUSINESS_VERIFY_ERROR:", e?.message);
+
+      return res.status(500).json({
+        error: "Failed to update business verification",
+      });
+    }
+  }
+);
+
+router.post(
   "/users/:id/block",
   requireRole("admin", "super_admin"),
   async (req, res) => {

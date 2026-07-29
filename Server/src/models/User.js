@@ -1,5 +1,36 @@
 const bcrypt = require("bcryptjs");
 const { query, mapUser } = require("../db");
+const {
+  getListingLimit,
+  canSwitchToPrivate,
+  ACTIVE_LISTING_STATUSES,
+} = require("../lib/businessAccount");
+
+function normalizeWebsite(value = "") {
+  const trimmed = String(value || "").trim();
+
+  if (!trimmed) return "";
+
+  if (/^https?:\/\//i.test(trimmed)) {
+    return trimmed;
+  }
+
+  return `https://${trimmed}`;
+}
+
+function normalizeInstagram(value = "") {
+  const trimmed = String(value || "").trim();
+
+  if (!trimmed) return "";
+
+  if (/^https?:\/\//i.test(trimmed)) {
+    return trimmed;
+  }
+
+  const handle = trimmed.replace(/^@/, "");
+
+  return `https://instagram.com/${handle}`;
+}
 
 class UserModel {
   static async create({
@@ -8,9 +39,15 @@ class UserModel {
     name,
     phone = "",
     sellerType = "private",
+    companyName = "",
     role = "user",
   }) {
     const hashedPassword = await bcrypt.hash(password, 10);
+    const normalizedSellerType = sellerType === "company" ? "company" : "private";
+    const normalizedCompanyName =
+      normalizedSellerType === "company"
+        ? String(companyName || name || "").trim()
+        : "";
 
     const result = await query(
       `
@@ -20,12 +57,21 @@ class UserModel {
         name,
         phone,
         seller_type,
+        company_name,
         role
       )
-      VALUES ($1, $2, $3, $4, $5, $6)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
       RETURNING *
       `,
-      [email, hashedPassword, name, phone, sellerType, role]
+      [
+        email,
+        hashedPassword,
+        name,
+        phone,
+        normalizedSellerType,
+        normalizedCompanyName,
+        role,
+      ]
     );
 
     return mapUser(result.rows[0]);
@@ -168,11 +214,23 @@ class UserModel {
   static sanitizePublic(user, { listingsCount = 0 } = {}) {
     if (!user || user.isBlocked) return null;
 
+    const isCompany = user.sellerType === "company";
+
     return {
       id: user.id,
       _id: user.id,
       name: user.name || "Продавец",
       sellerType: user.sellerType || "private",
+      companyName: user.companyName || "",
+      companyDescription: user.companyDescription || "",
+      companyLogo: user.companyLogo || "",
+      companyAddress: user.companyAddress || "",
+      companyWebsite: user.companyWebsite || "",
+      companyInstagram: user.companyInstagram || "",
+      businessVerified: Boolean(user.businessVerified),
+      businessVerifiedAt: user.businessVerifiedAt || null,
+      displayName:
+        isCompany && user.companyName ? user.companyName : user.name || "Продавец",
       whatsapp: user.whatsapp || "",
       telegram: user.telegram || "",
       emailVerified: Boolean(user.emailVerified),
@@ -224,6 +282,15 @@ class UserModel {
       whatsapp: user.whatsapp || "",
       telegram: user.telegram || "",
       sellerType: user.sellerType,
+      companyName: user.companyName || "",
+      companyDescription: user.companyDescription || "",
+      companyLogo: user.companyLogo || "",
+      companyAddress: user.companyAddress || "",
+      companyWebsite: user.companyWebsite || "",
+      companyInstagram: user.companyInstagram || "",
+      businessVerified: Boolean(user.businessVerified),
+      businessVerifiedAt: user.businessVerifiedAt || null,
+      listingLimit: getListingLimit(user),
       role: user.role || "user",
       isBlocked: Boolean(user.isBlocked),
       emailVerified: user.emailVerified,
@@ -233,27 +300,193 @@ class UserModel {
     };
   }
 
-  static async updateProfile(id, {
-    name,
-    phone,
-    whatsapp,
-    telegram,
-    sellerType,
-  }) {
+  static async countActiveListings(userId) {
+    const result = await query(
+      `
+      SELECT COUNT(*)::int AS count
+      FROM listings
+      WHERE owner = $1
+        AND status = ANY($2::text[])
+      `,
+      [userId, ACTIVE_LISTING_STATUSES]
+    );
+
+    return Number(result.rows[0]?.count || 0);
+  }
+
+  static async getBusinessStats(userId) {
+    const [user, activeListings, viewsResult, statusResult] = await Promise.all([
+      this.findById(userId),
+      this.countActiveListings(userId),
+      query(
+        `
+        SELECT COALESCE(SUM(views), 0)::int AS views
+        FROM listings
+        WHERE owner = $1 AND status = 'approved'
+        `,
+        [userId]
+      ),
+      query(
+        `
+        SELECT status, COUNT(*)::int AS count
+        FROM listings
+        WHERE owner = $1
+        GROUP BY status
+        `,
+        [userId]
+      ),
+    ]);
+
+    if (!user) return null;
+
+    const byStatus = {};
+
+    for (const row of statusResult.rows) {
+      byStatus[row.status] = Number(row.count || 0);
+    }
+
+    return {
+      sellerType: user.sellerType,
+      listingLimit: getListingLimit(user),
+      activeListings,
+      remainingListings: Math.max(0, getListingLimit(user) - activeListings),
+      totalViews: Number(viewsResult.rows[0]?.views || 0),
+      businessVerified: Boolean(user.businessVerified),
+      byStatus,
+    };
+  }
+
+  static async assertCanCreateListing(userId) {
+    const user = await this.findById(userId);
+
+    if (!user) {
+      throw new Error("NOT_FOUND");
+    }
+
+    const activeListings = await this.countActiveListings(userId);
+    const limit = getListingLimit(user);
+
+    if (activeListings >= limit) {
+      const err = new Error("LISTING_LIMIT_REACHED");
+      err.limit = limit;
+      err.activeListings = activeListings;
+      err.sellerType = user.sellerType;
+      throw err;
+    }
+
+    return { user, activeListings, limit };
+  }
+
+  static async updateProfile(id, fields = {}) {
+    const current = await this.findById(id);
+
+    if (!current) return null;
+
+    const nextSellerType =
+      fields.sellerType !== undefined ? fields.sellerType : current.sellerType;
+
+    if (!["private", "company"].includes(nextSellerType)) {
+      throw new Error("INVALID_SELLER_TYPE");
+    }
+
+    if (nextSellerType === "private" && current.sellerType === "company") {
+      const activeListings = await this.countActiveListings(id);
+
+      if (!canSwitchToPrivate(current, activeListings)) {
+        const err = new Error("TOO_MANY_LISTINGS_FOR_PRIVATE");
+        err.activeListings = activeListings;
+        throw err;
+      }
+    }
+
+    const name =
+      fields.name !== undefined ? String(fields.name).trim() : current.name;
+    const phone =
+      fields.phone !== undefined ? String(fields.phone).trim() : current.phone;
+    const whatsapp =
+      fields.whatsapp !== undefined ? fields.whatsapp : current.whatsapp;
+    const telegram =
+      fields.telegram !== undefined ? fields.telegram : current.telegram;
+
+    const companyName =
+      fields.companyName !== undefined
+        ? String(fields.companyName).trim()
+        : current.companyName;
+    const companyDescription =
+      fields.companyDescription !== undefined
+        ? String(fields.companyDescription).trim()
+        : current.companyDescription;
+    const companyLogo =
+      fields.companyLogo !== undefined
+        ? String(fields.companyLogo).trim()
+        : current.companyLogo;
+    const companyAddress =
+      fields.companyAddress !== undefined
+        ? String(fields.companyAddress).trim()
+        : current.companyAddress;
+    const companyWebsite =
+      fields.companyWebsite !== undefined
+        ? normalizeWebsite(fields.companyWebsite)
+        : current.companyWebsite;
+    const companyInstagram =
+      fields.companyInstagram !== undefined
+        ? normalizeInstagram(fields.companyInstagram)
+        : current.companyInstagram;
+
+    if (nextSellerType === "company" && !companyName && !name) {
+      throw new Error("COMPANY_NAME_REQUIRED");
+    }
+
     const result = await query(
       `
       UPDATE users
       SET
-        name = COALESCE($2, name),
-        phone = COALESCE($3, phone),
-        whatsapp = COALESCE($4, whatsapp),
-        telegram = COALESCE($5, telegram),
-        seller_type = COALESCE($6, seller_type),
+        name = $2,
+        phone = $3,
+        whatsapp = $4,
+        telegram = $5,
+        seller_type = $6,
+        company_name = $7,
+        company_description = $8,
+        company_logo = $9,
+        company_address = $10,
+        company_website = $11,
+        company_instagram = $12,
         updated_at = now()
       WHERE id = $1
       RETURNING *
       `,
-      [id, name, phone, whatsapp, telegram, sellerType]
+      [
+        id,
+        name,
+        phone,
+        whatsapp,
+        telegram,
+        nextSellerType,
+        nextSellerType === "company" ? companyName || name : "",
+        nextSellerType === "company" ? companyDescription : "",
+        nextSellerType === "company" ? companyLogo : "",
+        nextSellerType === "company" ? companyAddress : "",
+        nextSellerType === "company" ? companyWebsite : "",
+        nextSellerType === "company" ? companyInstagram : "",
+      ]
+    );
+
+    return mapUser(result.rows[0]);
+  }
+
+  static async setBusinessVerified(userId, verified = true) {
+    const result = await query(
+      `
+      UPDATE users
+      SET
+        business_verified = $2,
+        business_verified_at = CASE WHEN $2 THEN now() ELSE NULL END,
+        updated_at = now()
+      WHERE id = $1 AND seller_type = 'company'
+      RETURNING *
+      `,
+      [userId, Boolean(verified)]
     );
 
     return mapUser(result.rows[0]);

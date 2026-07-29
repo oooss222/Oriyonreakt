@@ -45,6 +45,7 @@ router.post("/register", async (req, res) => {
       name,
       phone,
       sellerType,
+      companyName,
     } = req.body || {};
 
     email = String(email || "").trim().toLowerCase();
@@ -52,10 +53,17 @@ router.post("/register", async (req, res) => {
     name = String(name || "").trim();
     phone = String(phone || "").trim();
     sellerType = sellerType || "private";
+    companyName = String(companyName || "").trim();
 
     if (!email || !password || !name) {
       return res.status(400).json({
         error: "name, email, password required",
+      });
+    }
+
+    if (sellerType === "company" && !companyName) {
+      return res.status(400).json({
+        error: "companyName required for business account",
       });
     }
 
@@ -91,6 +99,7 @@ router.post("/register", async (req, res) => {
       name,
       phone,
       sellerType,
+      companyName,
       role: "user",
     });
 

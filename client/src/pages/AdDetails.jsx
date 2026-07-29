@@ -36,6 +36,7 @@ import SellerContactButtons from "../components/SellerContactButtons";
 import SellerReviewsPanel, { StarRating } from "../components/SellerReviewsPanel";
 import AdSlot from "../components/AdSlot";
 import { PromotionBadgeGroup } from "../components/PromotionBadge";
+import BusinessBadge from "../components/BusinessBadge";
 import { CAT_LABELS } from "../data/listingCategories";
 import { enrichRealEstateListing, getSpecValue, isRealEstateListing } from "../lib/realEstate";
 import { REPORT_REASONS } from "../data/reportReasons";
@@ -76,6 +77,10 @@ function getInitials(name) {
 }
 
 function getSellerName(ad) {
+  if (ad.ownerSellerType === "company" && ad.ownerCompanyName) {
+    return ad.ownerCompanyName.trim();
+  }
+
   return (
     ad.sellerName ||
     ad.ownerName ||
@@ -1153,9 +1158,17 @@ export default function AdDetails() {
                     {ad.owner ? (
                       <Link
                         to={`/seller/${ad.owner}`}
-                        className="w-12 h-12 rounded-2xl bg-gradient-to-br from-sun to-lagoon flex items-center justify-center text-white font-bold text-sm shadow-sm shrink-0 hover:opacity-90 transition"
+                        className="w-12 h-12 rounded-2xl bg-gradient-to-br from-sun to-lagoon flex items-center justify-center text-white font-bold text-sm shadow-sm shrink-0 hover:opacity-90 transition overflow-hidden"
                       >
-                        {getInitials(sellerName)}
+                        {ad.ownerCompanyLogo ? (
+                          <img
+                            src={ad.ownerCompanyLogo}
+                            alt=""
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          getInitials(sellerName)
+                        )}
                       </Link>
                     ) : (
                       <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-sun to-lagoon flex items-center justify-center text-white font-bold text-sm shadow-sm shrink-0">
@@ -1176,6 +1189,13 @@ export default function AdDetails() {
                           {sellerName}
                         </div>
                       )}
+                      <div className="mt-1">
+                        <BusinessBadge
+                          sellerType={ad.ownerSellerType}
+                          businessVerified={ad.ownerBusinessVerified}
+                          size="lg"
+                        />
+                      </div>
                       <div className="text-xs text-slate-500">
                         {published ? `Объявление ${published.toLowerCase()}` : "На сайте"}
                       </div>

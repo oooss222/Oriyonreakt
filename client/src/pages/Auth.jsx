@@ -11,7 +11,9 @@ import {
   AlertTriangle,
   Keyboard,
   Loader2,
+  Building2,
 } from "lucide-react";
+import { BUSINESS_BENEFITS } from "../lib/businessAccount";
 
 const TOKEN_KEY = "auth_token";
 const USER_KEY = "auth_user";
@@ -97,6 +99,8 @@ export default function Auth() {
     password: "",
     confirm: "",
     agree: false,
+    sellerType: "private",
+    companyName: "",
   });
 
   const [showPassLogin, setShowPassLogin] = React.useState(false);
@@ -176,10 +180,16 @@ export default function Auth() {
       throw new Error("Подтвердите согласие с политикой сайта");
     }
 
+    if (reg.sellerType === "company" && !reg.companyName.trim()) {
+      throw new Error("Укажите название компании");
+    }
+
     const { token, user } = await api.register({
       name: reg.name.trim(),
       email: reg.email.trim(),
       password: reg.password,
+      sellerType: reg.sellerType,
+      companyName: reg.companyName.trim(),
     });
 
     localStorage.setItem(TOKEN_KEY, token);
@@ -210,7 +220,8 @@ export default function Auth() {
     /^\S+@\S+\.\S+$/.test(reg.email.trim()) &&
     reg.password.length >= 6 &&
     reg.password === reg.confirm &&
-    reg.agree;
+    reg.agree &&
+    (reg.sellerType !== "company" || reg.companyName.trim());
 
   // === стиль кнопок ===
   const buttonStyle = `
@@ -332,6 +343,71 @@ export default function Auth() {
                     autoComplete="email"
                   />
                 </Field>
+
+                <div className="space-y-3">
+                  <div className="text-sm font-medium text-slate-700">
+                    Тип аккаунта
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setReg((v) => ({ ...v, sellerType: "private" }))
+                      }
+                      className={`rounded-xl border px-4 py-3 text-left transition ${
+                        reg.sellerType === "private"
+                          ? "border-slate-900 bg-slate-900 text-white"
+                          : "hover:border-slate-300"
+                      }`}
+                    >
+                      <div className="font-semibold inline-flex items-center gap-2">
+                        <UserIcon size={16} />
+                        Частное лицо
+                      </div>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setReg((v) => ({
+                          ...v,
+                          sellerType: "company",
+                          companyName: v.companyName || v.name,
+                        }))
+                      }
+                      className={`rounded-xl border px-4 py-3 text-left transition ${
+                        reg.sellerType === "company"
+                          ? "border-sun bg-sun text-white"
+                          : "hover:border-sun/40"
+                      }`}
+                    >
+                      <div className="font-semibold inline-flex items-center gap-2">
+                        <Building2 size={16} />
+                        Компания
+                      </div>
+                    </button>
+                  </div>
+                  {reg.sellerType === "company" && (
+                    <>
+                      <Field label="Название компании" icon={Building2}>
+                        <Input
+                          placeholder="Oriyon Estate"
+                          value={reg.companyName}
+                          onChange={(e) =>
+                            setReg((v) => ({
+                              ...v,
+                              companyName: e.target.value,
+                            }))
+                          }
+                        />
+                      </Field>
+                      <ul className="text-xs text-slate-500 space-y-1">
+                        {BUSINESS_BENEFITS.slice(0, 3).map((item) => (
+                          <li key={item}>• {item}</li>
+                        ))}
+                      </ul>
+                    </>
+                  )}
+                </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <Field label="Пароль" icon={Lock}>

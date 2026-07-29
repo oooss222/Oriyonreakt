@@ -61,6 +61,7 @@ function buildListingFilters({
   location,
   region,
   owner,
+  sellerType,
   areaFrom,
   areaTo,
   floorFrom,
@@ -93,6 +94,18 @@ function buildListingFilters({
   if (owner) {
     values.push(owner);
     conditions.push(`owner = $${values.length}`);
+  }
+
+  if (sellerType === "company" || sellerType === "private") {
+    values.push(sellerType);
+    conditions.push(`
+      owner IN (
+        SELECT id
+        FROM users
+        WHERE seller_type = $${values.length}
+          AND is_blocked = false
+      )
+    `);
   }
 
   if (cat) {
@@ -301,6 +314,7 @@ class ListingModel {
     location,
     region,
     owner,
+    sellerType,
     areaFrom,
     areaTo,
     floorFrom,
@@ -325,6 +339,7 @@ class ListingModel {
       location,
       region,
       owner,
+      sellerType,
       areaFrom,
       areaTo,
       floorFrom,
@@ -336,7 +351,23 @@ class ListingModel {
     let orderBy = buildListingOrderBy(sort, priceExpr);
 
     let sql = `
-      SELECT *
+      SELECT
+        listings.*,
+        (
+          SELECT seller_type
+          FROM users
+          WHERE id = listings.owner
+        ) AS owner_seller_type,
+        (
+          SELECT business_verified
+          FROM users
+          WHERE id = listings.owner
+        ) AS owner_business_verified,
+        (
+          SELECT company_name
+          FROM users
+          WHERE id = listings.owner
+        ) AS owner_company_name
       FROM listings
     `;
 
@@ -366,6 +397,7 @@ class ListingModel {
     location,
     region,
     owner,
+    sellerType,
     areaFrom,
     areaTo,
     floorFrom,
@@ -384,6 +416,7 @@ class ListingModel {
       location,
       region,
       owner,
+      sellerType,
       areaFrom,
       areaTo,
       floorFrom,
@@ -446,7 +479,13 @@ class ListingModel {
       u.name AS seller_name,
       u.phone AS seller_phone,
       u.whatsapp AS seller_whatsapp,
-      u.telegram AS seller_telegram
+      u.telegram AS seller_telegram,
+      u.seller_type AS owner_seller_type,
+      u.business_verified AS owner_business_verified,
+      u.company_name AS owner_company_name,
+      u.company_logo AS owner_company_logo,
+      u.company_description AS owner_company_description,
+      u.company_website AS owner_company_website
 
     FROM listings l
     LEFT JOIN users u ON u.id = l.owner
@@ -460,12 +499,17 @@ class ListingModel {
 
   if (!listing) return null;
 
+  const row = result.rows[0];
+
   return {
     ...listing,
-    sellerName: result.rows[0].seller_name || "",
-    phone: result.rows[0].seller_phone || "",
-    sellerWhatsapp: result.rows[0].seller_whatsapp || "",
-    sellerTelegram: result.rows[0].seller_telegram || "",
+    sellerName: row.seller_name || "",
+    phone: row.seller_phone || "",
+    sellerWhatsapp: row.seller_whatsapp || "",
+    sellerTelegram: row.seller_telegram || "",
+    ownerCompanyLogo: row.owner_company_logo || "",
+    ownerCompanyDescription: row.owner_company_description || "",
+    ownerCompanyWebsite: row.owner_company_website || "",
   };
 }
 

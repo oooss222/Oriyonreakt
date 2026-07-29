@@ -28,6 +28,8 @@ import {
 } from "../lib/adminUtils";
 import ModerationListingsPanel from "../components/admin/ModerationListingsPanel";
 import ListingPromotionActions from "../components/ListingPromotionActions";
+import BusinessProfileSection from "../components/BusinessProfileSection";
+import BusinessBadge from "../components/BusinessBadge";
 import { PromotionBadgeGroup } from "../components/PromotionBadge";
 import {
   getPromotionCardAccent,
@@ -1682,6 +1684,12 @@ export default function Profile() {
                     {me?.name || "Без имени"}
                   </h2>
 
+                  <BusinessBadge
+                    sellerType={me?.sellerType}
+                    businessVerified={me?.businessVerified}
+                    size="lg"
+                  />
+
                   <span className="px-2 py-0.5 text-xs rounded-full bg-sun-50 text-sun-700 border border-sun-100">
                     {role}
                   </span>
@@ -1849,6 +1857,15 @@ export default function Profile() {
             </label>
           </div>
         </div>
+
+        <BusinessProfileSection
+          token={token}
+          me={me}
+          onUpdated={(user) => {
+            setMe(user);
+            localStorage.setItem(USER_KEY, JSON.stringify(user));
+          }}
+        />
 
         <div className="rounded-3xl border bg-white p-5">
           <div className="flex items-center justify-between mb-4">

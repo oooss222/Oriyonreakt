@@ -64,19 +64,42 @@ router.put("/me", auth, async (req, res) => {
     const body = req.body || {};
 
     const updated = await User.updateProfile(req.user.id, {
-    name: body.name ? String(body.name).trim() : undefined,
-    phone: body.phone ? String(body.phone).trim() : undefined,
-    whatsapp:
-    body.whatsapp !== undefined
-      ? normalizeWhatsapp(body.whatsapp)
-      : undefined,
-
-    telegram:
-    body.telegram !== undefined
-      ? normalizeTelegram(body.telegram)
-      : undefined,
-    sellerType: body.sellerType || undefined,
-  });
+      name: body.name !== undefined ? String(body.name).trim() : undefined,
+      phone: body.phone !== undefined ? String(body.phone).trim() : undefined,
+      whatsapp:
+        body.whatsapp !== undefined
+          ? normalizeWhatsapp(body.whatsapp)
+          : undefined,
+      telegram:
+        body.telegram !== undefined
+          ? normalizeTelegram(body.telegram)
+          : undefined,
+      sellerType: body.sellerType || undefined,
+      companyName:
+        body.companyName !== undefined
+          ? String(body.companyName).trim()
+          : undefined,
+      companyDescription:
+        body.companyDescription !== undefined
+          ? String(body.companyDescription).trim()
+          : undefined,
+      companyLogo:
+        body.companyLogo !== undefined
+          ? String(body.companyLogo).trim()
+          : undefined,
+      companyAddress:
+        body.companyAddress !== undefined
+          ? String(body.companyAddress).trim()
+          : undefined,
+      companyWebsite:
+        body.companyWebsite !== undefined
+          ? String(body.companyWebsite).trim()
+          : undefined,
+      companyInstagram:
+        body.companyInstagram !== undefined
+          ? String(body.companyInstagram).trim()
+          : undefined,
+    });
 
     if (!updated) {
       return res.status(404).json({
@@ -86,10 +109,49 @@ router.put("/me", auth, async (req, res) => {
 
     return res.json(User.sanitize(updated));
   } catch (e) {
+    if (e?.message === "INVALID_SELLER_TYPE") {
+      return res.status(400).json({
+        error: "Invalid seller type",
+      });
+    }
+
+    if (e?.message === "COMPANY_NAME_REQUIRED") {
+      return res.status(400).json({
+        error: "Company name is required",
+      });
+    }
+
+    if (e?.message === "TOO_MANY_LISTINGS_FOR_PRIVATE") {
+      return res.status(400).json({
+        error: "Too many active listings to switch to private account",
+        activeListings: e.activeListings,
+      });
+    }
+
     console.error("USER_UPDATE_ERROR:", e?.message);
 
     return res.status(500).json({
       error: "Failed to update profile",
+    });
+  }
+});
+
+router.get("/me/business", auth, async (req, res) => {
+  try {
+    const stats = await User.getBusinessStats(req.user.id);
+
+    if (!stats) {
+      return res.status(404).json({
+        error: "User not found",
+      });
+    }
+
+    return res.json(stats);
+  } catch (e) {
+    console.error("USER_BUSINESS_STATS_ERROR:", e?.message);
+
+    return res.status(500).json({
+      error: "Failed to load business stats",
     });
   }
 });

@@ -62,6 +62,7 @@ function buildListingParams(draft, urlCat = "") {
   if (draft.floorNotFirst) next.floorNotFirst = "1";
   if (draft.floorNotLast) next.floorNotLast = "1";
   if (draft.view) next.view = draft.view;
+  if (draft.sellerType) next.sellerType = draft.sellerType;
 
   const specEntries = Object.entries(draft.specs || {}).filter(
     ([name, value]) => String(name).trim() && String(value).trim()
@@ -91,6 +92,7 @@ function searchParamsToDraft(params) {
     floorNotFirst: params.get("floorNotFirst") === "1",
     floorNotLast: params.get("floorNotLast") === "1",
     view: params.get("view") || "list",
+    sellerType: params.get("sellerType") || "",
     specs: parseSpecsParam(params.get("specs")),
   };
 }
@@ -385,6 +387,7 @@ export default function Listing() {
       floorNotFirst: false,
       floorNotLast: false,
       view: "list",
+      sellerType: "",
       specs: {},
     });
     if (cat) {
@@ -410,6 +413,7 @@ export default function Listing() {
     appliedDraft.floorTo ||
     appliedDraft.floorNotFirst ||
     appliedDraft.floorNotLast ||
+    appliedDraft.sellerType ||
     Object.keys(activeSpecs).length > 0;
 
   const activeFilterCount =
@@ -421,6 +425,7 @@ export default function Listing() {
     Number(Boolean(appliedDraft.areaFrom || appliedDraft.areaTo)) +
     Number(Boolean(appliedDraft.floorFrom || appliedDraft.floorTo)) +
     Number(Boolean(appliedDraft.floorNotFirst || appliedDraft.floorNotLast)) +
+    Number(Boolean(appliedDraft.sellerType)) +
     Object.keys(activeSpecs).length;
 
   const showSubcategoryChips =

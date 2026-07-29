@@ -9,6 +9,8 @@ import {
   Phone,
   Clock,
   Wallet,
+  BadgeCheck,
+  Building2,
 } from "lucide-react";
 import { api } from "../../lib/api";
 import {
@@ -95,6 +97,35 @@ export default function UserDetailModal({
       onUserUpdated?.(updated);
     } catch (e) {
       alert(e.message || "Ошибка блокировки");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const toggleBusinessVerify = async () => {
+    if (!user || user.sellerType !== "company" || readOnly) return;
+
+    const nextVerified = !user.businessVerified;
+    const action = nextVerified ? "верифицировать" : "снять верификацию";
+
+    const ok = confirm(
+      `${action.charAt(0).toUpperCase()}${action.slice(1)} компанию «${user.companyName || user.name}»?`
+    );
+
+    if (!ok) return;
+
+    try {
+      setActionLoading(true);
+      const updated = await api.adminVerifyBusiness(
+        token,
+        getId(user),
+        nextVerified
+      );
+
+      setDetail((prev) => ({ ...prev, user: { ...prev.user, ...updated } }));
+      onUserUpdated?.(updated);
+    } catch (e) {
+      alert(e.message || "Ошибка верификации");
     } finally {
       setActionLoading(false);
     }
@@ -218,6 +249,22 @@ export default function UserDetailModal({
                       ? new Date(user.lastSeen).toLocaleString("ru-RU")
                       : "—"}
                   </div>
+                  {user.sellerType === "company" && (
+                    <div className="rounded-xl border bg-blue-50 p-3 text-sm space-y-1">
+                      <div className="inline-flex items-center gap-1 font-semibold text-blue-800">
+                        <Building2 size={15} />
+                        {user.companyName || "Компания"}
+                      </div>
+                      {user.companyDescription && (
+                        <p className="text-slate-600">{user.companyDescription}</p>
+                      )}
+                      <div className="text-xs text-slate-500">
+                        {user.businessVerified
+                          ? "Проверенный бизнес"
+                          : "Ожидает верификации"}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex flex-wrap gap-2">
@@ -242,6 +289,24 @@ export default function UserDetailModal({
                     >
                       {user.isBlocked ? <Unlock size={16} /> : <Ban size={16} />}
                       {user.isBlocked ? "Разблокировать" : "Заблокировать"}
+                    </button>
+                  )}
+
+                  {!readOnly && user.sellerType === "company" && (
+                    <button
+                      type="button"
+                      disabled={actionLoading}
+                      onClick={toggleBusinessVerify}
+                      className={`inline-flex items-center gap-1 px-3 py-2 rounded-xl border text-sm disabled:opacity-40 ${
+                        user.businessVerified
+                          ? "hover:bg-amber-50 text-amber-700"
+                          : "hover:bg-emerald-50 text-emerald-700"
+                      }`}
+                    >
+                      <BadgeCheck size={16} />
+                      {user.businessVerified
+                        ? "Снять верификацию"
+                        : "Верифицировать бизнес"}
                     </button>
                   )}
                 </div>

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import CompareListingButton from "./CompareListingButton";
 import PriceAdequacyBadge from "./PriceAdequacyBadge";
 import ListingCardOverlays from "./ListingCardOverlays";
+import BusinessBadge from "./BusinessBadge";
 import { getListingThumb } from "../lib/media";
 import { formatPrice } from "../lib/format";
 import { enrichRealEstateListing } from "../lib/realEstate";
@@ -103,6 +104,13 @@ export default function RealEstateListingCard({
         <h3 className="mt-1 text-sm text-slate-700 line-clamp-2 group-hover:text-sun transition">
           {listing.title || "Без названия"}
         </h3>
+
+        <div className="mt-1.5">
+          <BusinessBadge
+            sellerType={listing.ownerSellerType}
+            businessVerified={listing.ownerBusinessVerified}
+          />
+        </div>
 
         <div className="mt-auto pt-2 flex items-center justify-between gap-2">
           <div onClick={(e) => e.stopPropagation()}>

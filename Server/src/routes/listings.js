@@ -74,6 +74,7 @@ function listingQueryFromReq(query) {
     location,
     region,
     owner,
+    sellerType,
     areaFrom,
     areaTo,
     floorFrom,
@@ -81,6 +82,8 @@ function listingQueryFromReq(query) {
     floorNotFirst,
     floorNotLast,
   } = query;
+
+  const normalizedSellerType = String(sellerType || "").trim();
 
   return {
     cat: cat || undefined,
@@ -92,6 +95,10 @@ function listingQueryFromReq(query) {
     location: location || undefined,
     region: location ? undefined : region || undefined,
     owner: owner || undefined,
+    sellerType:
+      normalizedSellerType === "company" || normalizedSellerType === "private"
+        ? normalizedSellerType
+        : undefined,
     areaFrom: areaFrom || undefined,
     areaTo: areaTo || undefined,
     floorFrom: floorFrom || undefined,
@@ -353,6 +360,37 @@ router.post("/:id/appeal", auth, async (req, res) => {
 
 router.post("/:id/republish", auth, async (req, res) => {
   try {
+    const existing = await Listing.findById(req.params.id);
+
+    if (!existing) {
+      return res.status(404).json({
+        error: "Listing not found",
+      });
+    }
+
+    if (String(existing.owner) !== String(req.user.id)) {
+      return res.status(403).json({
+        error: "Forbidden",
+      });
+    }
+
+    if (!["approved", "pending"].includes(existing.status)) {
+      try {
+        await require("../models/User").assertCanCreateListing(req.user.id);
+      } catch (e) {
+        if (e?.message === "LISTING_LIMIT_REACHED") {
+          return res.status(403).json({
+            error: "Listing limit reached",
+            limit: e.limit,
+            activeListings: e.activeListings,
+            sellerType: e.sellerType,
+          });
+        }
+
+        throw e;
+      }
+    }
+
     const listing = await Listing.republish(req.params.id, req.user.id);
 
     if (!listing) {
@@ -451,6 +489,21 @@ router.post("/", auth, async (req, res) => {
       return res.status(400).json({
         error: "title and cat required",
       });
+    }
+
+    try {
+      await require("../models/User").assertCanCreateListing(req.user.id);
+    } catch (e) {
+      if (e?.message === "LISTING_LIMIT_REACHED") {
+        return res.status(403).json({
+          error: "Listing limit reached",
+          limit: e.limit,
+          activeListings: e.activeListings,
+          sellerType: e.sellerType,
+        });
+      }
+
+      throw e;
     }
 
     const listing = await Listing.create({

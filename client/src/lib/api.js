@@ -93,6 +93,11 @@ export const api = {
       body: data,
     }),
 
+  businessStats: (token) =>
+    request("/users/me/business", {
+      token,
+    }),
+
   getVerification: (token) =>
     request("/auth/verification", {
       token,
@@ -534,6 +539,13 @@ export const api = {
         token,
       }
     ),
+
+  adminVerifyBusiness: (token, userId, verified = true) =>
+    request(`/admin/users/${userId}/business-verify`, {
+      method: "POST",
+      token,
+      body: { verified },
+    }),
 
   adminListings: (token, params = {}) => {
     const qs = new URLSearchParams();

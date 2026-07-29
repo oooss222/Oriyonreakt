@@ -126,6 +126,30 @@ async function initDb() {
       ADD COLUMN IF NOT EXISTS telegram TEXT NOT NULL DEFAULT '';
 
     ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS company_name TEXT NOT NULL DEFAULT '';
+
+    ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS company_description TEXT NOT NULL DEFAULT '';
+
+    ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS company_logo TEXT NOT NULL DEFAULT '';
+
+    ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS company_address TEXT NOT NULL DEFAULT '';
+
+    ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS company_website TEXT NOT NULL DEFAULT '';
+
+    ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS company_instagram TEXT NOT NULL DEFAULT '';
+
+    ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS business_verified BOOLEAN NOT NULL DEFAULT false;
+
+    ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS business_verified_at TIMESTAMPTZ;
+
+    ALTER TABLE users
       ADD COLUMN IF NOT EXISTS trust_level TEXT NOT NULL DEFAULT 'new';
 
     ALTER TABLE users
@@ -724,6 +748,15 @@ function mapUser(row) {
 
     sellerType: row.seller_type,
 
+    companyName: row.company_name || "",
+    companyDescription: row.company_description || "",
+    companyLogo: row.company_logo || "",
+    companyAddress: row.company_address || "",
+    companyWebsite: row.company_website || "",
+    companyInstagram: row.company_instagram || "",
+    businessVerified: Boolean(row.business_verified),
+    businessVerifiedAt: row.business_verified_at || null,
+
     role: row.role || "user",
     isBlocked: Boolean(row.is_blocked),
 
@@ -776,6 +809,10 @@ function mapListing(row) {
     specs: row.specs || [],
 
     owner: row.owner,
+
+    ownerSellerType: row.owner_seller_type || null,
+    ownerBusinessVerified: Boolean(row.owner_business_verified),
+    ownerCompanyName: row.owner_company_name || "",
 
     status: row.status || "pending",
     rejectionReason: row.rejection_reason || "",
