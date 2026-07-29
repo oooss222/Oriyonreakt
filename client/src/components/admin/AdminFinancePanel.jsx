@@ -15,6 +15,7 @@ import {
   FinanceReportsTab,
   FinanceAuditTab,
   FinancePaymentsTab,
+  FinanceAlifOrdersTab,
   FinancePromotionsTab,
 } from "./AdminFinanceExtended";
 
@@ -311,6 +312,7 @@ const TABS = [
   { id: "wallets", label: "Кошельки" },
   { id: "audit", label: "Журнал" },
   { id: "payments", label: "Платежи" },
+  { id: "alif", label: "Alif" },
   { id: "promotions", label: "VIP/TOP" },
 ];
 
@@ -413,6 +415,8 @@ export default function AdminFinancePanel({ token, currentUser, isSuperAdmin }) 
       {tab === "audit" && <FinanceAuditTab token={token} />}
 
       {tab === "payments" && <FinancePaymentsTab token={token} />}
+
+      {tab === "alif" && <FinanceAlifOrdersTab token={token} />}
 
       {tab === "promotions" && <FinancePromotionsTab token={token} />}
     </div>

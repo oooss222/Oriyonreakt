@@ -187,6 +187,12 @@ async function initDb() {
     ALTER TABLE listings
       ADD COLUMN IF NOT EXISTS bumped_at TIMESTAMPTZ;
 
+    ALTER TABLE listings
+      ADD COLUMN IF NOT EXISTS expires_at TIMESTAMPTZ;
+
+    ALTER TABLE listings
+      ADD COLUMN IF NOT EXISTS expiry_notice_sent_at TIMESTAMPTZ;
+
     DO $$
     BEGIN
       IF EXISTS (
@@ -260,6 +266,29 @@ async function initDb() {
       updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
     );
 
+    CREATE TABLE IF NOT EXISTS saved_searches (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      label TEXT NOT NULL DEFAULT '',
+      cat TEXT NOT NULL DEFAULT '',
+      filters JSONB NOT NULL DEFAULT '{}'::jsonb,
+      alerts_enabled BOOLEAN NOT NULL DEFAULT true,
+      last_alert_at TIMESTAMPTZ,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
+
+    CREATE TABLE IF NOT EXISTS seller_reviews (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      seller_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      reviewer_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      listing_id UUID REFERENCES listings(id) ON DELETE SET NULL,
+      rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
+      comment TEXT NOT NULL DEFAULT '',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+      UNIQUE (seller_id, reviewer_id, listing_id)
+    );
+
     CREATE INDEX IF NOT EXISTS idx_users_email
       ON users(email);
 
@@ -310,6 +339,26 @@ async function initDb() {
 
     CREATE INDEX IF NOT EXISTS idx_payment_orders_created_at
       ON payment_orders(created_at DESC);
+
+    CREATE INDEX IF NOT EXISTS idx_saved_searches_user
+      ON saved_searches(user_id);
+
+    CREATE INDEX IF NOT EXISTS idx_saved_searches_alerts
+      ON saved_searches(alerts_enabled);
+
+    CREATE INDEX IF NOT EXISTS idx_seller_reviews_seller
+      ON seller_reviews(seller_id);
+
+    CREATE INDEX IF NOT EXISTS idx_seller_reviews_created_at
+      ON seller_reviews(created_at DESC);
+
+    CREATE INDEX IF NOT EXISTS idx_listings_expires_at
+      ON listings(expires_at);
+
+    UPDATE listings
+    SET expires_at = created_at + interval '60 days'
+    WHERE status = 'approved'
+      AND expires_at IS NULL;
 
     CREATE INDEX IF NOT EXISTS idx_messages_listing
       ON messages(listing_id);
@@ -452,6 +501,8 @@ function mapListing(row) {
     vipUntil,
     topUntil,
     bumpedAt: row.bumped_at || null,
+    expiresAt: row.expires_at || null,
+    expiryNoticeSentAt: row.expiry_notice_sent_at || null,
 
     createdAt: row.created_at,
     updatedAt: row.updated_at,

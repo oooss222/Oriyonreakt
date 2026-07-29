@@ -114,6 +114,61 @@ class PaymentOrderModel {
 
     return mapPaymentOrder(result.rows[0]);
   }
+
+  static async listForAdmin({ status = "", limit = 50, offset = 0 } = {}) {
+    const values = [];
+    let where = "WHERE 1=1";
+
+    if (status) {
+      values.push(status);
+      where += ` AND po.status = $${values.length}`;
+    }
+
+    values.push(Math.min(Math.max(Number(limit) || 50, 1), 200));
+    const limitIdx = values.length;
+    values.push(Math.max(Number(offset) || 0, 0));
+    const offsetIdx = values.length;
+
+    const result = await query(
+      `
+      SELECT
+        po.*,
+        u.email AS user_email,
+        u.name AS user_name
+      FROM payment_orders po
+      LEFT JOIN users u ON u.id = po.user_id
+      ${where}
+      ORDER BY po.created_at DESC
+      LIMIT $${limitIdx} OFFSET $${offsetIdx}
+      `,
+      values
+    );
+
+    const countResult = await query(
+      `
+      SELECT
+        status,
+        COUNT(*)::int AS count,
+        COALESCE(SUM(amount), 0) AS sum
+      FROM payment_orders
+      GROUP BY status
+      ORDER BY status
+      `
+    );
+
+    return {
+      items: result.rows.map((row) => ({
+        ...mapPaymentOrder(row),
+        userEmail: row.user_email || "",
+        userName: row.user_name || "",
+      })),
+      byStatus: countResult.rows.map((row) => ({
+        status: row.status,
+        count: Number(row.count || 0),
+        sum: Number(row.sum || 0),
+      })),
+    };
+  }
 }
 
 module.exports = PaymentOrderModel;

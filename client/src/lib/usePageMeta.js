@@ -18,12 +18,45 @@ function upsertMeta(name, content, attr = "name") {
   element.setAttribute("content", content);
 }
 
+function upsertLink(rel, href) {
+  if (!href) return;
+
+  let element = document.querySelector(`link[rel="${rel}"]`);
+
+  if (!element) {
+    element = document.createElement("link");
+    element.setAttribute("rel", rel);
+    document.head.appendChild(element);
+  }
+
+  element.setAttribute("href", href);
+}
+
+function upsertJsonLd(id, payload) {
+  let element = document.getElementById(id);
+
+  if (!payload) {
+    element?.remove();
+    return;
+  }
+
+  if (!element) {
+    element = document.createElement("script");
+    element.type = "application/ld+json";
+    element.id = id;
+    document.head.appendChild(element);
+  }
+
+  element.textContent = JSON.stringify(payload);
+}
+
 export function usePageMeta({
   title,
   description,
   image,
   url,
   type = "website",
+  jsonLd = null,
   enabled = true,
 } = {}) {
   React.useEffect(() => {
@@ -38,14 +71,21 @@ export function usePageMeta({
     upsertMeta("og:description", pageDescription, "property");
     upsertMeta("og:type", type, "property");
     upsertMeta("og:site_name", "Oriyon.store", "property");
+    upsertMeta("twitter:card", image ? "summary_large_image" : "summary");
+    upsertMeta("twitter:title", pageTitle);
+    upsertMeta("twitter:description", pageDescription);
 
     if (image) {
       upsertMeta("og:image", image, "property");
+      upsertMeta("twitter:image", image);
     }
 
     if (url) {
       upsertMeta("og:url", url, "property");
+      upsertLink("canonical", url);
     }
+
+    upsertJsonLd("page-json-ld", jsonLd);
 
     return () => {
       document.title = DEFAULT_TITLE;
@@ -53,6 +93,7 @@ export function usePageMeta({
       upsertMeta("og:title", DEFAULT_TITLE, "property");
       upsertMeta("og:description", DEFAULT_DESCRIPTION, "property");
       upsertMeta("og:type", "website", "property");
+      upsertJsonLd("page-json-ld", null);
     };
-  }, [title, description, image, url, type, enabled]);
+  }, [title, description, image, url, type, jsonLd, enabled]);
 }

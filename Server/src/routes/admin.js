@@ -11,6 +11,8 @@ const SiteSettings = require("../models/SiteSettings");
 const { toCsv } = require("../lib/csv");
 const { isMailConfigured } = require("../lib/mailer");
 const { sendFinanceReport } = require("../lib/financeReport");
+const { getConfig: getAlifConfig, checkPaymentStatus, normalizeCallbackPayload, isSuccessfulStatus } = require("../lib/alifPay");
+const PaymentOrder = require("../models/PaymentOrder");
 
 const FINANCE_AUDIT_ACTIONS = ["wallet.adjust"];
 const ACCOUNTANT_EXPORT_TYPES = ["users", "transactions"];
@@ -453,7 +455,7 @@ router.get(
 
       return res.json({
         ...overview,
-        gatewayConfigured: false,
+        gatewayConfigured: getAlifConfig().enabled,
         mailConfigured: isMailConfigured(),
       });
     } catch (e) {
@@ -461,6 +463,94 @@ router.get(
 
       return res.status(500).json({
         error: "Failed to load payment overview",
+      });
+    }
+  }
+);
+
+router.get(
+  "/finance/alif-orders",
+  requireRole("super_admin", "accountant"),
+  async (req, res) => {
+    try {
+      const data = await PaymentOrder.listForAdmin({
+        status: String(req.query.status || "").trim(),
+        limit: Number(req.query.limit) || 50,
+        offset: Number(req.query.offset) || 0,
+      });
+
+      return res.json({
+        ...data,
+        gatewayConfigured: getAlifConfig().enabled,
+        environment: getAlifConfig().environment,
+      });
+    } catch (e) {
+      console.error("ADMIN_ALIF_ORDERS_ERROR:", e?.message);
+
+      return res.status(500).json({
+        error: "Failed to load Alif orders",
+      });
+    }
+  }
+);
+
+router.post(
+  "/finance/alif-orders/:orderId/sync",
+  requireRole("super_admin", "accountant"),
+  async (req, res) => {
+    try {
+      const order = await PaymentOrder.findByOrderId(req.params.orderId);
+
+      if (!order) {
+        return res.status(404).json({
+          error: "Order not found",
+        });
+      }
+
+      const providerStatus = normalizeCallbackPayload(
+        await checkPaymentStatus(order.orderId)
+      );
+
+      let updated = order;
+
+      if (isSuccessfulStatus(providerStatus.status) && order.status !== "paid") {
+        const paidOrder = await PaymentOrder.markPaid(order.orderId, {
+          transactionId: providerStatus.transactionId,
+          providerStatus: providerStatus.status,
+          callbackPayload: providerStatus,
+        });
+
+        if (paidOrder) {
+          await User.topUpWallet(
+            paidOrder.userId,
+            paidOrder.amount,
+            `Пополнение через Alif (${paidOrder.orderId})`
+          );
+        }
+
+        updated = await PaymentOrder.findByOrderId(order.orderId);
+      } else {
+        updated = await PaymentOrder.updateStatus(order.orderId, {
+          providerStatus: providerStatus.status,
+          transactionId: providerStatus.transactionId,
+          callbackPayload: providerStatus,
+          status: ["failed", "canceled", "cancelled"].includes(
+            String(providerStatus.status || "").toLowerCase()
+          )
+            ? "failed"
+            : order.status,
+        });
+      }
+
+      return res.json({
+        order: updated,
+        providerStatus,
+      });
+    } catch (e) {
+      console.error("ADMIN_ALIF_SYNC_ERROR:", e?.message);
+
+      return res.status(500).json({
+        error: "Failed to sync Alif order",
       });
     }
   }

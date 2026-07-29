@@ -10,6 +10,9 @@ const { initDb, pool } = require("./db");
 const { initSocket } = require("./socket");
 const { getAllowedOrigins, isOriginAllowed } = require("./corsOrigins");
 const { startMonthlyReportScheduler } = require("./lib/financeReport");
+const { startListingMaintenanceScheduler } = require("./lib/listingMaintenance");
+const { registerSeoRoutes } = require("./lib/seoPrerender");
+const Listing = require("./models/Listing");
 
 const app = express();
 const server = http.createServer(app);
@@ -73,6 +76,10 @@ app.use("/api/messages", require("./routes/messages"));
 
 app.use("/api/payments", require("./routes/payments"));
 
+app.use("/api/reviews", require("./routes/reviews"));
+
+app.use("/api/saved-searches", require("./routes/savedSearches"));
+
 app.use("/api/admin", require("./routes/admin"));
 
 app.use(
@@ -97,6 +104,12 @@ const clientDist = clientDistCandidates.find((dir) =>
 
 if (clientDist) {
   console.log("Serving frontend from:", clientDist);
+
+  registerSeoRoutes(app, {
+    clientDist,
+    Listing,
+    query: require("./db").query,
+  });
 
   app.use(express.static(clientDist));
 
@@ -132,6 +145,7 @@ async function start() {
       );
 
       startMonthlyReportScheduler();
+      startListingMaintenanceScheduler();
     });
   } catch (e) {
     console.error(

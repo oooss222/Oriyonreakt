@@ -355,6 +355,49 @@ export const api = {
   adminFinancePayments: (token) =>
     request("/admin/finance/payments", { token }),
 
+  adminFinanceAlifOrders: (token, params = {}) => {
+    const qs = new URLSearchParams();
+
+    if (params.status) qs.set("status", params.status);
+    if (params.limit) qs.set("limit", String(params.limit));
+    if (params.offset) qs.set("offset", String(params.offset));
+
+    const query = qs.toString();
+
+    return request(`/admin/finance/alif-orders${query ? `?${query}` : ""}`, { token });
+  },
+
+  adminSyncAlifOrder: (token, orderId) =>
+    request(`/admin/finance/alif-orders/${encodeURIComponent(orderId)}/sync`, {
+      method: "POST",
+      token,
+    }),
+
+  savedSearches: (token) => request("/saved-searches", { token }),
+
+  saveSavedSearch: (token, body) =>
+    request("/saved-searches", {
+      method: "POST",
+      token,
+      body,
+    }),
+
+  deleteSavedSearch: (token, id) =>
+    request(`/saved-searches/${encodeURIComponent(id)}`, {
+      method: "DELETE",
+      token,
+    }),
+
+  sellerReviews: (sellerId) =>
+    request(`/reviews/seller/${encodeURIComponent(sellerId)}`),
+
+  createSellerReview: (token, body) =>
+    request("/reviews", {
+      method: "POST",
+      token,
+      body,
+    }),
+
   adminFinancePromotions: (token, params = {}) => {
     const qs = new URLSearchParams();
 

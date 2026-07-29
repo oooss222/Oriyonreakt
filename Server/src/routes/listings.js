@@ -281,9 +281,25 @@ router.post("/:id/archive", auth, (req, res) =>
   updateListingOwnerStatus(req, res, "archived")
 );
 
-router.post("/:id/republish", auth, (req, res) =>
-  updateListingOwnerStatus(req, res, "approved")
-);
+router.post("/:id/republish", auth, async (req, res) => {
+  try {
+    const listing = await Listing.republish(req.params.id, req.user.id);
+
+    if (!listing) {
+      return res.status(404).json({
+        error: "Listing not found",
+      });
+    }
+
+    return res.json(listing);
+  } catch (e) {
+    console.error("LISTING_REPUBLISH_ERROR:", e?.message);
+
+    return res.status(500).json({
+      error: "Failed to republish listing",
+    });
+  }
+});
 
 router.post("/:id/promote", auth, async (req, res) => {
   try {

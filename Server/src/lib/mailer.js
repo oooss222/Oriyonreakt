@@ -39,6 +39,22 @@ function buildTransactionsCsv(rows) {
   ]);
 }
 
+async function sendGenericEmail({ to, subject, text, html }) {
+  const transporter = await getTransporter();
+
+  if (!transporter) {
+    throw new Error("SMTP is not configured on the server");
+  }
+
+  await transporter.sendMail({
+    from: process.env.SMTP_FROM,
+    to,
+    subject,
+    text,
+    html: html || text.replace(/\n/g, "<br>"),
+  });
+}
+
 async function sendFinanceReportEmail({ to, from, toDate, csv, summaryText = "" }) {
   const transporter = await getTransporter();
 
@@ -70,8 +86,68 @@ async function sendFinanceReportEmail({ to, from, toDate, csv, summaryText = "" 
   });
 }
 
+async function sendListingExpiryEmail({ to, name, listings = [] }) {
+  if (!listings.length) {
+    return false;
+  }
+
+  const clientUrl = String(
+    process.env.CLIENT_URL || process.env.APP_URL || "https://oriyon.store"
+  ).replace(/\/$/, "");
+  const lines = listings.map(
+    (item) =>
+      `- ${item.title} (${item.daysLeft} дн.) → ${clientUrl}/ad/${item.id}`
+  );
+
+  await sendGenericEmail({
+    to,
+    subject: "Oriyon — объявления скоро истекают",
+    text: [
+      `Здравствуйте${name ? `, ${name}` : ""}!`,
+      "",
+      "Срок публикации следующих объявлений скоро закончится:",
+      ...lines,
+      "",
+      "Продлите публикацию или поднимите объявление в профиле Oriyon.",
+      `${clientUrl}/profile?tab=my`,
+    ].join("\n"),
+  });
+
+  return true;
+}
+
+async function sendSavedSearchAlertEmail({ to, name, searchLabel, listings = [] }) {
+  if (!listings.length) {
+    return false;
+  }
+
+  const clientUrl = String(
+    process.env.CLIENT_URL || process.env.APP_URL || "https://oriyon.store"
+  ).replace(/\/$/, "");
+  const lines = listings.map(
+    (item) => `- ${item.title} · ${item.price || "—"} · ${clientUrl}/ad/${item.id}`
+  );
+
+  await sendGenericEmail({
+    to,
+    subject: `Oriyon — новые объявления: ${searchLabel}`,
+    text: [
+      `Здравствуйте${name ? `, ${name}` : ""}!`,
+      "",
+      `По сохранённому поиску «${searchLabel}» появились новые объявления:`,
+      ...lines,
+      "",
+      `Открыть каталог: ${clientUrl}/listing`,
+    ].join("\n"),
+  });
+
+  return true;
+}
+
 module.exports = {
   isMailConfigured,
   buildTransactionsCsv,
   sendFinanceReportEmail,
+  sendListingExpiryEmail,
+  sendSavedSearchAlertEmail,
 };

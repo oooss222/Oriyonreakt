@@ -188,18 +188,28 @@ class UserModel {
       return null;
     }
 
-    const countResult = await query(
-      `
+    const Review = require("./Review");
+
+    const [countResult, ratingSummary] = await Promise.all([
+      query(
+        `
       SELECT COUNT(*)::int AS count
       FROM listings
       WHERE owner = $1 AND status = 'approved'
       `,
-      [id]
-    );
+        [id]
+      ),
+      Review.getSellerSummary(id),
+    ]);
 
     const listingsCount = Number(countResult.rows[0]?.count || 0);
 
-    return this.sanitizePublic(user, { listingsCount });
+    return {
+      ...this.sanitizePublic(user, { listingsCount }),
+      ratingAverage: ratingSummary.average,
+      ratingCount: ratingSummary.count,
+      phoneVerified: Boolean(String(user.phone || "").replace(/\D/g, "").length >= 9),
+    };
   }
 
   static sanitize(user) {

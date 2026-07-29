@@ -6,6 +6,7 @@ import ListingGridSkeleton from "../components/ListingGridSkeleton";
 import EmptyState from "../components/EmptyState";
 import Breadcrumbs from "../components/Breadcrumbs";
 import ListingFiltersPanel from "../components/ListingFiltersPanel";
+import SavedSearchesPanel from "../components/SavedSearchesPanel";
 import ListingCardOverlays from "../components/ListingCardOverlays";
 import SubcategoryChips from "../components/SubcategoryChips";
 import SimilarListingsSection from "../components/SimilarListingsSection";
@@ -401,6 +402,20 @@ export default function Listing() {
             previewTotal={draftIsDirty ? previewTotal : total}
             previewLoading={previewLoading}
             hasActiveFilters={hasActiveFilters}
+          />
+        </div>
+
+        <div className="hidden md:block mt-4">
+          <SavedSearchesPanel
+            draft={draft}
+            activeCat={activeCat}
+            onApply={(filters) =>
+              applyFilters({
+                ...draft,
+                ...filters,
+                cat: filters.cat || activeCat || draft.cat,
+              })
+            }
           />
         </div>
       </div>

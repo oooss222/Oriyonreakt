@@ -328,7 +328,9 @@ class ListingModel {
     SELECT
       l.*,
       u.name AS seller_name,
-      u.phone AS seller_phone
+      u.phone AS seller_phone,
+      u.whatsapp AS seller_whatsapp,
+      u.telegram AS seller_telegram
 
     FROM listings l
     LEFT JOIN users u ON u.id = l.owner
@@ -345,8 +347,9 @@ class ListingModel {
   return {
     ...listing,
     sellerName: result.rows[0].seller_name || "",
-    phone: result.rows[0].seller_phone || ""
-
+    phone: result.rows[0].seller_phone || "",
+    sellerWhatsapp: result.rows[0].seller_whatsapp || "",
+    sellerTelegram: result.rows[0].seller_telegram || "",
   };
 }
 
@@ -589,6 +592,10 @@ class ListingModel {
   }
 
   static async approve(id, moderatorId) {
+    const SiteSettings = require("./SiteSettings");
+    const settings = await SiteSettings.get();
+    const ttlDays = Number(settings.listingTtlDays || 60);
+
     const result = await query(
       `
       UPDATE listings
@@ -597,11 +604,13 @@ class ListingModel {
         rejection_reason = '',
         moderated_by = $2,
         moderated_at = now(),
+        expires_at = now() + ($3 || ' days')::interval,
+        expiry_notice_sent_at = NULL,
         updated_at = now()
       WHERE id = $1
       RETURNING *
       `,
-      [id, moderatorId]
+      [id, moderatorId, String(ttlDays)]
     );
 
     return mapListing(result.rows[0]);
@@ -651,6 +660,28 @@ class ListingModel {
       RETURNING *
       `,
       [id, ownerId, status]
+    );
+
+    return mapListing(result.rows[0]);
+  }
+
+  static async republish(id, ownerId) {
+    const SiteSettings = require("./SiteSettings");
+    const settings = await SiteSettings.get();
+    const ttlDays = Number(settings.listingTtlDays || 60);
+
+    const result = await query(
+      `
+      UPDATE listings
+      SET
+        status = 'approved',
+        expires_at = now() + ($3 || ' days')::interval,
+        expiry_notice_sent_at = NULL,
+        updated_at = now()
+      WHERE id = $1 AND owner = $2
+      RETURNING *
+      `,
+      [id, ownerId, String(ttlDays)]
     );
 
     return mapListing(result.rows[0]);
@@ -778,3 +809,4 @@ class ListingModel {
 }
 
 module.exports = ListingModel;
+module.exports.buildListingFilters = buildListingFilters;

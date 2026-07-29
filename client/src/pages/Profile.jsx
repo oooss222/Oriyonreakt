@@ -814,7 +814,8 @@ export default function Profile() {
     name: me?.name || "",
     email: me?.email || "",
     phone: me?.phone || "",
-   
+    whatsapp: me?.whatsapp || "",
+    telegram: me?.telegram || "",
   });
 
   const [emailStatus, setEmailStatus] = React.useState(
@@ -910,7 +911,8 @@ export default function Profile() {
           name: u.name || "",
           email: u.email || "",
           phone: u.phone || "",
-          
+          whatsapp: u.whatsapp || "",
+          telegram: u.telegram || "",
         });
         setEmailStatus(u.emailVerified ? "verified" : "unknown");
         localStorage.setItem(USER_KEY, JSON.stringify(u));
@@ -935,15 +937,25 @@ export default function Profile() {
 
     const oldName = currentMe.name || "";
     const oldPhone = currentMe.phone || "";
+    const oldWhatsapp = currentMe.whatsapp || "";
+    const oldTelegram = currentMe.telegram || "";
 
-    if (form.name === oldName && form.phone === oldPhone) return;
+    if (
+      form.name === oldName &&
+      form.phone === oldPhone &&
+      form.whatsapp === oldWhatsapp &&
+      form.telegram === oldTelegram
+    ) {
+      return;
+    }
 
     const h = setTimeout(() => {
       api
         .updateMe(token, {
           name: form.name,
           phone: form.phone,
-          
+          whatsapp: form.whatsapp,
+          telegram: form.telegram,
         })
         .then((u) => {
           if (!u) return;
@@ -954,7 +966,7 @@ export default function Profile() {
     }, 900);
 
     return () => clearTimeout(h);
-  }, [form.name, form.phone, token]);
+  }, [form.name, form.phone, form.whatsapp, form.telegram, token]);
 
   React.useEffect(() => {
     if (!token) return;
@@ -1729,6 +1741,36 @@ export default function Profile() {
   }
 />
 
+            </label>
+
+            <label className="block">
+              <div className="text-sm font-medium mb-2">WhatsApp</div>
+              <input
+                className="h-12 rounded-2xl border px-4 w-full outline-none focus:ring-2 focus:ring-sun/40"
+                placeholder="992901234567"
+                value={form.whatsapp}
+                onChange={(e) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    whatsapp: e.target.value,
+                  }))
+                }
+              />
+            </label>
+
+            <label className="block">
+              <div className="text-sm font-medium mb-2">Telegram</div>
+              <input
+                className="h-12 rounded-2xl border px-4 w-full outline-none focus:ring-2 focus:ring-sun/40"
+                placeholder="@username или https://t.me/username"
+                value={form.telegram}
+                onChange={(e) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    telegram: e.target.value,
+                  }))
+                }
+              />
             </label>
           </div>
         </div>

@@ -31,6 +31,7 @@ const DEFAULTS = {
   accountantReportEmail: "",
   monthlyReportEnabled: false,
   lastFinanceReportSent: "",
+  listingTtlDays: 60,
 };
 
 function roundMoney(value) {
@@ -70,6 +71,7 @@ function normalizeSettings(row) {
     accountantReportEmail: String(data.accountantReportEmail || ""),
     monthlyReportEnabled: Boolean(data.monthlyReportEnabled),
     lastFinanceReportSent: String(data.lastFinanceReportSent || ""),
+    listingTtlDays: Math.max(7, Number(data.listingTtlDays || DEFAULTS.listingTtlDays)),
     updatedAt: row?.updated_at || null,
     updatedBy: row?.updated_by || null,
   };

@@ -299,6 +299,129 @@ export function FinanceAuditTab({ token }) {
   );
 }
 
+export function FinanceAlifOrdersTab({ token }) {
+  const [data, setData] = React.useState(null);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState("");
+  const [syncingId, setSyncingId] = React.useState("");
+
+  const load = React.useCallback(() => {
+    setLoading(true);
+    setError("");
+
+    api
+      .adminFinanceAlifOrders(token)
+      .then((result) => setData(result))
+      .catch((e) => setError(e.message || "Не удалось загрузить заказы Alif"))
+      .finally(() => setLoading(false));
+  }, [token]);
+
+  React.useEffect(() => {
+    load();
+  }, [load]);
+
+  const syncOrder = async (orderId) => {
+    try {
+      setSyncingId(orderId);
+      await api.adminSyncAlifOrder(token, orderId);
+      load();
+    } catch (e) {
+      setError(e.message || "Не удалось синхронизировать заказ");
+    } finally {
+      setSyncingId("");
+    }
+  };
+
+  if (loading) {
+    return <div className="rounded-2xl border bg-white p-6 animate-pulse h-40" />;
+  }
+
+  return (
+    <div className="rounded-2xl border bg-white p-4 space-y-4">
+      <div>
+        <div className="inline-flex items-center gap-2 text-sm text-violet-700 bg-violet-50 border border-violet-100 rounded-full px-3 py-1 mb-2">
+          <CreditCard className="w-4 h-4" />
+          Alif orders
+        </div>
+        <p className="text-sm text-slate-500">
+          Сверка платежей Alif Acquiring и статусов пополнения кошелька.
+        </p>
+      </div>
+
+      {error && (
+        <div className="rounded-xl border border-red-200 bg-red-50 text-red-700 p-3">
+          {error}
+        </div>
+      )}
+
+      {data && (
+        <>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {(data.byStatus || []).map((row) => (
+              <div key={row.status} className="rounded-xl border p-4 bg-slate-50">
+                <div className="text-sm text-slate-500 capitalize">{row.status}</div>
+                <div className="text-2xl font-bold mt-1">{row.count}</div>
+                <div className="text-xs text-slate-500 mt-1">
+                  {Number(row.sum || 0).toLocaleString("ru-RU")} TJS
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="rounded-xl border overflow-x-auto">
+            <table className="min-w-full text-sm">
+              <thead className="bg-slate-50 text-slate-500">
+                <tr>
+                  <th className="text-left py-3 px-3">Order ID</th>
+                  <th className="text-left py-3 px-3">Пользователь</th>
+                  <th className="text-left py-3 px-3">Сумма</th>
+                  <th className="text-left py-3 px-3">Статус</th>
+                  <th className="text-left py-3 px-3">Provider</th>
+                  <th className="text-left py-3 px-3">Дата</th>
+                  <th className="text-left py-3 px-3"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {(data.items || []).map((order) => (
+                  <tr key={order.id} className="border-t">
+                    <td className="py-3 px-3 font-mono text-xs">{order.orderId}</td>
+                    <td className="py-3 px-3">
+                      <div className="font-medium">{order.userName || "—"}</div>
+                      <div className="text-xs text-slate-500">{order.userEmail}</div>
+                    </td>
+                    <td className="py-3 px-3 font-semibold">
+                      {Number(order.amount || 0).toLocaleString("ru-RU")} TJS
+                    </td>
+                    <td className="py-3 px-3 capitalize">{order.status}</td>
+                    <td className="py-3 px-3">{order.providerStatus || "—"}</td>
+                    <td className="py-3 px-3">
+                      {order.createdAt
+                        ? new Date(order.createdAt).toLocaleString("ru-RU")
+                        : "—"}
+                    </td>
+                    <td className="py-3 px-3">
+                      {order.status !== "paid" && (
+                        <button
+                          type="button"
+                          className="text-sun-700 hover:underline"
+                          disabled={syncingId === order.orderId}
+                          onClick={() => syncOrder(order.orderId)}
+                        >
+                          {syncingId === order.orderId ? "..." : "Sync"}
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 export function FinancePaymentsTab({ token }) {
   const [data, setData] = React.useState(null);
   const [loading, setLoading] = React.useState(true);
@@ -363,7 +486,7 @@ export function FinancePaymentsTab({ token }) {
 
           {!data.gatewayConfigured && (
             <div className="rounded-xl border border-amber-200 bg-amber-50 text-amber-800 p-3 text-sm">
-              Платёжный шлюз ещё не подключён — все пополнения идут напрямую через API.
+              Alif не активен в конфигурации сервера — проверьте переменные окружения.
             </div>
           )}
 

@@ -12,6 +12,8 @@ import Breadcrumbs from "../components/Breadcrumbs";
 import ListingCard from "../components/ListingCard";
 import ListingGridSkeleton from "../components/ListingGridSkeleton";
 import EmptyState from "../components/EmptyState";
+import { StarRating } from "../components/SellerReviewsPanel";
+import SellerReviewsPanel from "../components/SellerReviewsPanel";
 import { usePageMeta } from "../lib/usePageMeta";
 import { api } from "../lib/api";
 import { goToAuth } from "../lib/auth";
@@ -50,6 +52,10 @@ export default function Seller() {
 
   const [seller, setSeller] = React.useState(null);
   const [listings, setListings] = React.useState([]);
+  const [reviews, setReviews] = React.useState({
+    summary: { average: 0, count: 0 },
+    items: [],
+  });
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState("");
   const [currentUserId, setCurrentUserId] = React.useState(null);
@@ -84,15 +90,20 @@ export default function Seller() {
         setLoading(true);
         setError("");
 
-        const [profile, items] = await Promise.all([
+        const [profile, items, reviewData] = await Promise.all([
           api.sellerPublic(id),
           api.listings({ owner: id, limit: 100, sort: "new" }),
+          api.sellerReviews(id),
         ]);
 
         if (!active) return;
 
         setSeller(profile);
         setListings(Array.isArray(items) ? items.filter(Boolean) : []);
+        setReviews({
+          summary: reviewData?.summary || { average: 0, count: 0 },
+          items: Array.isArray(reviewData?.items) ? reviewData.items : [],
+        });
       } catch (e) {
         if (active) {
           setSeller(null);
@@ -208,6 +219,20 @@ export default function Seller() {
                   Email подтверждён
                 </span>
               )}
+
+              {seller.phoneVerified && (
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100">
+                  <BadgeCheck className="w-3.5 h-3.5" />
+                  Телефон указан
+                </span>
+              )}
+
+              {Number(seller.ratingCount || 0) > 0 && (
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-800 border border-amber-100">
+                  <StarRating value={seller.ratingAverage} size={12} />
+                  {Number(seller.ratingAverage || 0).toFixed(1)} ({seller.ratingCount})
+                </span>
+              )}
             </div>
 
             <div className="flex flex-wrap items-center gap-3 text-sm text-slate-500">
@@ -307,6 +332,20 @@ export default function Seller() {
           </div>
         )}
       </section>
+
+      <SellerReviewsPanel
+        sellerId={seller.id}
+        token={token}
+        canReview={Boolean(token) && !isOwner}
+        summary={reviews.summary}
+        items={reviews.items}
+        onSubmitted={(result) => {
+          setReviews({
+            summary: result.summary || reviews.summary,
+            items: result.review ? [result.review, ...reviews.items] : reviews.items,
+          });
+        }}
+      />
     </div>
   );
 }

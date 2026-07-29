@@ -30,6 +30,8 @@ import ListingCard from "../components/ListingCard";
 import Breadcrumbs from "../components/Breadcrumbs";
 import EmptyState from "../components/EmptyState";
 import ListingPromotionActions from "../components/ListingPromotionActions";
+import SellerContactButtons from "../components/SellerContactButtons";
+import SellerReviewsPanel, { StarRating } from "../components/SellerReviewsPanel";
 import { PromotionBadgeGroup } from "../components/PromotionBadge";
 import { CAT_LABELS } from "../data/listingCategories";
 import { REPORT_REASONS } from "../data/reportReasons";
@@ -160,6 +162,10 @@ export default function AdDetails() {
   });
   const [promotingType, setPromotingType] = React.useState(null);
   const [walletBalance, setWalletBalance] = React.useState(0);
+  const [sellerReviews, setSellerReviews] = React.useState({
+    summary: { average: 0, count: 0 },
+    items: [],
+  });
 
   React.useEffect(() => {
     api
@@ -338,7 +344,39 @@ export default function AdDetails() {
       : undefined,
     url: typeof window !== "undefined" ? window.location.href : undefined,
     type: "product",
+    jsonLd: ad
+      ? {
+          "@context": "https://schema.org",
+          "@type": "Product",
+          name: ad.title || "Объявление",
+          description: ad.description || "",
+          image: images[0],
+          offers: {
+            "@type": "Offer",
+            priceCurrency: "TJS",
+            price: String(ad.price || "").replace(/[^\d.,]/g, "") || undefined,
+            availability: "https://schema.org/InStock",
+            url: typeof window !== "undefined" ? window.location.href : undefined,
+          },
+        }
+      : null,
   });
+
+  React.useEffect(() => {
+    if (!ad?.owner) return;
+
+    api
+      .sellerReviews(ad.owner)
+      .then((data) => {
+        if (!data) return;
+
+        setSellerReviews({
+          summary: data.summary || { average: 0, count: 0 },
+          items: Array.isArray(data.items) ? data.items : [],
+        });
+      })
+      .catch(() => {});
+  }, [ad?.owner]);
 
   const storedUserId = React.useMemo(() => {
     try {
@@ -947,6 +985,25 @@ export default function AdDetails() {
               </section>
             )}
 
+            {ad.owner && (
+              <SellerReviewsPanel
+                sellerId={ad.owner}
+                listingId={listingId}
+                token={token}
+                canReview={canContact && Boolean(token)}
+                summary={sellerReviews.summary}
+                items={sellerReviews.items}
+                onSubmitted={(result) => {
+                  setSellerReviews({
+                    summary: result.summary || sellerReviews.summary,
+                    items: result.review
+                      ? [result.review, ...sellerReviews.items]
+                      : sellerReviews.items,
+                  });
+                }}
+              />
+            )}
+
             {/* Related */}
             {related.length > 0 && (
               <section className="space-y-4 pt-2">
@@ -1071,6 +1128,15 @@ export default function AdDetails() {
                       <div className="text-xs text-slate-500">
                         {published ? `Объявление ${published.toLowerCase()}` : "На сайте"}
                       </div>
+                      {sellerReviews.summary.count > 0 && (
+                        <div className="flex items-center gap-2 mt-1">
+                          <StarRating value={sellerReviews.summary.average} size={14} />
+                          <span className="text-xs text-slate-500">
+                            {Number(sellerReviews.summary.average).toFixed(1)} (
+                            {sellerReviews.summary.count})
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -1083,52 +1149,33 @@ export default function AdDetails() {
                 </div>
 
                 <div className="space-y-2.5">
-                  {canContact && ad.phone ? (
-                    phoneVisible ? (
-                      <a
-                        href={`tel:${ad.phone}`}
-                        className="btn btn-primary w-full py-3 text-base rounded-2xl"
-                      >
-                        <Phone className="w-5 h-5" />
-                        {ad.phone}
-                      </a>
-                    ) : (
-                      <button
-                        type="button"
-                        className="btn btn-primary w-full py-3 text-base rounded-2xl"
-                        onClick={() => setPhoneVisible(true)}
-                      >
-                        <Phone className="w-5 h-5" />
-                        Показать телефон
-                      </button>
-                    )
-                  ) : canContact ? (
-                    <button
-                      type="button"
-                      className="btn w-full py-3 rounded-2xl opacity-60 cursor-not-allowed"
-                      disabled
-                    >
-                      <Phone className="w-5 h-5" />
-                      Телефон не указан
-                    </button>
-                  ) : null}
-
                   {canContact ? (
-                    <button
-                      type="button"
-                      className="btn w-full py-3 rounded-2xl"
-                      onClick={openSellerChat}
-                    >
-                      <MessageCircle className="w-5 h-5" />
-                      Написать продавцу
-                    </button>
+                    <SellerContactButtons
+                      phone={ad.phone}
+                      whatsapp={ad.sellerWhatsapp}
+                      telegram={ad.sellerTelegram}
+                      phoneVisible={phoneVisible}
+                      onRevealPhone={() => setPhoneVisible(true)}
+                      onChat={openSellerChat}
+                      canContact={canContact}
+                    />
                   ) : !isOwner && isInactive ? (
                     <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
                       Связаться с продавцом по этому объявлению нельзя.
                     </div>
                   ) : null}
+                </div>
 
-                  {isOwner ? (
+                {isOwner && ad.expiresAt && (
+                  <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+                    Объявление активно до{" "}
+                    {new Date(ad.expiresAt).toLocaleDateString("ru-RU")}. После этой
+                    даты оно будет автоматически снято — опубликуйте снова или
+                    подключите VIP/TOP.
+                  </div>
+                )}
+
+                {isOwner ? (
                     <>
                       {moderationStatus === "approved" && (
                         <ListingPromotionActions
