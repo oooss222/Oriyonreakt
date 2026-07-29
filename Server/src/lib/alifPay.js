@@ -4,7 +4,7 @@ const TEST_DEFAULTS = {
   key: "722796",
   password: "sEAXlBgMYY0GPIxHPYy6",
   apiUrl: "https://test-web.alif.tj/v2",
-  gate: "km",
+  gate: "korti_milli",
 };
 
 function resolveAlifEndpoints(apiUrl = "") {
@@ -120,22 +120,22 @@ function buildReturnUrl() {
   return `${getClientBaseUrl()}/profile?tab=wallet&payment=return`;
 }
 
-function normalizePhone(phone = "") {
+function formatAlifPhone(phone = "") {
   const digits = String(phone).replace(/[^\d]/g, "");
 
   if (!digits) {
-    return "900000000";
+    return "992900000000";
   }
 
   if (digits.startsWith("992") && digits.length >= 12) {
-    return digits.slice(3);
+    return digits.slice(0, 12);
   }
 
-  if (digits.length > 9) {
-    return digits.slice(-9);
+  if (digits.length >= 9) {
+    return `992${digits.slice(-9)}`;
   }
 
-  return digits;
+  return `992${digits.padStart(9, "0")}`;
 }
 
 async function parseJsonResponse(response) {
@@ -181,7 +181,7 @@ function buildLegacyCheckout({
       gate: gate || config.gate,
       info: info || "",
       email: email || "",
-      phone: normalizePhone(phone),
+      phone: formatAlifPhone(phone),
     },
   };
 }
@@ -222,7 +222,7 @@ async function initiateWalletPayment({
       amount: formatAmount(amount),
       info,
       email: email || undefined,
-      phone: normalizePhone(phone),
+      phone: formatAlifPhone(phone),
       gate: gate || config.gate,
     };
 
@@ -249,7 +249,12 @@ async function initiateWalletPayment({
     const allowLegacyFallback = process.env.ALIF_V2_FALLBACK !== "false";
 
     if (!allowLegacyFallback) {
-      throw new Error(body.message || "Failed to initialize Alif payment");
+      throw new Error(
+        body.message ||
+          (Number(body.code) === 401
+            ? "Alif отклонил запрос (401). Проверьте terminal key и whitelist callback URL у Alif."
+            : "Failed to initialize Alif payment")
+      );
     }
 
     console.warn(
@@ -331,7 +336,8 @@ module.exports = {
   buildPaymentToken,
   buildStatusToken,
   verifyCallbackToken,
-  normalizePhone,
+  normalizePhone: formatAlifPhone,
+  formatAlifPhone,
   initiateWalletPayment,
   checkPaymentStatus,
   normalizeCallbackPayload,

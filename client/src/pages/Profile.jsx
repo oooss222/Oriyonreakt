@@ -198,7 +198,20 @@ const WalletTopUp = React.memo(function WalletTopUp({ token, onSuccess }) {
         setSuccess(`Баланс пополнен на ${value.toLocaleString("ru-RU")} TJS`);
         setAmount("");
       } catch (e) {
-        setError(e.message || "Ошибка пополнения");
+        const message = e.message || "Ошибка пополнения";
+
+        if (message.includes("HTTP 401")) {
+          setError("Сессия истекла. Выйдите и войдите снова, затем повторите оплату.");
+        } else if (
+          message.includes("401") ||
+          message.includes("доступ в транзакции отказан")
+        ) {
+          setError(
+            "Alif отклонил оплату (401). Terminal 722796 нужно активировать и добавить callback в whitelist у Alif."
+          );
+        } else {
+          setError(message);
+        }
       } finally {
         setLoading(false);
       }
