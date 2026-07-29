@@ -28,6 +28,11 @@ import {
 } from "../lib/adminUtils";
 import ModerationListingsPanel from "../components/admin/ModerationListingsPanel";
 import ListingPromotionActions from "../components/ListingPromotionActions";
+import { PromotionBadgeGroup } from "../components/PromotionBadge";
+import {
+  getPromotionCardAccent,
+  getPromotionCardClass,
+} from "../lib/promotionStyles";
 
 const WALLET_TYPE_LABELS = {
   top_up: "Пополнение",
@@ -346,7 +351,15 @@ const ListingCard = React.memo(function ListingCard({
   const statusInfo = statusMap[status] || statusMap.pending;
 
   return (
-    <div className="group rounded-3xl border bg-white p-2 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden">
+    <div
+      className={`group relative rounded-3xl border bg-white p-2 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden ${getPromotionCardClass(
+        { vip: ad.vip, top: ad.top }
+      )}`}
+    >
+      <span
+        className={getPromotionCardAccent({ vip: ad.vip, top: ad.top })}
+        aria-hidden="true"
+      />
       <Link
         to={`/ad/${id}`}
         onClick={() => sessionStorage.setItem("ad_preview", JSON.stringify(ad))}
@@ -362,24 +375,14 @@ const ListingCard = React.memo(function ListingCard({
             loading="lazy"
           />
 
-          <div className="absolute left-2 top-2 flex flex-wrap gap-1">
+          <div className="absolute left-2 top-2 flex flex-wrap gap-1 z-10">
             <span
               className={`inline-flex px-2 py-0.5 text-[11px] rounded-full border bg-white/90 backdrop-blur ${statusInfo.className}`}
             >
               {statusInfo.label}
             </span>
 
-            {ad.vip && (
-              <span className="inline-flex px-2 py-0.5 text-[11px] rounded-full bg-sun text-white font-semibold">
-                VIP
-              </span>
-            )}
-
-            {ad.top && (
-              <span className="inline-flex px-2 py-0.5 text-[11px] rounded-full bg-lagoon text-white font-semibold">
-                TOP
-              </span>
-            )}
+            <PromotionBadgeGroup vip={ad.vip} top={ad.top} size="sm" />
           </div>
 
           {more > 0 && (

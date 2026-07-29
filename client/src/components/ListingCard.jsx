@@ -4,6 +4,10 @@ import FavoriteButton from "./FavoriteButton";
 import ListingCardOverlays from "./ListingCardOverlays";
 import { getListingThumb } from "../lib/media";
 import { formatPrice } from "../lib/format";
+import {
+  getPromotionCardAccent,
+  getPromotionCardClass,
+} from "../lib/promotionStyles";
 
 export default function ListingCard({ item, onFav }) {
   const nav = useNavigate();
@@ -26,8 +30,18 @@ export default function ListingCard({ item, onFav }) {
           openAd();
         }
       }}
-      className="card overflow-hidden block group cursor-pointer focus:outline-none focus:ring-2 focus:ring-sun/40"
+      className={`card overflow-hidden block group cursor-pointer focus:outline-none focus:ring-2 focus:ring-sun/40 relative ${getPromotionCardClass({
+        vip: item?.vip,
+        top: item?.top,
+      })}`}
     >
+      <span
+        className={getPromotionCardAccent({
+          vip: item?.vip,
+          top: item?.top,
+        })}
+        aria-hidden="true"
+      />
       <div className="relative overflow-hidden">
         <img
           src={getListingThumb(item)}

@@ -10,6 +10,10 @@ import { api } from "../lib/api";
 import { CATS } from "../data/listingCategories";
 import { getListingThumb } from "../lib/media";
 import { formatPrice } from "../lib/format";
+import {
+  getPromotionCardAccent,
+  getPromotionCardClass,
+} from "../lib/promotionStyles";
 import { Search, FolderOpen, MapPin } from "lucide-react";
 
 const PREVIEW_LIMIT = 6;
@@ -259,8 +263,14 @@ export default function Category() {
                       nav(`/ad/${id}`);
                     }
                   }}
-                  className="group flex flex-col rounded-2xl border bg-white p-2 transition hover:shadow-lg hover:-translate-y-0.5 cursor-pointer"
+                  className={`group relative flex flex-col rounded-2xl border bg-white p-2 transition hover:shadow-lg hover:-translate-y-0.5 cursor-pointer ${getPromotionCardClass(
+                    { vip: ad.vip, top: ad.top }
+                  )}`}
                 >
+                  <span
+                    className={getPromotionCardAccent({ vip: ad.vip, top: ad.top })}
+                    aria-hidden="true"
+                  />
                   <div className="relative">
                     <img
                       src={imgUrl}

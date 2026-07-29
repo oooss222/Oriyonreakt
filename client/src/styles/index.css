@@ -146,6 +146,89 @@
   .text-price {
     @apply font-display font-extrabold text-lagoon-700;
   }
+
+  @keyframes promotion-shimmer {
+    0% {
+      transform: translateX(-120%) skewX(-12deg);
+    }
+    100% {
+      transform: translateX(220%) skewX(-12deg);
+    }
+  }
+
+  @keyframes promotion-glow {
+    0%,
+    100% {
+      opacity: 0.55;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
+
+  .promotion-badge {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+  }
+
+  .promotion-badge::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      105deg,
+      transparent 35%,
+      rgb(255 255 255 / 0.45) 50%,
+      transparent 65%
+    );
+    transform: translateX(-120%) skewX(-12deg);
+    animation: promotion-shimmer 2.8s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  .promotion-badge-vip {
+    background: linear-gradient(135deg, #fcd34d 0%, #f59e0b 45%, #ea580c 100%);
+    box-shadow:
+      0 4px 14px rgb(245 158 11 / 0.45),
+      inset 0 1px 0 rgb(255 255 255 / 0.35);
+  }
+
+  .promotion-badge-top {
+    background: linear-gradient(135deg, #2dd4bf 0%, #0e7c7b 55%, #0f766e 100%);
+    box-shadow:
+      0 4px 14px rgb(14 124 123 / 0.4),
+      inset 0 1px 0 rgb(255 255 255 / 0.28);
+  }
+
+  .promotion-card-accent {
+    pointer-events: none;
+    position: absolute;
+    inset-inline: 0;
+    top: 0;
+    height: 3px;
+    z-index: 20;
+  }
+
+  .promotion-card-accent-vip {
+    background: linear-gradient(90deg, #fbbf24, #f97316, #fbbf24);
+    background-size: 200% 100%;
+    animation: horizon-shine 3s linear infinite;
+  }
+
+  .promotion-card-accent-top {
+    background: linear-gradient(90deg, #5eead4, #0e7c7b, #5eead4);
+    background-size: 200% 100%;
+    animation: horizon-shine 3s linear infinite;
+  }
+
+  .promotion-panel-vip {
+    background: linear-gradient(145deg, rgb(255 251 235) 0%, rgb(255 247 237) 45%, #fff 100%);
+  }
+
+  .promotion-panel-top {
+    background: linear-gradient(145deg, rgb(236 254 255) 0%, rgb(240 253 250) 45%, #fff 100%);
+  }
 }
 
 .shadow-soft {

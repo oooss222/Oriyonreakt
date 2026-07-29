@@ -7,6 +7,10 @@ import { getListingThumb } from "../lib/media";
 import { formatPrice, formatListingDate } from "../lib/format";
 import { sortListingsByPromotion } from "../lib/listingSort";
 import {
+  getPromotionCardAccent,
+  getPromotionCardClass,
+} from "../lib/promotionStyles";
+import {
   PlusCircle,
   ShieldCheck,
   Sparkles,
@@ -44,9 +48,15 @@ function ListingCard({ ad, listings }) {
           openAd();
         }
       }}
-      className="group min-w-[230px] max-w-[230px] card p-2 hover:shadow-lift hover:-translate-y-1 transition-all duration-300 flex flex-col overflow-hidden cursor-pointer focus:outline-none focus:ring-2 focus:ring-sun/50"
+      className={`group min-w-[230px] max-w-[230px] card p-2 hover:shadow-lift hover:-translate-y-1 transition-all duration-300 flex flex-col overflow-hidden cursor-pointer focus:outline-none focus:ring-2 focus:ring-sun/50 relative ${getPromotionCardClass(
+        { vip: ad.vip, top: ad.top }
+      )}`}
       aria-label={`Объявление: ${ad.title || "Без названия"}`}
     >
+      <span
+        className={getPromotionCardAccent({ vip: ad.vip, top: ad.top })}
+        aria-hidden="true"
+      />
       <div className="relative overflow-hidden rounded-2xl">
         <img
           src={img}

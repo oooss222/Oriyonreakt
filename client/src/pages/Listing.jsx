@@ -13,6 +13,10 @@ import { usePageMeta } from "../lib/usePageMeta";
 import { getListingThumb } from "../lib/media";
 import { formatPrice, formatListingDate } from "../lib/format";
 import { sortListingsByMode } from "../lib/listingSort";
+import {
+  getPromotionCardAccent,
+  getPromotionCardClass,
+} from "../lib/promotionStyles";
 import { CATS, parseSpecsParam } from "../data/listingCategories";
 import {
   Search,
@@ -491,10 +495,16 @@ export default function Listing() {
                     nav(`/ad/${id}`);
                   }
                 }}
-                className="group relative flex flex-col rounded-2xl border bg-white p-2 transition hover:shadow-lg hover:-translate-y-0.5 cursor-pointer focus:outline-none focus:ring-2 focus:ring-sun/40 animate-fade-in-up"
+                className={`group relative flex flex-col rounded-2xl border bg-white p-2 transition hover:shadow-lg hover:-translate-y-0.5 cursor-pointer focus:outline-none focus:ring-2 focus:ring-sun/40 animate-fade-in-up ${getPromotionCardClass(
+                  { vip: ad.vip, top: ad.top }
+                )}`}
                 style={{ animationDelay: `${idx * 40}ms` }}
                 aria-label={`Объявление: ${ad.title || "Без названия"}`}
               >
+                <span
+                  className={getPromotionCardAccent({ vip: ad.vip, top: ad.top })}
+                  aria-hidden="true"
+                />
                 <div className="relative">
                   <img
                     src={imgUrl}

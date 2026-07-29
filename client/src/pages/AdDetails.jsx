@@ -30,6 +30,7 @@ import ListingCard from "../components/ListingCard";
 import Breadcrumbs from "../components/Breadcrumbs";
 import EmptyState from "../components/EmptyState";
 import ListingPromotionActions from "../components/ListingPromotionActions";
+import { PromotionBadgeGroup } from "../components/PromotionBadge";
 import { CAT_LABELS } from "../data/listingCategories";
 import { REPORT_REASONS } from "../data/reportReasons";
 
@@ -797,18 +798,12 @@ export default function AdDetails() {
                     />
                   </button>
 
-                  <div className="absolute top-3 left-3 flex gap-2">
-                    {ad.vip && (
-                      <span className="px-2.5 py-1 text-xs font-semibold rounded-full bg-amber-500 text-white shadow">
-                        VIP
-                      </span>
-                    )}
-                    {ad.top && (
-                      <span className="px-2.5 py-1 text-xs font-semibold rounded-full bg-lagoon text-white shadow">
-                        TOP
-                      </span>
-                    )}
-                  </div>
+                  <PromotionBadgeGroup
+                    vip={ad.vip}
+                    top={ad.top}
+                    size="lg"
+                    className="absolute top-3 left-3 z-10"
+                  />
 
                   {images.length > 1 && (
                     <div className="absolute bottom-3 left-3 px-2.5 py-1 rounded-full bg-black/60 text-white text-xs font-medium">
@@ -895,6 +890,10 @@ export default function AdDetails() {
               <h1 className="text-2xl font-extrabold text-slate-900 leading-tight">
                 {ad.title || "Без названия"}
               </h1>
+
+              {(ad.vip || ad.top) && (
+                <PromotionBadgeGroup vip={ad.vip} top={ad.top} size="md" />
+              )}
 
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-500">
                 <span className="inline-flex items-center gap-1">
@@ -1007,6 +1006,10 @@ export default function AdDetails() {
                 <h1 className="text-2xl font-extrabold text-slate-900 leading-tight">
                   {ad.title || "Без названия"}
                 </h1>
+
+                {(ad.vip || ad.top) && (
+                  <PromotionBadgeGroup vip={ad.vip} top={ad.top} size="md" />
+                )}
 
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-500">
                   <span className="inline-flex items-center gap-1">

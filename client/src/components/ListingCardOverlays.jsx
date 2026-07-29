@@ -2,6 +2,7 @@ import React from "react";
 import { Eye } from "lucide-react";
 import { formatViewCount } from "../lib/format";
 import { useListingViewed } from "../lib/viewedListings";
+import { PromotionBadgeGroup } from "./PromotionBadge";
 
 export default function ListingCardOverlays({
   listingId,
@@ -15,21 +16,12 @@ export default function ListingCardOverlays({
 
   return (
     <>
-      {(vip || top) && (
-        <div className="absolute left-2 top-2 z-10 flex gap-1.5">
-          {vip && (
-            <span className="px-2 py-0.5 text-[11px] rounded-md bg-sun text-white shadow font-semibold">
-              VIP
-            </span>
-          )}
-
-          {top && (
-            <span className="px-2 py-0.5 text-[11px] rounded-md bg-lagoon text-white shadow font-semibold">
-              TOP
-            </span>
-          )}
-        </div>
-      )}
+      <PromotionBadgeGroup
+        vip={vip}
+        top={top}
+        size="sm"
+        className="absolute left-2 top-2 z-10"
+      />
 
       {viewed && (
         <span className="absolute top-2 right-2 z-10 px-2 py-0.5 text-[11px] font-medium rounded-md bg-black/55 text-white backdrop-blur-sm">
