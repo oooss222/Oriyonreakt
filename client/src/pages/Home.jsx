@@ -4,7 +4,7 @@ import FavoriteButton from "../components/FavoriteButton";
 import ListingCardOverlays from "../components/ListingCardOverlays";
 import { api } from "../lib/api";
 import { getListingThumb } from "../lib/media";
-import { formatPrice } from "../lib/format";
+import { formatPrice, formatListingDate } from "../lib/format";
 import { sortListingsByPromotion } from "../lib/listingSort";
 import {
   PlusCircle,
@@ -83,9 +83,7 @@ function ListingCard({ ad, listings }) {
 
         <div className="text-xs text-ink-300 line-clamp-1 flex items-center gap-1">
           <Clock3 size={13} />
-          {ad.createdAt
-            ? new Date(ad.createdAt).toLocaleDateString("ru-RU")
-            : "Новое объявление"}
+          {formatListingDate(ad, { emptyLabel: "Новое объявление" })}
         </div>
       </div>
     </div>

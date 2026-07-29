@@ -30,3 +30,50 @@ export function formatViewCount(count) {
 export function formatViewsLabel(count) {
   return `${formatViewCount(count)} просмотров`;
 }
+
+export function getListingDisplayDate(listing) {
+  const created = listing?.createdAt ? new Date(listing.createdAt) : null;
+  const bumped = listing?.bumpedAt ? new Date(listing.bumpedAt) : null;
+
+  if (bumped && !Number.isNaN(bumped.getTime())) {
+    if (!created || Number.isNaN(created.getTime()) || bumped > created) {
+      return bumped;
+    }
+  }
+
+  if (created && !Number.isNaN(created.getTime())) {
+    return created;
+  }
+
+  return null;
+}
+
+export function formatListingDate(
+  listing,
+  { emptyLabel = "", withTime = false } = {}
+) {
+  const date = getListingDisplayDate(listing);
+
+  if (!date) {
+    return emptyLabel;
+  }
+
+  if (withTime) {
+    return date.toLocaleString("ru-RU");
+  }
+
+  return date.toLocaleDateString("ru-RU");
+}
+
+export function isListingDateUpdated(listing) {
+  const created = listing?.createdAt ? new Date(listing.createdAt) : null;
+  const bumped = listing?.bumpedAt ? new Date(listing.bumpedAt) : null;
+
+  return Boolean(
+    bumped &&
+      !Number.isNaN(bumped.getTime()) &&
+      created &&
+      !Number.isNaN(created.getTime()) &&
+      bumped.getTime() > created.getTime()
+  );
+}

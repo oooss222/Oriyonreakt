@@ -11,7 +11,7 @@ import SubcategoryChips from "../components/SubcategoryChips";
 import SimilarListingsSection from "../components/SimilarListingsSection";
 import { usePageMeta } from "../lib/usePageMeta";
 import { getListingThumb } from "../lib/media";
-import { formatPrice } from "../lib/format";
+import { formatPrice, formatListingDate } from "../lib/format";
 import { sortListingsByMode } from "../lib/listingSort";
 import { CATS, parseSpecsParam } from "../data/listingCategories";
 import {
@@ -536,9 +536,7 @@ export default function Listing() {
                   </div>
 
                   <div className="text-xs text-slate-400">
-                    {ad.createdAt && !Number.isNaN(Date.parse(ad.createdAt))
-                      ? new Date(ad.createdAt).toLocaleDateString("ru-RU")
-                      : ""}
+                    {formatListingDate(ad)}
                   </div>
                 </div>
               </div>

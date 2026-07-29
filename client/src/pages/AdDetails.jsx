@@ -23,7 +23,7 @@ import {
 import { api } from "../lib/api";
 import { goToAuth } from "../lib/auth";
 import { resolveMediaUrl } from "../lib/media";
-import { formatPrice, formatViewsLabel } from "../lib/format";
+import { formatPrice, formatViewsLabel, getListingDisplayDate } from "../lib/format";
 import { markListingViewed, markViewRecorded, wasViewRecorded } from "../lib/viewedListings";
 import { usePageMeta } from "../lib/usePageMeta";
 import ListingCard from "../components/ListingCard";
@@ -651,7 +651,7 @@ export default function AdDetails() {
   const publicId = ad.publicId || ad.public_id || ad._id || ad.id;
   const listingId = ad._id || ad.id;
   const catLabel = CAT_LABELS[ad.cat] || ad.cat;
-  const published = formatDate(ad.createdAt);
+  const published = formatDate(getListingDisplayDate(ad) || ad.createdAt);
   const listingUrl = `/listing${ad.cat ? `?cat=${encodeURIComponent(ad.cat)}` : ""}${
     ad.subcategory
       ? `${ad.cat ? "&" : "?"}subcategory=${encodeURIComponent(ad.subcategory)}`

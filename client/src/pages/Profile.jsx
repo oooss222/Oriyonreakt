@@ -5,7 +5,7 @@ import { goToAuth, TOKEN_KEY, USER_KEY } from "../lib/auth";
 import FavoriteButton from "../components/FavoriteButton";
 import ListingGridSkeleton from "../components/ListingGridSkeleton";
 import { getListingThumb } from "../lib/media";
-import { formatPrice } from "../lib/format";
+import { formatPrice, formatListingDate } from "../lib/format";
 import {
   User as UserIcon,
   LogOut,
@@ -314,9 +314,7 @@ const ListingCard = React.memo(function ListingCard({
           </div>
 
           <div className="text-xs text-slate-400 mt-1">
-            {ad.createdAt
-              ? new Date(ad.createdAt).toLocaleDateString("ru-RU")
-              : "Дата не указана"}
+            {formatListingDate(ad, { emptyLabel: "Дата не указана" })}
           </div>
         </div>
       </Link>
