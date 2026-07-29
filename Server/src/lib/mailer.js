@@ -116,6 +116,62 @@ async function sendListingExpiryEmail({ to, name, listings = [] }) {
   return true;
 }
 
+async function sendListingModerationEmail({
+  to,
+  name,
+  title,
+  listingId,
+  action,
+  reason = "",
+}) {
+  if (!isMailConfigured()) {
+    return false;
+  }
+
+  const clientUrl = String(
+    process.env.CLIENT_URL || process.env.APP_URL || "https://oriyon.store"
+  ).replace(/\/$/, "");
+  const listingUrl = `${clientUrl}/ad/${listingId}`;
+  const profileUrl = `${clientUrl}/profile?tab=my`;
+
+  if (action === "approved") {
+    await sendGenericEmail({
+      to,
+      subject: "Oriyon — объявление одобрено",
+      text: [
+        `Здравствуйте${name ? `, ${name}` : ""}!`,
+        "",
+        `Объявление «${title}» прошло модерацию и опубликовано.`,
+        "",
+        `Открыть: ${listingUrl}`,
+        `Личный кабинет: ${profileUrl}`,
+      ].join("\n"),
+    });
+    return true;
+  }
+
+  if (action === "rejected") {
+    await sendGenericEmail({
+      to,
+      subject: "Oriyon — объявление отклонено",
+      text: [
+        `Здравствуйте${name ? `, ${name}` : ""}!`,
+        "",
+        `Объявление «${title}» не прошло модерацию.`,
+        reason ? `Причина: ${reason}` : "",
+        "",
+        "Исправьте объявление или подайте апелляцию в личном кабинете.",
+        profileUrl,
+      ]
+        .filter(Boolean)
+        .join("\n"),
+    });
+    return true;
+  }
+
+  return false;
+}
+
 async function sendSavedSearchAlertEmail({ to, name, searchLabel, listings = [] }) {
   if (!listings.length) {
     return false;
@@ -149,5 +205,6 @@ module.exports = {
   buildTransactionsCsv,
   sendFinanceReportEmail,
   sendListingExpiryEmail,
+  sendListingModerationEmail,
   sendSavedSearchAlertEmail,
 };

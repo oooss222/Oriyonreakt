@@ -376,6 +376,11 @@ class ListingModel {
       throw new Error("FORBIDDEN");
     }
 
+    const {
+      listingSnapshot,
+    } = require("../lib/moderationEngine");
+    const previousSnapshot = listingSnapshot(existing);
+
     const result = await query(
       `
       UPDATE listings
@@ -392,8 +397,12 @@ class ListingModel {
         rejection_reason = '',
         moderated_by = NULL,
         moderated_at = NULL,
+        appeal_status = 'none',
+        appeal_text = '',
+        appeal_at = NULL,
+        previous_snapshot = $11::jsonb,
         updated_at = now()
-      WHERE id = $1
+      WHERE id = $1 AND owner = $2
       RETURNING *
       `,
       [
@@ -407,6 +416,7 @@ class ListingModel {
         data.subcategory,
         data.images ? JSON.stringify(data.images) : null,
         data.specs ? JSON.stringify(data.specs) : null,
+        JSON.stringify(previousSnapshot),
       ]
     );
 
@@ -572,6 +582,288 @@ class ListingModel {
     return result.rows.map(mapListing);
   }
 
+  static mapModerationRow(row) {
+    const listing = mapListing(row);
+    const {
+      computeDiff,
+      listingSnapshot,
+    } = require("../lib/moderationEngine");
+
+    listing.reportCount = Number(row.report_count || 0);
+    listing.ownerTrustLevel = row.owner_trust_level || "new";
+    listing.ownerName = row.owner_name || "";
+    listing.contentDiff = listing.previousSnapshot
+      ? computeDiff(listing.previousSnapshot, listingSnapshot(listing))
+      : [];
+
+    return listing;
+  }
+
+  static async countPending() {
+    const result = await query(
+      `
+      SELECT COUNT(*)::int AS count
+      FROM listings
+      WHERE status = 'pending'
+      `
+    );
+
+    return Number(result.rows[0]?.count || 0);
+  }
+
+  static async getModerationStats() {
+    const [queueResult, slaResult, rejectResult, appealResult] =
+      await Promise.all([
+        query(
+          `
+          SELECT
+            COUNT(*) FILTER (WHERE status = 'pending')::int AS pending,
+            COUNT(*) FILTER (
+              WHERE status = 'pending'
+                AND created_at < now() - interval '24 hours'
+            )::int AS pending_over_24h,
+            COUNT(*) FILTER (
+              WHERE status = 'pending'
+                AND jsonb_array_length(COALESCE(moderation_flags, '[]'::jsonb)) > 0
+            )::int AS flagged,
+            COUNT(*) FILTER (WHERE appeal_status = 'pending')::int AS appeals_pending
+          FROM listings
+          `
+        ),
+        query(
+          `
+          SELECT
+            COALESCE(
+              AVG(EXTRACT(EPOCH FROM (moderated_at - created_at)) / 3600),
+              0
+            ) AS avg_hours
+          FROM listings
+          WHERE moderated_at IS NOT NULL
+            AND moderated_at >= now() - interval '30 days'
+          `
+        ),
+        query(
+          `
+          SELECT
+            COALESCE(NULLIF(cat, ''), 'unknown') AS cat,
+            COUNT(*) FILTER (WHERE status = 'rejected')::int AS rejected,
+            COUNT(*) FILTER (WHERE status = 'approved')::int AS approved
+          FROM listings
+          WHERE created_at >= now() - interval '30 days'
+          GROUP BY 1
+          ORDER BY rejected DESC, cat ASC
+          LIMIT 12
+          `
+        ),
+        query(
+          `
+          SELECT COUNT(*)::int AS pending_reports
+          FROM listing_reports
+          WHERE status = 'pending'
+          `
+        ),
+      ]);
+
+    const queue = queueResult.rows[0] || {};
+
+    return {
+      pending: Number(queue.pending || 0),
+      pendingOver24h: Number(queue.pending_over_24h || 0),
+      flagged: Number(queue.flagged || 0),
+      appealsPending: Number(queue.appeals_pending || 0),
+      pendingReports: Number(appealResult.rows[0]?.pending_reports || 0),
+      avgModerationHours: Number(Number(slaResult.rows[0]?.avg_hours || 0).toFixed(1)),
+      byCategory: rejectResult.rows.map((row) => ({
+        cat: row.cat,
+        rejected: Number(row.rejected || 0),
+        approved: Number(row.approved || 0),
+      })),
+    };
+  }
+
+  static async processModeration(listingId, { isUpdate = false, io = null } = {}) {
+    const listing = await this.findById(listingId);
+
+    if (!listing) return null;
+
+    const User = require("./User");
+    const owner = await User.findById(listing.owner);
+    const { evaluateListing } = require("../lib/moderationEngine");
+    const {
+      notifyModerators,
+      notifySellerModerationResult,
+    } = require("../lib/moderationNotify");
+
+    const evaluation = await evaluateListing(listing, owner, { isUpdate });
+    const flags = evaluation.flags.map((item) => ({
+      code: item.code,
+      message: item.message,
+      severity: item.severity || "medium",
+    }));
+
+    if (evaluation.action === "auto_reject") {
+      const result = await query(
+        `
+        UPDATE listings
+        SET
+          status = 'rejected',
+          rejection_reason = $2,
+          moderation_flags = $3::jsonb,
+          auto_moderation_reason = $4,
+          moderated_at = now(),
+          updated_at = now()
+        WHERE id = $1
+        RETURNING *
+        `,
+        [
+          listingId,
+          evaluation.reason,
+          JSON.stringify(flags),
+          evaluation.autoModerationReason || evaluation.reason,
+        ]
+      );
+
+      const updated = mapListing(result.rows[0]);
+      await notifySellerModerationResult(updated, "rejected", evaluation.reason);
+      await notifyModerators(io, { type: "auto_reject", listing: updated });
+      return updated;
+    }
+
+    if (evaluation.action === "auto_approve") {
+      const updated = await this.approve(listingId, null);
+
+      await query(
+        `
+        UPDATE listings
+        SET
+          moderation_flags = $2::jsonb,
+          auto_moderation_reason = $3
+        WHERE id = $1
+        `,
+        [
+          listingId,
+          JSON.stringify(flags),
+          evaluation.autoModerationReason || "Доверенный продавец",
+        ]
+      );
+
+      await User.recordApprovedListing(listing.owner);
+
+      const fresh = await this.findById(listingId);
+      await notifySellerModerationResult(fresh, "approved");
+      await notifyModerators(io, { type: "auto_approve", listing: fresh });
+      return fresh || updated;
+    }
+
+    const result = await query(
+      `
+      UPDATE listings
+      SET
+        status = 'pending',
+        moderation_flags = $2::jsonb,
+        auto_moderation_reason = $3,
+        updated_at = now()
+      WHERE id = $1
+      RETURNING *
+      `,
+      [
+        listingId,
+        JSON.stringify(flags),
+        evaluation.autoModerationReason || "",
+      ]
+    );
+
+    const updated = mapListing(result.rows[0]);
+    await notifyModerators(io, {
+      type: isUpdate ? "updated" : "queued",
+      listing: updated,
+    });
+
+    return updated;
+  }
+
+  static async submitAppeal(id, ownerId, text) {
+    const appealText = String(text || "").trim();
+
+    if (appealText.length < 10) {
+      throw new Error("APPEAL_TOO_SHORT");
+    }
+
+    const existing = await this.findById(id);
+
+    if (!existing || String(existing.owner) !== String(ownerId)) {
+      return null;
+    }
+
+    if (existing.status !== "rejected") {
+      throw new Error("NOT_REJECTED");
+    }
+
+    if (existing.appealStatus === "pending") {
+      throw new Error("APPEAL_ALREADY_PENDING");
+    }
+
+    const result = await query(
+      `
+      UPDATE listings
+      SET
+        appeal_status = 'pending',
+        appeal_text = $3,
+        appeal_at = now(),
+        status = 'pending',
+        updated_at = now()
+      WHERE id = $1 AND owner = $2
+      RETURNING *
+      `,
+      [id, ownerId, appealText]
+    );
+
+    return mapListing(result.rows[0]);
+  }
+
+  static async resolveAppeal(id, moderatorId, approved, note = "") {
+    const existing = await this.findById(id);
+
+    if (!existing || existing.appealStatus !== "pending") {
+      return null;
+    }
+
+    if (approved) {
+      const listing = await this.approve(id, moderatorId);
+
+      await query(
+        `
+        UPDATE listings
+        SET appeal_status = 'approved'
+        WHERE id = $1
+        `,
+        [id]
+      );
+
+      return this.findById(id) || listing;
+    }
+
+    const reason = String(note || existing.rejectionReason || "Апелляция отклонена").trim();
+
+    const result = await query(
+      `
+      UPDATE listings
+      SET
+        status = 'rejected',
+        rejection_reason = $3,
+        appeal_status = 'rejected',
+        moderated_by = $2,
+        moderated_at = now(),
+        updated_at = now()
+      WHERE id = $1
+      RETURNING *
+      `,
+      [id, moderatorId, reason]
+    );
+
+    return mapListing(result.rows[0]);
+  }
+
   static async findForModeration({
     status = "pending",
     limit = 100,
@@ -579,16 +871,38 @@ class ListingModel {
   } = {}) {
     const result = await query(
       `
-      SELECT *
-      FROM listings
-      WHERE status = $1
-      ORDER BY created_at ASC
+      SELECT
+        l.*,
+        u.trust_level AS owner_trust_level,
+        u.name AS owner_name,
+        COALESCE(r.report_count, 0)::int AS report_count
+      FROM listings l
+      JOIN users u ON u.id = l.owner
+      LEFT JOIN (
+        SELECT listing_id, COUNT(*)::int AS report_count
+        FROM listing_reports
+        WHERE status = 'pending'
+        GROUP BY listing_id
+      ) r ON r.listing_id = l.id
+      WHERE l.status = $1
+      ORDER BY
+        CASE WHEN l.appeal_status = 'pending' THEN 0 ELSE 1 END,
+        COALESCE(r.report_count, 0) DESC,
+        CASE
+          WHEN jsonb_array_length(COALESCE(l.images, '[]'::jsonb)) = 0 THEN 0
+          ELSE 1
+        END,
+        CASE
+          WHEN jsonb_array_length(COALESCE(l.moderation_flags, '[]'::jsonb)) > 0 THEN 0
+          ELSE 1
+        END,
+        l.created_at ASC
       LIMIT $2 OFFSET $3
       `,
       [status, limit, offset]
     );
 
-    return result.rows.map(mapListing);
+    return result.rows.map((row) => this.mapModerationRow(row));
   }
 
   static async approve(id, moderatorId) {
@@ -613,7 +927,14 @@ class ListingModel {
       [id, moderatorId, String(ttlDays)]
     );
 
-    return mapListing(result.rows[0]);
+    const listing = mapListing(result.rows[0]);
+
+    if (listing && moderatorId) {
+      const User = require("./User");
+      await User.recordApprovedListing(listing.owner);
+    }
+
+    return listing;
   }
 
   static async reject(id, moderatorId, reason) {

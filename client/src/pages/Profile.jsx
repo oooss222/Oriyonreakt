@@ -347,6 +347,7 @@ const ListingCard = React.memo(function ListingCard({
   promotingId,
   compact = false,
   isFavorite = false,
+  onAppeal,
 }) {
   const id = getId(ad);
   const imgUrl = getListingThumb(ad);
@@ -452,6 +453,24 @@ const ListingCard = React.memo(function ListingCard({
         </div>
       )}
 
+      {canManage && status === "rejected" && ad.appealStatus === "pending" && (
+        <div className="mx-2 mb-2 rounded-xl border border-indigo-200 bg-indigo-50 text-indigo-800 p-2 text-xs">
+          Апелляция на рассмотрении
+        </div>
+      )}
+
+      {canManage && status === "rejected" && ad.appealStatus !== "pending" && (
+        <div className="mx-2 mb-2">
+          <button
+            type="button"
+            onClick={() => onAppeal?.(id)}
+            className="w-full inline-flex justify-center px-3 py-2 rounded-xl border border-indigo-200 text-indigo-700 hover:bg-indigo-50 transition text-sm"
+          >
+            Оспорить отклонение
+          </button>
+        </div>
+      )}
+
       {canManage && (
         <div className="px-2 pb-2 flex flex-col gap-2">
           <div className="flex flex-wrap items-center gap-2">
@@ -532,6 +551,7 @@ const ListingsGrid = React.memo(function ListingsGrid({
   walletBalance,
   promotingId,
   compact = false,
+  onAppeal,
 }) {
   if (!items?.length) {
     return (
@@ -591,6 +611,7 @@ const ListingsGrid = React.memo(function ListingsGrid({
           promotingId={promotingId}
           compact={compact}
           isFavorite={tab === "fav"}
+          onAppeal={onAppeal}
         />
       ))}
     </div>
@@ -607,6 +628,7 @@ function MyListingsPanel({
   promotionPrices,
   walletBalance,
   promotingId,
+  onAppeal,
 }) {
   const [query, setQuery] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState("all");
@@ -817,6 +839,7 @@ function MyListingsPanel({
         walletBalance={walletBalance}
         promotingId={promotingId}
         compact={view === "compact"}
+        onAppeal={onAppeal}
       />
     </div>
   );
@@ -1097,6 +1120,29 @@ export default function Profile() {
           arr.filter((x) => String(getId(x)) !== String(id))
         );
       } catch {}
+    },
+    [token]
+  );
+
+  const submitAppeal = React.useCallback(
+    async (id) => {
+      const text = prompt(
+        "Опишите, почему объявление должно быть одобрено (минимум 10 символов):"
+      );
+
+      if (!text) return;
+
+      try {
+        const updated = await api.listingAppeal(token, id, text.trim());
+        setMyItems((arr) =>
+          arr.map((item) =>
+            String(getId(item)) === String(id) ? { ...item, ...updated } : item
+          )
+        );
+        alert("Апелляция отправлена на рассмотрение");
+      } catch (e) {
+        alert(e?.message || "Не удалось отправить апелляцию");
+      }
     },
     [token]
   );
@@ -1970,6 +2016,7 @@ export default function Profile() {
     onRemove={remove}
     onStatusAction={updateListingStatus}
     onPromote={promoteListing}
+    onAppeal={submitAppeal}
     promotionPrices={promotionPrices}
     walletBalance={walletBalance}
     promotingId={promotingId}

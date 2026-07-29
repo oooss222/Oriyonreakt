@@ -449,5 +449,49 @@ static async touchLastSeen(id) {
 
   return mapUser(result.rows[0]);
 }
+
+  static async recordApprovedListing(userId) {
+    const {
+      TRUSTED_APPROVAL_THRESHOLD,
+    } = require("../lib/moderationEngine");
+
+    const result = await query(
+      `
+      UPDATE users
+      SET
+        approved_listings_count = approved_listings_count + 1,
+        trust_level = CASE
+          WHEN approved_listings_count + 1 >= $2 AND trust_level = 'new' THEN 'trusted'
+          ELSE trust_level
+        END,
+        updated_at = now()
+      WHERE id = $1
+      RETURNING *
+      `,
+      [userId, TRUSTED_APPROVAL_THRESHOLD]
+    );
+
+    return mapUser(result.rows[0]);
+  }
+
+  static async setTrustLevel(userId, trustLevel) {
+    const allowed = new Set(["new", "trusted", "blocked"]);
+
+    if (!allowed.has(trustLevel)) {
+      throw new Error("INVALID_TRUST_LEVEL");
+    }
+
+    const result = await query(
+      `
+      UPDATE users
+      SET trust_level = $2, updated_at = now()
+      WHERE id = $1
+      RETURNING *
+      `,
+      [userId, trustLevel]
+    );
+
+    return mapUser(result.rows[0]);
+  }
 }
 module.exports = UserModel;

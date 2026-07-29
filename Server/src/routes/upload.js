@@ -25,21 +25,40 @@ const upload = multer({
   },
 });
 
+function getModerationKind() {
+  const value = String(process.env.CLOUDINARY_MODERATION || "").trim();
+  return value || null;
+}
+
 function uploadToCloudinary(buffer) {
+  const moderation = getModerationKind();
+
   return new Promise((resolve, reject) => {
-    const stream = cloudinary.uploader.upload_stream(
-      {
-        folder: "oriyon/listings",
-        resource_type: "image",
-        format: "webp",
-      },
-      (error, result) => {
-        if (error) return reject(error);
-        resolve(result);
-      }
-    );
+    const options = {
+      folder: "oriyon/listings",
+      resource_type: "image",
+      format: "webp",
+    };
+
+    if (moderation) {
+      options.moderation = moderation;
+    }
+
+    const stream = cloudinary.uploader.upload_stream(options, (error, result) => {
+      if (error) return reject(error);
+      resolve(result);
+    });
 
     stream.end(buffer);
+  });
+}
+
+function isModerationRejected(result) {
+  const entries = Array.isArray(result?.moderation) ? result.moderation : [];
+
+  return entries.some((entry) => {
+    const status = String(entry?.status || "").toLowerCase();
+    return status === "rejected";
   });
 }
 
@@ -54,6 +73,7 @@ router.post("/images", auth, upload.array("images", 10), async (req, res) => {
     }
 
     const urls = [];
+    const rejected = [];
 
     for (const file of files) {
       const optimizedBuffer = await sharp(file.buffer)
@@ -69,11 +89,27 @@ router.post("/images", auth, upload.array("images", 10), async (req, res) => {
 
       const uploaded = await uploadToCloudinary(optimizedBuffer);
 
+      if (isModerationRejected(uploaded)) {
+        rejected.push(file.originalname || "image");
+        continue;
+      }
+
       urls.push(uploaded.secure_url);
+    }
+
+    if (!urls.length) {
+      return res.status(400).json({
+        error:
+          rejected.length > 0
+            ? "Изображение не прошло автоматическую проверку"
+            : "Image upload failed",
+        rejected,
+      });
     }
 
     return res.status(201).json({
       urls,
+      rejected,
     });
   } catch (e) {
     console.error("UPLOAD_IMAGES_ERROR:", e);

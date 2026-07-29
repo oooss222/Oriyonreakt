@@ -6,6 +6,11 @@ const User = require("../models/User");
 const Listing = require("../models/Listing");
 const Report = require("../models/Report");
 const AdminAudit = require("../models/AdminAudit");
+const {
+  notifyModerators,
+  notifySellerModerationResult,
+  getPendingCount,
+} = require("../lib/moderationNotify");
 
 const ADMIN_MANAGEABLE_ROLES = ["user", "moderator"];
 
@@ -55,6 +60,34 @@ async function audit(req, action, targetType, targetId, details = {}) {
 router.use(auth);
 router.use(requireRole("moderator", "admin", "super_admin"));
 
+router.get("/queue-count", async (req, res) => {
+  try {
+    const pendingCount = await getPendingCount();
+
+    return res.json({ pendingCount });
+  } catch (e) {
+    console.error("MODERATION_QUEUE_COUNT_ERROR:", e?.message);
+
+    return res.status(500).json({
+      error: "Failed to load moderation queue count",
+    });
+  }
+});
+
+router.get("/stats", async (req, res) => {
+  try {
+    const stats = await Listing.getModerationStats();
+
+    return res.json(stats);
+  } catch (e) {
+    console.error("MODERATION_STATS_ERROR:", e?.message);
+
+    return res.status(500).json({
+      error: "Failed to load moderation stats",
+    });
+  }
+});
+
 router.get("/listings", async (req, res) => {
   try {
     const status = String(req.query.status || "pending");
@@ -97,6 +130,12 @@ router.post("/listings/:id/approve", async (req, res) => {
       title: listing.title,
     });
 
+    await notifySellerModerationResult(listing, "approved");
+    await notifyModerators(req.app.get("io"), {
+      type: "approved",
+      listing,
+    });
+
     return res.json(listing);
   } catch (e) {
     console.error("MODERATION_APPROVE_ERROR:", e?.message);
@@ -136,6 +175,12 @@ router.post("/listings/:id/reject", async (req, res) => {
       reason,
     });
 
+    await notifySellerModerationResult(listing, "rejected", reason);
+    await notifyModerators(req.app.get("io"), {
+      type: "rejected",
+      listing,
+    });
+
     return res.json(listing);
   } catch (e) {
     console.error("MODERATION_REJECT_ERROR:", e?.message);
@@ -146,11 +191,88 @@ router.post("/listings/:id/reject", async (req, res) => {
   }
 });
 
+router.post("/listings/:id/appeal/approve", async (req, res) => {
+  try {
+    const listing = await Listing.resolveAppeal(
+      req.params.id,
+      req.user.id,
+      true
+    );
+
+    if (!listing) {
+      return res.status(404).json({
+        error: "Appeal not found",
+      });
+    }
+
+    await audit(req, "listing.appeal_approve", "listing", listing.id, {
+      title: listing.title,
+    });
+
+    await notifySellerModerationResult(listing, "approved");
+    await notifyModerators(req.app.get("io"), {
+      type: "appeal_approved",
+      listing,
+    });
+
+    return res.json(listing);
+  } catch (e) {
+    console.error("MODERATION_APPEAL_APPROVE_ERROR:", e?.message);
+
+    return res.status(500).json({
+      error: "Failed to approve appeal",
+    });
+  }
+});
+
+router.post("/listings/:id/appeal/reject", async (req, res) => {
+  try {
+    const note = String(req.body?.reason || req.body?.note || "").trim();
+
+    const listing = await Listing.resolveAppeal(
+      req.params.id,
+      req.user.id,
+      false,
+      note
+    );
+
+    if (!listing) {
+      return res.status(404).json({
+        error: "Appeal not found",
+      });
+    }
+
+    await audit(req, "listing.appeal_reject", "listing", listing.id, {
+      title: listing.title,
+      reason: note,
+    });
+
+    await notifySellerModerationResult(
+      listing,
+      "rejected",
+      note || listing.rejectionReason
+    );
+    await notifyModerators(req.app.get("io"), {
+      type: "appeal_rejected",
+      listing,
+    });
+
+    return res.json(listing);
+  } catch (e) {
+    console.error("MODERATION_APPEAL_REJECT_ERROR:", e?.message);
+
+    return res.status(500).json({
+      error: "Failed to reject appeal",
+    });
+  }
+});
+
 router.get("/reports", async (req, res) => {
   try {
     const status = String(req.query.status || "pending");
     const limit = Number(req.query.limit || 100);
     const offset = Number(req.query.offset || 0);
+    const grouped = String(req.query.grouped || "") === "1";
 
     if (!["pending", "reviewed", "dismissed"].includes(status)) {
       return res.status(400).json({
@@ -158,11 +280,9 @@ router.get("/reports", async (req, res) => {
       });
     }
 
-    const reports = await Report.findForModeration({
-      status,
-      limit,
-      offset,
-    });
+    const reports = grouped
+      ? await Report.findGroupedForModeration({ status, limit, offset })
+      : await Report.findForModeration({ status, limit, offset });
 
     return res.json(reports);
   } catch (e) {
@@ -255,6 +375,11 @@ router.post("/reports/:id/delete-listing", async (req, res) => {
       listingTitle: report.listingTitle,
     });
 
+    await notifyModerators(req.app.get("io"), {
+      type: "listing_deleted",
+      listing,
+    });
+
     return res.json({
       ok: true,
       report: { ...report, status: "reviewed" },
@@ -303,6 +428,7 @@ router.post("/reports/:id/block-owner", async (req, res) => {
     }
 
     const updated = await User.blockUser(report.listingOwnerId);
+    await User.setTrustLevel(report.listingOwnerId, "blocked");
 
     await Report.updateStatus(report.id, "reviewed", req.user.id);
 

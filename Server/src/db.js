@@ -125,6 +125,23 @@ async function initDb() {
     ALTER TABLE users
       ADD COLUMN IF NOT EXISTS telegram TEXT NOT NULL DEFAULT '';
 
+    ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS trust_level TEXT NOT NULL DEFAULT 'new';
+
+    ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS approved_listings_count INTEGER NOT NULL DEFAULT 0;
+
+    DO $$
+    BEGIN
+      IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint WHERE conname = 'users_trust_level_check'
+      ) THEN
+        ALTER TABLE users
+          ADD CONSTRAINT users_trust_level_check
+          CHECK (trust_level IN ('new', 'trusted', 'blocked'));
+      END IF;
+    END $$;
+
     DO $$
     BEGIN
       IF NOT EXISTS (
@@ -190,6 +207,35 @@ async function initDb() {
 
     ALTER TABLE listings
       ADD COLUMN IF NOT EXISTS expiry_notice_sent_at TIMESTAMPTZ;
+
+    ALTER TABLE listings
+      ADD COLUMN IF NOT EXISTS moderation_flags JSONB NOT NULL DEFAULT '[]'::jsonb;
+
+    ALTER TABLE listings
+      ADD COLUMN IF NOT EXISTS previous_snapshot JSONB;
+
+    ALTER TABLE listings
+      ADD COLUMN IF NOT EXISTS auto_moderation_reason TEXT NOT NULL DEFAULT '';
+
+    ALTER TABLE listings
+      ADD COLUMN IF NOT EXISTS appeal_status TEXT NOT NULL DEFAULT 'none';
+
+    ALTER TABLE listings
+      ADD COLUMN IF NOT EXISTS appeal_text TEXT NOT NULL DEFAULT '';
+
+    ALTER TABLE listings
+      ADD COLUMN IF NOT EXISTS appeal_at TIMESTAMPTZ;
+
+    DO $$
+    BEGIN
+      IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint WHERE conname = 'listings_appeal_status_check'
+      ) THEN
+        ALTER TABLE listings
+          ADD CONSTRAINT listings_appeal_status_check
+          CHECK (appeal_status IN ('none', 'pending', 'approved', 'rejected'));
+      END IF;
+    END $$;
 
     DO $$
     BEGIN
@@ -482,6 +528,9 @@ function mapUser(row) {
     role: row.role || "user",
     isBlocked: Boolean(row.is_blocked),
 
+    trustLevel: row.trust_level || "new",
+    approvedListingsCount: Number(row.approved_listings_count || 0),
+
     emailVerified: row.email_verified,
 
     walletBalance: Number(row.wallet_balance || 0),
@@ -533,6 +582,13 @@ function mapListing(row) {
     rejectionReason: row.rejection_reason || "",
     moderatedBy: row.moderated_by || null,
     moderatedAt: row.moderated_at || null,
+
+    moderationFlags: row.moderation_flags || [],
+    previousSnapshot: row.previous_snapshot || null,
+    autoModerationReason: row.auto_moderation_reason || "",
+    appealStatus: row.appeal_status || "none",
+    appealText: row.appeal_text || "",
+    appealAt: row.appeal_at || null,
 
     views: Number(row.views || 0),
 

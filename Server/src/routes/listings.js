@@ -221,6 +221,12 @@ router.post("/:id/report", auth, async (req, res) => {
       details,
     });
 
+    const { notifyModerators } = require("../lib/moderationNotify");
+    await notifyModerators(req.app.get("io"), {
+      type: "report_created",
+      listing,
+    });
+
     return res.status(201).json(report);
   } catch (e) {
     if (e?.message === "ALREADY_REPORTED") {
@@ -280,6 +286,56 @@ router.post("/:id/sold", auth, (req, res) =>
 router.post("/:id/archive", auth, (req, res) =>
   updateListingOwnerStatus(req, res, "archived")
 );
+
+router.post("/:id/appeal", auth, async (req, res) => {
+  try {
+    const text = String(req.body?.text || req.body?.reason || "").trim();
+
+    const listing = await Listing.submitAppeal(
+      req.params.id,
+      req.user.id,
+      text
+    );
+
+    if (!listing) {
+      return res.status(404).json({
+        error: "Listing not found",
+      });
+    }
+
+    const { notifyModerators } = require("../lib/moderationNotify");
+    await notifyModerators(req.app.get("io"), {
+      type: "appeal_submitted",
+      listing,
+    });
+
+    return res.json(listing);
+  } catch (e) {
+    if (e?.message === "APPEAL_TOO_SHORT") {
+      return res.status(400).json({
+        error: "Appeal text must be at least 10 characters",
+      });
+    }
+
+    if (e?.message === "NOT_REJECTED") {
+      return res.status(400).json({
+        error: "Only rejected listings can be appealed",
+      });
+    }
+
+    if (e?.message === "APPEAL_ALREADY_PENDING") {
+      return res.status(409).json({
+        error: "Appeal is already pending",
+      });
+    }
+
+    console.error("LISTING_APPEAL_ERROR:", e?.message);
+
+    return res.status(500).json({
+      error: "Failed to submit appeal",
+    });
+  }
+});
 
 router.post("/:id/republish", auth, async (req, res) => {
   try {
@@ -395,7 +451,12 @@ router.post("/", auth, async (req, res) => {
       owner: req.user.id,
     });
 
-    return res.status(201).json(listing);
+    const moderated = await Listing.processModeration(listing.id, {
+      isUpdate: false,
+      io: req.app.get("io"),
+    });
+
+    return res.status(201).json(moderated || listing);
   } catch (e) {
     console.error("LISTING_CREATE_ERROR:", e?.message);
 
@@ -430,7 +491,12 @@ router.put("/:id", auth, async (req, res) => {
       });
     }
 
-    return res.json(listing);
+    const moderated = await Listing.processModeration(listing.id, {
+      isUpdate: true,
+      io: req.app.get("io"),
+    });
+
+    return res.json(moderated || listing);
   } catch (e) {
     if (e?.message === "FORBIDDEN") {
       return res.status(403).json({

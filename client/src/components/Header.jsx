@@ -9,10 +9,13 @@ import {
   Grid3X3,
   LogIn,
   MessageCircle,
+  ClipboardCheck,
 } from "lucide-react";
 
 import { api } from "../lib/api";
 import { TOKEN_KEY, USER_KEY } from "../lib/auth";
+import { canAccessModeration } from "../lib/adminUtils";
+import { subscribeModerationQueue } from "../lib/moderationSocket";
 import {
   getUnreadTotal,
   subscribeUnreadCount,
@@ -30,6 +33,7 @@ export default function Header() {
   const [catalogTotal, setCatalogTotal] = React.useState(0);
   const [showSuggestions, setShowSuggestions] = React.useState(false);
   const [unreadCount, setUnreadCount] = React.useState(0);
+  const [moderationCount, setModerationCount] = React.useState(0);
   const [scrolled, setScrolled] = React.useState(false);
 
   const token = localStorage.getItem(TOKEN_KEY) || "";
@@ -45,6 +49,36 @@ export default function Header() {
   const pathname = location.pathname;
   const onMessagesPage = pathname === "/messages";
   const badgeCount = onMessagesPage ? 0 : unreadCount;
+  const canModerate = canAccessModeration(user?.role);
+
+  React.useEffect(() => {
+    if (!token || !canModerate) {
+      setModerationCount(0);
+      return undefined;
+    }
+
+    let active = true;
+
+    api
+      .moderationQueueCount(token)
+      .then((data) => {
+        if (active) setModerationCount(Number(data?.pendingCount || 0));
+      })
+      .catch(() => {
+        if (active) setModerationCount(0);
+      });
+
+    const unsubscribe = subscribeModerationQueue((payload) => {
+      if (payload?.pendingCount != null) {
+        setModerationCount(Number(payload.pendingCount || 0));
+      }
+    });
+
+    return () => {
+      active = false;
+      unsubscribe();
+    };
+  }, [token, canModerate]);
 
   const isBrowsePage =
     pathname === "/" ||
@@ -242,6 +276,21 @@ export default function Header() {
             >
               <Grid3X3 size={20} />
             </Link>
+
+            {canModerate && (
+              <Link
+                to="/admin?section=moderation"
+                className="relative p-2.5 rounded-lg hover:bg-white/10 transition"
+                title="Модерация"
+              >
+                <ClipboardCheck size={20} />
+                {moderationCount > 0 && (
+                  <span className="absolute top-1 right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-amber-500 text-white text-[10px] font-bold flex items-center justify-center">
+                    {moderationCount > 99 ? "99+" : moderationCount}
+                  </span>
+                )}
+              </Link>
+            )}
 
             {token ? (
               <>

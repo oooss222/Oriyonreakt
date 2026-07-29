@@ -636,6 +636,37 @@ export const api = {
       token,
     }),
 
+  moderationQueueCount: (token) =>
+    request("/moderation/queue-count", { token }),
+
+  moderationStats: (token) => request("/moderation/stats", { token }),
+
+  moderationReportsGrouped: (token, status = "pending") =>
+    request(
+      `/moderation/reports?status=${encodeURIComponent(status)}&grouped=1`,
+      { token }
+    ),
+
+  moderationApproveAppeal: (token, listingId) =>
+    request(`/moderation/listings/${listingId}/appeal/approve`, {
+      method: "POST",
+      token,
+    }),
+
+  moderationRejectAppeal: (token, listingId, reason) =>
+    request(`/moderation/listings/${listingId}/appeal/reject`, {
+      method: "POST",
+      token,
+      body: { reason },
+    }),
+
+  listingAppeal: (token, listingId, text) =>
+    request(`/listings/${listingId}/appeal`, {
+      method: "POST",
+      token,
+      body: { text },
+    }),
+
   siteSettings: () => request("/settings"),
 
   sitePolicy: () => request("/settings/policy"),

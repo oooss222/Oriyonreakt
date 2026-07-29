@@ -7,6 +7,8 @@ import { getListingThumb } from "../../lib/media";
 import { formatPrice } from "../../lib/format";
 import ListingGridSkeleton from "../ListingGridSkeleton";
 import ModerationReports from "../ModerationReports";
+import ModerationStatsPanel from "./ModerationStatsPanel";
+import { subscribeModerationQueue } from "../../lib/moderationSocket";
 
 export default function ModerationListingsPanel({ token, embedded = false }) {
   const [panelMode, setPanelMode] = React.useState("listings");
@@ -96,6 +98,51 @@ export default function ModerationListingsPanel({ token, embedded = false }) {
       withoutImages: items.filter((ad) => !ad?.images?.length).length,
     };
   }, [items, filteredItems]);
+
+  React.useEffect(() => {
+    return subscribeModerationQueue(() => {
+      load();
+    });
+  }, [load]);
+
+  const approveAppeal = React.useCallback(
+    async (id) => {
+      const ok = confirm("Одобрить апелляцию и опубликовать объявление?");
+      if (!ok) return;
+
+      try {
+        setActionLoadingId(id);
+        await api.moderationApproveAppeal(token, id);
+        setItems((arr) =>
+          arr.filter((item) => String(getId(item)) !== String(id))
+        );
+      } catch (e) {
+        alert(e.message || "Ошибка одобрения апелляции");
+      } finally {
+        setActionLoadingId("");
+      }
+    },
+    [token]
+  );
+
+  const rejectAppeal = React.useCallback(
+    async (id) => {
+      const note = prompt("Комментарий по апелляции (необязательно):") || "";
+
+      try {
+        setActionLoadingId(id);
+        await api.moderationRejectAppeal(token, id, note);
+        setItems((arr) =>
+          arr.filter((item) => String(getId(item)) !== String(id))
+        );
+      } catch (e) {
+        alert(e.message || "Ошибка отклонения апелляции");
+      } finally {
+        setActionLoadingId("");
+      }
+    },
+    [token]
+  );
 
   const approve = React.useCallback(
     async (id) => {
@@ -247,6 +294,8 @@ export default function ModerationListingsPanel({ token, embedded = false }) {
   return (
     <div className="space-y-4">
       {!embedded && modeSwitch}
+
+      <ModerationStatsPanel token={token} />
 
       <div className="rounded-2xl border bg-white p-4 md:p-5 space-y-5">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
@@ -411,6 +460,24 @@ export default function ModerationListingsPanel({ token, embedded = false }) {
                       <span className="text-xs text-slate-500">
                         ID: {String(id).slice(0, 8)}...
                       </span>
+
+                      {ad.ownerTrustLevel === "trusted" && (
+                        <span className="inline-flex px-2 py-0.5 text-xs rounded-full border bg-emerald-50 text-emerald-700 border-emerald-200">
+                          Доверенный
+                        </span>
+                      )}
+
+                      {Number(ad.reportCount || 0) > 0 && (
+                        <span className="inline-flex px-2 py-0.5 text-xs rounded-full border bg-red-50 text-red-700 border-red-200">
+                          Жалоб: {ad.reportCount}
+                        </span>
+                      )}
+
+                      {ad.appealStatus === "pending" && (
+                        <span className="inline-flex px-2 py-0.5 text-xs rounded-full border bg-indigo-50 text-indigo-700 border-indigo-200">
+                          Апелляция
+                        </span>
+                      )}
                     </div>
 
                     <Link
@@ -438,6 +505,42 @@ export default function ModerationListingsPanel({ token, embedded = false }) {
                       </p>
                     )}
 
+                    {Array.isArray(ad.moderationFlags) && ad.moderationFlags.length > 0 && (
+                      <div className="mt-2 flex flex-wrap gap-1">
+                        {ad.moderationFlags.map((flag) => (
+                          <span
+                            key={`${id}-${flag.code}`}
+                            className="inline-flex px-2 py-0.5 text-[11px] rounded-full border bg-amber-50 text-amber-800 border-amber-200"
+                          >
+                            {flag.message}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    {Array.isArray(ad.contentDiff) && ad.contentDiff.length > 0 && (
+                      <div className="mt-3 rounded-xl border bg-slate-50 p-3 text-xs space-y-1">
+                        <div className="font-semibold text-slate-700">Изменения</div>
+                        {ad.contentDiff.map((change) => (
+                          <div key={`${id}-${change.field}`} className="text-slate-600">
+                            <b>{change.label}:</b> {change.before} → {change.after}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {ad.appealText && (
+                      <div className="mt-3 rounded-xl border border-indigo-200 bg-indigo-50 p-3 text-sm text-indigo-900">
+                        <b>Апелляция:</b> {ad.appealText}
+                      </div>
+                    )}
+
+                    {ad.autoModerationReason && (
+                      <div className="mt-2 text-xs text-slate-500">
+                        Авто-проверка: {ad.autoModerationReason}
+                      </div>
+                    )}
+
                     {ad.rejectionReason && (
                       <div className="mt-3 rounded-xl border border-red-200 bg-red-50 text-red-700 p-3 text-sm">
                         <b>Причина отклонения:</b> {ad.rejectionReason}
@@ -458,21 +561,43 @@ export default function ModerationListingsPanel({ token, embedded = false }) {
 
                     {status === "pending" && (
                       <>
-                        <button
-                          onClick={() => approve(id)}
-                          disabled={isBusy}
-                          className="inline-flex justify-center px-3 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-60"
-                        >
-                          {isBusy ? "..." : "Принять"}
-                        </button>
+                        {ad.appealStatus === "pending" ? (
+                          <>
+                            <button
+                              onClick={() => approveAppeal(id)}
+                              disabled={isBusy}
+                              className="inline-flex justify-center px-3 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-60"
+                            >
+                              Одобрить апелляцию
+                            </button>
 
-                        <button
-                          onClick={() => openReject(ad)}
-                          disabled={isBusy}
-                          className="inline-flex justify-center px-3 py-2 rounded-lg border text-red-600 hover:bg-red-50 disabled:opacity-60"
-                        >
-                          Отклонить
-                        </button>
+                            <button
+                              onClick={() => rejectAppeal(id)}
+                              disabled={isBusy}
+                              className="inline-flex justify-center px-3 py-2 rounded-lg border text-indigo-700 hover:bg-indigo-50 disabled:opacity-60"
+                            >
+                              Отклонить апелляцию
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <button
+                              onClick={() => approve(id)}
+                              disabled={isBusy}
+                              className="inline-flex justify-center px-3 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-60"
+                            >
+                              {isBusy ? "..." : "Принять"}
+                            </button>
+
+                            <button
+                              onClick={() => openReject(ad)}
+                              disabled={isBusy}
+                              className="inline-flex justify-center px-3 py-2 rounded-lg border text-red-600 hover:bg-red-50 disabled:opacity-60"
+                            >
+                              Отклонить
+                            </button>
+                          </>
+                        )}
                       </>
                     )}
 

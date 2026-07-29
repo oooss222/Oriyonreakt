@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken");
 const User = require("./models/User");
+const { isModeratorRole } = require("./lib/moderationNotify");
 
 const lastSeenUpdates = new Map();
 const SEEN_INTERVAL_MS = 30_000;
@@ -63,8 +64,13 @@ function attachSocketHandlers(io) {
 
   io.on("connection", (socket) => {
     const userId = String(socket.userId);
+    const userRole = socket.userRole || "user";
 
     socket.join(`user:${String(userId)}`);
+
+    if (isModeratorRole(userRole)) {
+      socket.join("moderators");
+    }
 
     const prev = onlineUsers.get(userId) || 0;
     onlineUsers.set(userId, prev + 1);
