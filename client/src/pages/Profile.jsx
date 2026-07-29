@@ -373,6 +373,7 @@ const ListingCard = React.memo(function ListingCard({
               listing={ad}
               vipPrice={promotionPrices?.vipPrice}
               topPrice={promotionPrices?.topPrice}
+              bumpPrice={promotionPrices?.bumpPrice}
               walletBalance={walletBalance}
               promoting={promotingId}
               compact
@@ -733,6 +734,7 @@ export default function Profile() {
   const [promotionPrices, setPromotionPrices] = React.useState({
     vipPrice: 25,
     topPrice: 15,
+    bumpPrice: 5,
   });
   const [promotingId, setPromotingId] = React.useState(null);
 
@@ -770,6 +772,7 @@ export default function Profile() {
         setPromotionPrices({
           vipPrice: settings.vipPrice ?? 25,
           topPrice: settings.topPrice ?? 15,
+          bumpPrice: settings.bumpPrice ?? 5,
         });
       })
       .catch(() => {});
@@ -1011,13 +1014,22 @@ export default function Profile() {
 
   const promoteListing = React.useCallback(
     async (id, type) => {
-      const price =
-        type === "vip" ? promotionPrices.vipPrice : promotionPrices.topPrice;
-      const label = type === "vip" ? "VIP (7 дней)" : "TOP (3 дня)";
+      const priceByType = {
+        vip: promotionPrices.vipPrice,
+        top: promotionPrices.topPrice,
+        bump: promotionPrices.bumpPrice,
+      };
+      const labelByType = {
+        vip: "VIP (7 дней)",
+        top: "TOP (3 дня)",
+        bump: "Обновление даты",
+      };
+      const price = priceByType[type];
+      const label = labelByType[type] || type;
 
       if (
         !confirm(
-          `Подключить ${label} за ${Number(price).toLocaleString("ru-RU")} TJS?`
+          `${type === "bump" ? "Обновить дату" : "Подключить"} ${label} за ${Number(price).toLocaleString("ru-RU")} TJS?`
         )
       ) {
         return;
@@ -1044,7 +1056,9 @@ export default function Profile() {
         alert(
           type === "vip"
             ? "VIP продвижение активировано"
-            : "TOP продвижение активировано"
+            : type === "top"
+            ? "TOP продвижение активировано"
+            : "Дата объявления обновлена"
         );
       } catch (e) {
         const message = e?.message || "";

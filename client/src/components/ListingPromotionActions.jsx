@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { Sparkles, TrendingUp } from "lucide-react";
+import { CalendarClock, Sparkles, TrendingUp } from "lucide-react";
 
 function formatUntil(until) {
   if (!until) return null;
@@ -17,10 +17,26 @@ function formatUntil(until) {
   });
 }
 
+function formatDateTime(value) {
+  if (!value) return null;
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) return null;
+
+  return date.toLocaleDateString("ru-RU", {
+    day: "numeric",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 export default function ListingPromotionActions({
   listing,
   vipPrice = 25,
   topPrice = 15,
+  bumpPrice = 5,
   walletBalance = 0,
   onPromote,
   promoting = null,
@@ -33,9 +49,11 @@ export default function ListingPromotionActions({
 
   const vipUntilLabel = formatUntil(listing?.vipUntil);
   const topUntilLabel = formatUntil(listing?.topUntil);
+  const bumpedAtLabel = formatDateTime(listing?.bumpedAt);
 
   const vipBusy = promoting === `${listingId}-vip`;
   const topBusy = promoting === `${listingId}-top`;
+  const bumpBusy = promoting === `${listingId}-bump`;
 
   return (
     <div
@@ -51,11 +69,16 @@ export default function ListingPromotionActions({
           </div>
           <p className="text-sm text-slate-600 mt-1">
             VIP — значок и приоритет на 7 дней. TOP — поднятие в ленте на 3 дня.
+            Обновление даты поднимает объявление среди обычных.
           </p>
         </div>
       )}
 
-      <div className={`grid gap-2 ${compact ? "grid-cols-1" : "grid-cols-1 sm:grid-cols-2"}`}>
+      <div
+        className={`grid gap-2 ${
+          compact ? "grid-cols-1" : "grid-cols-1 sm:grid-cols-3"
+        }`}
+      >
         <button
           type="button"
           disabled={Boolean(promoting)}
@@ -94,6 +117,22 @@ export default function ListingPromotionActions({
             : topActive
             ? `TOP до ${topUntilLabel || "—"}`
             : `TOP · ${Number(topPrice).toLocaleString("ru-RU")} TJS`}
+        </button>
+
+        <button
+          type="button"
+          disabled={Boolean(promoting)}
+          onClick={() => onPromote?.("bump")}
+          className={`inline-flex items-center justify-center gap-2 rounded-xl border font-semibold transition disabled:opacity-60 ${
+            compact ? "px-3 py-2 text-xs" : "px-4 py-3 text-sm"
+          } border-slate-200 bg-white text-slate-700 hover:bg-slate-50`}
+        >
+          <CalendarClock className="w-4 h-4" />
+          {bumpBusy
+            ? "Обновляем..."
+            : bumpedAtLabel
+            ? `Обновлено ${bumpedAtLabel}`
+            : `Обновить дату · ${Number(bumpPrice).toLocaleString("ru-RU")} TJS`}
         </button>
       </div>
 

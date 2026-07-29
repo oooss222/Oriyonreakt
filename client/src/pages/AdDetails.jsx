@@ -155,6 +155,7 @@ export default function AdDetails() {
   const [promotionPrices, setPromotionPrices] = React.useState({
     vipPrice: 25,
     topPrice: 15,
+    bumpPrice: 5,
   });
   const [promotingType, setPromotingType] = React.useState(null);
   const [walletBalance, setWalletBalance] = React.useState(0);
@@ -168,6 +169,7 @@ export default function AdDetails() {
         setPromotionPrices({
           vipPrice: settings.vipPrice ?? 25,
           topPrice: settings.topPrice ?? 15,
+          bumpPrice: settings.bumpPrice ?? 5,
         });
       })
       .catch(() => {});
@@ -512,13 +514,22 @@ export default function AdDetails() {
       return;
     }
 
-    const price =
-      type === "vip" ? promotionPrices.vipPrice : promotionPrices.topPrice;
-    const label = type === "vip" ? "VIP (7 дней)" : "TOP (3 дня)";
+    const priceByType = {
+      vip: promotionPrices.vipPrice,
+      top: promotionPrices.topPrice,
+      bump: promotionPrices.bumpPrice,
+    };
+    const labelByType = {
+      vip: "VIP (7 дней)",
+      top: "TOP (3 дня)",
+      bump: "Обновление даты",
+    };
+    const price = priceByType[type];
+    const label = labelByType[type] || type;
 
     if (
       !confirm(
-        `Подключить ${label} за ${Number(price).toLocaleString("ru-RU")} TJS?`
+        `${type === "bump" ? "Обновить дату" : "Подключить"} ${label} за ${Number(price).toLocaleString("ru-RU")} TJS?`
       )
     ) {
       return;
@@ -541,7 +552,9 @@ export default function AdDetails() {
       setToast(
         type === "vip"
           ? "VIP продвижение активировано"
-          : "TOP продвижение активировано"
+          : type === "top"
+          ? "TOP продвижение активировано"
+          : "Дата объявления обновлена"
       );
     } catch (e) {
       const message = e?.message || "";
@@ -1113,6 +1126,7 @@ export default function AdDetails() {
                           listing={ad}
                           vipPrice={promotionPrices.vipPrice}
                           topPrice={promotionPrices.topPrice}
+                          bumpPrice={promotionPrices.bumpPrice}
                           walletBalance={walletBalance}
                           promoting={
                             promotingType

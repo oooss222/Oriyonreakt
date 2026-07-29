@@ -25,6 +25,7 @@ Email: info@oriyon.store`;
 const DEFAULTS = {
   vipPrice: 25,
   topPrice: 15,
+  bumpPrice: 5,
   registrationEnabled: true,
   policyContent: DEFAULT_POLICY,
   accountantReportEmail: "",
@@ -41,6 +42,7 @@ function normalizeSettings(row) {
   return {
     vipPrice: Number(data.vipPrice) || DEFAULTS.vipPrice,
     topPrice: Number(data.topPrice) || DEFAULTS.topPrice,
+    bumpPrice: Number(data.bumpPrice) || DEFAULTS.bumpPrice,
     registrationEnabled: Boolean(data.registrationEnabled),
     policyContent: String(data.policyContent || DEFAULTS.policyContent),
     accountantReportEmail: String(data.accountantReportEmail || ""),
@@ -102,6 +104,7 @@ class SiteSettingsModel {
     return {
       vipPrice: settings.vipPrice,
       topPrice: settings.topPrice,
+      bumpPrice: settings.bumpPrice,
       registrationEnabled: settings.registrationEnabled,
     };
   }
@@ -130,6 +133,10 @@ class SiteSettingsModel {
       topPrice: Math.max(
         0,
         Number(payload.topPrice ?? current.topPrice) || current.topPrice
+      ),
+      bumpPrice: Math.max(
+        0,
+        Number(payload.bumpPrice ?? current.bumpPrice) || current.bumpPrice
       ),
       registrationEnabled:
         payload.registrationEnabled !== undefined

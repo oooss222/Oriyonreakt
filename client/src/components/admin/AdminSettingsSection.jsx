@@ -10,6 +10,7 @@ export default function AdminSettingsSection({ token }) {
   const [form, setForm] = React.useState({
     vipPrice: 25,
     topPrice: 15,
+    bumpPrice: 5,
     registrationEnabled: true,
     policyContent: "",
     accountantReportEmail: "",
@@ -27,6 +28,7 @@ export default function AdminSettingsSection({ token }) {
         setForm({
           vipPrice: data.vipPrice ?? 25,
           topPrice: data.topPrice ?? 15,
+          bumpPrice: data.bumpPrice ?? 5,
           registrationEnabled: Boolean(data.registrationEnabled),
           policyContent: data.policyContent || "",
           accountantReportEmail: data.accountantReportEmail || "",
@@ -56,6 +58,7 @@ export default function AdminSettingsSection({ token }) {
       const updated = await api.adminUpdateSettings(token, {
         vipPrice: Number(form.vipPrice),
         topPrice: Number(form.topPrice),
+        bumpPrice: Number(form.bumpPrice),
         registrationEnabled: form.registrationEnabled,
         policyContent: form.policyContent,
         accountantReportEmail: form.accountantReportEmail.trim(),
@@ -65,6 +68,7 @@ export default function AdminSettingsSection({ token }) {
       setForm({
         vipPrice: updated.vipPrice,
         topPrice: updated.topPrice,
+        bumpPrice: updated.bumpPrice,
         registrationEnabled: updated.registrationEnabled,
         policyContent: updated.policyContent,
         accountantReportEmail: updated.accountantReportEmail || "",
@@ -109,7 +113,7 @@ export default function AdminSettingsSection({ token }) {
       )}
 
       <form onSubmit={submit} className="space-y-5">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <label className="block">
             <div className="text-sm font-medium mb-1">VIP, TJS</div>
             <input
@@ -133,6 +137,20 @@ export default function AdminSettingsSection({ token }) {
               value={form.topPrice}
               onChange={(e) =>
                 setForm((prev) => ({ ...prev, topPrice: e.target.value }))
+              }
+              className="h-11 w-full rounded-xl border px-3"
+            />
+          </label>
+
+          <label className="block">
+            <div className="text-sm font-medium mb-1">Обновление даты, TJS</div>
+            <input
+              type="number"
+              min="0"
+              step="1"
+              value={form.bumpPrice}
+              onChange={(e) =>
+                setForm((prev) => ({ ...prev, bumpPrice: e.target.value }))
               }
               className="h-11 w-full rounded-xl border px-3"
             />

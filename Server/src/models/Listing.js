@@ -659,7 +659,7 @@ class ListingModel {
   static async promote(id, userId, type) {
     const normalizedType = String(type || "").trim().toLowerCase();
 
-    if (!["vip", "top"].includes(normalizedType)) {
+    if (!["vip", "top", "bump"].includes(normalizedType)) {
       throw new Error("INVALID_TYPE");
     }
 
@@ -680,6 +680,27 @@ class ListingModel {
     const SiteSettings = require("./SiteSettings");
     const User = require("./User");
     const settings = await SiteSettings.get();
+    const safeTitle = String(listing.title || "объявление").slice(0, 120);
+
+    if (normalizedType === "bump") {
+      await User.chargeWallet(userId, settings.bumpPrice, {
+        description: `Обновление даты: ${safeTitle}`,
+      });
+
+      const bumpResult = await query(
+        `
+        UPDATE listings
+        SET
+          bumped_at = now(),
+          updated_at = now()
+        WHERE id = $1 AND owner = $2
+        RETURNING *
+        `,
+        [id, userId]
+      );
+
+      return mapListing(bumpResult.rows[0]);
+    }
 
     const isVip = normalizedType === "vip";
     const price = isVip ? settings.vipPrice : settings.topPrice;
@@ -702,8 +723,6 @@ class ListingModel {
     const nextTopUntil = !isVip
       ? new Date((currentTopUntil || now).getTime() + days * msPerDay)
       : currentTopUntil;
-
-    const safeTitle = String(listing.title || "объявление").slice(0, 120);
 
     await User.chargeWallet(userId, price, {
       description: isVip
