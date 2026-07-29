@@ -12,6 +12,7 @@ import SimilarListingsSection from "../components/SimilarListingsSection";
 import { usePageMeta } from "../lib/usePageMeta";
 import { getListingThumb } from "../lib/media";
 import { formatPrice } from "../lib/format";
+import { sortListingsByMode } from "../lib/listingSort";
 import { CATS, parseSpecsParam } from "../data/listingCategories";
 import {
   Search,
@@ -162,7 +163,8 @@ export default function Listing() {
         }
 
         if (active) {
-          setItems(Array.isArray(data) ? data.filter(Boolean) : []);
+          const list = Array.isArray(data) ? data.filter(Boolean) : [];
+          setItems(sortListingsByMode(list, sort || "new"));
           setTotal(count);
           setPreviewTotal(count);
         }
@@ -182,7 +184,7 @@ export default function Listing() {
     return () => {
       active = false;
     };
-  }, [listingQuery]);
+  }, [listingQuery, sort]);
 
   React.useEffect(() => {
     if (!draftIsDirty) {
