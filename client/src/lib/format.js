@@ -31,6 +31,22 @@ export function formatViewsLabel(count) {
   return `${formatViewCount(count)} просмотров`;
 }
 
+export function formatMoney(
+  value,
+  { currency = "TJS", emptyLabel = "" } = {}
+) {
+  const numeric = Number(value);
+
+  if (!Number.isFinite(numeric)) {
+    return emptyLabel;
+  }
+
+  return `${numeric.toLocaleString("ru-RU", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  })} ${currency}`;
+}
+
 export function getListingDisplayDate(listing) {
   const created = listing?.createdAt ? new Date(listing.createdAt) : null;
   const bumped = listing?.bumpedAt ? new Date(listing.bumpedAt) : null;

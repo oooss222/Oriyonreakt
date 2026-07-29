@@ -178,15 +178,16 @@ router.put("/settings", requireRole("super_admin"), async (req, res) => {
     await audit(req, "settings.update", "settings", null, {
       vipPrice: updated.vipPrice,
       topPrice: updated.topPrice,
+      bumpPrice: updated.bumpPrice,
       registrationEnabled: updated.registrationEnabled,
     });
 
     return res.json(updated);
   } catch (e) {
-    console.error("ADMIN_SETTINGS_PUT_ERROR:", e?.message);
+    console.error("ADMIN_SETTINGS_PUT_ERROR:", e?.message, e?.stack);
 
     return res.status(500).json({
-      error: "Failed to update settings",
+      error: e?.message || "Failed to update settings",
     });
   }
 });

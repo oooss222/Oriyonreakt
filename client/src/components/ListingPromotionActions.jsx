@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { CalendarClock, Sparkles, TrendingUp } from "lucide-react";
+import { formatMoney } from "../lib/format";
 
 function formatUntil(until) {
   if (!until) return null;
@@ -96,7 +97,7 @@ export default function ListingPromotionActions({
             ? "Подключаем..."
             : vipActive
             ? `VIP до ${vipUntilLabel || "—"}`
-            : `VIP · ${Number(vipPrice).toLocaleString("ru-RU")} TJS`}
+            : `VIP · ${formatMoney(vipPrice)}`}
         </button>
 
         <button
@@ -116,7 +117,7 @@ export default function ListingPromotionActions({
             ? "Подключаем..."
             : topActive
             ? `TOP до ${topUntilLabel || "—"}`
-            : `TOP · ${Number(topPrice).toLocaleString("ru-RU")} TJS`}
+            : `TOP · ${formatMoney(topPrice)}`}
         </button>
 
         <button
@@ -130,9 +131,11 @@ export default function ListingPromotionActions({
           <CalendarClock className="w-4 h-4" />
           {bumpBusy
             ? "Обновляем..."
+            : Number(bumpPrice) <= 0
+            ? "Обновить дату · бесплатно"
             : bumpedAtLabel
             ? `Обновлено ${bumpedAtLabel}`
-            : `Обновить дату · ${Number(bumpPrice).toLocaleString("ru-RU")} TJS`}
+            : `Обновить дату · ${formatMoney(bumpPrice)}`}
         </button>
       </div>
 

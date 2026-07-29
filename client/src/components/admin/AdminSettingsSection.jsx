@@ -119,7 +119,7 @@ export default function AdminSettingsSection({ token }) {
             <input
               type="number"
               min="0"
-              step="1"
+              step="0.01"
               value={form.vipPrice}
               onChange={(e) =>
                 setForm((prev) => ({ ...prev, vipPrice: e.target.value }))
@@ -133,7 +133,7 @@ export default function AdminSettingsSection({ token }) {
             <input
               type="number"
               min="0"
-              step="1"
+              step="0.01"
               value={form.topPrice}
               onChange={(e) =>
                 setForm((prev) => ({ ...prev, topPrice: e.target.value }))
@@ -147,13 +147,16 @@ export default function AdminSettingsSection({ token }) {
             <input
               type="number"
               min="0"
-              step="1"
+              step="0.01"
               value={form.bumpPrice}
               onChange={(e) =>
                 setForm((prev) => ({ ...prev, bumpPrice: e.target.value }))
               }
               className="h-11 w-full rounded-xl border px-3"
             />
+            <div className="text-xs text-slate-500 mt-1">
+              Можно указать дробное значение, например 0.25. 0 = бесплатно.
+            </div>
           </label>
         </div>
 

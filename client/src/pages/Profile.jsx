@@ -5,7 +5,7 @@ import { goToAuth, TOKEN_KEY, USER_KEY } from "../lib/auth";
 import FavoriteButton from "../components/FavoriteButton";
 import ListingGridSkeleton from "../components/ListingGridSkeleton";
 import { getListingThumb } from "../lib/media";
-import { formatPrice, formatListingDate } from "../lib/format";
+import { formatPrice, formatListingDate, formatMoney } from "../lib/format";
 import {
   User as UserIcon,
   LogOut,
@@ -1022,14 +1022,20 @@ export default function Profile() {
         top: "TOP (3 дня)",
         bump: "Обновление даты",
       };
-      const price = priceByType[type];
+      const price = Number(priceByType[type] || 0);
       const label = labelByType[type] || type;
+      const priceLabel =
+        type === "bump" && price <= 0
+          ? "бесплатно"
+          : formatMoney(price);
+      const confirmText =
+        type === "bump"
+          ? price <= 0
+            ? "Обновить дату объявления бесплатно?"
+            : `Обновить дату объявления за ${priceLabel}?`
+          : `Подключить ${label} за ${priceLabel}?`;
 
-      if (
-        !confirm(
-          `${type === "bump" ? "Обновить дату" : "Подключить"} ${label} за ${Number(price).toLocaleString("ru-RU")} TJS?`
-        )
-      ) {
+      if (!confirm(confirmText)) {
         return;
       }
 

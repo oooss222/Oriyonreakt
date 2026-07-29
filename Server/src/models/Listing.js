@@ -683,9 +683,13 @@ class ListingModel {
     const safeTitle = String(listing.title || "объявление").slice(0, 120);
 
     if (normalizedType === "bump") {
-      await User.chargeWallet(userId, settings.bumpPrice, {
-        description: `Обновление даты: ${safeTitle}`,
-      });
+      const bumpPrice = Math.max(0, Number(settings.bumpPrice) || 0);
+
+      if (bumpPrice > 0) {
+        await User.chargeWallet(userId, bumpPrice, {
+          description: `Обновление даты: ${safeTitle}`,
+        });
+      }
 
       const bumpResult = await query(
         `

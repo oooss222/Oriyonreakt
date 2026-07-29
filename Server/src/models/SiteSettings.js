@@ -33,6 +33,28 @@ const DEFAULTS = {
   lastFinanceReportSent: "",
 };
 
+function roundMoney(value) {
+  return Math.round(Number(value) * 100) / 100;
+}
+
+function readSettingPrice(value, fallback) {
+  const numeric = Number(value);
+
+  if (!Number.isFinite(numeric)) {
+    return fallback;
+  }
+
+  return roundMoney(Math.max(0, numeric));
+}
+
+function parseSettingPrice(value, fallback) {
+  if (value === undefined || value === null || value === "") {
+    return fallback;
+  }
+
+  return readSettingPrice(value, fallback);
+}
+
 function normalizeSettings(row) {
   const data = {
     ...DEFAULTS,
@@ -40,9 +62,9 @@ function normalizeSettings(row) {
   };
 
   return {
-    vipPrice: Number(data.vipPrice) || DEFAULTS.vipPrice,
-    topPrice: Number(data.topPrice) || DEFAULTS.topPrice,
-    bumpPrice: Number(data.bumpPrice) || DEFAULTS.bumpPrice,
+    vipPrice: readSettingPrice(data.vipPrice, DEFAULTS.vipPrice),
+    topPrice: readSettingPrice(data.topPrice, DEFAULTS.topPrice),
+    bumpPrice: readSettingPrice(data.bumpPrice, DEFAULTS.bumpPrice),
     registrationEnabled: Boolean(data.registrationEnabled),
     policyContent: String(data.policyContent || DEFAULTS.policyContent),
     accountantReportEmail: String(data.accountantReportEmail || ""),
@@ -126,18 +148,9 @@ class SiteSettingsModel {
     const current = await this.get();
 
     const next = {
-      vipPrice: Math.max(
-        0,
-        Number(payload.vipPrice ?? current.vipPrice) || current.vipPrice
-      ),
-      topPrice: Math.max(
-        0,
-        Number(payload.topPrice ?? current.topPrice) || current.topPrice
-      ),
-      bumpPrice: Math.max(
-        0,
-        Number(payload.bumpPrice ?? current.bumpPrice) || current.bumpPrice
-      ),
+      vipPrice: parseSettingPrice(payload.vipPrice, current.vipPrice),
+      topPrice: parseSettingPrice(payload.topPrice, current.topPrice),
+      bumpPrice: parseSettingPrice(payload.bumpPrice, current.bumpPrice),
       registrationEnabled:
         payload.registrationEnabled !== undefined
           ? Boolean(payload.registrationEnabled)
@@ -162,16 +175,20 @@ class SiteSettingsModel {
 
     const result = await query(
       `
-      UPDATE site_settings
-      SET
-        data = $2::jsonb,
+      INSERT INTO site_settings (id, data, updated_at, updated_by)
+      VALUES (1, $1::jsonb, now(), $2)
+      ON CONFLICT (id) DO UPDATE SET
+        data = EXCLUDED.data,
         updated_at = now(),
-        updated_by = $3
-      WHERE id = 1
+        updated_by = EXCLUDED.updated_by
       RETURNING *
       `,
-      [1, JSON.stringify(next), updatedBy || null]
+      [JSON.stringify(next), updatedBy || null]
     );
+
+    if (!result.rows[0]) {
+      throw new Error("SETTINGS_ROW_NOT_SAVED");
+    }
 
     return normalizeSettings(result.rows[0]);
   }

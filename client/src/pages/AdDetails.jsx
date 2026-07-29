@@ -23,7 +23,7 @@ import {
 import { api } from "../lib/api";
 import { goToAuth } from "../lib/auth";
 import { resolveMediaUrl } from "../lib/media";
-import { formatPrice, formatViewsLabel, getListingDisplayDate } from "../lib/format";
+import { formatPrice, formatViewsLabel, getListingDisplayDate, formatMoney } from "../lib/format";
 import { markListingViewed, markViewRecorded, wasViewRecorded } from "../lib/viewedListings";
 import { usePageMeta } from "../lib/usePageMeta";
 import ListingCard from "../components/ListingCard";
@@ -524,14 +524,20 @@ export default function AdDetails() {
       top: "TOP (3 дня)",
       bump: "Обновление даты",
     };
-    const price = priceByType[type];
+    const price = Number(priceByType[type] || 0);
     const label = labelByType[type] || type;
+    const priceLabel =
+      type === "bump" && price <= 0
+        ? "бесплатно"
+        : formatMoney(price);
+    const confirmText =
+      type === "bump"
+        ? price <= 0
+          ? "Обновить дату объявления бесплатно?"
+          : `Обновить дату объявления за ${priceLabel}?`
+        : `Подключить ${label} за ${priceLabel}?`;
 
-    if (
-      !confirm(
-        `${type === "bump" ? "Обновить дату" : "Подключить"} ${label} за ${Number(price).toLocaleString("ru-RU")} TJS?`
-      )
-    ) {
+    if (!confirm(confirmText)) {
       return;
     }
 
