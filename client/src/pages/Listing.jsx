@@ -13,10 +13,7 @@ import SimilarListingsSection from "../components/SimilarListingsSection";
 import AdSlot, { AdFeedCard, useAdPlacement } from "../components/AdSlot";
 import RealEstateSearchHero from "../components/RealEstateSearchHero";
 import RealEstateListingCard from "../components/RealEstateListingCard";
-import RealEstateMap from "../components/RealEstateMap";
 import { buildFeedWithAds } from "../lib/adFeed";
-import { filterListingsByPolygon, normalizePolygon } from "../lib/geo";
-import { enrichRealEstateListing } from "../lib/realEstate";
 import { FEED_AD_INTERVAL } from "../lib/adPlacements";
 import { usePageMeta } from "../lib/usePageMeta";
 import { getListingThumb } from "../lib/media";
@@ -34,8 +31,6 @@ import {
   X,
   MapPin,
   PackageSearch,
-  LayoutGrid,
-  Map as MapIcon,
 } from "lucide-react";
 
 function buildListingParams(draft, urlCat = "") {
@@ -61,7 +56,6 @@ function buildListingParams(draft, urlCat = "") {
   if (draft.floorTo) next.floorTo = draft.floorTo;
   if (draft.floorNotFirst) next.floorNotFirst = "1";
   if (draft.floorNotLast) next.floorNotLast = "1";
-  if (draft.view) next.view = draft.view;
 
   const specEntries = Object.entries(draft.specs || {}).filter(
     ([name, value]) => String(name).trim() && String(value).trim()
@@ -90,7 +84,6 @@ function searchParamsToDraft(params) {
     floorTo: params.get("floorTo") || "",
     floorNotFirst: params.get("floorNotFirst") === "1",
     floorNotLast: params.get("floorNotLast") === "1",
-    view: params.get("view") || "list",
     specs: parseSpecsParam(params.get("specs")),
   };
 }
@@ -130,7 +123,6 @@ export default function Listing() {
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState("");
   const [mobileFiltersOpen, setMobileFiltersOpen] = React.useState(false);
-  const [mapPolygon, setMapPolygon] = React.useState([]);
 
   const cat = searchParams.get("cat") || "";
   const subcategory = searchParams.get("subcategory") || "";
@@ -255,22 +247,11 @@ export default function Listing() {
 
   const activeCat = draft.cat || cat;
   const isRealEstate = activeCat === REAL_ESTATE_CAT;
-  const viewMode = isRealEstate ? appliedDraft.view || "list" : "list";
-  const mapRing = React.useMemo(() => normalizePolygon(mapPolygon), [mapPolygon]);
-
-  const displayItems = React.useMemo(() => {
-    if (!isRealEstate || !mapRing.length) return items;
-
-    return filterListingsByPolygon(items, mapRing, (item) => {
-      const enriched = enrichRealEstateListing(item);
-      return enriched.realEstateSummary?.mapPosition || null;
-    });
-  }, [items, isRealEstate, mapRing]);
 
   const feedAd = useAdPlacement("listing_feed", activeCat);
   const feedRows = React.useMemo(
-    () => buildFeedWithAds(displayItems, feedAd, FEED_AD_INTERVAL),
-    [displayItems, feedAd]
+    () => buildFeedWithAds(items, feedAd, FEED_AD_INTERVAL),
+    [items, feedAd]
   );
   const catConfig = cat ? CATS[cat] : null;
   const availableSubcategories = React.useMemo(() => {
@@ -382,7 +363,6 @@ export default function Listing() {
     appliedDraft.floorTo ||
     appliedDraft.floorNotFirst ||
     appliedDraft.floorNotLast ||
-    mapRing.length > 0 ||
     Object.keys(activeSpecs).length > 0;
 
   const activeFilterCount =
@@ -394,7 +374,6 @@ export default function Listing() {
     Number(Boolean(appliedDraft.areaFrom || appliedDraft.areaTo)) +
     Number(Boolean(appliedDraft.floorFrom || appliedDraft.floorTo)) +
     Number(Boolean(appliedDraft.floorNotFirst || appliedDraft.floorNotLast)) +
-    Number(Boolean(mapRing.length)) +
     Object.keys(activeSpecs).length;
 
   const showSubcategoryChips =
@@ -408,8 +387,8 @@ export default function Listing() {
   );
 
   const visibleListingIds = React.useMemo(
-    () => displayItems.map((ad) => ad._id || ad.id).filter(Boolean),
-    [displayItems]
+    () => items.map((ad) => ad._id || ad.id).filter(Boolean),
+    [items]
   );
 
   return (
@@ -439,35 +418,6 @@ export default function Listing() {
               Найдено: {loading ? "…" : total.toLocaleString("ru-RU")}
             </p>
           </div>
-
-          {isRealEstate && (
-            <div className="hidden md:flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => applyFilters({ ...draft, view: "list" })}
-                className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl border text-sm font-medium transition ${
-                  viewMode === "list"
-                    ? "bg-slate-900 text-white border-slate-900"
-                    : "bg-white hover:bg-slate-50"
-                }`}
-              >
-                <LayoutGrid size={16} />
-                Список
-              </button>
-              <button
-                type="button"
-                onClick={() => applyFilters({ ...draft, view: "map" })}
-                className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl border text-sm font-medium transition ${
-                  viewMode === "map"
-                    ? "bg-slate-900 text-white border-slate-900"
-                    : "bg-white hover:bg-slate-50"
-                }`}
-              >
-                <MapIcon size={16} />
-                Карта
-              </button>
-            </div>
-          )}
 
           <div className="flex items-center gap-2 md:hidden">
             <button
@@ -581,16 +531,6 @@ export default function Listing() {
         />
       )}
 
-      {!loading && !error && displayItems.length === 0 && items.length > 0 && mapRing.length > 0 && (
-        <EmptyState
-          icon={MapPin}
-          title="В выбранной области нет объявлений"
-          description="Попробуйте обвести другой район или сбросьте область на карте."
-          actionLabel="Открыть карту"
-          onAction={() => applyFilters({ ...draft, view: "map" })}
-        />
-      )}
-
       {!loading && !error && items.length === 0 && total === 0 && (
         <EmptyState
           icon={Search}
@@ -601,45 +541,7 @@ export default function Listing() {
         />
       )}
 
-      {!loading && !error && viewMode === "map" && isRealEstate && (
-        <RealEstateMap
-          listings={items}
-          city={location || draft.location || "Душанбе"}
-          height={Math.min(560, typeof window !== "undefined" ? window.innerHeight * 0.62 : 560)}
-          className="mb-4"
-          enableAreaDraw
-          polygon={mapPolygon}
-          onPolygonChange={setMapPolygon}
-          onShowList={() => applyFilters({ ...draft, view: "list" })}
-        />
-      )}
-
-      {!loading && !error && mapRing.length > 0 && viewMode !== "map" && isRealEstate && (
-        <div className="rounded-2xl border bg-sun-50 border-sun/20 px-4 py-3 flex flex-wrap items-center justify-between gap-3">
-          <div className="text-sm text-slate-700">
-            Показаны объявления в выбранной области на карте:{" "}
-            <strong>{displayItems.length}</strong>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => applyFilters({ ...draft, view: "map" })}
-              className="text-sm font-semibold text-sun hover:text-sun-600"
-            >
-              Изменить область
-            </button>
-            <button
-              type="button"
-              onClick={() => setMapPolygon([])}
-              className="text-sm font-medium text-slate-500 hover:text-slate-700"
-            >
-              Сбросить
-            </button>
-          </div>
-        </div>
-      )}
-
-      {!loading && !error && displayItems.length > 0 && viewMode !== "map" && (
+      {!loading && !error && items.length > 0 && (
         <>
           <AdSlot
             placement="listing_top"

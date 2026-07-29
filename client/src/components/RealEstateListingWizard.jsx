@@ -19,7 +19,6 @@ import {
 import { formatPriceInput } from "../data/specOptions";
 import { getSpecValue } from "../lib/realEstate";
 import { TITLE_MAX, DESC_MAX } from "../data/listingCategories";
-import RealEstateMapPicker from "./RealEstateMapPicker";
 
 const STEPS = [
   { id: "type", label: "Тип", icon: Building2 },
@@ -59,8 +58,6 @@ export default function RealEstateListingWizard({
   setForm,
   specs,
   setSpecs,
-  geo,
-  setGeo,
   files,
   previews,
   existingImages,
@@ -298,13 +295,6 @@ export default function RealEstateListingWizard({
               </label>
             )}
           </div>
-
-          <RealEstateMapPicker
-            city={form.location}
-            lat={geo?.lat}
-            lng={geo?.lng}
-            onChange={setGeo}
-          />
         </section>
       )}
 
