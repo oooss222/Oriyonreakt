@@ -1281,7 +1281,6 @@ export default function AdDetails() {
                       Пожаловаться
                     </button>
                   )}
-                </div>
               </section>
             </div>
           </aside>
