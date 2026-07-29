@@ -398,6 +398,48 @@ export const api = {
       body,
     }),
 
+  ads: ({ placement, cat = "" } = {}) => {
+    const qs = new URLSearchParams();
+
+    qs.set("placement", placement);
+
+    if (cat) {
+      qs.set("cat", cat);
+    }
+
+    return request(`/ads?${qs.toString()}`);
+  },
+
+  trackAd: (id, type = "impression") =>
+    request(`/ads/${encodeURIComponent(id)}/track`, {
+      method: "POST",
+      body: { type },
+    }),
+
+  adminAdStats: (token) => request("/admin/ads/stats", { token }),
+
+  adminAds: (token) => request("/admin/ads", { token }),
+
+  adminCreateAd: (token, body) =>
+    request("/admin/ads", {
+      method: "POST",
+      token,
+      body,
+    }),
+
+  adminUpdateAd: (token, id, body) =>
+    request(`/admin/ads/${encodeURIComponent(id)}`, {
+      method: "PUT",
+      token,
+      body,
+    }),
+
+  adminDeleteAd: (token, id) =>
+    request(`/admin/ads/${encodeURIComponent(id)}`, {
+      method: "DELETE",
+      token,
+    }),
+
   adminFinancePromotions: (token, params = {}) => {
     const qs = new URLSearchParams();
 

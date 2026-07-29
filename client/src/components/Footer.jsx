@@ -1,12 +1,18 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { Facebook, Instagram, Send, Mail, ShieldCheck } from "lucide-react";
+import AdSlot from "./AdSlot";
 
 export default function Footer() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="mt-12 border-t border-ink/10 bg-ink-800 text-white">
+    <>
+      <div className="container mx-auto px-4 mt-8">
+        <AdSlot placement="footer" className="overflow-hidden rounded-3xl" />
+      </div>
+
+      <footer className="mt-12 border-t border-ink/10 bg-ink-800 text-white">
       <div className="container mx-auto px-4">
         <div className="py-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           <section aria-labelledby="footer-brand">
@@ -116,5 +122,6 @@ export default function Footer() {
         объявлений Таджикистана
       </div>
     </footer>
+    </>
   );
 }

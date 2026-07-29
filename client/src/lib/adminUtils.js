@@ -73,6 +73,7 @@ export const sectionRoles = {
   analytics: ["admin", "super_admin"],
   users: ["admin", "super_admin"],
   listings: ["admin", "super_admin"],
+  ads: ["admin", "super_admin"],
   moderation: ["moderator", "admin", "super_admin"],
   reports: ["moderator", "admin", "super_admin"],
   finance: ["super_admin", "accountant"],
@@ -117,4 +118,7 @@ export const AUDIT_ACTION_LABELS = {
   "report.delete_listing": "Удаление объявления по жалобе",
   "report.block_owner": "Блокировка продавца по жалобе",
   "settings.update": "Изменение настроек сайта",
+  "ad.create": "Создание рекламы",
+  "ad.update": "Изменение рекламы",
+  "ad.delete": "Удаление рекламы",
 };

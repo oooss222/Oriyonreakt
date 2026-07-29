@@ -13,6 +13,7 @@ const { isMailConfigured } = require("../lib/mailer");
 const { sendFinanceReport } = require("../lib/financeReport");
 const { getConfig: getAlifConfig, checkPaymentStatus, normalizeCallbackPayload, isSuccessfulStatus } = require("../lib/alifPay");
 const PaymentOrder = require("../models/PaymentOrder");
+const AdCampaign = require("../models/AdCampaign");
 
 const FINANCE_AUDIT_ACTIONS = ["wallet.adjust"];
 const ACCOUNTANT_EXPORT_TYPES = ["users", "transactions"];
@@ -1166,6 +1167,144 @@ router.delete(
 
       return res.status(500).json({
         error: "Failed to delete listing",
+      });
+    }
+  }
+);
+
+router.get(
+  "/ads/stats",
+  requireRole("admin", "super_admin"),
+  async (req, res) => {
+    try {
+      const stats = await AdCampaign.getStats();
+
+      return res.json({
+        ...stats,
+        placements: AdCampaign.getPlacements(),
+        formats: AdCampaign.getFormats(),
+      });
+    } catch (e) {
+      console.error("ADMIN_ADS_STATS_ERROR:", e?.message);
+
+      return res.status(500).json({
+        error: "Failed to load ad stats",
+      });
+    }
+  }
+);
+
+router.get(
+  "/ads",
+  requireRole("admin", "super_admin"),
+  async (req, res) => {
+    try {
+      const items = await AdCampaign.listAll();
+
+      return res.json(items);
+    } catch (e) {
+      console.error("ADMIN_ADS_LIST_ERROR:", e?.message);
+
+      return res.status(500).json({
+        error: "Failed to load ads",
+      });
+    }
+  }
+);
+
+router.post(
+  "/ads",
+  requireRole("admin", "super_admin"),
+  async (req, res) => {
+    try {
+      const placement = String(req.body?.placement || "").trim();
+
+      if (!AdCampaign.getPlacements().includes(placement)) {
+        return res.status(400).json({
+          error: "Invalid placement",
+        });
+      }
+
+      const item = await AdCampaign.create(req.body, req.user.id);
+
+      await audit(req, "ad.create", "ad_campaign", item.id, {
+        title: item.title,
+        placement: item.placement,
+      });
+
+      return res.status(201).json(item);
+    } catch (e) {
+      console.error("ADMIN_ADS_CREATE_ERROR:", e?.message);
+
+      return res.status(500).json({
+        error: "Failed to create ad",
+      });
+    }
+  }
+);
+
+router.put(
+  "/ads/:id",
+  requireRole("admin", "super_admin"),
+  async (req, res) => {
+    try {
+      const placement = String(req.body?.placement || "").trim();
+
+      if (placement && !AdCampaign.getPlacements().includes(placement)) {
+        return res.status(400).json({
+          error: "Invalid placement",
+        });
+      }
+
+      const item = await AdCampaign.update(req.params.id, req.body);
+
+      if (!item) {
+        return res.status(404).json({
+          error: "Ad not found",
+        });
+      }
+
+      await audit(req, "ad.update", "ad_campaign", item.id, {
+        title: item.title,
+        placement: item.placement,
+      });
+
+      return res.json(item);
+    } catch (e) {
+      console.error("ADMIN_ADS_UPDATE_ERROR:", e?.message);
+
+      return res.status(500).json({
+        error: "Failed to update ad",
+      });
+    }
+  }
+);
+
+router.delete(
+  "/ads/:id",
+  requireRole("admin", "super_admin"),
+  async (req, res) => {
+    try {
+      const existing = await AdCampaign.findById(req.params.id);
+
+      if (!existing) {
+        return res.status(404).json({
+          error: "Ad not found",
+        });
+      }
+
+      await AdCampaign.remove(req.params.id);
+
+      await audit(req, "ad.delete", "ad_campaign", req.params.id, {
+        title: existing.title,
+      });
+
+      return res.json({ ok: true });
+    } catch (e) {
+      console.error("ADMIN_ADS_DELETE_ERROR:", e?.message);
+
+      return res.status(500).json({
+        error: "Failed to delete ad",
       });
     }
   }

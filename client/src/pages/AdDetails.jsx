@@ -32,6 +32,7 @@ import EmptyState from "../components/EmptyState";
 import ListingPromotionActions from "../components/ListingPromotionActions";
 import SellerContactButtons from "../components/SellerContactButtons";
 import SellerReviewsPanel, { StarRating } from "../components/SellerReviewsPanel";
+import AdSlot from "../components/AdSlot";
 import { PromotionBadgeGroup } from "../components/PromotionBadge";
 import { CAT_LABELS } from "../data/listingCategories";
 import { REPORT_REASONS } from "../data/reportReasons";
@@ -963,6 +964,12 @@ export default function AdDetails() {
               </p>
             </section>
 
+            <AdSlot
+              placement="ad_details_mid"
+              cat={ad.cat || ""}
+              variant="native"
+            />
+
             {/* Specs */}
             {filteredSpecs.length > 0 && (
               <section className="card p-5 md:p-6 rounded-3xl">
@@ -1174,6 +1181,13 @@ export default function AdDetails() {
                     подключите VIP/TOP.
                   </div>
                 )}
+
+                <AdSlot
+                  placement="ad_sidebar"
+                  cat={ad.cat || ""}
+                  variant="native"
+                  className="hidden xl:block"
+                />
 
                 {isOwner ? (
                     <>

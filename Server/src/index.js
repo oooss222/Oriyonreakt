@@ -80,6 +80,8 @@ app.use("/api/reviews", require("./routes/reviews"));
 
 app.use("/api/saved-searches", require("./routes/savedSearches"));
 
+app.use("/api/ads", require("./routes/ads"));
+
 app.use("/api/admin", require("./routes/admin"));
 
 app.use(

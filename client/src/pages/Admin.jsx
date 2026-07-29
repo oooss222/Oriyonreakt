@@ -13,6 +13,7 @@ import {
   BarChart3,
   Settings,
   Download,
+  Megaphone,
 } from "lucide-react";
 import { api } from "../lib/api";
 import { goToAuth, TOKEN_KEY, USER_KEY } from "../lib/auth";
@@ -33,12 +34,14 @@ import AdminExportSection from "../components/admin/AdminExportSection";
 import AdminFinancePanel from "../components/admin/AdminFinancePanel";
 import ModerationListingsPanel from "../components/admin/ModerationListingsPanel";
 import ModerationReports from "../components/ModerationReports";
+import AdminAdsSection from "../components/admin/AdminAdsSection";
 
 const SECTIONS = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
   { id: "analytics", label: "Аналитика", icon: BarChart3 },
   { id: "users", label: "Пользователи", icon: Users },
   { id: "listings", label: "Объявления", icon: FileText },
+  { id: "ads", label: "Реклама", icon: Megaphone },
   { id: "moderation", label: "Модерация", icon: ClipboardCheck },
   { id: "reports", label: "Жалобы", icon: Flag },
   { id: "finance", label: "Финансы", icon: Wallet },
@@ -222,6 +225,10 @@ export default function Admin() {
 
           {section === "listings" && isAdmin && (
             <AdminListingsSection token={token} />
+          )}
+
+          {section === "ads" && isAdmin && (
+            <AdminAdsSection token={token} />
           )}
 
           {section === "moderation" && (

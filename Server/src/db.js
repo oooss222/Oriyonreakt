@@ -87,8 +87,6 @@ async function initDb() {
   await query(`
     CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
-    DROP TABLE IF EXISTS ads;
-
     CREATE TABLE IF NOT EXISTS users (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       email TEXT NOT NULL UNIQUE,
@@ -289,6 +287,39 @@ async function initDb() {
       UNIQUE (seller_id, reviewer_id, listing_id)
     );
 
+    CREATE TABLE IF NOT EXISTS ad_campaigns (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      title TEXT NOT NULL DEFAULT '',
+      advertiser TEXT NOT NULL DEFAULT '',
+      placement TEXT NOT NULL DEFAULT 'listing_top'
+        CHECK (placement IN (
+          'home_mid',
+          'listing_top',
+          'listing_feed',
+          'category_feed',
+          'ad_details_mid',
+          'ad_sidebar',
+          'footer'
+        )),
+      format TEXT NOT NULL DEFAULT 'banner'
+        CHECK (format IN ('banner', 'native', 'html')),
+      image_url TEXT NOT NULL DEFAULT '',
+      link_url TEXT NOT NULL DEFAULT '',
+      headline TEXT NOT NULL DEFAULT '',
+      description TEXT NOT NULL DEFAULT '',
+      html_code TEXT NOT NULL DEFAULT '',
+      cat TEXT NOT NULL DEFAULT '',
+      priority INTEGER NOT NULL DEFAULT 0,
+      impressions BIGINT NOT NULL DEFAULT 0,
+      clicks BIGINT NOT NULL DEFAULT 0,
+      active BOOLEAN NOT NULL DEFAULT true,
+      starts_at TIMESTAMPTZ,
+      ends_at TIMESTAMPTZ,
+      created_by UUID REFERENCES users(id) ON DELETE SET NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
+
     CREATE INDEX IF NOT EXISTS idx_users_email
       ON users(email);
 
@@ -351,6 +382,15 @@ async function initDb() {
 
     CREATE INDEX IF NOT EXISTS idx_seller_reviews_created_at
       ON seller_reviews(created_at DESC);
+
+    CREATE INDEX IF NOT EXISTS idx_ad_campaigns_placement
+      ON ad_campaigns(placement);
+
+    CREATE INDEX IF NOT EXISTS idx_ad_campaigns_active
+      ON ad_campaigns(active);
+
+    CREATE INDEX IF NOT EXISTS idx_ad_campaigns_cat
+      ON ad_campaigns(cat);
 
     CREATE INDEX IF NOT EXISTS idx_listings_expires_at
       ON listings(expires_at);

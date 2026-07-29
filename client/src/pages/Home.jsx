@@ -2,6 +2,7 @@ import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import FavoriteButton from "../components/FavoriteButton";
 import ListingCardOverlays from "../components/ListingCardOverlays";
+import AdSlot from "../components/AdSlot";
 import { api } from "../lib/api";
 import { getListingThumb } from "../lib/media";
 import { formatPrice, formatListingDate } from "../lib/format";
@@ -258,6 +259,8 @@ export default function Home() {
               items={hotListings}
               linkTo="/listing"
             />
+
+            <AdSlot placement="home_mid" className="overflow-hidden rounded-3xl" />
 
             <HorizontalSection
               title="Бытовая техника"

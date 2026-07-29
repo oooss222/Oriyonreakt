@@ -5,6 +5,7 @@ import Breadcrumbs from "../components/Breadcrumbs";
 import ListingGridSkeleton from "../components/ListingGridSkeleton";
 import FavoriteButton from "../components/FavoriteButton";
 import ListingCardOverlays from "../components/ListingCardOverlays";
+import AdSlot from "../components/AdSlot";
 import { usePageMeta } from "../lib/usePageMeta";
 import { api } from "../lib/api";
 import { CATS } from "../data/listingCategories";
@@ -240,6 +241,14 @@ export default function Category() {
         )}
 
         {!loadingPreview && preview.length > 0 && (
+          <>
+            <AdSlot
+              placement="category_feed"
+              cat={slug}
+              variant="native"
+              className="mb-4"
+            />
+
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-4">
             {preview.map((ad, idx) => {
               const id = ad._id || ad.id;
@@ -314,6 +323,7 @@ export default function Category() {
               );
             })}
           </div>
+          </>
         )}
       </section>
 

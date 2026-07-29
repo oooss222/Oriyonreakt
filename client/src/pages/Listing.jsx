@@ -10,6 +10,9 @@ import SavedSearchesPanel from "../components/SavedSearchesPanel";
 import ListingCardOverlays from "../components/ListingCardOverlays";
 import SubcategoryChips from "../components/SubcategoryChips";
 import SimilarListingsSection from "../components/SimilarListingsSection";
+import AdSlot, { AdFeedCard, useAdPlacement } from "../components/AdSlot";
+import { buildFeedWithAds } from "../lib/adFeed";
+import { FEED_AD_INTERVAL } from "../lib/adPlacements";
 import { usePageMeta } from "../lib/usePageMeta";
 import { getListingThumb } from "../lib/media";
 import { formatPrice, formatListingDate } from "../lib/format";
@@ -226,6 +229,11 @@ export default function Listing() {
   }, [draft, total, cat, draftIsDirty]);
 
   const activeCat = draft.cat || cat;
+  const feedAd = useAdPlacement("listing_feed", activeCat);
+  const feedRows = React.useMemo(
+    () => buildFeedWithAds(items, feedAd, FEED_AD_INTERVAL),
+    [items, feedAd]
+  );
   const catConfig = cat ? CATS[cat] : null;
   const availableSubcategories = React.useMemo(() => {
     return activeCat ? CATS[activeCat]?.subs || [] : [];
@@ -486,8 +494,20 @@ export default function Listing() {
       )}
 
       {!loading && !error && items.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4">
-          {items.map((ad, idx) => {
+        <>
+          <AdSlot
+            placement="listing_top"
+            cat={activeCat}
+            className="overflow-hidden rounded-2xl"
+          />
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4">
+          {feedRows.map((row, idx) => {
+            if (row.type === "ad") {
+              return <AdFeedCard key={`ad-${idx}`} ad={row.item} />;
+            }
+
+            const ad = row.item;
             const id = ad._id || ad.id;
             const imgUrl = getListingThumb(ad);
             const more = Math.max(0, (ad.images?.length || 0) - 1);
@@ -567,7 +587,8 @@ export default function Listing() {
               </div>
             );
           })}
-        </div>
+          </div>
+        </>
       )}
 
       {cat && !loading && !error && (
