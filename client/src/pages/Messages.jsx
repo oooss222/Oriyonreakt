@@ -163,6 +163,7 @@ export default function Messages() {
   const deepListingId = searchParams.get("listingId");
   const deepPeerId = searchParams.get("peerId");
   const deepTitle = searchParams.get("title");
+  const deepDraft = searchParams.get("draft");
 
   const [items, setItems] = React.useState([]);
   const [selected, setSelected] = React.useState(null);
@@ -621,12 +622,18 @@ export default function Messages() {
       };
 
     openThread(target);
+
+    if (deepDraft) {
+      setText(deepDraft);
+    }
+
     setSearchParams({}, { replace: true });
   }, [
     token,
     deepListingId,
     deepPeerId,
     deepTitle,
+    deepDraft,
     loading,
     items,
     me,

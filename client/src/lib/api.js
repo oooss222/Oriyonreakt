@@ -687,6 +687,8 @@ export const api = {
 
   siteSettings: () => request("/settings"),
 
+  businessSupportContact: () => request("/settings/business-support"),
+
   sitePolicy: () => request("/settings/policy"),
 
   adminAnalytics: (token, days = 30) =>

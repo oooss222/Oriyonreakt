@@ -4,6 +4,7 @@ import FavoriteButton from "../components/FavoriteButton";
 import ListingCardOverlays from "../components/ListingCardOverlays";
 import RealEstateListingCard from "../components/RealEstateListingCard";
 import AdSlot from "../components/AdSlot";
+import BusinessPromoBanner from "../components/BusinessPromoBanner";
 import { api } from "../lib/api";
 import { getListingThumb } from "../lib/media";
 import { formatPrice, formatListingDate } from "../lib/format";
@@ -302,6 +303,8 @@ export default function Home() {
 
         {!loading && !error && (
           <>
+            <BusinessPromoBanner />
+
             <RealEstateSection items={realEstateListings} />
 
             {listings.length === 0 ? (

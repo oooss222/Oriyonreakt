@@ -30,6 +30,7 @@ import ModerationListingsPanel from "../components/admin/ModerationListingsPanel
 import ListingPromotionActions from "../components/ListingPromotionActions";
 import BusinessProfileSection from "../components/BusinessProfileSection";
 import BusinessBadge from "../components/BusinessBadge";
+import BusinessPromoBanner from "../components/BusinessPromoBanner";
 import { PromotionBadgeGroup } from "../components/PromotionBadge";
 import {
   getPromotionCardAccent,
@@ -1665,6 +1666,8 @@ export default function Profile() {
 
      {tab === "profile" && (
   <div className="space-y-6">
+    <BusinessPromoBanner sellerType={me?.sellerType} />
+
     <div className="grid grid-cols-1 xl:grid-cols-3 gap-5">
       <div className="xl:col-span-2 space-y-5">
         <div className="rounded-3xl border bg-white overflow-hidden">

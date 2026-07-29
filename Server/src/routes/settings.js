@@ -27,4 +27,25 @@ router.get("/policy", async (req, res) => {
   }
 });
 
+router.get("/business-support", async (req, res) => {
+  try {
+    const { getBusinessSupportContact } = require("../lib/businessSupport");
+    const contact = await getBusinessSupportContact();
+
+    return res.json(contact);
+  } catch (e) {
+    if (e?.message === "NO_SUPPORT_ADMIN") {
+      return res.status(503).json({
+        error: "Support is temporarily unavailable",
+      });
+    }
+
+    console.error("SETTINGS_BUSINESS_SUPPORT_ERROR:", e?.message);
+
+    return res.status(500).json({
+      error: "Failed to load business support contact",
+    });
+  }
+});
+
 module.exports = router;
