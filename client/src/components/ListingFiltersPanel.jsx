@@ -8,8 +8,89 @@ import {
 } from "lucide-react";
 import { CATEGORY_SELECT_OPTIONS } from "../data/listingCategories";
 import { getListingFilterGrid } from "../data/filterGrids";
-import { getDistrictsForCity } from "../data/realEstate";
+import { REAL_ESTATE_CAT, getDistrictsForCity } from "../data/realEstate";
 import { formatPriceInput, getPriceDigits } from "../data/specOptions";
+
+function FilterAccordionSection({
+  title,
+  defaultOpen = false,
+  active = false,
+  children,
+}) {
+  const [open, setOpen] = React.useState(defaultOpen || active);
+
+  React.useEffect(() => {
+    if (active) setOpen(true);
+  }, [active]);
+
+  return (
+    <div className="overflow-hidden rounded-2xl border border-teal-100 bg-white">
+      <button
+        type="button"
+        onClick={() => setOpen((value) => !value)}
+        className="flex w-full items-center justify-between gap-3 px-4 py-3.5 text-left text-[15px] text-slate-600 bg-teal-50/70 hover:bg-teal-50 transition"
+      >
+        <span className={active ? "font-semibold text-slate-800" : ""}>{title}</span>
+        {open ? (
+          <ChevronUp size={18} className="shrink-0 text-slate-400" />
+        ) : (
+          <ChevronDown size={18} className="shrink-0 text-slate-400" />
+        )}
+      </button>
+
+      {open && (
+        <div className="border-t border-slate-100 px-3 py-3">{children}</div>
+      )}
+    </div>
+  );
+}
+
+function flattenGridFields(grid, hideSubcategoryField = false) {
+  const fields = [];
+
+  for (const row of grid.rows || []) {
+    for (const field of row) {
+      if (!field) continue;
+      if (hideSubcategoryField && field.type === "subcategory") continue;
+      fields.push(field);
+    }
+  }
+
+  for (const field of grid.more || []) {
+    if (field) fields.push(field);
+  }
+
+  return fields;
+}
+
+function fieldIsActive(field, draft) {
+  if (!field) return false;
+
+  if (field.type === "price") {
+    return Boolean(draft.priceFrom || draft.priceTo);
+  }
+
+  if (field.type === "range") {
+    return Boolean(draft[field.rangeFromKey] || draft[field.rangeToKey]);
+  }
+
+  if (field.type === "toggle") {
+    return Boolean(draft[field.toggleKey]);
+  }
+
+  if (field.type === "spec" || field.type === "spec-dependent" || field.type === "city-district") {
+    const key = field.specKey || field.id;
+    return Boolean(draft.specs?.[key]);
+  }
+
+  if (field.type === "location") return Boolean(draft.location);
+  if (field.type === "region") return Boolean(draft.region);
+  if (field.type === "subcategory") return Boolean(draft.subcategory);
+  if (field.type === "search") return Boolean(draft.search);
+  if (field.type === "sort") return draft.sort && draft.sort !== "new";
+
+  return false;
+}
 
 function FilterSelect({
   label,
@@ -67,6 +148,65 @@ function formatPriceSummary(from, to, currency = "с.") {
   return "";
 }
 
+function PriceFilterFields({ draft, setDraft }) {
+  const currency = draft.priceCurrency || "с.";
+
+  return (
+    <div className="flex items-stretch gap-2">
+      <div className="flex flex-1 h-11 rounded-xl border border-slate-200 overflow-hidden bg-white">
+        <input
+          type="text"
+          inputMode="numeric"
+          placeholder="от"
+          value={draft.priceFrom ? formatPriceInput(draft.priceFrom) : ""}
+          onChange={(e) =>
+            setDraft((current) => ({
+              ...current,
+              priceFrom: getPriceDigits(e.target.value),
+            }))
+          }
+          className="w-1/2 h-full px-3 text-sm outline-none border-r border-slate-200 placeholder:text-slate-400"
+        />
+
+        <input
+          type="text"
+          inputMode="numeric"
+          placeholder="до"
+          value={draft.priceTo ? formatPriceInput(draft.priceTo) : ""}
+          onChange={(e) =>
+            setDraft((current) => ({
+              ...current,
+              priceTo: getPriceDigits(e.target.value),
+            }))
+          }
+          className="w-1/2 h-full px-3 text-sm outline-none placeholder:text-slate-400"
+        />
+      </div>
+
+      <div className="relative shrink-0">
+        <select
+          value={currency}
+          onChange={(e) =>
+            setDraft((current) => ({
+              ...current,
+              priceCurrency: e.target.value,
+            }))
+          }
+          className="h-11 min-w-[4.5rem] appearance-none rounded-xl border border-slate-200 bg-white pl-3 pr-8 text-sm outline-none focus:ring-2 focus:ring-teal-200"
+        >
+          <option value="с.">с.</option>
+          <option value="$">$</option>
+        </select>
+
+        <ChevronDown
+          size={16}
+          className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-slate-400"
+        />
+      </div>
+    </div>
+  );
+}
+
 function PriceFilterPopover({ draft, setDraft, onApply }) {
   const [open, setOpen] = React.useState(false);
   const rootRef = React.useRef(null);
@@ -122,58 +262,7 @@ function PriceFilterPopover({ draft, setDraft, onApply }) {
 
       {open && (
         <div className="absolute left-0 right-0 top-[calc(100%+8px)] z-50 rounded-xl border border-slate-200 bg-white p-3 shadow-xl">
-          <div className="flex items-stretch gap-2">
-            <div className="flex flex-1 h-11 rounded-lg border border-slate-200 overflow-hidden">
-              <input
-                type="text"
-                inputMode="numeric"
-                placeholder="от"
-                value={draft.priceFrom ? formatPriceInput(draft.priceFrom) : ""}
-                onChange={(e) =>
-                  setDraft((current) => ({
-                    ...current,
-                    priceFrom: getPriceDigits(e.target.value),
-                  }))
-                }
-                className="w-1/2 h-full px-3 text-sm outline-none border-r border-slate-200 placeholder:text-slate-400"
-              />
-
-              <input
-                type="text"
-                inputMode="numeric"
-                placeholder="до"
-                value={draft.priceTo ? formatPriceInput(draft.priceTo) : ""}
-                onChange={(e) =>
-                  setDraft((current) => ({
-                    ...current,
-                    priceTo: getPriceDigits(e.target.value),
-                  }))
-                }
-                className="w-1/2 h-full px-3 text-sm outline-none placeholder:text-slate-400"
-              />
-            </div>
-
-            <div className="relative shrink-0">
-              <select
-                value={currency}
-                onChange={(e) =>
-                  setDraft((current) => ({
-                    ...current,
-                    priceCurrency: e.target.value,
-                  }))
-                }
-                className="h-11 min-w-[4.5rem] appearance-none rounded-lg border border-slate-200 bg-white pl-3 pr-8 text-sm outline-none focus:ring-2 focus:ring-lagoon/30"
-              >
-                <option value="с.">с.</option>
-                <option value="$">$</option>
-              </select>
-
-              <ChevronDown
-                size={16}
-                className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-slate-400"
-              />
-            </div>
-          </div>
+          <PriceFilterFields draft={draft} setDraft={setDraft} />
         </div>
       )}
     </div>
@@ -186,6 +275,84 @@ function commitDraft(setDraft, onApply, updater, current) {
   onApply?.(next);
 }
 
+function RangeFilterFields({ field, draft, setDraft }) {
+  const fromKey = field.rangeFromKey;
+  const toKey = field.rangeToKey;
+
+  return (
+    <div className="flex h-11 items-stretch overflow-hidden rounded-xl border border-slate-200 bg-white">
+      <input
+        type="text"
+        inputMode="numeric"
+        placeholder={field.placeholderFrom || "от"}
+        value={draft[fromKey] || ""}
+        onChange={(e) =>
+          setDraft((current) => ({
+            ...current,
+            [fromKey]: e.target.value.replace(/[^\d]/g, ""),
+          }))
+        }
+        className="w-1/2 px-3 text-sm outline-none border-r border-slate-200 placeholder:text-slate-400"
+      />
+      <input
+        type="text"
+        inputMode="numeric"
+        placeholder={field.placeholderTo || "до"}
+        value={draft[toKey] || ""}
+        onChange={(e) =>
+          setDraft((current) => ({
+            ...current,
+            [toKey]: e.target.value.replace(/[^\d]/g, ""),
+          }))
+        }
+        className="w-1/2 px-3 text-sm outline-none placeholder:text-slate-400"
+      />
+    </div>
+  );
+}
+
+function renderAccordionField(field, ctx) {
+  if (!field) return null;
+
+  if (field.type === "price") {
+    return (
+      <FilterAccordionSection
+        key={field.id}
+        title={field.label || "Цена"}
+        active={fieldIsActive(field, ctx.draft)}
+        defaultOpen
+      >
+        <PriceFilterFields draft={ctx.draft} setDraft={ctx.setDraft} />
+      </FilterAccordionSection>
+    );
+  }
+
+  if (field.type === "range") {
+    return (
+      <FilterAccordionSection
+        key={field.id}
+        title={field.label}
+        active={fieldIsActive(field, ctx.draft)}
+      >
+        <RangeFilterFields field={field} draft={ctx.draft} setDraft={ctx.setDraft} />
+      </FilterAccordionSection>
+    );
+  }
+
+  const content = renderField(field, { ...ctx, accordion: true });
+  if (!content) return null;
+
+  return (
+    <FilterAccordionSection
+      key={field.id}
+      title={field.label}
+      active={fieldIsActive(field, ctx.draft)}
+    >
+      {content}
+    </FilterAccordionSection>
+  );
+}
+
 function renderField(
   field,
   {
@@ -196,6 +363,7 @@ function renderField(
     onApply,
     hideSubcategoryField = false,
     grid,
+    accordion = false,
   }
 ) {
   if (!field) return <div className="hidden xl:block" aria-hidden="true" />;
@@ -262,6 +430,8 @@ function renderField(
   }
 
   if (field.type === "price") {
+    if (accordion) return null;
+
     return (
       <PriceFilterPopover
         draft={draft}
@@ -459,6 +629,8 @@ function renderField(
   }
 
   if (field.type === "range") {
+    if (accordion) return null;
+
     const fromKey = field.rangeFromKey;
     const toKey = field.rangeToKey;
 
@@ -512,10 +684,12 @@ function renderField(
             [field.toggleKey]: !current[field.toggleKey],
           }), draft)
         }
-        className={`h-12 w-full rounded-xl border px-4 text-sm font-semibold transition ${
+        className={`${accordion ? "h-11" : "h-12"} w-full rounded-xl border px-4 text-sm font-semibold transition ${
           active
             ? "bg-slate-900 text-white border-slate-900"
-            : "bg-white text-slate-600 border-white/80 shadow-sm"
+            : accordion
+              ? "bg-white text-slate-600 border-slate-200"
+              : "bg-white text-slate-600 border-white/80 shadow-sm"
         }`}
       >
         {field.label}
@@ -545,6 +719,20 @@ export default function ListingFiltersPanel({
     () => getListingFilterGrid(activeCat, draft.subcategory),
     [activeCat, draft.subcategory]
   );
+  const useAccordionLayout = activeCat === REAL_ESTATE_CAT || compact;
+  const accordionFields = React.useMemo(
+    () => flattenGridFields(grid, hideSubcategoryField),
+    [grid, hideSubcategoryField]
+  );
+  const fieldContext = {
+    draft,
+    setDraft,
+    availableSubcategories,
+    showCategorySelect,
+    onApply,
+    hideSubcategoryField,
+    grid,
+  };
 
   const saveSearch = () => {
     const key = "oriyon_saved_searches";
@@ -570,33 +758,29 @@ export default function ListingFiltersPanel({
   return (
     <div
       className={`rounded-2xl border border-lagoon/15 bg-gradient-to-br from-lagoon-50/80 to-emerald-50/50 ${
-        compact ? "p-0 border-0 bg-transparent" : "p-4 md:p-5"
+        compact || useAccordionLayout ? "p-0 border-0 bg-transparent" : "p-4 md:p-5"
       }`}
     >
-      <div className={`space-y-3 ${compact ? "pb-24" : ""}`}>
-        {grid.rows.map((row, rowIndex) => (
-          <div
-            key={`row-${rowIndex}`}
-            className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3"
-          >
-            {row.map((field, fieldIndex) => (
-              <div key={field?.id || `empty-${rowIndex}-${fieldIndex}`}>
-                {renderField(field, {
-                  draft,
-                  setDraft,
-                  availableSubcategories,
-                  showCategorySelect,
-                  onApply,
-                  hideSubcategoryField,
-                  grid,
-                })}
-              </div>
-            ))}
-          </div>
-        ))}
+      <div className={`${useAccordionLayout ? "space-y-2" : "space-y-3"} ${compact ? "pb-24" : ""}`}>
+        {useAccordionLayout ? (
+          accordionFields.map((field) => renderAccordionField(field, fieldContext))
+        ) : (
+          grid.rows.map((row, rowIndex) => (
+            <div
+              key={`row-${rowIndex}`}
+              className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3"
+            >
+              {row.map((field, fieldIndex) => (
+                <div key={field?.id || `empty-${rowIndex}-${fieldIndex}`}>
+                  {renderField(field, fieldContext)}
+                </div>
+              ))}
+            </div>
+          ))
+        )}
       </div>
 
-      {moreOpen && grid.more?.length > 0 && (
+      {!useAccordionLayout && moreOpen && grid.more?.length > 0 && (
         <div className="mt-3 pt-3 border-t border-lagoon/10 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
           {grid.more.map((field) => (
             <div key={field.id} className="space-y-1">
@@ -605,15 +789,7 @@ export default function ListingFiltersPanel({
                   {field.label}
                 </div>
               )}
-              {renderField(field, {
-                draft,
-                setDraft,
-                availableSubcategories,
-                showCategorySelect,
-                onApply,
-                hideSubcategoryField,
-                grid,
-              })}
+              {renderField(field, fieldContext)}
             </div>
           ))}
         </div>
@@ -627,7 +803,7 @@ export default function ListingFiltersPanel({
         }`}
       >
         <div className="flex flex-wrap items-center gap-4">
-          {grid.more?.length > 0 && (
+          {!useAccordionLayout && grid.more?.length > 0 && (
             <button
               type="button"
               onClick={() => setMoreOpen((value) => !value)}
