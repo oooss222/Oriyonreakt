@@ -1666,8 +1666,6 @@ export default function Profile() {
 
      {tab === "profile" && (
   <div className="space-y-6">
-    <BusinessPromoBanner sellerType={me?.sellerType} />
-
     <div className="grid grid-cols-1 xl:grid-cols-3 gap-5">
       <div className="xl:col-span-2 space-y-5">
         <div className="rounded-3xl border bg-white overflow-hidden">
@@ -1941,6 +1939,8 @@ export default function Profile() {
       </div>
 
       <div className="space-y-5">
+        <BusinessPromoBanner sellerType={me?.sellerType} />
+
         <div className="rounded-3xl border bg-white p-5">
           <h3 className="font-bold text-lg mb-4">
             Активность аккаунта

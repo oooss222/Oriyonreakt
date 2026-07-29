@@ -303,9 +303,9 @@ export default function Home() {
 
         {!loading && !error && (
           <>
-            <BusinessPromoBanner />
-
             <RealEstateSection items={realEstateListings} />
+
+            <BusinessPromoBanner />
 
             {listings.length === 0 ? (
               <div className="surface-panel p-8 text-center">

@@ -1,8 +1,23 @@
 import { api } from "./api";
 import { goToAuth } from "./auth";
 
+export const BUSINESS_SUPPORT_TITLE = "Oriyon Бизнес — консультация";
+
 export const BUSINESS_SUPPORT_DRAFT =
-  "Здравствуйте! Хочу подключить бизнес-аккаунт Oriyon Бизнес. Расскажите, пожалуйста, об условиях и стоимости.";
+  "Здравствуйте! Интересует бизнес-аккаунт Oriyon Бизнес. Подскажите, пожалуйста, условия подключения.";
+
+export function isBusinessSupportThread(item) {
+  if (!item) return false;
+  if (item.isBusinessSupport) return true;
+
+  const title = String(item.listingTitle || "").toLowerCase();
+
+  return (
+    title.includes("oriyon бизнес") ||
+    title.includes("консультация") ||
+    title.includes("поддержка")
+  );
+}
 
 export async function openBusinessSupportChat({ nav, token }) {
   const contact = await api.businessSupportContact();
@@ -10,7 +25,9 @@ export async function openBusinessSupportChat({ nav, token }) {
   const params = new URLSearchParams({
     listingId: contact.listingId,
     peerId: contact.adminId,
-    title: contact.title || "Oriyon Бизнес",
+    title: BUSINESS_SUPPORT_TITLE,
+    peerName: contact.adminName || "Администратор Oriyon",
+    support: "1",
     draft: BUSINESS_SUPPORT_DRAFT,
   });
 

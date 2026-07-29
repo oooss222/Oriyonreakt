@@ -10,6 +10,7 @@ import {
   Check,
   CheckCheck,
   X,
+  Building2,
 } from "lucide-react";
 import { api } from "../lib/api";
 import {
@@ -22,6 +23,7 @@ import {
   publishUnreadCount,
   requestUnreadRefresh,
 } from "../lib/unread";
+import { isBusinessSupportThread } from "../lib/openBusinessSupportChat";
 
 const TOKEN_KEY = "auth_token";
 const USER_KEY = "auth_user";
@@ -30,6 +32,12 @@ const QUICK_REPLIES = [
   "Здравствуйте! Актуально?",
   "Можно посмотреть сегодня?",
   "Торг возможен?",
+];
+
+const BUSINESS_SUPPORT_REPLIES = [
+  "Сколько стоит подключение?",
+  "Какие документы нужны?",
+  "Когда можно начать?",
 ];
 
 const getId = (item) => item?.id || item?._id;
@@ -164,6 +172,8 @@ export default function Messages() {
   const deepPeerId = searchParams.get("peerId");
   const deepTitle = searchParams.get("title");
   const deepDraft = searchParams.get("draft");
+  const deepPeerName = searchParams.get("peerName");
+  const deepSupport = searchParams.get("support") === "1";
 
   const [items, setItems] = React.useState([]);
   const [selected, setSelected] = React.useState(null);
@@ -619,6 +629,8 @@ export default function Messages() {
         listingTitle: deepTitle || "Объявление",
         senderId: myId,
         receiverId: deepPeerId,
+        receiverName: deepPeerName || "",
+        isBusinessSupport: deepSupport,
       };
 
     openThread(target);
@@ -634,6 +646,8 @@ export default function Messages() {
     deepPeerId,
     deepTitle,
     deepDraft,
+    deepPeerName,
+    deepSupport,
     loading,
     items,
     me,
@@ -760,8 +774,15 @@ export default function Messages() {
   const peerOnline =
     socketReady && peerPresenceInfo?.online === true;
 
+  const supportThread = isBusinessSupportThread(selected);
+
   const peerName =
-    String(selected?.senderId) === String(myId)
+    supportThread
+      ? selected?.receiverName ||
+        selected?.senderName ||
+        deepPeerName ||
+        "Администратор Oriyon"
+      : String(selected?.senderId) === String(myId)
       ? selected?.receiverName || selected?.receiverEmail
       : selected?.senderName || selected?.senderEmail;
 
@@ -868,6 +889,7 @@ export default function Messages() {
               <div className="flex-1 space-y-2 overflow-y-auto px-3 pb-3">
                 {filteredItems.map((item) => {
                   const peerId = getPeerId(item, me);
+                  const supportItem = isBusinessSupportThread(item);
 
                   const active =
                     String(selected?.listingId) === String(item.listingId) &&
@@ -887,15 +909,19 @@ export default function Messages() {
                       }`}
                     >
                       <div className="flex gap-3">
-                        <div className="w-12 h-12 rounded-xl bg-mist overflow-hidden shrink-0">
-                          {thumb ? (
+                        <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0">
+                          {supportItem ? (
+                            <div className="w-full h-full bg-gradient-to-br from-sun to-lagoon-600 text-white grid place-items-center">
+                              <Building2 size={18} />
+                            </div>
+                          ) : thumb ? (
                             <img
                               src={thumb}
                               alt=""
-                              className="w-full h-full object-cover"
+                              className="w-full h-full object-cover bg-mist"
                             />
                           ) : (
-                            <div className="w-full h-full grid place-items-center text-ink-300">
+                            <div className="w-full h-full bg-mist grid place-items-center text-ink-300">
                               <MessageCircle size={18} />
                             </div>
                           )}
@@ -904,7 +930,9 @@ export default function Messages() {
                         <div className="min-w-0 flex-1">
                           <div className="flex items-start justify-between gap-2">
                             <div className="font-semibold text-ink line-clamp-1">
-                              {item.listingTitle || "Объявление"}
+                              {supportItem
+                                ? "Поддержка Oriyon"
+                                : item.listingTitle || "Объявление"}
                             </div>
 
                             {Number(item.unreadCount || 0) > 0 && (
@@ -917,7 +945,9 @@ export default function Messages() {
                           </div>
 
                           <div className="text-xs text-ink-400 mt-0.5 line-clamp-1">
-                            {item.senderName || item.senderEmail || "Пользователь"}
+                            {supportItem
+                              ? "Бизнес-аккаунт"
+                              : item.senderName || item.senderEmail || "Пользователь"}
                           </div>
 
                           <div className="text-sm mt-1 line-clamp-2 text-ink-500">
@@ -963,7 +993,11 @@ export default function Messages() {
                     <ArrowLeft size={18} />
                   </button>
 
-                  {listingImageUrl(selected.listingImage) ? (
+                  {supportThread ? (
+                    <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-sun to-lagoon-600 text-white grid place-items-center shrink-0 shadow-soft">
+                      <Building2 size={18} />
+                    </div>
+                  ) : listingImageUrl(selected.listingImage) ? (
                     <img
                       src={listingImageUrl(selected.listingImage)}
                       alt=""
@@ -977,30 +1011,44 @@ export default function Messages() {
 
                   <div className="min-w-0 flex-1">
                     <div className="font-display font-bold text-ink line-clamp-1">
-                      {selected.listingTitle || "Объявление"}
+                      {supportThread
+                        ? "Поддержка Oriyon"
+                        : selected.listingTitle || "Объявление"}
                     </div>
                     <div className="flex flex-wrap items-center gap-2 text-xs text-ink-400">
-                      <span>{peerName || "Пользователь"}</span>
-                      <span
-                        className={`w-2 h-2 rounded-full ${
-                          peerOnline ? "bg-emerald-500" : "bg-ink-200"
-                        }`}
-                      />
                       <span>
-                        {peerOnline ? "онлайн" : formatLastSeen(selectedPeerLastSeen)}
+                        {supportThread
+                          ? `${peerName} · бизнес-аккаунт`
+                          : peerName || "Пользователь"}
                       </span>
+                      {!supportThread && (
+                        <>
+                          <span
+                            className={`w-2 h-2 rounded-full ${
+                              peerOnline ? "bg-emerald-500" : "bg-ink-200"
+                            }`}
+                          />
+                          <span>
+                            {peerOnline
+                              ? "онлайн"
+                              : formatLastSeen(selectedPeerLastSeen)}
+                          </span>
+                        </>
+                      )}
                       {typingPeer && (
                         <span className="text-sun font-medium">печатает…</span>
                       )}
                     </div>
                   </div>
 
-                  <Link
-                    to={`/ad/${selected.listingId}`}
-                    className="btn btn-primary shrink-0 text-sm hidden sm:inline-flex"
-                  >
-                    Объявление
-                  </Link>
+                  {!supportThread && (
+                    <Link
+                      to={`/ad/${selected.listingId}`}
+                      className="btn btn-primary shrink-0 text-sm hidden sm:inline-flex"
+                    >
+                      Объявление
+                    </Link>
+                  )}
                 </div>
 
                 <div
@@ -1017,8 +1065,25 @@ export default function Messages() {
                       <div className="h-12 bg-white rounded-2xl w-1/2 ml-auto" />
                     </div>
                   ) : thread.length === 0 ? (
-                    <div className="text-center text-ink-400 py-10">
-                      Сообщений пока нет. Напишите первым!
+                    <div className="py-8 px-2">
+                      {supportThread ? (
+                        <div className="max-w-md mx-auto rounded-2xl border border-sun/20 bg-white p-5 text-center shadow-soft">
+                          <div className="mx-auto w-12 h-12 rounded-2xl bg-gradient-to-br from-sun to-lagoon-600 text-white grid place-items-center mb-3">
+                            <Building2 size={20} />
+                          </div>
+                          <div className="font-display font-bold text-ink">
+                            Консультация по Oriyon Бизнес
+                          </div>
+                          <p className="text-sm text-ink-400 mt-2 leading-relaxed">
+                            Задайте вопрос об условиях, стоимости и подключении
+                            бизнес-аккаунта. Администратор ответит в этом чате.
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="text-center text-ink-400">
+                          Сообщений пока нет. Напишите первым!
+                        </div>
+                      )}
                     </div>
                   ) : (
                     groupedThread.map((entry) => {
@@ -1085,7 +1150,10 @@ export default function Messages() {
                 {!isAdmin && (
                   <div className="border-t border-ink/10 bg-white p-4 space-y-3">
                     <div className="flex flex-wrap gap-2">
-                      {QUICK_REPLIES.map((reply) => (
+                      {(supportThread
+                        ? BUSINESS_SUPPORT_REPLIES
+                        : QUICK_REPLIES
+                      ).map((reply) => (
                         <button
                           key={reply}
                           type="button"
@@ -1109,7 +1177,11 @@ export default function Messages() {
                           }
                         }}
                         rows={1}
-                        placeholder="Введите сообщение..."
+                        placeholder={
+                          supportThread
+                            ? "Сообщение администратору..."
+                            : "Введите сообщение..."
+                        }
                         className="input flex-1 min-h-[52px] max-h-[160px] resize-none py-3"
                       />
 
