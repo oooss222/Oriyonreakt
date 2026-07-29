@@ -347,7 +347,7 @@ class UserModel {
     return user;
   }
 
-  static async topUpWallet(id, amount) {
+  static async topUpWallet(id, amount, description = "Пополнение баланса") {
     const result = await query(
       `
       UPDATE users
@@ -369,7 +369,7 @@ class UserModel {
         userId: id,
         type: "top_up",
         amount,
-        description: "Пополнение баланса",
+        description,
         createdBy: id,
       });
     }

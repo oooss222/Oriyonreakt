@@ -71,6 +71,8 @@ app.use("/api/settings", require("./routes/settings"));
 
 app.use("/api/messages", require("./routes/messages"));
 
+app.use("/api/payments", require("./routes/payments"));
+
 app.use("/api/admin", require("./routes/admin"));
 
 app.use(

@@ -116,6 +116,15 @@ router.get("/me/wallet/transactions", auth, async (req, res) => {
 
 router.post("/me/wallet/top-up", auth, async (req, res) => {
   try {
+    const { getConfig } = require("../lib/alifPay");
+    const alifConfig = getConfig();
+
+    if (alifConfig.enabled && !alifConfig.allowDirectTopUp) {
+      return res.status(403).json({
+        error: "Direct top-up is disabled. Use Alif payment gateway.",
+      });
+    }
+
     const amount = Number(req.body?.amount || 0);
 
     if (!Number.isFinite(amount) || amount <= 0) {

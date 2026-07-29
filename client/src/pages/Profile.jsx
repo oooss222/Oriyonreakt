@@ -82,6 +82,38 @@ const WalletTopUp = React.memo(function WalletTopUp({ token, onSuccess }) {
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState("");
   const [success, setSuccess] = React.useState("");
+  const [paymentConfig, setPaymentConfig] = React.useState({
+    alifEnabled: false,
+    directTopUpEnabled: false,
+    environment: "test",
+  });
+  const [configLoading, setConfigLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    let alive = true;
+
+    api
+      .paymentConfig()
+      .then((config) => {
+        if (!alive || !config) return;
+
+        setPaymentConfig({
+          alifEnabled: Boolean(config.alifEnabled),
+          directTopUpEnabled: Boolean(config.directTopUpEnabled),
+          environment: config.environment || "test",
+        });
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (alive) {
+          setConfigLoading(false);
+        }
+      });
+
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   const value = React.useMemo(() => {
     return Number(String(amount).replace(",", "."));
@@ -114,6 +146,22 @@ const WalletTopUp = React.memo(function WalletTopUp({ token, onSuccess }) {
       try {
         setLoading(true);
 
+        if (paymentConfig.alifEnabled) {
+          const payment = await api.initAlifWalletTopUp(token, value);
+
+          if (!payment?.paymentUrl) {
+            throw new Error("Не удалось получить ссылку на оплату");
+          }
+
+          sessionStorage.setItem("alifPendingOrder", payment.orderId || "");
+          window.location.href = payment.paymentUrl;
+          return;
+        }
+
+        if (!paymentConfig.directTopUpEnabled) {
+          throw new Error("Оплата временно недоступна");
+        }
+
         const user = await api.topUpWallet(token, value);
 
         onSuccess?.(user, {
@@ -130,11 +178,32 @@ const WalletTopUp = React.memo(function WalletTopUp({ token, onSuccess }) {
         setLoading(false);
       }
     },
-    [token, value, isValid, onSuccess]
+    [token, value, isValid, onSuccess, paymentConfig]
   );
+
+  const paymentHint = React.useMemo(() => {
+    if (configLoading) {
+      return "Загружаем способы оплаты...";
+    }
+
+    if (paymentConfig.alifEnabled) {
+      return paymentConfig.environment === "test"
+        ? "Оплата через Alif (тестовый режим). После оплаты вы вернётесь в профиль."
+        : "Оплата через Alif. После оплаты вы вернётесь в профиль.";
+    }
+
+    if (paymentConfig.directTopUpEnabled) {
+      return "Пополнение в тестовом режиме через внутренний API.";
+    }
+
+    return "Пополнение временно недоступно.";
+  }, [configLoading, paymentConfig]);
 
   return (
     <form onSubmit={submit} className="space-y-4">
+      <div className="rounded-xl border bg-slate-50 p-3 text-sm text-slate-600">
+        {paymentHint}
+      </div>
       <div>
         <div className="text-sm font-medium mb-2">Быстрый выбор суммы</div>
 
@@ -198,10 +267,16 @@ const WalletTopUp = React.memo(function WalletTopUp({ token, onSuccess }) {
       )}
 
       <button
-        disabled={loading || !isValid}
+        disabled={loading || !isValid || configLoading}
         className="w-full inline-flex justify-center items-center gap-2 px-4 py-3 rounded-xl bg-sun text-white hover:bg-sun-600 transition disabled:opacity-60 disabled:cursor-not-allowed"
       >
-        {loading ? "Пополняем..." : "Пополнить баланс"}
+        {loading
+          ? paymentConfig.alifEnabled
+            ? "Переходим к оплате..."
+            : "Пополняем..."
+          : paymentConfig.alifEnabled
+            ? "Оплатить через Alif"
+            : "Пополнить баланс"}
       </button>
     </form>
   );
@@ -729,6 +804,12 @@ export default function Profile() {
   const [loadingMy, setLoadingMy] = React.useState(false);
   const [loadingFav, setLoadingFav] = React.useState(false);
   const [walletHistory, setWalletHistory] = React.useState([]);
+  const [paymentConfig, setPaymentConfig] = React.useState({
+    alifEnabled: false,
+    directTopUpEnabled: false,
+    environment: "test",
+  });
+  const [paymentReturnMessage, setPaymentReturnMessage] = React.useState("");
   const [promotionPrices, setPromotionPrices] = React.useState({
     vipPrice: 25,
     topPrice: 15,
@@ -771,6 +852,21 @@ export default function Profile() {
           vipPrice: settings.vipPrice ?? 25,
           topPrice: settings.topPrice ?? 15,
           bumpPrice: settings.bumpPrice ?? 5,
+        });
+      })
+      .catch(() => {});
+  }, []);
+
+  React.useEffect(() => {
+    api
+      .paymentConfig()
+      .then((config) => {
+        if (!config) return;
+
+        setPaymentConfig({
+          alifEnabled: Boolean(config.alifEnabled),
+          directTopUpEnabled: Boolean(config.directTopUpEnabled),
+          environment: config.environment || "test",
         });
       })
       .catch(() => {});
@@ -974,6 +1070,67 @@ export default function Profile() {
       })
       .catch(() => {});
   }, [token]);
+
+  React.useEffect(() => {
+    if (!token || searchParams.get("payment") !== "return") {
+      return;
+    }
+
+    const orderId = sessionStorage.getItem("alifPendingOrder");
+
+    if (!orderId) {
+      setPaymentReturnMessage(
+        "Вы вернулись с оплаты. Если баланс не обновился, подождите несколько секунд и обновите страницу."
+      );
+      setSearchParams({ tab: "wallet" }, { replace: true });
+      return;
+    }
+
+    let alive = true;
+
+    setPaymentReturnMessage("Проверяем статус оплаты...");
+
+    api
+      .syncAlifPayment(token, orderId)
+      .then((result) => {
+        if (!alive) return;
+
+        sessionStorage.removeItem("alifPendingOrder");
+
+        if (result?.user) {
+          onWalletSuccess(result.user);
+          setPaymentReturnMessage("Оплата прошла успешно. Баланс обновлён.");
+          return;
+        }
+
+        const status = result?.order?.status || result?.providerStatus?.status;
+
+        if (status === "failed" || status === "cancelled") {
+          setPaymentReturnMessage("Оплата не завершена или была отменена.");
+          return;
+        }
+
+        setPaymentReturnMessage(
+          "Оплата ещё обрабатывается. Баланс обновится автоматически после подтверждения."
+        );
+      })
+      .catch((e) => {
+        if (!alive) return;
+
+        setPaymentReturnMessage(
+          e?.message || "Не удалось проверить статус оплаты."
+        );
+      })
+      .finally(() => {
+        if (!alive) return;
+
+        setSearchParams({ tab: "wallet" }, { replace: true });
+      });
+
+    return () => {
+      alive = false;
+    };
+  }, [token, searchParams, setSearchParams, onWalletSuccess]);
 
   const updateListingStatus = React.useCallback(
     async (id, action) => {
@@ -1286,11 +1443,23 @@ export default function Profile() {
           </div>
 
           <div className="text-sm text-slate-600">
-            Пополнения сейчас выполняются в тестовом режиме через внутренний API.
+            {paymentConfig.alifEnabled
+              ? paymentConfig.environment === "test"
+                ? "Пополнение через Alif Acquiring (тестовый режим)."
+                : "Пополнение через Alif Acquiring."
+              : paymentConfig.directTopUpEnabled
+                ? "Пополнения сейчас выполняются в тестовом режиме через внутренний API."
+                : "Пополнение временно недоступно."}
           </div>
         </div>
       </div>
     </div>
+
+    {paymentReturnMessage && (
+      <div className="rounded-2xl border border-blue-200 bg-blue-50 text-blue-800 p-4 text-sm">
+        {paymentReturnMessage}
+      </div>
+    )}
 
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <div className="lg:col-span-2 rounded-2xl border bg-white p-4 md:p-5 space-y-4">

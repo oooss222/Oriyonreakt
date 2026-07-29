@@ -245,6 +245,21 @@ async function initDb() {
       created_at TIMESTAMPTZ NOT NULL DEFAULT now()
     );
 
+    CREATE TABLE IF NOT EXISTS payment_orders (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      order_id TEXT NOT NULL UNIQUE,
+      amount NUMERIC(12,2) NOT NULL,
+      status TEXT NOT NULL DEFAULT 'pending'
+        CHECK (status IN ('pending', 'paid', 'failed', 'cancelled')),
+      provider TEXT NOT NULL DEFAULT 'alif',
+      transaction_id TEXT NOT NULL DEFAULT '',
+      provider_status TEXT NOT NULL DEFAULT '',
+      callback_payload JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
+
     CREATE INDEX IF NOT EXISTS idx_users_email
       ON users(email);
 
@@ -286,6 +301,15 @@ async function initDb() {
 
     CREATE INDEX IF NOT EXISTS idx_wallet_transactions_created_at
       ON wallet_transactions(created_at DESC);
+
+    CREATE INDEX IF NOT EXISTS idx_payment_orders_user
+      ON payment_orders(user_id);
+
+    CREATE INDEX IF NOT EXISTS idx_payment_orders_status
+      ON payment_orders(status);
+
+    CREATE INDEX IF NOT EXISTS idx_payment_orders_created_at
+      ON payment_orders(created_at DESC);
 
     CREATE INDEX IF NOT EXISTS idx_messages_listing
       ON messages(listing_id);

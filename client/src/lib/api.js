@@ -280,6 +280,21 @@ export const api = {
       }
     ),
 
+  paymentConfig: () => request("/payments/config"),
+
+  initAlifWalletTopUp: (token, amount) =>
+    request("/payments/alif/wallet-top-up", {
+      method: "POST",
+      token,
+      body: { amount },
+    }),
+
+  syncAlifPayment: (token, orderId) =>
+    request(`/payments/alif/sync/${encodeURIComponent(orderId)}`, {
+      method: "POST",
+      token,
+    }),
+
   walletTransactions: (token, limit = 50) =>
     request(`/users/me/wallet/transactions?limit=${encodeURIComponent(limit)}`, {
       token,
