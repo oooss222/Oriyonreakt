@@ -229,6 +229,22 @@ const WalletTopUp = React.memo(function WalletTopUp({ token, onSuccess }) {
       <div className="rounded-xl border bg-slate-50 p-3 text-sm text-slate-600">
         {paymentHint}
       </div>
+
+      {paymentConfig.environment === "test" && paymentConfig.alifEnabled && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900 space-y-2">
+          <div className="font-semibold">Тестовые данные Alif</div>
+          <div>
+            Карта Korti Milli:{" "}
+            <span className="font-mono">5058270283789872</span> · exp{" "}
+            <span className="font-mono">2611</span> · cvv{" "}
+            <span className="font-mono">340</span> · Name: Test
+          </div>
+          <div>
+            Alif Mobi: <span className="font-mono">001011415</span>
+          </div>
+          <div>OTP (статичный): <span className="font-mono">12345</span></div>
+        </div>
+      )}
       <div>
         <div className="text-sm font-medium mb-2">Быстрый выбор суммы</div>
 

@@ -1,11 +1,24 @@
 const crypto = require("crypto");
 
 const TEST_DEFAULTS = {
-  key: "44444444",
-  password: "cztef62wrwcysyubbbdnhlk1rs2cztfsqgwww7j0",
-  apiUrl: "https://test-web.alif.tj",
+  key: "722796",
+  password: "sEAXlBgMYY0GPIxHPYy6",
+  apiUrl: "https://test-web.alif.tj/v2",
   gate: "km",
 };
+
+function resolveAlifEndpoints(apiUrl = "") {
+  const normalized = String(apiUrl).replace(/\/$/, "");
+  const rootBase = normalized.replace(/\/v2$/, "");
+  const v2Base = normalized.endsWith("/v2") ? normalized : `${rootBase}/v2`;
+
+  return {
+    rootBase,
+    v2Url: `${v2Base}/`,
+    legacyUrl: `${rootBase}/`,
+    checktxnUrl: `${rootBase}/checktxn`,
+  };
+}
 
 function getConfig() {
   const key = String(process.env.ALIF_TERMINAL_KEY || TEST_DEFAULTS.key).trim();
@@ -20,14 +33,20 @@ function getConfig() {
   const enabled =
     process.env.ALIF_ENABLED !== "false" && Boolean(key && password);
 
+  const endpoints = resolveAlifEndpoints(apiUrl);
+
   return {
     enabled,
     key,
     password,
     apiUrl,
     gate,
-    environment:
-      apiUrl.includes("test-web") || key === TEST_DEFAULTS.key ? "test" : "production",
+    endpoints,
+    environment: apiUrl.includes("test-web") ? "test" : "production",
+    checkoutMode: String(
+      process.env.ALIF_CHECKOUT_MODE ||
+        (apiUrl.includes("/v2") ? "v2" : "legacy")
+    ).toLowerCase(),
     allowDirectTopUp: process.env.ALIF_ALLOW_DIRECT_TOPUP === "true",
   };
 }
@@ -150,7 +169,7 @@ function buildLegacyCheckout({
   });
 
   return {
-    action: `${config.apiUrl}/`,
+    action: config.endpoints.legacyUrl,
     method: "POST",
     fields: {
       key: config.key,
@@ -183,7 +202,7 @@ async function initiateWalletPayment({
     throw new Error("ALIF_DISABLED");
   }
 
-  const mode = String(process.env.ALIF_CHECKOUT_MODE || "legacy").toLowerCase();
+  const mode = config.checkoutMode;
 
   if (mode === "v2") {
     const token = buildPaymentToken({
@@ -207,7 +226,7 @@ async function initiateWalletPayment({
       gate: gate || config.gate,
     };
 
-    const response = await fetch(`${config.apiUrl}/v2/`, {
+    const response = await fetch(config.endpoints.v2Url, {
       method: "POST",
       headers: {
         Accept: "application/json",
@@ -227,7 +246,17 @@ async function initiateWalletPayment({
       };
     }
 
-    throw new Error(body.message || "Failed to initialize Alif payment");
+    const allowLegacyFallback = process.env.ALIF_V2_FALLBACK !== "false";
+
+    if (!allowLegacyFallback) {
+      throw new Error(body.message || "Failed to initialize Alif payment");
+    }
+
+    console.warn(
+      "ALIF_V2_FALLBACK:",
+      body.code || response.status,
+      body.message || "switching to legacy checkout"
+    );
   }
 
   return {
@@ -254,7 +283,7 @@ async function checkPaymentStatus(orderId) {
     orderId,
   });
 
-  const response = await fetch(`${config.apiUrl}/checktxn`, {
+  const response = await fetch(config.endpoints.checktxnUrl, {
     method: "POST",
     headers: {
       Accept: "application/json",
