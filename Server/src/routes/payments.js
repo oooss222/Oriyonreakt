@@ -125,7 +125,9 @@ router.post("/alif/wallet-top-up", auth, async (req, res) => {
 
     return res.json({
       orderId,
-      paymentUrl: payment.paymentUrl,
+      paymentUrl: payment.paymentUrl || "",
+      checkout: payment.checkout || null,
+      mode: payment.mode || "legacy",
       provider: "alif",
       environment: config.environment,
     });

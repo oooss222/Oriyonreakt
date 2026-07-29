@@ -4,7 +4,7 @@ const TEST_DEFAULTS = {
   key: "44444444",
   password: "cztef62wrwcysyubbbdnhlk1rs2cztfsqgwww7j0",
   apiUrl: "https://test-web.alif.tj",
-  gate: "korti_milli",
+  gate: "km",
 };
 
 function getConfig() {
@@ -105,15 +105,15 @@ function normalizePhone(phone = "") {
   const digits = String(phone).replace(/[^\d]/g, "");
 
   if (!digits) {
-    return "992900000000";
+    return "900000000";
   }
 
-  if (digits.startsWith("992")) {
-    return digits;
+  if (digits.startsWith("992") && digits.length >= 12) {
+    return digits.slice(3);
   }
 
-  if (digits.length === 9) {
-    return `992${digits}`;
+  if (digits.length > 9) {
+    return digits.slice(-9);
   }
 
   return digits;
@@ -127,6 +127,44 @@ async function parseJsonResponse(response) {
   } catch {
     return { raw: text };
   }
+}
+
+function buildLegacyCheckout({
+  orderId,
+  amount,
+  callbackUrl,
+  returnUrl,
+  info,
+  email,
+  phone,
+  gate,
+}) {
+  const config = getConfig();
+
+  const token = buildPaymentToken({
+    key: config.key,
+    password: config.password,
+    orderId,
+    amount,
+    callbackUrl,
+  });
+
+  return {
+    action: `${config.apiUrl}/`,
+    method: "POST",
+    fields: {
+      key: config.key,
+      token,
+      orderId,
+      callbackUrl,
+      returnUrl,
+      amount: formatAmount(amount),
+      gate: gate || config.gate,
+      info: info || "",
+      email: email || "",
+      phone: normalizePhone(phone),
+    },
+  };
 }
 
 async function initiateWalletPayment({
@@ -145,47 +183,67 @@ async function initiateWalletPayment({
     throw new Error("ALIF_DISABLED");
   }
 
-  const token = buildPaymentToken({
-    key: config.key,
-    password: config.password,
-    orderId,
-    amount,
-    callbackUrl,
-  });
+  const mode = String(process.env.ALIF_CHECKOUT_MODE || "legacy").toLowerCase();
 
-  const payload = {
-    order_id: orderId,
-    token,
-    key: config.key,
-    callback_url: callbackUrl,
-    return_url: returnUrl,
-    amount: formatAmount(amount),
-    info,
-    email: email || undefined,
-    phone: normalizePhone(phone),
-    gate: gate || config.gate,
-  };
+  if (mode === "v2") {
+    const token = buildPaymentToken({
+      key: config.key,
+      password: config.password,
+      orderId,
+      amount,
+      callbackUrl,
+    });
 
-  const response = await fetch(`${config.apiUrl}/v2/`, {
-    method: "POST",
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(payload),
-  });
-
-  const body = await parseJsonResponse(response);
-
-  if (Number(body.code) === 200 && body.url) {
-    return {
-      paymentUrl: body.url,
-      provider: "alif",
-      raw: body,
+    const payload = {
+      order_id: orderId,
+      token,
+      key: config.key,
+      callback_url: callbackUrl,
+      return_url: returnUrl,
+      amount: formatAmount(amount),
+      info,
+      email: email || undefined,
+      phone: normalizePhone(phone),
+      gate: gate || config.gate,
     };
+
+    const response = await fetch(`${config.apiUrl}/v2/`, {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const body = await parseJsonResponse(response);
+
+    if (Number(body.code) === 200 && body.url) {
+      return {
+        paymentUrl: body.url,
+        provider: "alif",
+        mode: "v2",
+        raw: body,
+      };
+    }
+
+    throw new Error(body.message || "Failed to initialize Alif payment");
   }
 
-  throw new Error(body.message || "Failed to initialize Alif payment");
+  return {
+    checkout: buildLegacyCheckout({
+      orderId,
+      amount,
+      callbackUrl,
+      returnUrl,
+      info,
+      email,
+      phone,
+      gate,
+    }),
+    provider: "alif",
+    mode: "legacy",
+  };
 }
 
 async function checkPaymentStatus(orderId) {
@@ -240,6 +298,7 @@ module.exports = {
   getConfig,
   buildCallbackUrl,
   buildReturnUrl,
+  buildLegacyCheckout,
   buildPaymentToken,
   buildStatusToken,
   verifyCallbackToken,

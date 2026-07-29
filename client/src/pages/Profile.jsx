@@ -149,13 +149,33 @@ const WalletTopUp = React.memo(function WalletTopUp({ token, onSuccess }) {
         if (paymentConfig.alifEnabled) {
           const payment = await api.initAlifWalletTopUp(token, value);
 
-          if (!payment?.paymentUrl) {
-            throw new Error("Не удалось получить ссылку на оплату");
+          sessionStorage.setItem("alifPendingOrder", payment.orderId || "");
+
+          if (payment?.checkout?.action && payment?.checkout?.fields) {
+            const form = document.createElement("form");
+            form.method = payment.checkout.method || "POST";
+            form.action = payment.checkout.action;
+            form.style.display = "none";
+
+            Object.entries(payment.checkout.fields).forEach(([name, fieldValue]) => {
+              const input = document.createElement("input");
+              input.type = "hidden";
+              input.name = name;
+              input.value = String(fieldValue ?? "");
+              form.appendChild(input);
+            });
+
+            document.body.appendChild(form);
+            form.submit();
+            return;
           }
 
-          sessionStorage.setItem("alifPendingOrder", payment.orderId || "");
-          window.location.href = payment.paymentUrl;
-          return;
+          if (payment?.paymentUrl) {
+            window.location.href = payment.paymentUrl;
+            return;
+          }
+
+          throw new Error("Не удалось получить ссылку на оплату");
         }
 
         if (!paymentConfig.directTopUpEnabled) {
