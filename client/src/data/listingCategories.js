@@ -10,10 +10,15 @@ import {
   COMMON_SPEC_OPTIONS,
 } from "./specOptions";
 
+import {
+  REAL_ESTATE_SUB_SPECS,
+} from "./realEstate";
+
 export const TITLE_MAX = 80;
 export const DESC_MAX = 1000;
 
 export const CAT_LABELS = {
+  realestate: "Недвижимость",
   transport: "Авто",
   furniture: "Мебель",
   phones: "Телефоны",
@@ -57,6 +62,17 @@ const AUTO_SERVICE_SPECS = [
 ];
 
 export const CATS = {
+  realestate: {
+    title: "Недвижимость",
+    shortTitle: "Недвижимость",
+    img: "/img/realestate.png",
+    desc: "Квартиры, дома, участки и коммерция",
+    featured: true,
+    landingPath: "/realestate",
+    subs: Object.keys(REAL_ESTATE_SUB_SPECS),
+    specTemplate: REAL_ESTATE_SUB_SPECS["Квартиры"],
+    subSpecTemplates: REAL_ESTATE_SUB_SPECS,
+  },
   transport: {
     title: "Авто",
     shortTitle: "Авто",
@@ -199,6 +215,8 @@ export const HOME_CATEGORIES = Object.entries(CATS).map(([slug, cat]) => ({
   title: cat.shortTitle || cat.title,
   img: cat.img,
   desc: cat.desc,
+  featured: Boolean(cat.featured),
+  landingPath: cat.landingPath || `/c/${slug}`,
 }));
 
 export function getCategory(slug) {

@@ -1,5 +1,5 @@
 import React from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, Link, useNavigate, Navigate } from "react-router-dom";
 import EmptyState from "../components/EmptyState";
 import Breadcrumbs from "../components/Breadcrumbs";
 import ListingGridSkeleton from "../components/ListingGridSkeleton";
@@ -22,6 +22,11 @@ const PREVIEW_LIMIT = 6;
 export default function Category() {
   const { slug } = useParams();
   const nav = useNavigate();
+
+  if (slug === "realestate") {
+    return <Navigate to="/realestate" replace />;
+  }
+
   const cat = CATS[slug];
 
   const [q, setQ] = React.useState("");

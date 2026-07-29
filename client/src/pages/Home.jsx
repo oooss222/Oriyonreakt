@@ -2,11 +2,13 @@ import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import FavoriteButton from "../components/FavoriteButton";
 import ListingCardOverlays from "../components/ListingCardOverlays";
+import RealEstateListingCard from "../components/RealEstateListingCard";
 import AdSlot from "../components/AdSlot";
 import { api } from "../lib/api";
 import { getListingThumb } from "../lib/media";
 import { formatPrice, formatListingDate } from "../lib/format";
 import { sortListingsByPromotion } from "../lib/listingSort";
+import { REAL_ESTATE_CAT } from "../data/realEstate";
 import {
   getPromotionCardAccent,
   getPromotionCardClass,
@@ -24,6 +26,7 @@ import {
   Home as HomeIcon,
   Smartphone,
   Monitor,
+  Building2,
 } from "lucide-react";
 
 function ListingCard({ ad, listings }) {
@@ -101,6 +104,64 @@ function ListingCard({ ad, listings }) {
   );
 }
 
+function RealEstateSection({ items }) {
+  if (!items?.length) {
+    return (
+      <section className="rounded-3xl border bg-gradient-to-br from-ink-800 to-lagoon-800 text-white p-6 md:p-8">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <div className="inline-flex items-center gap-2 text-xs font-semibold text-sun-100 bg-white/10 rounded-full px-3 py-1 mb-3">
+              Новая категория
+            </div>
+            <h2 className="text-2xl font-bold">Недвижимость на Oriyon</h2>
+            <p className="text-white/75 mt-2 text-sm max-w-xl">
+              Квартиры, дома, участки и коммерция — с фильтрами, ценой за м² и
+              районами Душанбе.
+            </p>
+          </div>
+          <Link
+            to="/realestate"
+            className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-sun text-white font-bold hover:bg-sun-600 transition shrink-0"
+          >
+            <Building2 size={18} />
+            Смотреть недвижимость
+          </Link>
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <section className="space-y-4">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <div className="w-10 h-10 rounded-2xl bg-lagoon-50 grid place-items-center ring-1 ring-lagoon/15">
+            <Building2 className="text-lagoon" size={20} />
+          </div>
+          <div>
+            <h2 className="section-title">Недвижимость</h2>
+            <div className="text-sm text-ink-400">{items.length} объявлений</div>
+          </div>
+        </div>
+
+        <Link
+          to="/realestate"
+          className="hidden sm:inline-flex items-center gap-1 text-sm font-semibold text-sun-700 hover:text-sun transition"
+        >
+          Все объявления
+          <ArrowRight size={16} />
+        </Link>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+        {items.map((ad) => (
+          <RealEstateListingCard key={ad.id || ad._id} item={ad} />
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function HorizontalSection({ title, icon: Icon, items, linkTo = "/listing" }) {
   if (!items?.length) return null;
 
@@ -158,6 +219,7 @@ function ListingSkeleton() {
 
 export default function Home() {
   const [listings, setListings] = React.useState([]);
+  const [realEstateListings, setRealEstateListings] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState("");
 
@@ -169,13 +231,24 @@ export default function Home() {
         setLoading(true);
         setError("");
 
-        const data = await api.listings({
-          limit: 50,
-          sort: "promoted",
-        });
+        const [data, realEstate] = await Promise.all([
+          api.listings({
+            limit: 50,
+            sort: "promoted",
+          }),
+          api.listings({
+            cat: REAL_ESTATE_CAT,
+            limit: 8,
+            sort: "promoted",
+            location: "Душанбе",
+          }),
+        ]);
 
         if (active) {
           setListings(Array.isArray(data) ? data : []);
+          setRealEstateListings(
+            sortListingsByPromotion(Array.isArray(realEstate) ? realEstate : [])
+          );
         }
       } catch (e) {
         if (active) {
@@ -227,32 +300,34 @@ export default function Home() {
           </div>
         )}
 
-        {!loading && !error && listings.length === 0 && (
-          <div className="surface-panel p-8 text-center">
-            <div className="mx-auto w-14 h-14 rounded-2xl bg-sun-50 grid place-items-center mb-3 ring-1 ring-sun/15">
-              <Sparkles className="text-sun" />
-            </div>
+        {!loading && !error && (
+          <>
+            <RealEstateSection items={realEstateListings} />
 
-            <div className="font-display font-semibold text-ink">
-              Пока нет опубликованных объявлений
-            </div>
+            {listings.length === 0 ? (
+              <div className="surface-panel p-8 text-center">
+                <div className="mx-auto w-14 h-14 rounded-2xl bg-sun-50 grid place-items-center mb-3 ring-1 ring-sun/15">
+                  <Sparkles className="text-sun" />
+                </div>
 
-            <p className="text-sm text-ink-400 mt-1">
-              Добавьте объявление, после модерации оно появится здесь.
-            </p>
+                <div className="font-display font-semibold text-ink">
+                  Пока нет опубликованных объявлений
+                </div>
 
-            <Link
-              to="/add"
-              className="btn btn-primary mt-4"
-            >
-              <PlusCircle size={18} />
-              Подать объявление
-            </Link>
-          </div>
-        )}
+                <p className="text-sm text-ink-400 mt-1">
+                  Добавьте объявление, после модерации оно появится здесь.
+                </p>
 
-        {!loading && !error && listings.length > 0 && (
-          <div className="space-y-10">
+                <Link
+                  to="/add"
+                  className="btn btn-primary mt-4"
+                >
+                  <PlusCircle size={18} />
+                  Подать объявление
+                </Link>
+              </div>
+            ) : (
+              <div className="space-y-10">
             <HorizontalSection
               title="Горящие товары"
               icon={Flame}
@@ -290,6 +365,8 @@ export default function Home() {
               linkTo="/listing"
             />
           </div>
+            )}
+          </>
         )}
 
         <section className="grid grid-cols-1 md:grid-cols-3 gap-4">

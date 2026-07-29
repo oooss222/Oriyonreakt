@@ -11,6 +11,8 @@ import ListingCardOverlays from "../components/ListingCardOverlays";
 import SubcategoryChips from "../components/SubcategoryChips";
 import SimilarListingsSection from "../components/SimilarListingsSection";
 import AdSlot, { AdFeedCard, useAdPlacement } from "../components/AdSlot";
+import RealEstateSearchHero from "../components/RealEstateSearchHero";
+import RealEstateListingCard from "../components/RealEstateListingCard";
 import { buildFeedWithAds } from "../lib/adFeed";
 import { FEED_AD_INTERVAL } from "../lib/adPlacements";
 import { usePageMeta } from "../lib/usePageMeta";
@@ -22,6 +24,7 @@ import {
   getPromotionCardClass,
 } from "../lib/promotionStyles";
 import { CATS, parseSpecsParam } from "../data/listingCategories";
+import { REAL_ESTATE_CAT } from "../data/realEstate";
 import {
   Search,
   SlidersHorizontal,
@@ -229,6 +232,7 @@ export default function Listing() {
   }, [draft, total, cat, draftIsDirty]);
 
   const activeCat = draft.cat || cat;
+  const isRealEstate = activeCat === REAL_ESTATE_CAT;
   const feedAd = useAdPlacement("listing_feed", activeCat);
   const feedRows = React.useMemo(
     () => buildFeedWithAds(items, feedAd, FEED_AD_INTERVAL),
@@ -259,7 +263,10 @@ export default function Listing() {
     const crumbs = [{ label: "Главная", to: "/" }];
 
     if (catConfig) {
-      crumbs.push({ label: catConfig.title, to: `/c/${cat}` });
+      crumbs.push({
+        label: catConfig.title,
+        to: catConfig.landingPath || `/c/${cat}`,
+      });
     }
 
     if (subcategory) {
@@ -355,6 +362,15 @@ export default function Listing() {
   return (
     <div className="container mx-auto px-4 py-6 space-y-5">
       <Breadcrumbs items={breadcrumbItems} />
+
+      {isRealEstate && (
+        <RealEstateSearchHero
+          compact
+          initialCity={draft.location || "Душанбе"}
+          initialSubcategory={draft.subcategory || ""}
+          initialDeal={draft.specs?.["Тип сделки"] || "Купить"}
+        />
+      )}
 
       <div className="space-y-4">
         <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 px-1">
@@ -501,7 +517,13 @@ export default function Listing() {
             className="overflow-hidden rounded-2xl"
           />
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3">
+          <div
+            className={
+              isRealEstate
+                ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3"
+                : "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3"
+            }
+          >
           {feedRows.map((row, idx) => {
             if (row.type === "ad") {
               return <AdFeedCard key={`ad-${idx}`} ad={row.item} />;
@@ -509,6 +531,11 @@ export default function Listing() {
 
             const ad = row.item;
             const id = ad._id || ad.id;
+
+            if (isRealEstate) {
+              return <RealEstateListingCard key={id} item={ad} />;
+            }
+
             const imgUrl = getListingThumb(ad);
             const more = Math.max(0, (ad.images?.length || 0) - 1);
 

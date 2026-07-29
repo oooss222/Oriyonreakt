@@ -15,6 +15,7 @@ import AddListing from "./pages/AddListing.jsx";
 import EditListing from "./pages/EditListing.jsx";
 import Seller from "./pages/Seller.jsx";
 import Admin from "./pages/Admin.jsx";
+import RealEstate from "./pages/RealEstate.jsx";
 
 import "./styles/index.css";
 
@@ -67,6 +68,10 @@ const router = createBrowserRouter([
       {
         path: "c/:slug",
         element: <Category />,
+      },
+      {
+        path: "realestate",
+        element: <RealEstate />,
       },
       {
         path: "policy",

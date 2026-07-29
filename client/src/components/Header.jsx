@@ -83,6 +83,7 @@ export default function Header() {
   const isBrowsePage =
     pathname === "/" ||
     pathname === "/listing" ||
+    pathname === "/realestate" ||
     pathname.startsWith("/c/");
 
   const compactCategories = pathname !== "/";

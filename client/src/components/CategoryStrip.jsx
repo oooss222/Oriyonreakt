@@ -15,12 +15,13 @@ export default function CategoryStrip({ compact = false }) {
           } justify-center`}
         >
           {HOME_CATEGORIES.map((cat) => {
-            const active = pathname === `/c/${cat.slug}`;
+            const active =
+              pathname === cat.landingPath || pathname === `/c/${cat.slug}`;
 
             return (
               <Link
                 key={cat.slug}
-                to={`/c/${cat.slug}`}
+                to={cat.landingPath}
                 className="group shrink-0 flex w-[64px] sm:w-[72px] flex-col items-center text-center"
               >
                 <div

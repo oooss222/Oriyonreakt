@@ -27,6 +27,8 @@ import { formatPrice, formatViewsLabel, getListingDisplayDate, formatMoney } fro
 import { markListingViewed, markViewRecorded, wasViewRecorded } from "../lib/viewedListings";
 import { usePageMeta } from "../lib/usePageMeta";
 import ListingCard from "../components/ListingCard";
+import RealEstateHighlights from "../components/RealEstateHighlights";
+import RealEstateListingCard from "../components/RealEstateListingCard";
 import Breadcrumbs from "../components/Breadcrumbs";
 import EmptyState from "../components/EmptyState";
 import ListingPromotionActions from "../components/ListingPromotionActions";
@@ -35,6 +37,7 @@ import SellerReviewsPanel, { StarRating } from "../components/SellerReviewsPanel
 import AdSlot from "../components/AdSlot";
 import { PromotionBadgeGroup } from "../components/PromotionBadge";
 import { CAT_LABELS } from "../data/listingCategories";
+import { enrichRealEstateListing, isRealEstateListing } from "../lib/realEstate";
 import { REPORT_REASONS } from "../data/reportReasons";
 
 const TOKEN_KEY = "auth_token";
@@ -693,6 +696,11 @@ export default function AdDetails() {
   });
 
   const price = formatPrice(ad.price, { emptyLabel: "Договорная" });
+  const realEstateEnriched = isRealEstateListing(ad)
+    ? enrichRealEstateListing(ad)
+    : null;
+  const realEstatePricePerSqm =
+    realEstateEnriched?.realEstateSummary?.pricePerSqm || "";
   const sellerName = getSellerName(ad) || "Продавец";
   const publicId = ad.publicId || ad.public_id || ad._id || ad.id;
   const listingId = ad._id || ad.id;
@@ -954,6 +962,8 @@ export default function AdDetails() {
               <div className="text-2xl text-price">{price}</div>
             </section>
 
+            {isRealEstateListing(ad) && <RealEstateHighlights ad={ad} />}
+
             {/* Description */}
             <section className="card p-5 md:p-6 rounded-3xl">
               <h2 className="text-lg font-bold text-slate-900 mb-4">
@@ -1033,9 +1043,16 @@ export default function AdDetails() {
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                  {related.map((item) => (
-                    <ListingCard key={item._id || item.id} item={item} />
-                  ))}
+                  {related.map((item) =>
+                    isRealEstateListing(item) ? (
+                      <RealEstateListingCard
+                        key={item._id || item.id}
+                        item={item}
+                      />
+                    ) : (
+                      <ListingCard key={item._id || item.id} item={item} />
+                    )
+                  )}
                 </div>
               </section>
             )}
@@ -1095,6 +1112,11 @@ export default function AdDetails() {
                   <div className="text-3xl font-extrabold text-slate-900 tracking-tight">
                     {price}
                   </div>
+                  {realEstatePricePerSqm && (
+                      <div className="text-sm font-semibold text-sun-700 mt-1">
+                        {realEstatePricePerSqm}
+                      </div>
+                    )}
                 </div>
 
                 <div className="border-t border-slate-100 pt-5 space-y-4">

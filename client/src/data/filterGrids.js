@@ -7,6 +7,12 @@ import {
   REGIONS,
 } from "./specOptions";
 import { CATS, getListSpecFilters } from "./listingCategories";
+import {
+  DEAL_TYPES,
+  DUSHANBE_DISTRICTS,
+  REAL_ESTATE_CITIES,
+  ROOM_OPTIONS,
+} from "./realEstate";
 
 const TRANSPORT_GRID = {
   rows: [
@@ -138,6 +144,77 @@ const PHONES_GRID = {
   ],
 };
 
+const REAL_ESTATE_GRID = {
+  rows: [
+    [
+      { id: "subcategory", label: "Тип", type: "subcategory" },
+      {
+        id: "Тип сделки",
+        label: "Сделка",
+        type: "spec",
+        specKey: "Тип сделки",
+        options: DEAL_TYPES.map((item) => item.value),
+      },
+      {
+        id: "Комнат",
+        label: "Комнат",
+        type: "spec",
+        specKey: "Комнат",
+        options: ROOM_OPTIONS,
+      },
+      { id: "price", label: "Цена", type: "price" },
+    ],
+    [
+      {
+        id: "Район",
+        label: "Район",
+        type: "spec",
+        specKey: "Район",
+        options: DUSHANBE_DISTRICTS,
+      },
+      {
+        id: "Тип дома",
+        label: "Тип дома",
+        type: "spec",
+        specKey: "Тип дома",
+        options: ["Кирпич", "Панель", "Монолит", "Блок", "Другое"],
+      },
+      {
+        id: "Ремонт",
+        label: "Ремонт",
+        type: "spec",
+        specKey: "Ремонт",
+        options: ["Без ремонта", "Косметический", "Евро", "Дизайнерский"],
+      },
+      {
+        id: "location",
+        label: "Город",
+        type: "location",
+        options: REAL_ESTATE_CITIES,
+      },
+    ],
+  ],
+  more: [
+    {
+      id: "Состояние",
+      label: "Состояние",
+      type: "spec",
+      specKey: "Состояние",
+      options: ["Новостройка", "Вторичка", "Требует ремонта"],
+    },
+    {
+      id: "Мебель",
+      label: "Мебель",
+      type: "spec",
+      specKey: "Мебель",
+      options: ["С мебелью", "Без мебели", "Частично"],
+    },
+    { id: "region", label: "Регион", type: "region", options: REGIONS },
+    { id: "search", label: "Поиск", type: "search" },
+    { id: "sort", label: "Сортировка", type: "sort" },
+  ],
+};
+
 function buildGenericGrid(catKey, subcategory = "") {
   const specFilters = getListSpecFilters(catKey, subcategory).slice(0, 4);
 
@@ -186,6 +263,10 @@ export function getListingFilterGrid(catKey, subcategory = "") {
 
   if (catKey === "phones") {
     return PHONES_GRID;
+  }
+
+  if (catKey === "realestate") {
+    return REAL_ESTATE_GRID;
   }
 
   if (catKey && CATS[catKey]) {
