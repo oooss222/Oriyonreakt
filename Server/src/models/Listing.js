@@ -1,4 +1,5 @@
 const { query, mapListing } = require("../db");
+const { extractRealEstateMeta } = require("../lib/realEstateMeta");
 
 function toNumberOrNull(value) {
   if (value === undefined || value === null || value === "") {
@@ -38,6 +39,14 @@ function buildListingOrderBy(sort, priceExpr) {
     return `${PROMOTION_ORDER}, COALESCE(views, 0) DESC, created_at DESC`;
   }
 
+  if (sort === "price_per_sqm_asc") {
+    return `${PROMOTION_ORDER}, re_price_per_sqm ASC NULLS LAST, created_at DESC`;
+  }
+
+  if (sort === "price_per_sqm_desc") {
+    return `${PROMOTION_ORDER}, re_price_per_sqm DESC NULLS LAST, created_at DESC`;
+  }
+
   return `${PROMOTION_ORDER}, COALESCE(bumped_at, created_at) DESC, created_at DESC`;
 }
 
@@ -52,6 +61,12 @@ function buildListingFilters({
   location,
   region,
   owner,
+  areaFrom,
+  areaTo,
+  floorFrom,
+  floorTo,
+  floorNotFirst,
+  floorNotLast,
 } = {}) {
   const conditions = [];
   const values = [];
@@ -145,13 +160,63 @@ function buildListingFilters({
     }
   }
 
+  const minArea = toNumberOrNull(areaFrom);
+  const maxArea = toNumberOrNull(areaTo);
+  const minFloor = toNumberOrNull(floorFrom);
+  const maxFloor = toNumberOrNull(floorTo);
+
+  if (minArea !== null) {
+    values.push(minArea);
+    conditions.push(`re_area_sqm >= $${values.length}`);
+  }
+
+  if (maxArea !== null) {
+    values.push(maxArea);
+    conditions.push(`re_area_sqm <= $${values.length}`);
+  }
+
+  if (minFloor !== null) {
+    values.push(minFloor);
+    conditions.push(`re_floor >= $${values.length}`);
+  }
+
+  if (maxFloor !== null) {
+    values.push(maxFloor);
+    conditions.push(`re_floor <= $${values.length}`);
+  }
+
+  if (floorNotFirst) {
+    conditions.push(`(re_floor IS NULL OR re_floor > 1)`);
+  }
+
+  if (floorNotLast) {
+    conditions.push(`
+      (
+        re_floor IS NULL
+        OR re_floors_total IS NULL
+        OR re_floor < re_floors_total
+      )
+    `);
+  }
+
   return { conditions, values, priceExpr };
 }
 
 class ListingModel {
   static async create(data) {
-  const result = await query(
-    `
+    const reMeta =
+      data.cat === "realestate"
+        ? extractRealEstateMeta({
+            specs: data.specs || [],
+            price: data.price || "",
+            location: data.location || "",
+            lat: data.lat,
+            lng: data.lng,
+          })
+        : {};
+
+    const result = await query(
+      `
     INSERT INTO listings (
       public_id,
       title,
@@ -164,7 +229,16 @@ class ListingModel {
       specs,
       owner,
       status,
-      rejection_reason
+      rejection_reason,
+      re_deal_type,
+      re_rooms,
+      re_area_sqm,
+      re_floor,
+      re_floors_total,
+      re_district,
+      re_lat,
+      re_lng,
+      re_price_per_sqm
     )
     VALUES (
       FLOOR(10000000 + RANDOM() * 90000000),
@@ -178,25 +252,43 @@ class ListingModel {
       $8::jsonb,
       $9,
       'pending',
-      ''
+      '',
+      $10,
+      $11,
+      $12,
+      $13,
+      $14,
+      $15,
+      $16,
+      $17,
+      $18
     )
     RETURNING *
     `,
-    [
-      data.title,
-      data.price || "",
-      data.description || "",
-      data.location || "",
-      data.cat,
-      data.subcategory || "",
-      JSON.stringify(data.images || []),
-      JSON.stringify(data.specs || []),
-      data.owner,
-    ]
-  );
+      [
+        data.title,
+        data.price || "",
+        data.description || "",
+        data.location || "",
+        data.cat,
+        data.subcategory || "",
+        JSON.stringify(data.images || []),
+        JSON.stringify(data.specs || []),
+        data.owner,
+        reMeta.re_deal_type,
+        reMeta.re_rooms,
+        reMeta.re_area_sqm,
+        reMeta.re_floor,
+        reMeta.re_floors_total,
+        reMeta.re_district,
+        reMeta.re_lat,
+        reMeta.re_lng,
+        reMeta.re_price_per_sqm,
+      ]
+    );
 
-  return mapListing(result.rows[0]);
-}
+    return mapListing(result.rows[0]);
+  }
 
   static async findAll({
     cat,
@@ -209,6 +301,12 @@ class ListingModel {
     location,
     region,
     owner,
+    areaFrom,
+    areaTo,
+    floorFrom,
+    floorTo,
+    floorNotFirst,
+    floorNotLast,
     sort = "new",
     limit = 50,
     offset = 0,
@@ -227,6 +325,12 @@ class ListingModel {
       location,
       region,
       owner,
+      areaFrom,
+      areaTo,
+      floorFrom,
+      floorTo,
+      floorNotFirst,
+      floorNotLast,
     });
 
     let orderBy = buildListingOrderBy(sort, priceExpr);
@@ -262,6 +366,12 @@ class ListingModel {
     location,
     region,
     owner,
+    areaFrom,
+    areaTo,
+    floorFrom,
+    floorTo,
+    floorNotFirst,
+    floorNotLast,
   } = {}) {
     const { conditions, values } = buildListingFilters({
       cat,
@@ -274,6 +384,12 @@ class ListingModel {
       location,
       region,
       owner,
+      areaFrom,
+      areaTo,
+      floorFrom,
+      floorTo,
+      floorNotFirst,
+      floorNotLast,
     });
 
     let sql = `
@@ -381,6 +497,22 @@ class ListingModel {
     } = require("../lib/moderationEngine");
     const previousSnapshot = listingSnapshot(existing);
 
+    const nextCat = data.cat ?? existing.cat;
+    const nextSpecs = data.specs ?? existing.specs;
+    const nextPrice = data.price ?? existing.price;
+    const nextLocation = data.location ?? existing.location;
+
+    const reMeta =
+      nextCat === "realestate"
+        ? extractRealEstateMeta({
+            specs: nextSpecs || [],
+            price: nextPrice || "",
+            location: nextLocation || "",
+            lat: data.lat ?? existing.reLat,
+            lng: data.lng ?? existing.reLng,
+          })
+        : null;
+
     const result = await query(
       `
       UPDATE listings
@@ -401,6 +533,15 @@ class ListingModel {
         appeal_text = '',
         appeal_at = NULL,
         previous_snapshot = $11::jsonb,
+        re_deal_type = COALESCE($12, re_deal_type),
+        re_rooms = COALESCE($13, re_rooms),
+        re_area_sqm = COALESCE($14, re_area_sqm),
+        re_floor = COALESCE($15, re_floor),
+        re_floors_total = COALESCE($16, re_floors_total),
+        re_district = COALESCE($17, re_district),
+        re_lat = COALESCE($18, re_lat),
+        re_lng = COALESCE($19, re_lng),
+        re_price_per_sqm = COALESCE($20, re_price_per_sqm),
         updated_at = now()
       WHERE id = $1 AND owner = $2
       RETURNING *
@@ -417,6 +558,15 @@ class ListingModel {
         data.images ? JSON.stringify(data.images) : null,
         data.specs ? JSON.stringify(data.specs) : null,
         JSON.stringify(previousSnapshot),
+        reMeta?.re_deal_type ?? null,
+        reMeta?.re_rooms ?? null,
+        reMeta?.re_area_sqm ?? null,
+        reMeta?.re_floor ?? null,
+        reMeta?.re_floors_total ?? null,
+        reMeta?.re_district ?? null,
+        reMeta?.re_lat ?? null,
+        reMeta?.re_lng ?? null,
+        reMeta?.re_price_per_sqm ?? null,
       ]
     );
 

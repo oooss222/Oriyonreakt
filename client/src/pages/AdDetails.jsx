@@ -29,6 +29,7 @@ import { usePageMeta } from "../lib/usePageMeta";
 import ListingCard from "../components/ListingCard";
 import RealEstateHighlights from "../components/RealEstateHighlights";
 import RealEstateListingCard from "../components/RealEstateListingCard";
+import RealEstateMap from "../components/RealEstateMap";
 import Breadcrumbs from "../components/Breadcrumbs";
 import EmptyState from "../components/EmptyState";
 import ListingPromotionActions from "../components/ListingPromotionActions";
@@ -963,6 +964,19 @@ export default function AdDetails() {
             </section>
 
             {isRealEstateListing(ad) && <RealEstateHighlights ad={ad} />}
+
+            {isRealEstateListing(ad) && (
+              <section className="card p-5 md:p-6 rounded-3xl space-y-3">
+                <h2 className="text-lg font-bold text-slate-900">
+                  Расположение на карте
+                </h2>
+                <RealEstateMap
+                  listings={[ad]}
+                  city={ad.location || "Душанбе"}
+                  height={320}
+                />
+              </section>
+            )}
 
             {/* Description */}
             <section className="card p-5 md:p-6 rounded-3xl">

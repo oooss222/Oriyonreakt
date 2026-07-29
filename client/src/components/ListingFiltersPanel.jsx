@@ -194,6 +194,7 @@ function renderField(
     showCategorySelect,
     onApply,
     hideSubcategoryField = false,
+    grid,
   }
 ) {
   if (!field) return <div className="hidden xl:block" aria-hidden="true" />;
@@ -382,7 +383,7 @@ function renderField(
   }
 
   if (field.type === "sort") {
-    const sortLabels = {
+    const sortLabels = grid?.sortOptions || {
       new: "Сначала новые",
       views_desc: "Сначала популярные",
       price_asc: "Цена по возрастанию",
@@ -406,6 +407,71 @@ function renderField(
           }), draft);
         }}
       />
+    );
+  }
+
+  if (field.type === "range") {
+    const fromKey = field.rangeFromKey;
+    const toKey = field.rangeToKey;
+
+    return (
+      <label className="block">
+        <span className="sr-only">{field.label}</span>
+        <div className="flex h-12 items-stretch overflow-hidden rounded-xl border border-white/80 bg-white shadow-sm">
+          <span className="hidden xl:flex items-center px-3 text-xs font-semibold text-slate-500 shrink-0 border-r">
+            {field.label}
+          </span>
+          <input
+            type="text"
+            inputMode="numeric"
+            placeholder={field.placeholderFrom || "от"}
+            value={draft[fromKey] || ""}
+            onChange={(e) =>
+              setDraft((current) => ({
+                ...current,
+                [fromKey]: e.target.value.replace(/[^\d]/g, ""),
+              }))
+            }
+            className="w-1/2 px-3 text-sm outline-none border-r"
+          />
+          <input
+            type="text"
+            inputMode="numeric"
+            placeholder={field.placeholderTo || "до"}
+            value={draft[toKey] || ""}
+            onChange={(e) =>
+              setDraft((current) => ({
+                ...current,
+                [toKey]: e.target.value.replace(/[^\d]/g, ""),
+              }))
+            }
+            className="w-1/2 px-3 text-sm outline-none"
+          />
+        </div>
+      </label>
+    );
+  }
+
+  if (field.type === "toggle") {
+    const active = Boolean(draft[field.toggleKey]);
+
+    return (
+      <button
+        type="button"
+        onClick={() =>
+          commitDraft(setDraft, onApply, (current) => ({
+            ...current,
+            [field.toggleKey]: !current[field.toggleKey],
+          }), draft)
+        }
+        className={`h-12 w-full rounded-xl border px-4 text-sm font-semibold transition ${
+          active
+            ? "bg-slate-900 text-white border-slate-900"
+            : "bg-white text-slate-600 border-white/80 shadow-sm"
+        }`}
+      >
+        {field.label}
+      </button>
     );
   }
 
@@ -474,6 +540,7 @@ export default function ListingFiltersPanel({
                   showCategorySelect,
                   onApply,
                   hideSubcategoryField,
+                  grid,
                 })}
               </div>
             ))}
@@ -497,6 +564,7 @@ export default function ListingFiltersPanel({
                 showCategorySelect,
                 onApply,
                 hideSubcategoryField,
+                grid,
               })}
             </div>
           ))}

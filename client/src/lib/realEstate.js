@@ -1,4 +1,4 @@
-import { REAL_ESTATE_CAT } from "../data/realEstate";
+import { REAL_ESTATE_CAT, getCityCoordinates } from "../data/realEstate";
 
 export function isRealEstateListing(item) {
   return String(item?.cat || "") === REAL_ESTATE_CAT;
@@ -76,15 +76,42 @@ export function enrichRealEstateListing(item) {
   if (!isRealEstateListing(item)) return item;
 
   const summary = buildRealEstateSummary(item.specs, item.subcategory);
-  const pricePerSqm = formatPricePerSqm(item.price, summary.area);
+  const areaFromDb = item.reAreaSqm ? `${item.reAreaSqm} м²` : summary.area;
+  const pricePerSqm =
+    formatStoredPricePerSqm(item.rePricePerSqm) ||
+    formatPricePerSqm(item.price, areaFromDb || summary.area);
 
   return {
     ...item,
     realEstateSummary: {
       ...summary,
+      area: areaFromDb || summary.area,
+      district: item.reDistrict || summary.district,
+      floor: item.reFloor != null ? String(item.reFloor) : summary.floor,
+      floorsTotal:
+        item.reFloorsTotal != null
+          ? String(item.reFloorsTotal)
+          : summary.floorsTotal,
+      rooms: item.reRooms || summary.rooms,
+      deal: item.reDealType || summary.deal,
       pricePerSqm,
+      mapPosition: getListingMapPosition(item),
     },
   };
+}
+
+export function getListingMapPosition(item) {
+  if (item?.reLat != null && item?.reLng != null) {
+    return { lat: item.reLat, lng: item.reLng };
+  }
+
+  const city = item?.location || "Душанбе";
+  return getCityCoordinates(city);
+}
+
+export function formatStoredPricePerSqm(value) {
+  if (value == null || !Number.isFinite(Number(value))) return null;
+  return `${Number(value).toLocaleString("ru-RU")} с./м²`;
 }
 
 export function buildRealEstateListingUrl({

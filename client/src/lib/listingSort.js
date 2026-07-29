@@ -97,5 +97,33 @@ export function sortListingsByMode(items = [], sort = "new") {
     });
   }
 
+  if (sort === "price_per_sqm_asc") {
+    return [...items].sort((a, b) => {
+      const promo = compareListingsByPromotion(a, b);
+      if (promo !== 0) return promo;
+
+      const priceA = Number(a?.rePricePerSqm);
+      const priceB = Number(b?.rePricePerSqm);
+      if (!Number.isFinite(priceA) && !Number.isFinite(priceB)) return 0;
+      if (!Number.isFinite(priceA)) return 1;
+      if (!Number.isFinite(priceB)) return -1;
+      return priceA - priceB;
+    });
+  }
+
+  if (sort === "price_per_sqm_desc") {
+    return [...items].sort((a, b) => {
+      const promo = compareListingsByPromotion(a, b);
+      if (promo !== 0) return promo;
+
+      const priceA = Number(a?.rePricePerSqm);
+      const priceB = Number(b?.rePricePerSqm);
+      if (!Number.isFinite(priceA) && !Number.isFinite(priceB)) return 0;
+      if (!Number.isFinite(priceA)) return 1;
+      if (!Number.isFinite(priceB)) return -1;
+      return priceB - priceA;
+    });
+  }
+
   return sortListingsByPromotion(items);
 }

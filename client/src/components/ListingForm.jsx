@@ -19,6 +19,10 @@ import {
   mergeSpecsWithExisting,
   compactSpecsForSubmit,
 } from "../data/listingCategories";
+import { REAL_ESTATE_CAT } from "../data/realEstate";
+import RealEstateListingWizard, {
+  isRealEstateWizardCategory,
+} from "./RealEstateListingWizard";
 import {
   Plus,
   X,
@@ -38,6 +42,7 @@ export default function ListingForm({
   mode = "create",
   listingId = null,
   initialData = null,
+  initialCat = "",
   onSuccess,
   backTo = "/profile?tab=my",
 }) {
@@ -45,17 +50,20 @@ export default function ListingForm({
   const token = localStorage.getItem("auth_token") || "";
   const isEdit = mode === "edit";
 
+  const startCat =
+    initialCat && CATS[initialCat] ? initialCat : "transport";
+
   const [form, setForm] = React.useState({
     title: "",
     price: "",
-    location: "Душанбе",
-    cat: "transport",
-    subcategory: CATS.transport.subs[0],
+    location: startCat === REAL_ESTATE_CAT ? "Душанбе" : "Душанбе",
+    cat: startCat,
+    subcategory: CATS[startCat]?.subs?.[0] || "",
     description: "",
   });
 
   const [specs, setSpecs] = React.useState(() =>
-    buildSpecTemplate("transport", CATS.transport.subs[0])
+    buildSpecTemplate(startCat, CATS[startCat]?.subs?.[0] || "")
   );
   const [existingImages, setExistingImages] = React.useState([]);
   const [files, setFiles] = React.useState([]);
@@ -64,6 +72,7 @@ export default function ListingForm({
   const [loading, setLoading] = React.useState(isEdit);
   const [saving, setSaving] = React.useState(false);
   const [isDragOver, setIsDragOver] = React.useState(false);
+  const [geo, setGeo] = React.useState(null);
 
   const applyCategorySpecs = React.useCallback(
     (catKey, subcategory, existingSpecs = []) => {
@@ -72,6 +81,18 @@ export default function ListingForm({
     },
     []
   );
+
+  React.useEffect(() => {
+    if (isEdit || !initialCat || !CATS[initialCat]) return;
+
+    setForm((state) => ({
+      ...state,
+      cat: initialCat,
+      subcategory: CATS[initialCat]?.subs?.[0] || "",
+      location: initialCat === REAL_ESTATE_CAT ? "Душанбе" : state.location,
+    }));
+    applyCategorySpecs(initialCat, CATS[initialCat]?.subs?.[0] || "");
+  }, [initialCat, isEdit, applyCategorySpecs]);
 
   React.useEffect(() => {
     if (!isEdit || !initialData) return;
@@ -105,6 +126,10 @@ export default function ListingForm({
       subcategory,
       Array.isArray(initialData.specs) ? initialData.specs : []
     );
+
+    if (initialData.reLat != null && initialData.reLng != null) {
+      setGeo({ lat: initialData.reLat, lng: initialData.reLng });
+    }
 
     setLoading(false);
   }, [isEdit, initialData, applyCategorySpecs]);
@@ -362,12 +387,14 @@ export default function ListingForm({
           : "",
         location: LOCATIONS.includes(form.location)
           ? form.location
-          : LOCATIONS[0],
+          : form.location || LOCATIONS[0],
         cat: form.cat.trim(),
         subcategory: form.subcategory.trim(),
         description: form.description || "",
         specs: compactSpecs,
         images: allImages,
+        lat: geo?.lat,
+        lng: geo?.lng,
       };
 
       const result = isEdit
@@ -386,6 +413,8 @@ export default function ListingForm({
   const subs = cat?.subs || [];
   const photosCount = existingImages.length + previews.length;
   const filledSpecs = compactSpecsForSubmit(specs).length;
+  const useRealEstateWizard =
+    isRealEstateWizardCategory(form.cat) && !isEdit;
 
   const locationOptions = React.useMemo(() => {
     if (form.location && !LOCATIONS.includes(form.location)) {
@@ -460,6 +489,25 @@ export default function ListingForm({
         </div>
       )}
 
+      {useRealEstateWizard ? (
+        <RealEstateListingWizard
+          form={form}
+          setForm={setForm}
+          specs={specs}
+          setSpecs={setSpecs}
+          geo={geo}
+          setGeo={setGeo}
+          files={files}
+          previews={previews}
+          existingImages={existingImages}
+          onFiles={onFiles}
+          onInputFiles={onInputFiles}
+          removeFile={removeFile}
+          removeExistingImage={removeExistingImage}
+          onSubmit={submit}
+          saving={saving}
+        />
+      ) : (
       <form onSubmit={submit} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <section className="lg:col-span-2 space-y-6">
           <div className="rounded-2xl border bg-white p-5 space-y-4">
@@ -838,6 +886,7 @@ export default function ListingForm({
           </div>
         </aside>
       </form>
+      )}
     </div>
   );
 }

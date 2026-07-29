@@ -13,6 +13,7 @@ import SimilarListingsSection from "../components/SimilarListingsSection";
 import AdSlot, { AdFeedCard, useAdPlacement } from "../components/AdSlot";
 import RealEstateSearchHero from "../components/RealEstateSearchHero";
 import RealEstateListingCard from "../components/RealEstateListingCard";
+import RealEstateMap from "../components/RealEstateMap";
 import { buildFeedWithAds } from "../lib/adFeed";
 import { FEED_AD_INTERVAL } from "../lib/adPlacements";
 import { usePageMeta } from "../lib/usePageMeta";
@@ -31,6 +32,8 @@ import {
   X,
   MapPin,
   PackageSearch,
+  LayoutGrid,
+  Map as MapIcon,
 } from "lucide-react";
 
 function buildListingParams(draft, urlCat = "") {
@@ -50,6 +53,13 @@ function buildListingParams(draft, urlCat = "") {
   if (draft.location) next.location = draft.location;
   if (draft.region && !draft.location) next.region = draft.region;
   if (draft.sort) next.sort = draft.sort;
+  if (draft.areaFrom) next.areaFrom = draft.areaFrom;
+  if (draft.areaTo) next.areaTo = draft.areaTo;
+  if (draft.floorFrom) next.floorFrom = draft.floorFrom;
+  if (draft.floorTo) next.floorTo = draft.floorTo;
+  if (draft.floorNotFirst) next.floorNotFirst = "1";
+  if (draft.floorNotLast) next.floorNotLast = "1";
+  if (draft.view) next.view = draft.view;
 
   const specEntries = Object.entries(draft.specs || {}).filter(
     ([name, value]) => String(name).trim() && String(value).trim()
@@ -72,6 +82,13 @@ function searchParamsToDraft(params) {
     location: params.get("location") || "",
     region: params.get("region") || "",
     sort: params.get("sort") || "new",
+    areaFrom: params.get("areaFrom") || "",
+    areaTo: params.get("areaTo") || "",
+    floorFrom: params.get("floorFrom") || "",
+    floorTo: params.get("floorTo") || "",
+    floorNotFirst: params.get("floorNotFirst") === "1",
+    floorNotLast: params.get("floorNotLast") === "1",
+    view: params.get("view") || "list",
     specs: parseSpecsParam(params.get("specs")),
   };
 }
@@ -80,6 +97,7 @@ function buildListingQueryFromSearchParams(params) {
   const draft = searchParamsToDraft(params);
   return {
     ...buildListingParams(draft, draft.cat),
+    sort: draft.sort || "new",
     limit: 100,
   };
 }
@@ -87,6 +105,7 @@ function buildListingQueryFromSearchParams(params) {
 function buildListingQueryFromDraft(draft, urlCat = "") {
   return {
     ...buildListingParams(draft, urlCat),
+    sort: draft.sort || "new",
     limit: 100,
   };
 }
@@ -233,6 +252,7 @@ export default function Listing() {
 
   const activeCat = draft.cat || cat;
   const isRealEstate = activeCat === REAL_ESTATE_CAT;
+  const viewMode = isRealEstate ? appliedDraft.view || "list" : "list";
   const feedAd = useAdPlacement("listing_feed", activeCat);
   const feedRows = React.useMemo(
     () => buildFeedWithAds(items, feedAd, FEED_AD_INTERVAL),
@@ -314,6 +334,13 @@ export default function Listing() {
       location: "",
       region: "",
       sort: "new",
+      areaFrom: "",
+      areaTo: "",
+      floorFrom: "",
+      floorTo: "",
+      floorNotFirst: false,
+      floorNotLast: false,
+      view: "list",
       specs: {},
     });
 
@@ -334,6 +361,12 @@ export default function Listing() {
     location ||
     region ||
     sort !== "new" ||
+    appliedDraft.areaFrom ||
+    appliedDraft.areaTo ||
+    appliedDraft.floorFrom ||
+    appliedDraft.floorTo ||
+    appliedDraft.floorNotFirst ||
+    appliedDraft.floorNotLast ||
     Object.keys(activeSpecs).length > 0;
 
   const activeFilterCount =
@@ -342,6 +375,9 @@ export default function Listing() {
     Number(Boolean(priceFrom || priceTo)) +
     Number(Boolean(location || region)) +
     Number(sort !== "new") +
+    Number(Boolean(appliedDraft.areaFrom || appliedDraft.areaTo)) +
+    Number(Boolean(appliedDraft.floorFrom || appliedDraft.floorTo)) +
+    Number(Boolean(appliedDraft.floorNotFirst || appliedDraft.floorNotLast)) +
     Object.keys(activeSpecs).length;
 
   const showSubcategoryChips =
@@ -386,6 +422,35 @@ export default function Listing() {
               Найдено: {loading ? "…" : total.toLocaleString("ru-RU")}
             </p>
           </div>
+
+          {isRealEstate && (
+            <div className="hidden md:flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => applyFilters({ ...draft, view: "list" })}
+                className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl border text-sm font-medium transition ${
+                  viewMode === "list"
+                    ? "bg-slate-900 text-white border-slate-900"
+                    : "bg-white hover:bg-slate-50"
+                }`}
+              >
+                <LayoutGrid size={16} />
+                Список
+              </button>
+              <button
+                type="button"
+                onClick={() => applyFilters({ ...draft, view: "map" })}
+                className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl border text-sm font-medium transition ${
+                  viewMode === "map"
+                    ? "bg-slate-900 text-white border-slate-900"
+                    : "bg-white hover:bg-slate-50"
+                }`}
+              >
+                <MapIcon size={16} />
+                Карта
+              </button>
+            </div>
+          )}
 
           <div className="flex items-center gap-2 md:hidden">
             <button
@@ -509,7 +574,15 @@ export default function Listing() {
         />
       )}
 
-      {!loading && !error && items.length > 0 && (
+      {!loading && !error && items.length > 0 && viewMode === "map" && isRealEstate && (
+        <RealEstateMap
+          listings={items}
+          city={location || draft.location || "Душанбе"}
+          className="mb-4"
+        />
+      )}
+
+      {!loading && !error && items.length > 0 && viewMode !== "map" && (
         <>
           <AdSlot
             placement="listing_top"

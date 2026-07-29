@@ -36,6 +36,42 @@ export const DUSHANBE_DISTRICTS = [
   "Варзоб",
 ];
 
+export const CITY_DISTRICTS = {
+  Душанбе: DUSHANBE_DISTRICTS,
+  Худжанд: ["Центр", "Караван", "Авиагородок", "Зарафшон", "Куруш", "20 микрорайон"],
+  Бохтар: ["Центр", "50 лет Октября", "Бозор", "Комсомол"],
+  Куляб: ["Центр", "Новый город", "Бохтар"],
+  Вахдат: ["Центр", "Сомони", "Рохати"],
+  Истаравшан: ["Центр", "Согдиена", "Куйбышев"],
+  Турсунзаде: ["Центр", "Рохат", "Шахритус"],
+  Исфара: ["Центр", "Сомони", "Нав"],
+  Пенджикент: ["Центр", "Рудаки", "Сомони"],
+  Хорог: ["Центр", "Сомони", "Навбахор"],
+  Рогун: ["Центр", "Строительная зона"],
+};
+
+export const CITY_COORDINATES = {
+  Душанбе: { lat: 38.5598, lng: 68.787, zoom: 12 },
+  Худжанд: { lat: 40.283, lng: 69.622, zoom: 12 },
+  Бохтар: { lat: 37.836, lng: 68.781, zoom: 12 },
+  Куляб: { lat: 37.909, lng: 69.782, zoom: 12 },
+  Вахдат: { lat: 38.556, lng: 69.015, zoom: 13 },
+  Истаравшан: { lat: 39.914, lng: 69.007, zoom: 12 },
+  Турсунзаде: { lat: 38.512, lng: 68.231, zoom: 12 },
+  Исфара: { lat: 40.126, lng: 70.625, zoom: 12 },
+  Пенджикент: { lat: 39.492, lng: 67.608, zoom: 12 },
+  Хорог: { lat: 37.491, lng: 71.559, zoom: 12 },
+  Рогун: { lat: 38.691, lng: 69.958, zoom: 12 },
+};
+
+export function getDistrictsForCity(city = "") {
+  return CITY_DISTRICTS[city] || [];
+}
+
+export function getCityCoordinates(city = "") {
+  return CITY_COORDINATES[city] || CITY_COORDINATES["Душанбе"];
+}
+
 export const SUBCATEGORY_META = {
   Новостройки: {
     icon: "building",
@@ -100,7 +136,7 @@ export const APARTMENT_SPECS = [
   { name: "Площадь жилая", type: "text", placeholder: "м²" },
   { name: "Этаж", type: "text" },
   { name: "Этажей в доме", type: "text" },
-  { name: "Район", type: "select", options: DUSHANBE_DISTRICTS },
+  { name: "Район", type: "select", options: DUSHANBE_DISTRICTS, dynamicOptionsFrom: "city" },
   { name: "Тип дома", type: "select", options: ["Кирпич", "Панель", "Монолит", "Блок", "Другое"] },
   { name: "Год постройки", type: "select", options: BUILD_YEARS },
   { name: "Ремонт", type: "select", options: ["Без ремонта", "Косметический", "Евро", "Дизайнерский"] },

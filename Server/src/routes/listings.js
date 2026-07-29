@@ -74,6 +74,12 @@ function listingQueryFromReq(query) {
     location,
     region,
     owner,
+    areaFrom,
+    areaTo,
+    floorFrom,
+    floorTo,
+    floorNotFirst,
+    floorNotLast,
   } = query;
 
   return {
@@ -86,6 +92,14 @@ function listingQueryFromReq(query) {
     location: location || undefined,
     region: location ? undefined : region || undefined,
     owner: owner || undefined,
+    areaFrom: areaFrom || undefined,
+    areaTo: areaTo || undefined,
+    floorFrom: floorFrom || undefined,
+    floorTo: floorTo || undefined,
+    floorNotFirst:
+      floorNotFirst === "1" || floorNotFirst === "true" ? true : undefined,
+    floorNotLast:
+      floorNotLast === "1" || floorNotLast === "true" ? true : undefined,
   };
 }
 
@@ -449,6 +463,8 @@ router.post("/", auth, async (req, res) => {
       images: normalizeArray(body.images),
       specs: normalizeArray(body.specs),
       owner: req.user.id,
+      lat: body.lat ?? body.reLat,
+      lng: body.lng ?? body.reLng,
     });
 
     const moderated = await Listing.processModeration(listing.id, {
@@ -483,6 +499,8 @@ router.put("/:id", auth, async (req, res) => {
         : undefined,
       images: body.images ? normalizeArray(body.images) : undefined,
       specs: body.specs ? normalizeArray(body.specs) : undefined,
+      lat: body.lat ?? body.reLat,
+      lng: body.lng ?? body.reLng,
     });
 
     if (!listing) {

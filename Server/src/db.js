@@ -226,6 +226,45 @@ async function initDb() {
     ALTER TABLE listings
       ADD COLUMN IF NOT EXISTS appeal_at TIMESTAMPTZ;
 
+    ALTER TABLE listings
+      ADD COLUMN IF NOT EXISTS re_deal_type TEXT;
+
+    ALTER TABLE listings
+      ADD COLUMN IF NOT EXISTS re_rooms TEXT;
+
+    ALTER TABLE listings
+      ADD COLUMN IF NOT EXISTS re_area_sqm NUMERIC;
+
+    ALTER TABLE listings
+      ADD COLUMN IF NOT EXISTS re_floor INTEGER;
+
+    ALTER TABLE listings
+      ADD COLUMN IF NOT EXISTS re_floors_total INTEGER;
+
+    ALTER TABLE listings
+      ADD COLUMN IF NOT EXISTS re_district TEXT;
+
+    ALTER TABLE listings
+      ADD COLUMN IF NOT EXISTS re_lat NUMERIC;
+
+    ALTER TABLE listings
+      ADD COLUMN IF NOT EXISTS re_lng NUMERIC;
+
+    ALTER TABLE listings
+      ADD COLUMN IF NOT EXISTS re_price_per_sqm NUMERIC;
+
+    CREATE INDEX IF NOT EXISTS idx_listings_re_area
+      ON listings(re_area_sqm)
+      WHERE cat = 'realestate';
+
+    CREATE INDEX IF NOT EXISTS idx_listings_re_price_per_sqm
+      ON listings(re_price_per_sqm)
+      WHERE cat = 'realestate';
+
+    CREATE INDEX IF NOT EXISTS idx_listings_re_district
+      ON listings(re_district)
+      WHERE cat = 'realestate';
+
     DO $$
     BEGIN
       IF NOT EXISTS (
@@ -504,6 +543,65 @@ async function initDb() {
       updated_by UUID REFERENCES users(id) ON DELETE SET NULL
     );
   `);
+
+  await backfillRealEstateMeta();
+}
+
+async function backfillRealEstateMeta() {
+  const { extractRealEstateMeta } = require("./lib/realEstateMeta");
+
+  const result = await query(
+    `
+    SELECT id, specs, price, location, re_lat, re_lng
+    FROM listings
+    WHERE cat = 'realestate'
+      AND (
+        re_area_sqm IS NULL
+        OR re_price_per_sqm IS NULL
+        OR re_deal_type IS NULL
+      )
+    LIMIT 1000
+    `
+  );
+
+  for (const row of result.rows) {
+    const meta = extractRealEstateMeta({
+      specs: row.specs || [],
+      price: row.price || "",
+      location: row.location || "",
+      lat: row.re_lat,
+      lng: row.re_lng,
+    });
+
+    await query(
+      `
+      UPDATE listings
+      SET
+        re_deal_type = $2,
+        re_rooms = $3,
+        re_area_sqm = $4,
+        re_floor = $5,
+        re_floors_total = $6,
+        re_district = $7,
+        re_lat = COALESCE(re_lat, $8),
+        re_lng = COALESCE(re_lng, $9),
+        re_price_per_sqm = $10
+      WHERE id = $1
+      `,
+      [
+        row.id,
+        meta.re_deal_type,
+        meta.re_rooms,
+        meta.re_area_sqm,
+        meta.re_floor,
+        meta.re_floors_total,
+        meta.re_district,
+        meta.re_lat,
+        meta.re_lng,
+        meta.re_price_per_sqm,
+      ]
+    );
+  }
 }
 
 function mapUser(row) {
@@ -599,6 +697,19 @@ function mapListing(row) {
     bumpedAt: row.bumped_at || null,
     expiresAt: row.expires_at || null,
     expiryNoticeSentAt: row.expiry_notice_sent_at || null,
+
+    reDealType: row.re_deal_type || null,
+    reRooms: row.re_rooms || null,
+    reAreaSqm:
+      row.re_area_sqm != null ? Number(row.re_area_sqm) : null,
+    reFloor: row.re_floor != null ? Number(row.re_floor) : null,
+    reFloorsTotal:
+      row.re_floors_total != null ? Number(row.re_floors_total) : null,
+    reDistrict: row.re_district || null,
+    reLat: row.re_lat != null ? Number(row.re_lat) : null,
+    reLng: row.re_lng != null ? Number(row.re_lng) : null,
+    rePricePerSqm:
+      row.re_price_per_sqm != null ? Number(row.re_price_per_sqm) : null,
 
     createdAt: row.created_at,
     updatedAt: row.updated_at,

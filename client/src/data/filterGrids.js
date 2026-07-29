@@ -145,6 +145,14 @@ const PHONES_GRID = {
 };
 
 const REAL_ESTATE_GRID = {
+  sortOptions: {
+    new: "Сначала новые",
+    views_desc: "Сначала популярные",
+    price_asc: "Цена по возрастанию",
+    price_desc: "Цена по убыванию",
+    price_per_sqm_asc: "Дешевле за м²",
+    price_per_sqm_desc: "Дороже за м²",
+  },
   rows: [
     [
       { id: "subcategory", label: "Тип", type: "subcategory" },
@@ -163,6 +171,38 @@ const REAL_ESTATE_GRID = {
         options: ROOM_OPTIONS,
       },
       { id: "price", label: "Цена", type: "price" },
+    ],
+    [
+      {
+        id: "area",
+        label: "Площадь, м²",
+        type: "range",
+        rangeFromKey: "areaFrom",
+        rangeToKey: "areaTo",
+        placeholderFrom: "от",
+        placeholderTo: "до",
+      },
+      {
+        id: "floor",
+        label: "Этаж",
+        type: "range",
+        rangeFromKey: "floorFrom",
+        rangeToKey: "floorTo",
+        placeholderFrom: "от",
+        placeholderTo: "до",
+      },
+      {
+        id: "floorNotFirst",
+        label: "Не первый",
+        type: "toggle",
+        toggleKey: "floorNotFirst",
+      },
+      {
+        id: "floorNotLast",
+        label: "Не последний",
+        type: "toggle",
+        toggleKey: "floorNotLast",
+      },
     ],
     [
       {
