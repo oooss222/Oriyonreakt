@@ -216,6 +216,12 @@ function renderField(
             ...current,
             subcategory: value,
             specs: {},
+            areaFrom: "",
+            areaTo: "",
+            floorFrom: "",
+            floorTo: "",
+            floorNotFirst: false,
+            floorNotLast: false,
           }), draft)
         }
       />

@@ -7,12 +7,7 @@ import {
   REGIONS,
 } from "./specOptions";
 import { CATS, getListSpecFilters } from "./listingCategories";
-import {
-  DEAL_TYPES,
-  DUSHANBE_DISTRICTS,
-  REAL_ESTATE_CITIES,
-  ROOM_OPTIONS,
-} from "./realEstate";
+import { getRealEstateFilterGrid } from "./realEstateFilters";
 
 const TRANSPORT_GRID = {
   rows: [
@@ -144,115 +139,6 @@ const PHONES_GRID = {
   ],
 };
 
-const REAL_ESTATE_GRID = {
-  sortOptions: {
-    new: "Сначала новые",
-    views_desc: "Сначала популярные",
-    price_asc: "Цена по возрастанию",
-    price_desc: "Цена по убыванию",
-    price_per_sqm_asc: "Дешевле за м²",
-    price_per_sqm_desc: "Дороже за м²",
-  },
-  rows: [
-    [
-      { id: "subcategory", label: "Тип", type: "subcategory" },
-      {
-        id: "Тип сделки",
-        label: "Сделка",
-        type: "spec",
-        specKey: "Тип сделки",
-        options: DEAL_TYPES.map((item) => item.value),
-      },
-      {
-        id: "Комнат",
-        label: "Комнат",
-        type: "spec",
-        specKey: "Комнат",
-        options: ROOM_OPTIONS,
-      },
-      { id: "price", label: "Цена", type: "price" },
-    ],
-    [
-      {
-        id: "area",
-        label: "Площадь, м²",
-        type: "range",
-        rangeFromKey: "areaFrom",
-        rangeToKey: "areaTo",
-        placeholderFrom: "от",
-        placeholderTo: "до",
-      },
-      {
-        id: "floor",
-        label: "Этаж",
-        type: "range",
-        rangeFromKey: "floorFrom",
-        rangeToKey: "floorTo",
-        placeholderFrom: "от",
-        placeholderTo: "до",
-      },
-      {
-        id: "floorNotFirst",
-        label: "Не первый",
-        type: "toggle",
-        toggleKey: "floorNotFirst",
-      },
-      {
-        id: "floorNotLast",
-        label: "Не последний",
-        type: "toggle",
-        toggleKey: "floorNotLast",
-      },
-    ],
-    [
-      {
-        id: "Район",
-        label: "Район",
-        type: "city-district",
-        specKey: "Район",
-      },
-      {
-        id: "Тип дома",
-        label: "Тип дома",
-        type: "spec",
-        specKey: "Тип дома",
-        options: ["Кирпич", "Панель", "Монолит", "Блок", "Другое"],
-      },
-      {
-        id: "Ремонт",
-        label: "Ремонт",
-        type: "spec",
-        specKey: "Ремонт",
-        options: ["Без ремонта", "Косметический", "Евро", "Дизайнерский"],
-      },
-      {
-        id: "location",
-        label: "Город",
-        type: "location",
-        options: REAL_ESTATE_CITIES,
-      },
-    ],
-  ],
-  more: [
-    {
-      id: "Состояние",
-      label: "Состояние",
-      type: "spec",
-      specKey: "Состояние",
-      options: ["Новостройка", "Вторичка", "Требует ремонта"],
-    },
-    {
-      id: "Мебель",
-      label: "Мебель",
-      type: "spec",
-      specKey: "Мебель",
-      options: ["С мебелью", "Без мебели", "Частично"],
-    },
-    { id: "region", label: "Регион", type: "region", options: REGIONS },
-    { id: "search", label: "Поиск", type: "search" },
-    { id: "sort", label: "Сортировка", type: "sort" },
-  ],
-};
 
 function buildGenericGrid(catKey, subcategory = "") {
   const specFilters = getListSpecFilters(catKey, subcategory).slice(0, 4);
@@ -305,7 +191,7 @@ export function getListingFilterGrid(catKey, subcategory = "") {
   }
 
   if (catKey === "realestate") {
-    return REAL_ESTATE_GRID;
+    return getRealEstateFilterGrid(subcategory);
   }
 
   if (catKey && CATS[catKey]) {

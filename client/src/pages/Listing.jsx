@@ -428,7 +428,17 @@ export default function Listing() {
 
   const selectSubcategory = React.useCallback(
     (value) => {
-      applyFilters({ ...appliedDraft, subcategory: value });
+      applyFilters({
+        ...appliedDraft,
+        subcategory: value,
+        specs: {},
+        areaFrom: "",
+        areaTo: "",
+        floorFrom: "",
+        floorTo: "",
+        floorNotFirst: false,
+        floorNotLast: false,
+      });
     },
     [appliedDraft, applyFilters]
   );
