@@ -15,6 +15,8 @@ import RealEstateSearchHero from "../components/RealEstateSearchHero";
 import RealEstateListingCard from "../components/RealEstateListingCard";
 import RealEstateMap from "../components/RealEstateMap";
 import { buildFeedWithAds } from "../lib/adFeed";
+import { filterListingsByPolygon, normalizePolygon } from "../lib/geo";
+import { enrichRealEstateListing } from "../lib/realEstate";
 import {
   buildRealEstateListingUrl,
   isRealEstateSeoPath,
@@ -140,6 +142,7 @@ export default function Listing() {
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState("");
   const [mobileFiltersOpen, setMobileFiltersOpen] = React.useState(false);
+  const [mapPolygon, setMapPolygon] = React.useState([]);
 
   const cat = searchParams.get("cat") || "";
   const subcategory = searchParams.get("subcategory") || "";
@@ -279,11 +282,21 @@ export default function Listing() {
   const activeCat = draft.cat || cat || (seoDraft ? REAL_ESTATE_CAT : "");
   const isRealEstate = activeCat === REAL_ESTATE_CAT;
   const viewMode = isRealEstate ? appliedDraft.view || "list" : "list";
+  const mapRing = React.useMemo(() => normalizePolygon(mapPolygon), [mapPolygon]);
+
+  const displayItems = React.useMemo(() => {
+    if (!isRealEstate || !mapRing.length) return items;
+
+    return filterListingsByPolygon(items, mapRing, (item) => {
+      const enriched = enrichRealEstateListing(item);
+      return enriched.realEstateSummary?.mapPosition || null;
+    });
+  }, [items, isRealEstate, mapRing]);
 
   const feedAd = useAdPlacement("listing_feed", activeCat);
   const feedRows = React.useMemo(
-    () => buildFeedWithAds(items, feedAd, FEED_AD_INTERVAL),
-    [items, feedAd]
+    () => buildFeedWithAds(displayItems, feedAd, FEED_AD_INTERVAL),
+    [displayItems, feedAd]
   );
   const effectiveListingCat = cat || (seoDraft ? REAL_ESTATE_CAT : "");
   const catConfig = effectiveListingCat ? CATS[effectiveListingCat] : null;
@@ -416,6 +429,7 @@ export default function Listing() {
     appliedDraft.floorTo ||
     appliedDraft.floorNotFirst ||
     appliedDraft.floorNotLast ||
+    mapRing.length > 0 ||
     Object.keys(activeSpecs).length > 0;
 
   const activeFilterCount =
@@ -427,6 +441,7 @@ export default function Listing() {
     Number(Boolean(appliedDraft.areaFrom || appliedDraft.areaTo)) +
     Number(Boolean(appliedDraft.floorFrom || appliedDraft.floorTo)) +
     Number(Boolean(appliedDraft.floorNotFirst || appliedDraft.floorNotLast)) +
+    Number(Boolean(mapRing.length)) +
     Object.keys(activeSpecs).length;
 
   const showSubcategoryChips =
@@ -440,8 +455,8 @@ export default function Listing() {
   );
 
   const visibleListingIds = React.useMemo(
-    () => items.map((ad) => ad._id || ad.id).filter(Boolean),
-    [items]
+    () => displayItems.map((ad) => ad._id || ad.id).filter(Boolean),
+    [displayItems]
   );
 
   return (
@@ -613,6 +628,16 @@ export default function Listing() {
         />
       )}
 
+      {!loading && !error && displayItems.length === 0 && items.length > 0 && mapRing.length > 0 && (
+        <EmptyState
+          icon={MapPin}
+          title="В выбранной области нет объявлений"
+          description="Попробуйте обвести другой район или сбросьте область на карте."
+          actionLabel="Открыть карту"
+          onAction={() => applyFilters({ ...draft, view: "map" })}
+        />
+      )}
+
       {!loading && !error && items.length === 0 && total === 0 && viewMode !== "map" && (
         <EmptyState
           icon={Search}
@@ -630,7 +655,36 @@ export default function Listing() {
           district={appliedDraft.specs?.["Район"] || ""}
           height={Math.min(560, typeof window !== "undefined" ? window.innerHeight * 0.62 : 560)}
           className="mb-4"
+          enableAreaDraw
+          polygon={mapPolygon}
+          onPolygonChange={setMapPolygon}
+          onShowList={() => applyFilters({ ...draft, view: "list" })}
         />
+      )}
+
+      {!loading && !error && mapRing.length > 0 && viewMode !== "map" && isRealEstate && (
+        <div className="rounded-2xl border bg-sun-50 border-sun/20 px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+          <div className="text-sm text-slate-700">
+            Показаны объявления в выбранной области на карте:{" "}
+            <strong>{displayItems.length}</strong>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => applyFilters({ ...draft, view: "map" })}
+              className="text-sm font-semibold text-sun hover:text-sun-600"
+            >
+              Изменить область
+            </button>
+            <button
+              type="button"
+              onClick={() => setMapPolygon([])}
+              className="text-sm font-medium text-slate-500 hover:text-slate-700"
+            >
+              Сбросить
+            </button>
+          </div>
+        </div>
       )}
 
       {!loading && !error && viewMode === "map" && isRealEstate && items.length === 0 && total === 0 && (
@@ -643,7 +697,7 @@ export default function Listing() {
         />
       )}
 
-      {!loading && !error && items.length > 0 && viewMode !== "map" && (
+      {!loading && !error && displayItems.length > 0 && viewMode !== "map" && (
         <>
           <AdSlot
             placement="listing_top"
