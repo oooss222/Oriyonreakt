@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { CATEGORY_SELECT_OPTIONS } from "../data/listingCategories";
 import { getListingFilterGrid } from "../data/filterGrids";
+import { getDistrictsForCity } from "../data/realEstate";
 import { formatPriceInput, getPriceDigits } from "../data/specOptions";
 
 function FilterSelect({
@@ -332,6 +333,36 @@ function renderField(
     );
   }
 
+  if (field.type === "city-district") {
+    const districts = getDistrictsForCity(draft.location || "Душанбе");
+
+    return (
+      <FilterSelect
+        label={field.label}
+        placeholder={districts.length ? field.label : "Сначала город"}
+        value={draft.specs?.[field.specKey] || ""}
+        options={districts}
+        disabled={!districts.length}
+        onChange={(value) =>
+          commitDraft(setDraft, onApply, (current) => {
+            const nextSpecs = { ...current.specs };
+
+            if (value) {
+              nextSpecs[field.specKey] = value;
+            } else {
+              delete nextSpecs[field.specKey];
+            }
+
+            return {
+              ...current,
+              specs: nextSpecs,
+            };
+          }, draft)
+        }
+      />
+    );
+  }
+
   if (field.type === "region") {
     return (
       <FilterSelect
@@ -357,10 +388,21 @@ function renderField(
         value={draft.location || ""}
         options={field.options || []}
         onChange={(value) =>
-          commitDraft(setDraft, onApply, (current) => ({
-            ...current,
-            location: value,
-          }), draft)
+          commitDraft(setDraft, onApply, (current) => {
+            const nextSpecs = { ...current.specs };
+            const districts = getDistrictsForCity(value || "Душанбе");
+            const currentDistrict = nextSpecs["Район"];
+
+            if (currentDistrict && !districts.includes(currentDistrict)) {
+              delete nextSpecs["Район"];
+            }
+
+            return {
+              ...current,
+              location: value,
+              specs: nextSpecs,
+            };
+          }, draft)
         }
       />
     );

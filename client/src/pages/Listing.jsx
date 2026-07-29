@@ -1,5 +1,5 @@
 import React from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useSearchParams, useNavigate, useParams, useLocation } from "react-router-dom";
 import { api } from "../lib/api";
 import FavoriteButton from "../components/FavoriteButton";
 import ListingGridSkeleton from "../components/ListingGridSkeleton";
@@ -13,7 +13,13 @@ import SimilarListingsSection from "../components/SimilarListingsSection";
 import AdSlot, { AdFeedCard, useAdPlacement } from "../components/AdSlot";
 import RealEstateSearchHero from "../components/RealEstateSearchHero";
 import RealEstateListingCard from "../components/RealEstateListingCard";
+import RealEstateMap from "../components/RealEstateMap";
 import { buildFeedWithAds } from "../lib/adFeed";
+import {
+  buildRealEstateListingUrl,
+  isRealEstateSeoPath,
+  parseRealEstateSeoParams,
+} from "../lib/realestateSeo";
 import { FEED_AD_INTERVAL } from "../lib/adPlacements";
 import { usePageMeta } from "../lib/usePageMeta";
 import { getListingThumb } from "../lib/media";
@@ -31,6 +37,8 @@ import {
   X,
   MapPin,
   PackageSearch,
+  LayoutGrid,
+  Map as MapIcon,
 } from "lucide-react";
 
 function buildListingParams(draft, urlCat = "") {
@@ -56,6 +64,7 @@ function buildListingParams(draft, urlCat = "") {
   if (draft.floorTo) next.floorTo = draft.floorTo;
   if (draft.floorNotFirst) next.floorNotFirst = "1";
   if (draft.floorNotLast) next.floorNotLast = "1";
+  if (draft.view) next.view = draft.view;
 
   const specEntries = Object.entries(draft.specs || {}).filter(
     ([name, value]) => String(name).trim() && String(value).trim()
@@ -84,6 +93,7 @@ function searchParamsToDraft(params) {
     floorTo: params.get("floorTo") || "",
     floorNotFirst: params.get("floorNotFirst") === "1",
     floorNotLast: params.get("floorNotLast") === "1",
+    view: params.get("view") || "list",
     specs: parseSpecsParam(params.get("specs")),
   };
 }
@@ -115,6 +125,13 @@ function draftsMatch(appliedDraft, nextDraft, urlCat = "") {
 export default function Listing() {
   const [searchParams, setSearchParams] = useSearchParams();
   const nav = useNavigate();
+  const params = useParams();
+  const locationPath = useLocation().pathname;
+
+  const seoDraft = React.useMemo(() => {
+    if (!isRealEstateSeoPath(locationPath)) return null;
+    return parseRealEstateSeoParams(params);
+  }, [locationPath, params]);
 
   const [items, setItems] = React.useState([]);
   const [total, setTotal] = React.useState(0);
@@ -130,10 +147,21 @@ export default function Listing() {
     searchParams.get("search") || searchParams.get("q") || "";
   const paramsKey = searchParams.toString();
 
-  const appliedDraft = React.useMemo(
-    () => searchParamsToDraft(searchParams),
-    [paramsKey, searchParams]
-  );
+  const appliedDraft = React.useMemo(() => {
+    const fromQuery = searchParamsToDraft(searchParams);
+
+    if (!seoDraft) return fromQuery;
+
+    return {
+      ...fromQuery,
+      ...seoDraft,
+      cat: REAL_ESTATE_CAT,
+      specs: {
+        ...(seoDraft.specs || {}),
+        ...(fromQuery.specs || {}),
+      },
+    };
+  }, [paramsKey, searchParams, seoDraft]);
 
   const activeSpecs = appliedDraft.specs;
   const priceFrom = appliedDraft.priceFrom;
@@ -159,10 +187,13 @@ export default function Listing() {
     };
   }, [mobileFiltersOpen]);
 
-  const listingQuery = React.useMemo(
-    () => buildListingQueryFromSearchParams(searchParams),
-    [paramsKey, searchParams]
-  );
+  const listingQuery = React.useMemo(() => {
+    if (seoDraft && !searchParams.get("cat")) {
+      return buildListingQueryFromDraft(appliedDraft, REAL_ESTATE_CAT);
+    }
+
+    return buildListingQueryFromSearchParams(searchParams);
+  }, [paramsKey, searchParams, seoDraft, appliedDraft]);
 
   const draftIsDirty = React.useMemo(
     () => !draftsMatch(appliedDraft, draft, cat),
@@ -245,15 +276,17 @@ export default function Listing() {
     };
   }, [draft, total, cat, draftIsDirty]);
 
-  const activeCat = draft.cat || cat;
+  const activeCat = draft.cat || cat || (seoDraft ? REAL_ESTATE_CAT : "");
   const isRealEstate = activeCat === REAL_ESTATE_CAT;
+  const viewMode = isRealEstate ? appliedDraft.view || "list" : "list";
 
   const feedAd = useAdPlacement("listing_feed", activeCat);
   const feedRows = React.useMemo(
     () => buildFeedWithAds(items, feedAd, FEED_AD_INTERVAL),
     [items, feedAd]
   );
-  const catConfig = cat ? CATS[cat] : null;
+  const effectiveListingCat = cat || (seoDraft ? REAL_ESTATE_CAT : "");
+  const catConfig = effectiveListingCat ? CATS[effectiveListingCat] : null;
   const availableSubcategories = React.useMemo(() => {
     return activeCat ? CATS[activeCat]?.subs || [] : [];
   }, [activeCat]);
@@ -313,10 +346,30 @@ export default function Listing() {
           : draft;
 
       setDraft(payload);
-      setSearchParams(buildListingParams(payload, payload.cat || cat));
+
+      const effectiveCat = payload.cat || cat || (seoDraft ? REAL_ESTATE_CAT : "");
+
+      if (effectiveCat === REAL_ESTATE_CAT) {
+        nav(
+          buildRealEstateListingUrl({
+            city: payload.location,
+            subcategory: payload.subcategory,
+            dealType: payload.specs?.["Тип сделки"],
+            rooms: payload.specs?.["Комнат"],
+            priceFrom: payload.priceFrom,
+            priceTo: payload.priceTo,
+            specs: payload.specs,
+            sort: payload.sort,
+            view: payload.view,
+          })
+        );
+      } else {
+        setSearchParams(buildListingParams(payload, payload.cat || cat));
+      }
+
       setMobileFiltersOpen(false);
     },
-    [draft, cat, setSearchParams]
+    [draft, cat, seoDraft, nav, setSearchParams]
   );
 
   const resetFilters = () => {
@@ -377,7 +430,7 @@ export default function Listing() {
     Object.keys(activeSpecs).length;
 
   const showSubcategoryChips =
-    Boolean(cat) && availableSubcategories.length > 0;
+    Boolean(effectiveListingCat) && availableSubcategories.length > 0;
 
   const selectSubcategory = React.useCallback(
     (value) => {
@@ -418,6 +471,35 @@ export default function Listing() {
               Найдено: {loading ? "…" : total.toLocaleString("ru-RU")}
             </p>
           </div>
+
+          {isRealEstate && (
+            <div className="hidden md:flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => applyFilters({ ...draft, view: "list" })}
+                className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl border text-sm font-medium transition ${
+                  viewMode === "list"
+                    ? "bg-slate-900 text-white border-slate-900"
+                    : "bg-white hover:bg-slate-50"
+                }`}
+              >
+                <LayoutGrid size={16} />
+                Список
+              </button>
+              <button
+                type="button"
+                onClick={() => applyFilters({ ...draft, view: "map" })}
+                className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl border text-sm font-medium transition ${
+                  viewMode === "map"
+                    ? "bg-slate-900 text-white border-slate-900"
+                    : "bg-white hover:bg-slate-50"
+                }`}
+              >
+                <MapIcon size={16} />
+                Карта
+              </button>
+            </div>
+          )}
 
           <div className="flex items-center gap-2 md:hidden">
             <button
@@ -531,7 +613,7 @@ export default function Listing() {
         />
       )}
 
-      {!loading && !error && items.length === 0 && total === 0 && (
+      {!loading && !error && items.length === 0 && total === 0 && viewMode !== "map" && (
         <EmptyState
           icon={Search}
           title="По выбранным фильтрам ничего не найдено"
@@ -541,7 +623,27 @@ export default function Listing() {
         />
       )}
 
-      {!loading && !error && items.length > 0 && (
+      {!loading && !error && viewMode === "map" && isRealEstate && (
+        <RealEstateMap
+          listings={items}
+          city={location || draft.location || "Душанбе"}
+          district={appliedDraft.specs?.["Район"] || ""}
+          height={Math.min(560, typeof window !== "undefined" ? window.innerHeight * 0.62 : 560)}
+          className="mb-4"
+        />
+      )}
+
+      {!loading && !error && viewMode === "map" && isRealEstate && items.length === 0 && total === 0 && (
+        <EmptyState
+          icon={Search}
+          title="По выбранным фильтрам ничего не найдено"
+          description="Попробуйте изменить фильтры или переключиться на список."
+          actionLabel="Сбросить фильтры"
+          onAction={resetFilters}
+        />
+      )}
+
+      {!loading && !error && items.length > 0 && viewMode !== "map" && (
         <>
           <AdSlot
             placement="listing_top"

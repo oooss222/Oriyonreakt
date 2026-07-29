@@ -361,6 +361,26 @@ async function initDb() {
       updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
     );
 
+    CREATE TABLE IF NOT EXISTS re_developments (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      slug TEXT NOT NULL UNIQUE,
+      name TEXT NOT NULL,
+      developer TEXT NOT NULL DEFAULT '',
+      city TEXT NOT NULL DEFAULT 'Душанбе',
+      district TEXT NOT NULL DEFAULT '',
+      address TEXT NOT NULL DEFAULT '',
+      description TEXT NOT NULL DEFAULT '',
+      image_url TEXT NOT NULL DEFAULT '',
+      completion_date TEXT NOT NULL DEFAULT '',
+      amenities JSONB NOT NULL DEFAULT '[]'::jsonb,
+      lat NUMERIC,
+      lng NUMERIC,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_re_developments_city
+      ON re_developments(city);
+
     CREATE TABLE IF NOT EXISTS seller_reviews (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       seller_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -545,6 +565,87 @@ async function initDb() {
   `);
 
   await backfillRealEstateMeta();
+  await seedRealEstateDevelopments();
+}
+
+async function seedRealEstateDevelopments() {
+  const seeds = [
+    {
+      slug: "shohmansur-residence",
+      name: "Shohmansur Residence",
+      developer: "Oriyon Development",
+      city: "Душанбе",
+      district: "Шохмансур",
+      address: "ул. Айни, 45",
+      description:
+        "Жилой комплекс бизнес-класса с подземной парковкой, детской площадкой и охраной.",
+      image_url:
+        "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1200&q=80",
+      completion_date: "Q4 2026",
+      amenities: ["Парковка", "Охрана", "Лифт", "Детская площадка"],
+      lat: 38.576,
+      lng: 68.779,
+    },
+    {
+      slug: "sino-park",
+      name: "Sino Park",
+      developer: "Sino Group",
+      city: "Душанбе",
+      district: "Сино",
+      address: "102-й микрорайон",
+      description:
+        "Современный комплекс с зелёным двором, коммерческими помещениями на первых этажах.",
+      image_url:
+        "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1200&q=80",
+      completion_date: "Q2 2027",
+      amenities: ["Зелёный двор", "Магазины", "Спортзал"],
+      lat: 38.545,
+      lng: 68.805,
+    },
+    {
+      slug: "somoni-heights",
+      name: "Somoni Heights",
+      developer: "Capital Build",
+      city: "Душанбе",
+      district: "Исмоил Сомони",
+      address: "пр. И. Сомони, 12",
+      description:
+        "Высотный дом с панорамными видами, отделкой white box и рассрочкой от застройщика.",
+      image_url:
+        "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=1200&q=80",
+      completion_date: "Q1 2026",
+      amenities: ["White box", "Панорамные окна", "Рассрочка"],
+      lat: 38.561,
+      lng: 68.798,
+    },
+  ];
+
+  for (const item of seeds) {
+    await query(
+      `
+      INSERT INTO re_developments (
+        slug, name, developer, city, district, address, description,
+        image_url, completion_date, amenities, lat, lng
+      )
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10::jsonb,$11,$12)
+      ON CONFLICT (slug) DO NOTHING
+      `,
+      [
+        item.slug,
+        item.name,
+        item.developer,
+        item.city,
+        item.district,
+        item.address,
+        item.description,
+        item.image_url,
+        item.completion_date,
+        JSON.stringify(item.amenities),
+        item.lat,
+        item.lng,
+      ]
+    );
+  }
 }
 
 async function backfillRealEstateMeta() {

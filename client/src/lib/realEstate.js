@@ -1,4 +1,5 @@
 import { REAL_ESTATE_CAT, getCityCoordinates } from "../data/realEstate";
+import { buildRealEstateListingUrl as buildSeoListingUrl } from "./realestateSeo";
 
 export function isRealEstateListing(item) {
   return String(item?.cat || "") === REAL_ESTATE_CAT;
@@ -114,32 +115,8 @@ export function formatStoredPricePerSqm(value) {
   return `${Number(value).toLocaleString("ru-RU")} с./м²`;
 }
 
-export function buildRealEstateListingUrl({
-  dealType = "",
-  subcategory = "",
-  city = "",
-  rooms = "",
-  priceFrom = "",
-  priceTo = "",
-  specs = {},
-} = {}) {
-  const params = new URLSearchParams();
-  params.set("cat", REAL_ESTATE_CAT);
-
-  if (subcategory) params.set("subcategory", subcategory);
-  if (city) params.set("location", city);
-  if (priceFrom) params.set("priceFrom", priceFrom);
-  if (priceTo) params.set("priceTo", priceTo);
-  if (dealType) specs = { ...specs, "Тип сделки": dealType };
-  if (rooms) specs = { ...specs, Комнат: rooms };
-
-  const specEntries = Object.entries(specs).filter(
-    ([key, value]) => String(key).trim() && String(value).trim()
-  );
-
-  if (specEntries.length) {
-    params.set("specs", JSON.stringify(Object.fromEntries(specEntries)));
-  }
-
-  return `/listing?${params.toString()}`;
+export function buildRealEstateListingUrl(options = {}) {
+  return buildSeoListingUrl(options);
 }
+
+export { buildRealEstateSeoPath, parseRealEstateSeoParams, isRealEstateSeoPath } from "./realestateSeo";

@@ -72,6 +72,7 @@ export default function ListingForm({
   const [loading, setLoading] = React.useState(isEdit);
   const [saving, setSaving] = React.useState(false);
   const [isDragOver, setIsDragOver] = React.useState(false);
+  const [geo, setGeo] = React.useState(null);
 
   const applyCategorySpecs = React.useCallback(
     (catKey, subcategory, existingSpecs = []) => {
@@ -392,6 +393,8 @@ export default function ListingForm({
         description: form.description || "",
         specs: compactSpecs,
         images: allImages,
+        lat: geo?.lat,
+        lng: geo?.lng,
       };
 
       const result = isEdit
@@ -492,6 +495,8 @@ export default function ListingForm({
           setForm={setForm}
           specs={specs}
           setSpecs={setSpecs}
+          geo={geo}
+          setGeo={setGeo}
           files={files}
           previews={previews}
           existingImages={existingImages}

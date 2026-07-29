@@ -1,6 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import FavoriteButton from "./FavoriteButton";
+import CompareListingButton from "./CompareListingButton";
+import PriceAdequacyBadge from "./PriceAdequacyBadge";
 import ListingCardOverlays from "./ListingCardOverlays";
 import { getListingThumb } from "../lib/media";
 import { formatPrice } from "../lib/format";
@@ -95,18 +96,17 @@ export default function RealEstateListingCard({
           </div>
         )}
 
+        <div className="mt-2" onClick={(e) => e.stopPropagation()}>
+          <PriceAdequacyBadge item={listing} compact />
+        </div>
+
         <h3 className="mt-1 text-sm text-slate-700 line-clamp-2 group-hover:text-sun transition">
           {listing.title || "Без названия"}
         </h3>
 
         <div className="mt-auto pt-2 flex items-center justify-between gap-2">
-          <div className="text-xs text-slate-500 line-clamp-1 flex items-center gap-1 min-w-0">
-            <MapPin size={12} className="shrink-0" />
-            <span className="truncate">
-              {summary.district
-                ? `${summary.district}, ${listing.location || "Душанбе"}`
-                : listing.location || "Локация не указана"}
-            </span>
+          <div onClick={(e) => e.stopPropagation()}>
+            <CompareListingButton listingId={id} />
           </div>
 
           <FavoriteButton
@@ -115,6 +115,15 @@ export default function RealEstateListingCard({
             onChange={(active) => onFav?.(id, active)}
             compact
           />
+        </div>
+
+        <div className="text-xs text-slate-500 line-clamp-1 flex items-center gap-1 min-w-0 mt-2">
+          <MapPin size={12} className="shrink-0" />
+          <span className="truncate">
+            {summary.district
+              ? `${summary.district}, ${listing.location || "Душанбе"}`
+              : listing.location || "Локация не указана"}
+          </span>
         </div>
 
         {listing.subcategory && !isHorizontal && (

@@ -208,9 +208,8 @@ const REAL_ESTATE_GRID = {
       {
         id: "Район",
         label: "Район",
-        type: "spec",
+        type: "city-district",
         specKey: "Район",
-        options: DUSHANBE_DISTRICTS,
       },
       {
         id: "Тип дома",

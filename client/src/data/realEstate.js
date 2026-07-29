@@ -137,6 +137,8 @@ export const APARTMENT_SPECS = [
   { name: "Этаж", type: "text" },
   { name: "Этажей в доме", type: "text" },
   { name: "Район", type: "select", options: DUSHANBE_DISTRICTS, dynamicOptionsFrom: "city" },
+  { name: "Адрес", type: "text", placeholder: "Улица, дом, ориентир" },
+  { name: "ЖК", type: "select", options: [] },
   { name: "Тип дома", type: "select", options: ["Кирпич", "Панель", "Монолит", "Блок", "Другое"] },
   { name: "Год постройки", type: "select", options: BUILD_YEARS },
   { name: "Ремонт", type: "select", options: ["Без ремонта", "Косметический", "Евро", "Дизайнерский"] },

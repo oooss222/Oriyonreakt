@@ -44,6 +44,14 @@ export default function RealEstate() {
   const [premium, setPremium] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [city, setCity] = React.useState("Душанбе");
+  const [developments, setDevelopments] = React.useState([]);
+
+  React.useEffect(() => {
+    api
+      .developments(city)
+      .then((rows) => setDevelopments(Array.isArray(rows) ? rows : []))
+      .catch(() => setDevelopments([]));
+  }, [city]);
 
   React.useEffect(() => {
     let active = true;
@@ -214,6 +222,58 @@ export default function RealEstate() {
       )}
 
       <AdSlot placement="home_mid" cat={REAL_ESTATE_CAT} className="rounded-3xl overflow-hidden" />
+
+      {developments.length > 0 && (
+        <section className="space-y-4">
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="text-xl font-bold">Новостройки и ЖК</h2>
+            <Link
+              to={buildRealEstateListingUrl({ city, subcategory: "Новостройки" })}
+              className="text-sm font-semibold text-sun hover:text-sun-600 inline-flex items-center gap-1"
+            >
+              Все новостройки
+              <ArrowRight size={16} />
+            </Link>
+          </div>
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {developments.map((item) => (
+              <Link
+                key={item.id}
+                to={`/realestate/zhk/${item.slug}`}
+                className="rounded-3xl border bg-white overflow-hidden hover:shadow-lg transition"
+              >
+                <div className="aspect-[16/10] bg-slate-100">
+                  {item.imageUrl ? (
+                    <img
+                      src={item.imageUrl}
+                      alt={item.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full grid place-items-center text-slate-300">
+                      <Building2 size={40} />
+                    </div>
+                  )}
+                </div>
+                <div className="p-4 space-y-1">
+                  <div className="text-xs text-sun-700 font-semibold">
+                    {item.developer || "Застройщик"}
+                  </div>
+                  <div className="font-bold text-slate-900">{item.name}</div>
+                  <div className="text-sm text-slate-500">
+                    {item.district ? `${item.district}, ` : ""}
+                    {item.city}
+                  </div>
+                  {item.completionDate && (
+                    <div className="text-xs text-slate-400">Сдача: {item.completionDate}</div>
+                  )}
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       <section className="space-y-4">
         <div className="flex items-center justify-between gap-3">

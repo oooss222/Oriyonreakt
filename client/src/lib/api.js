@@ -133,6 +133,12 @@ export const api = {
   listingById: (id) =>
     request(`/listings/${id}`),
 
+  developments: (city = "") =>
+    request(`/developments${city ? `?city=${encodeURIComponent(city)}` : ""}`),
+
+  developmentBySlug: (slug) =>
+    request(`/developments/${encodeURIComponent(slug)}`),
+
   recordListingView: (id) =>
     request(`/listings/${id}/view`, {
       method: "POST",

@@ -127,6 +127,12 @@ class SavedSearchModel {
       specs: filters.specs,
       location: filters.location,
       region: filters.region,
+      areaFrom: filters.areaFrom,
+      areaTo: filters.areaTo,
+      floorFrom: filters.floorFrom,
+      floorTo: filters.floorTo,
+      floorNotFirst: filters.floorNotFirst,
+      floorNotLast: filters.floorNotLast,
     });
 
     const where = built.conditions.join(" AND ");

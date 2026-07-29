@@ -16,6 +16,8 @@ import EditListing from "./pages/EditListing.jsx";
 import Seller from "./pages/Seller.jsx";
 import Admin from "./pages/Admin.jsx";
 import RealEstate from "./pages/RealEstate.jsx";
+import RealEstateCompare from "./pages/RealEstateCompare.jsx";
+import RealEstateDevelopment from "./pages/RealEstateDevelopment.jsx";
 
 import "./styles/index.css";
 
@@ -72,6 +74,30 @@ const router = createBrowserRouter([
       {
         path: "realestate",
         element: <RealEstate />,
+      },
+      {
+        path: "realestate/zhk/:slug",
+        element: <RealEstateDevelopment />,
+      },
+      {
+        path: "realestate/sravnenie",
+        element: <RealEstateCompare />,
+      },
+      {
+        path: "realestate/:citySlug",
+        element: <Listing />,
+      },
+      {
+        path: "realestate/:citySlug/:subSlug",
+        element: <Listing />,
+      },
+      {
+        path: "realestate/:citySlug/:subSlug/:dealSlug",
+        element: <Listing />,
+      },
+      {
+        path: "realestate/:citySlug/:subSlug/:dealSlug/:roomsSlug",
+        element: <Listing />,
       },
       {
         path: "policy",

@@ -19,6 +19,9 @@ import {
 import { formatPriceInput } from "../data/specOptions";
 import { getSpecValue } from "../lib/realEstate";
 import { TITLE_MAX, DESC_MAX } from "../data/listingCategories";
+import RealEstateMapPicker from "./RealEstateMapPicker";
+import { api } from "../lib/api";
+import PriceAdequacyBadge from "./PriceAdequacyBadge";
 
 const STEPS = [
   { id: "type", label: "Тип", icon: Building2 },
@@ -58,6 +61,8 @@ export default function RealEstateListingWizard({
   setForm,
   specs,
   setSpecs,
+  geo,
+  setGeo,
   files,
   previews,
   existingImages,
@@ -70,9 +75,19 @@ export default function RealEstateListingWizard({
 }) {
   const [step, setStep] = React.useState(0);
   const [localErr, setLocalErr] = React.useState("");
+  const [developments, setDevelopments] = React.useState([]);
 
   const districts = getDistrictsForCity(form.location);
   const photosCount = existingImages.length + previews.length;
+
+  React.useEffect(() => {
+    if (form.subcategory !== "Новостройки") return;
+
+    api
+      .developments(form.location || "Душанбе")
+      .then((rows) => setDevelopments(Array.isArray(rows) ? rows : []))
+      .catch(() => setDevelopments([]));
+  }, [form.location, form.subcategory]);
 
   const setField = (key, value) => {
     setForm((state) => ({ ...state, [key]: value }));
@@ -123,6 +138,16 @@ export default function RealEstateListingWizard({
 
     return "";
   };
+
+  const previewListing = React.useMemo(
+    () => ({
+      price: form.price,
+      location: form.location,
+      specs,
+      rePricePerSqm: null,
+    }),
+    [form.price, form.location, specs]
+  );
 
   const goNext = () => {
     const message = validateStep();
@@ -295,6 +320,43 @@ export default function RealEstateListingWizard({
               </label>
             )}
           </div>
+
+          <label className="block">
+            <span className="text-sm font-medium mb-1 block">Адрес / ориентир</span>
+            <input
+              value={getSpecValue(specs, "Адрес")}
+              onChange={(e) => updateSpecByName(setSpecs, "Адрес", e.target.value)}
+              placeholder="Улица, дом, ориентир"
+              className="w-full h-11 rounded-lg border px-3"
+            />
+          </label>
+
+          {form.subcategory === "Новостройки" && developments.length > 0 && (
+            <label className="block">
+              <span className="text-sm font-medium mb-1 block">Жилой комплекс</span>
+              <select
+                value={getSpecValue(specs, "ЖК")}
+                onChange={(e) => updateSpecByName(setSpecs, "ЖК", e.target.value)}
+                className="w-full h-11 rounded-lg border px-3"
+              >
+                <option value="">Выберите ЖК</option>
+                {developments.map((item) => (
+                  <option key={item.id} value={item.name}>
+                    {item.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+
+          <RealEstateMapPicker
+            city={form.location}
+            district={getSpecValue(specs, "Район")}
+            address={getSpecValue(specs, "Адрес")}
+            lat={geo?.lat}
+            lng={geo?.lng}
+            onChange={setGeo}
+          />
         </section>
       )}
 
@@ -415,6 +477,8 @@ export default function RealEstateListingWizard({
               className="w-full h-11 rounded-lg border px-3"
             />
           </label>
+
+          <PriceAdequacyBadge item={previewListing} />
 
           <label className="block">
             <span className="text-sm font-medium mb-1 block">Описание</span>

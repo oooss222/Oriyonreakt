@@ -37,7 +37,7 @@ import SellerReviewsPanel, { StarRating } from "../components/SellerReviewsPanel
 import AdSlot from "../components/AdSlot";
 import { PromotionBadgeGroup } from "../components/PromotionBadge";
 import { CAT_LABELS } from "../data/listingCategories";
-import { enrichRealEstateListing, isRealEstateListing } from "../lib/realEstate";
+import { enrichRealEstateListing, getSpecValue, isRealEstateListing } from "../lib/realEstate";
 import { REPORT_REASONS } from "../data/reportReasons";
 
 const TOKEN_KEY = "auth_token";
@@ -963,6 +963,32 @@ export default function AdDetails() {
             </section>
 
             {isRealEstateListing(ad) && <RealEstateHighlights ad={ad} />}
+
+            {isRealEstateListing(ad) && (
+              <div className="space-y-3">
+                <PriceAdequacyBadge item={ad} />
+                <CompareListingButton listingId={ad.id || ad._id} />
+              </div>
+            )}
+
+            {isRealEstateListing(ad) && (
+              <section className="card p-5 md:p-6 rounded-3xl space-y-3">
+                <h2 className="text-lg font-bold text-slate-900">Расположение на карте</h2>
+                <RealEstateMap
+                  listings={[ad]}
+                  city={ad.location || "Душанбе"}
+                  district={getSpecValue(ad.specs, "Район")}
+                  address={getSpecValue(ad.specs, "Адрес")}
+                  height={320}
+                />
+              </section>
+            )}
+
+            {isRealEstateListing(ad) &&
+              (realEstateEnriched?.realEstateSummary?.deal === "Купить" ||
+                getSpecValue(ad.specs, "Тип сделки") === "Купить") && (
+              <MortgageCalculator price={ad.price} />
+            )}
 
             {/* Description */}
             <section className="card p-5 md:p-6 rounded-3xl">

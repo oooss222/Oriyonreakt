@@ -2,6 +2,20 @@ import React from "react";
 import { api } from "../lib/api";
 import { TOKEN_KEY } from "../lib/auth";
 
+function buildSearchLabel(draft, activeCat) {
+  return [
+    draft.subcategory,
+    draft.specs?.["Тип сделки"],
+    draft.specs?.["Комнат"] ? `${draft.specs["Комнат"]}-комн.` : "",
+    draft.specs?.["Район"],
+    draft.location || draft.region,
+    draft.search,
+    activeCat === "realestate" ? "Недвижимость" : "",
+  ]
+    .filter(Boolean)
+    .join(" · ");
+}
+
 export default function SavedSearchesPanel({ draft, activeCat, onApply }) {
   const token = localStorage.getItem(TOKEN_KEY) || "";
   const [items, setItems] = React.useState([]);
@@ -29,18 +43,11 @@ export default function SavedSearchesPanel({ draft, activeCat, onApply }) {
   }, [load]);
 
   const saveCurrent = async () => {
-    const label = [
-      draft.subcategory,
-      draft.specs?.Марка || draft.specs?.Производитель,
-      draft.location || draft.region,
-      draft.search,
-    ]
-      .filter(Boolean)
-      .join(" · ");
+    const label = buildSearchLabel(draft, activeCat) || "Поиск без названия";
 
     if (token) {
       const saved = await api.saveSavedSearch(token, {
-        label: label || "Поиск без названия",
+        label,
         cat: activeCat,
         filters: draft,
         alertsEnabled,
@@ -54,7 +61,7 @@ export default function SavedSearchesPanel({ draft, activeCat, onApply }) {
     const local = JSON.parse(localStorage.getItem(key) || "[]");
 
     local.unshift({
-      label: label || "Поиск без названия",
+      label,
       params: draft,
       cat: activeCat,
       savedAt: Date.now(),
@@ -62,6 +69,22 @@ export default function SavedSearchesPanel({ draft, activeCat, onApply }) {
 
     localStorage.setItem(key, JSON.stringify(local.slice(0, 8)));
     setItems(local.slice(0, 8));
+  };
+
+  const toggleAlerts = async (item) => {
+    if (!token || !item.id) return;
+
+    const saved = await api.saveSavedSearch(token, {
+      id: item.id,
+      label: item.label,
+      cat: item.cat,
+      filters: item.filters || item.params || {},
+      alertsEnabled: !item.alertsEnabled,
+    });
+
+    setItems((current) =>
+      current.map((entry) => (entry.id === saved.id ? saved : entry))
+    );
   };
 
   const removeItem = async (item) => {
@@ -85,7 +108,7 @@ export default function SavedSearchesPanel({ draft, activeCat, onApply }) {
           <div className="text-sm font-semibold text-slate-900">Сохранённые поиски</div>
           <div className="text-xs text-slate-500 mt-1">
             {token
-              ? "Можно включить email-уведомления о новых объявлениях."
+              ? "Email-уведомления о новых объявлениях по вашим фильтрам (раз в час)."
               : "Войдите, чтобы получать email-уведомления."}
           </div>
         </div>
@@ -135,13 +158,24 @@ export default function SavedSearchesPanel({ draft, activeCat, onApply }) {
                 </div>
               </button>
 
-              <button
-                type="button"
-                className="text-xs text-red-600 hover:underline"
-                onClick={() => removeItem(item)}
-              >
-                Удалить
-              </button>
+              <div className="flex items-center gap-2 shrink-0">
+                {token && item.id && (
+                  <button
+                    type="button"
+                    className="text-xs font-semibold text-sun hover:text-sun-600"
+                    onClick={() => toggleAlerts(item)}
+                  >
+                    {item.alertsEnabled ? "Выключить" : "Включить"}
+                  </button>
+                )}
+                <button
+                  type="button"
+                  className="text-xs text-red-600 hover:underline"
+                  onClick={() => removeItem(item)}
+                >
+                  Удалить
+                </button>
+              </div>
             </div>
           ))}
         </div>
