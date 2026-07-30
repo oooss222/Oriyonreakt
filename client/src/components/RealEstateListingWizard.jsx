@@ -19,6 +19,7 @@ import {
 import { formatPriceInput } from "../data/specOptions";
 import { getSpecValue } from "../lib/realEstate";
 import { TITLE_MAX, DESC_MAX } from "../data/listingCategories";
+import { getListingPhotoLimit } from "../lib/listingPhotoLimits";
 import PriceAdequacyBadge from "./PriceAdequacyBadge";
 import { api } from "../lib/api";
 
@@ -69,6 +70,7 @@ export default function RealEstateListingWizard({
   onInputFiles,
   removeFile,
   removeExistingImage,
+  photoLimit = getListingPhotoLimit("realestate"),
   onSubmit,
   saving,
 }) {
@@ -128,6 +130,9 @@ export default function RealEstateListingWizard({
 
     if (step === 3) {
       if (photosCount < 3) return "Добавьте минимум 3 фотографии";
+      if (photosCount > photoLimit) {
+        return `Максимум ${photoLimit} фотографий для этой категории`;
+      }
     }
 
     if (step === 4) {
@@ -392,9 +397,12 @@ export default function RealEstateListingWizard({
 
       {step === 3 && (
         <section className="rounded-2xl border bg-white p-5 space-y-4">
-          <h2 className="text-lg font-semibold">Фотографии ({photosCount}/10)</h2>
+          <h2 className="text-lg font-semibold">
+            Фотографии ({photosCount}/{photoLimit})
+          </h2>
           <p className="text-sm text-slate-500">
-            Минимум 3 фото. Первое фото станет обложкой объявления.
+            Минимум 3 фото, максимум {photoLimit}. Первое фото станет обложкой
+            объявления.
           </p>
 
           <label className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed p-8 cursor-pointer hover:bg-slate-50">

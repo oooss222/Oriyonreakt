@@ -3,6 +3,7 @@ const router = require("express").Router();
 const auth = require("../middleware/auth");
 const Listing = require("../models/Listing");
 const Report = require("../models/Report");
+const { assertImagesWithinLimit } = require("../lib/listingPhotoLimits");
 
 function normalizeArray(value) {
   if (Array.isArray(value)) return value;
@@ -506,6 +507,21 @@ router.post("/", auth, async (req, res) => {
       throw e;
     }
 
+    const images = normalizeArray(body.images);
+
+    try {
+      assertImagesWithinLimit(images, cat);
+    } catch (e) {
+      if (e?.message === "PHOTO_LIMIT_EXCEEDED") {
+        return res.status(400).json({
+          error: `Maximum ${e.limit} images allowed for this category`,
+          limit: e.limit,
+        });
+      }
+
+      throw e;
+    }
+
     const listing = await Listing.create({
       title,
       price: String(body.price || "").trim(),
@@ -513,7 +529,7 @@ router.post("/", auth, async (req, res) => {
       location: String(body.location || "").trim(),
       cat,
       subcategory: String(body.subcategory || "").trim(),
-      images: normalizeArray(body.images),
+      images,
       specs: normalizeArray(body.specs),
       owner: req.user.id,
       lat: body.lat ?? body.reLat,
@@ -538,6 +554,37 @@ router.post("/", auth, async (req, res) => {
 router.put("/:id", auth, async (req, res) => {
   try {
     const body = req.body || {};
+    const existing = await Listing.findById(req.params.id);
+
+    if (!existing) {
+      return res.status(404).json({
+        error: "Listing not found",
+      });
+    }
+
+    if (String(existing.owner) !== String(req.user.id)) {
+      return res.status(403).json({
+        error: "Forbidden",
+      });
+    }
+
+    const cat = body.cat ? String(body.cat).trim() : existing.cat;
+    const images = body.images ? normalizeArray(body.images) : undefined;
+
+    if (images) {
+      try {
+        assertImagesWithinLimit(images, cat);
+      } catch (e) {
+        if (e?.message === "PHOTO_LIMIT_EXCEEDED") {
+          return res.status(400).json({
+            error: `Maximum ${e.limit} images allowed for this category`,
+            limit: e.limit,
+          });
+        }
+
+        throw e;
+      }
+    }
 
     const listing = await Listing.update(req.params.id, req.user.id, {
       title: body.title ? String(body.title).trim() : undefined,
@@ -550,7 +597,7 @@ router.put("/:id", auth, async (req, res) => {
       subcategory: body.subcategory
         ? String(body.subcategory).trim()
         : undefined,
-      images: body.images ? normalizeArray(body.images) : undefined,
+      images,
       specs: body.specs ? normalizeArray(body.specs) : undefined,
       lat: body.lat ?? body.reLat,
       lng: body.lng ?? body.reLng,

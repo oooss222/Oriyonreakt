@@ -3,6 +3,7 @@ const multer = require("multer");
 const sharp = require("sharp");
 const { v2: cloudinary } = require("cloudinary");
 const auth = require("../middleware/auth");
+const { MAX_LISTING_PHOTO_LIMIT } = require("../lib/listingPhotoLimits");
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -14,7 +15,7 @@ const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
     fileSize: 5 * 1024 * 1024,
-    files: 10,
+    files: MAX_LISTING_PHOTO_LIMIT,
   },
   fileFilter(req, file, cb) {
     if (!file.mimetype.startsWith("image/")) {
@@ -62,7 +63,7 @@ function isModerationRejected(result) {
   });
 }
 
-router.post("/images", auth, upload.array("images", 10), async (req, res) => {
+router.post("/images", auth, upload.array("images", MAX_LISTING_PHOTO_LIMIT), async (req, res) => {
   try {
     const files = req.files || [];
 

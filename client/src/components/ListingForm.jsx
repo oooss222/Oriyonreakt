@@ -19,6 +19,7 @@ import {
   mergeSpecsWithExisting,
   compactSpecsForSubmit,
 } from "../data/listingCategories";
+import { getListingPhotoLimit } from "../lib/listingPhotoLimits";
 import { REAL_ESTATE_CAT } from "../data/realEstate";
 import RealEstateListingWizard, {
   isRealEstateWizardCategory,
@@ -181,12 +182,19 @@ export default function ListingForm({
   const handleCatChange = (catKey) => {
     const firstSub = CATS[catKey]?.subs?.[0] || "";
     const currentValues = compactSpecsForSubmit(specs);
+    const photoLimit = getListingPhotoLimit(catKey);
+    const trimmedExistingCount = Math.min(existingImages.length, photoLimit);
 
     setForm((state) => ({
       ...state,
       cat: catKey,
       subcategory: firstSub,
     }));
+
+    setExistingImages((current) => current.slice(0, photoLimit));
+    setFiles((current) =>
+      current.slice(0, Math.max(0, photoLimit - trimmedExistingCount))
+    );
 
     applyCategorySpecs(catKey, firstSub, currentValues);
   };
@@ -203,19 +211,22 @@ export default function ListingForm({
   };
 
   const onFiles = (list) => {
+    const photoLimit = getListingPhotoLimit(form.cat);
     const arr = Array.from(list || []).filter((file) =>
       file.type.startsWith("image/")
     );
 
     const total = existingImages.length + files.length + arr.length;
 
-    if (total > 10) {
-      setErr("Максимум 10 фотографий");
+    if (total > photoLimit) {
+      setErr(`Максимум ${photoLimit} фотографий для этой категории`);
       return;
     }
 
     setErr("");
-    setFiles((current) => [...current, ...arr].slice(0, 10 - existingImages.length));
+    setFiles((current) =>
+      [...current, ...arr].slice(0, photoLimit - existingImages.length)
+    );
   };
 
   const onInputFiles = (event) => {
@@ -355,6 +366,14 @@ export default function ListingForm({
       return;
     }
 
+    const photoLimit = getListingPhotoLimit(form.cat);
+    const totalPhotos = existingImages.length + files.length;
+
+    if (totalPhotos > photoLimit) {
+      setErr(`Максимум ${photoLimit} фотографий для этой категории`);
+      return;
+    }
+
     const compactSpecs = compactSpecsForSubmit(specs);
 
     try {
@@ -412,6 +431,7 @@ export default function ListingForm({
   const cat = CATS[form.cat];
   const subs = cat?.subs || [];
   const photosCount = existingImages.length + previews.length;
+  const photoLimit = getListingPhotoLimit(form.cat);
   const filledSpecs = compactSpecsForSubmit(specs).length;
   const useRealEstateWizard =
     isRealEstateWizardCategory(form.cat) && !isEdit;
@@ -504,6 +524,7 @@ export default function ListingForm({
           onInputFiles={onInputFiles}
           removeFile={removeFile}
           removeExistingImage={removeExistingImage}
+          photoLimit={photoLimit}
           onSubmit={submit}
           saving={saving}
         />
@@ -654,7 +675,7 @@ export default function ListingForm({
                 Перетащите фото сюда или выберите файлы
               </div>
               <div className="text-sm text-slate-500 mt-1">
-                До 10 изображений. JPG, PNG, WEBP.
+                До {photoLimit} изображений. JPG, PNG, WEBP.
               </div>
               <label className="inline-flex items-center justify-center gap-2 mt-4 rounded-xl border bg-white px-4 py-2 hover:bg-slate-50 cursor-pointer">
                 <Plus className="w-4 h-4" />
@@ -673,7 +694,7 @@ export default function ListingForm({
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="text-sm text-slate-500">
-                    Выбрано: {photosCount}
+                    Выбрано: {photosCount}/{photoLimit}
                   </div>
                   {previews.length > 0 && (
                     <button
@@ -851,7 +872,9 @@ export default function ListingForm({
               </div>
               <div className="flex items-center justify-between gap-3">
                 <span>Фото</span>
-                <span className="font-medium text-slate-900">{photosCount}</span>
+                <span className="font-medium text-slate-900">
+                  {photosCount}/{photoLimit}
+                </span>
               </div>
               <div className="flex items-center justify-between gap-3">
                 <span>Характеристики</span>
