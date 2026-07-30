@@ -131,11 +131,15 @@ export function buildRealEstateListingUrl({
   floorNotFirst = false,
   floorNotLast = false,
   sellerType = "",
+  search = "",
 } = {}) {
   if (dealType) specs = { ...specs, "Тип сделки": dealType };
   if (rooms) specs = { ...specs, Комнат: rooms };
 
+  const normalizedSearch = String(search || "").trim();
+
   const hasExtra =
+    normalizedSearch ||
     priceFrom ||
     priceTo ||
     sort ||
@@ -168,6 +172,7 @@ export function buildRealEstateListingUrl({
 
   if (subcategory) params.set("subcategory", subcategory);
   if (city) params.set("location", city);
+  if (normalizedSearch) params.set("search", normalizedSearch);
   if (priceFrom) params.set("priceFrom", priceFrom);
   if (priceTo) params.set("priceTo", priceTo);
   if (sort) params.set("sort", sort);

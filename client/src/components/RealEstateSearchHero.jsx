@@ -1,15 +1,47 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, MapPin } from "lucide-react";
+import { ChevronDown, MapPin } from "lucide-react";
 import RealEstateMoreFiltersModal from "./RealEstateMoreFiltersModal";
 import {
   DEAL_TYPES,
   ROOM_OPTIONS,
   REAL_ESTATE_CITIES,
+  REAL_ESTATE_PRICE_PRESETS,
+  REAL_ESTATE_RENT_PRESETS,
   SUBCATEGORY_META,
 } from "../data/realEstate";
 import { buildRealEstateListingUrl } from "../lib/realEstate";
-import { formatPriceInput, getPriceDigits } from "../data/specOptions";
+
+const BAR_FIELD =
+  "h-11 w-full min-w-0 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-800 outline-none transition focus:border-lagoon focus:ring-1 focus:ring-lagoon/30";
+
+function BarSelect({ value, onChange, placeholder, options, onApply, className = "" }) {
+  return (
+    <div className={`relative min-w-0 ${className}`}>
+      <select
+        value={value}
+        onChange={(e) => {
+          onChange(e.target.value);
+          onApply?.();
+        }}
+        className={`${BAR_FIELD} appearance-none pr-8 font-medium ${
+          value ? "text-slate-900" : "text-slate-500"
+        }`}
+      >
+        <option value="">{placeholder}</option>
+        {options.map((option) => (
+          <option key={option.value ?? option} value={option.value ?? option}>
+            {option.label ?? option}
+          </option>
+        ))}
+      </select>
+      <ChevronDown
+        size={16}
+        className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400"
+      />
+    </div>
+  );
+}
 
 export default function RealEstateSearchHero({
   compact = false,
@@ -21,149 +53,218 @@ export default function RealEstateSearchHero({
   const nav = useNavigate();
   const [dealType, setDealType] = React.useState(initialDeal);
   const [city, setCity] = React.useState(initialCity);
-  const [subcategory, setSubcategory] = React.useState(initialSubcategory);
+  const [subcategory, setSubcategory] = React.useState(
+    initialSubcategory || "Квартиры"
+  );
   const [rooms, setRooms] = React.useState("");
+  const [locationQuery, setLocationQuery] = React.useState("");
+  const [pricePreset, setPricePreset] = React.useState("");
   const [priceFrom, setPriceFrom] = React.useState("");
+  const [priceTo, setPriceTo] = React.useState("");
   const [moreOpen, setMoreOpen] = React.useState(false);
 
-  const submit = (e) => {
-    e?.preventDefault?.();
+  React.useEffect(() => {
+    setCity(initialCity);
+  }, [initialCity]);
 
-    const url = buildRealEstateListingUrl({
+  React.useEffect(() => {
+    if (initialSubcategory) {
+      setSubcategory(initialSubcategory);
+    }
+  }, [initialSubcategory]);
+
+  const pricePresets =
+    dealType === "Снять" || dealType === "Посуточно"
+      ? REAL_ESTATE_RENT_PRESETS
+      : REAL_ESTATE_PRICE_PRESETS;
+
+  const subcategoryOptions = Object.keys(SUBCATEGORY_META).map((item) => ({
+    value: item,
+    label: item,
+  }));
+
+  const navigateSearch = React.useCallback(
+    (overrides = {}) => {
+      const nextDeal = overrides.dealType ?? dealType;
+      const nextCity = overrides.city ?? city;
+      const nextSubcategory = overrides.subcategory ?? subcategory;
+      const nextRooms = overrides.rooms ?? rooms;
+      const nextPriceFrom = overrides.priceFrom ?? priceFrom;
+      const nextPriceTo = overrides.priceTo ?? priceTo;
+      const nextSearch = overrides.locationQuery ?? locationQuery;
+
+      const url = buildRealEstateListingUrl({
+        dealType: nextDeal,
+        subcategory: nextSubcategory,
+        city: nextCity,
+        rooms: nextRooms,
+        priceFrom: nextPriceFrom,
+        priceTo: nextPriceTo,
+        search: nextSearch,
+      });
+
+      if (onSearch) {
+        onSearch({
+          dealType: nextDeal,
+          subcategory: nextSubcategory,
+          city: nextCity,
+          rooms: nextRooms,
+          priceFrom: nextPriceFrom,
+          priceTo: nextPriceTo,
+          locationQuery: nextSearch,
+        });
+      }
+
+      nav(url);
+    },
+    [
       dealType,
-      subcategory,
       city,
+      subcategory,
       rooms,
-      priceFrom: getPriceDigits(priceFrom),
-    });
+      priceFrom,
+      priceTo,
+      locationQuery,
+      onSearch,
+      nav,
+    ]
+  );
 
-    if (onSearch) {
-      onSearch({ dealType, subcategory, city, rooms, priceFrom });
+  const applyPricePreset = (index) => {
+    if (index === "") {
+      setPricePreset("");
+      setPriceFrom("");
+      setPriceTo("");
+      navigateSearch({ priceFrom: "", priceTo: "" });
+      return;
     }
 
-    nav(url);
+    const preset = pricePresets[Number(index)];
+    if (!preset) return;
+
+    const nextFrom = preset.from ? String(preset.from) : "";
+    const nextTo = preset.to ? String(preset.to) : "";
+
+    setPricePreset(index);
+    setPriceFrom(nextFrom);
+    setPriceTo(nextTo);
+    navigateSearch({ priceFrom: nextFrom, priceTo: nextTo });
+  };
+
+  const handleDealChange = (value) => {
+    setDealType(value);
+    setPricePreset("");
+    setPriceFrom("");
+    setPriceTo("");
+    navigateSearch({ dealType: value, priceFrom: "", priceTo: "" });
   };
 
   return (
     <>
       <section
-        className={`rounded-3xl border border-white/20 bg-gradient-to-br from-ink-800 via-ink-700 to-lagoon-800 text-white shadow-lift overflow-hidden ${
-          compact ? "p-4 md:p-5" : "p-5 md:p-8"
+        className={`overflow-hidden rounded-2xl bg-lagoon-700 shadow-lift ${
+          compact ? "" : ""
         }`}
       >
-        <div className={compact ? "mb-4" : "mb-6"}>
-          <h1
-            className={`font-display font-extrabold leading-tight ${
-              compact ? "text-2xl" : "text-3xl md:text-4xl"
-            }`}
-          >
-            Недвижимость в {city || "Таджикистане"}
-          </h1>
-          <p className="text-white/70 mt-2 text-sm md:text-base max-w-2xl">
-            Квартиры, дома, участки и коммерция — с фильтрами как на ведущих
-            площадках.
-          </p>
-        </div>
+        <div className="flex flex-col gap-2 px-3 pt-3 sm:flex-row sm:items-center sm:justify-between sm:px-4">
+          <div className="flex flex-wrap gap-1">
+            {DEAL_TYPES.map((item) => {
+              const active = dealType === item.value;
 
-        <div className="flex flex-wrap gap-2 mb-4">
-          {DEAL_TYPES.map((item) => (
-            <button
-              key={item.value}
-              type="button"
-              onClick={() => setDealType(item.value)}
-              className={`px-4 py-2 rounded-xl text-sm font-semibold transition ${
-                dealType === item.value
-                  ? "bg-sun text-white shadow-md"
-                  : "bg-white/10 hover:bg-white/15 text-white/90"
-              }`}
-            >
-              {item.label}
-            </button>
-          ))}
-        </div>
-
-        <form onSubmit={submit} className="space-y-3">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            <label className="block">
-              <span className="text-xs text-white/60 mb-1 block">Город</span>
-              <div className="relative">
-                <MapPin
-                  size={16}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-                />
-                <select
-                  value={city}
-                  onChange={(e) => setCity(e.target.value)}
-                  className="w-full h-12 rounded-xl bg-white text-slate-900 pl-9 pr-8 text-sm font-medium outline-none"
+              return (
+                <button
+                  key={item.value}
+                  type="button"
+                  onClick={() => handleDealChange(item.value)}
+                  className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
+                    active
+                      ? "bg-white text-slate-900 shadow-sm"
+                      : "text-white/90 hover:bg-white/10"
+                  }`}
                 >
-                  {REAL_ESTATE_CITIES.map((item) => (
-                    <option key={item} value={item}>
-                      {item}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </label>
-
-            <label className="block">
-              <span className="text-xs text-white/60 mb-1 block">Тип</span>
-              <select
-                value={subcategory}
-                onChange={(e) => setSubcategory(e.target.value)}
-                className="w-full h-12 rounded-xl bg-white text-slate-900 px-3 text-sm font-medium outline-none"
-              >
-                <option value="">Все типы</option>
-                {Object.keys(SUBCATEGORY_META).map((item) => (
-                  <option key={item} value={item}>
-                    {item}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <label className="block">
-              <span className="text-xs text-white/60 mb-1 block">Комнат</span>
-              <select
-                value={rooms}
-                onChange={(e) => setRooms(e.target.value)}
-                className="w-full h-12 rounded-xl bg-white text-slate-900 px-3 text-sm font-medium outline-none"
-              >
-                <option value="">Любое</option>
-                {ROOM_OPTIONS.map((item) => (
-                  <option key={item} value={item}>
-                    {item}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <label className="block">
-              <span className="text-xs text-white/60 mb-1 block">Цена от</span>
-              <input
-                value={priceFrom}
-                onChange={(e) => setPriceFrom(formatPriceInput(e.target.value))}
-                placeholder="от"
-                className="w-full h-12 rounded-xl bg-white text-slate-900 px-3 text-sm font-medium outline-none"
-              />
-            </label>
+                  {item.label}
+                </button>
+              );
+            })}
           </div>
 
-          <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3 pt-1">
-            <button
-              type="submit"
-              className="inline-flex items-center justify-center gap-2 h-12 px-6 rounded-xl bg-sun hover:bg-sun-600 text-white font-bold transition shadow-md"
+          <label className="relative inline-flex min-w-0 items-center gap-1.5 self-start sm:self-auto">
+            <MapPin size={16} className="shrink-0 text-white/80" />
+            <select
+              value={city}
+              onChange={(e) => {
+                const nextCity = e.target.value;
+                setCity(nextCity);
+                navigateSearch({ city: nextCity });
+              }}
+              className="max-w-[10rem] appearance-none bg-transparent pr-6 text-sm font-semibold text-white outline-none"
             >
-              <Search size={18} />
-              Показать объявления
-            </button>
+              {REAL_ESTATE_CITIES.map((item) => (
+                <option key={item} value={item} className="text-slate-900">
+                  {item}
+                </option>
+              ))}
+            </select>
+            <ChevronDown
+              size={14}
+              className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 text-white/70"
+            />
+          </label>
+        </div>
 
-            <button
-              type="button"
-              onClick={() => setMoreOpen(true)}
-              className="inline-flex items-center justify-center gap-1 h-12 px-4 rounded-xl bg-white/10 hover:bg-white/15 text-sm font-semibold transition"
-            >
-              Ещё фильтры
-            </button>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            navigateSearch();
+          }}
+          className="p-3 sm:p-4"
+        >
+          <div className="rounded-xl bg-white p-1.5 sm:p-2">
+            <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2 lg:flex lg:items-center lg:gap-1.5">
+              <BarSelect
+                value={subcategory}
+                onChange={setSubcategory}
+                onApply={() => navigateSearch()}
+                placeholder="Квартиры"
+                options={subcategoryOptions}
+                className="lg:w-40 lg:shrink-0"
+              />
+
+              <input
+                value={locationQuery}
+                onChange={(e) => setLocationQuery(e.target.value)}
+                placeholder="Район, улица, дом"
+                className={`${BAR_FIELD} lg:min-w-0 lg:flex-1`}
+              />
+
+              <BarSelect
+                value={pricePreset}
+                onChange={applyPricePreset}
+                placeholder="Цена"
+                options={pricePresets.map((preset, index) => ({
+                  value: String(index),
+                  label: preset.label,
+                }))}
+                className="lg:w-36 lg:shrink-0"
+              />
+
+              <BarSelect
+                value={rooms}
+                onChange={setRooms}
+                onApply={() => navigateSearch()}
+                placeholder="Комнат"
+                options={ROOM_OPTIONS}
+                className="lg:w-32 lg:shrink-0"
+              />
+
+              <button
+                type="button"
+                onClick={() => setMoreOpen(true)}
+                className="mobile-btn h-11 rounded-lg border border-slate-200 bg-white text-sm font-semibold text-blue-600 hover:bg-slate-50 lg:w-auto lg:shrink-0 lg:px-4"
+              >
+                Ещё фильтры
+              </button>
+            </div>
           </div>
         </form>
       </section>
@@ -176,6 +277,7 @@ export default function RealEstateSearchHero({
         subcategory={subcategory}
         rooms={rooms}
         priceFrom={priceFrom}
+        priceTo={priceTo}
         onNavigate={(url) => nav(url)}
       />
     </>
