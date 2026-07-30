@@ -11,6 +11,10 @@ import {
 import { buildRealEstateListingUrl } from "../lib/realEstate";
 import { formatPriceInput, getPriceDigits } from "../data/specOptions";
 
+const HERO_LABEL = "text-sm font-medium text-white/85 mb-1.5 block";
+const HERO_CONTROL =
+  "w-full h-12 rounded-xl bg-white text-slate-900 text-sm font-medium outline-none focus:ring-2 focus:ring-white/30 appearance-none";
+
 function formatHeroPriceSummary(from, to, currency = "с.") {
   const fromLabel = from ? formatPriceInput(from) : "";
   const toLabel = to ? formatPriceInput(to) : "";
@@ -30,78 +34,126 @@ function formatHeroPriceSummary(from, to, currency = "с.") {
   return "";
 }
 
+function HeroSelect({ label, value, onChange, children, className = "", icon: Icon }) {
+  return (
+    <label className="block min-w-0">
+      <span className={HERO_LABEL}>{label}</span>
+      <div className="relative">
+        {Icon && (
+          <Icon
+            size={16}
+            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+          />
+        )}
+        <select
+          value={value}
+          onChange={onChange}
+          className={`${HERO_CONTROL} pr-9 ${Icon ? "pl-9" : "px-3"} ${className}`}
+        >
+          {children}
+        </select>
+        <ChevronDown
+          size={16}
+          className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"
+        />
+      </div>
+    </label>
+  );
+}
+
 function HeroPriceFilter({ priceFrom, priceTo, priceCurrency, onChange }) {
   const [open, setOpen] = React.useState(false);
+  const rootRef = React.useRef(null);
   const summary = formatHeroPriceSummary(priceFrom, priceTo, priceCurrency);
 
+  React.useEffect(() => {
+    if (!open) return undefined;
+
+    const handleOutside = (event) => {
+      if (!rootRef.current?.contains(event.target)) {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleOutside);
+    };
+  }, [open]);
+
   return (
-    <div className="block">
+    <div ref={rootRef} className="relative block min-w-0">
+      <span className={HERO_LABEL}>Цена</span>
+
       <button
         type="button"
         onClick={() => setOpen((value) => !value)}
-        className={`w-full h-12 flex items-center justify-between gap-3 rounded-xl bg-white px-4 text-sm outline-none transition border ${
-          open ? "border-lagoon/40 ring-1 ring-lagoon/20" : "border-lagoon/25 hover:border-lagoon/40"
-        } ${summary ? "text-slate-900 font-medium" : "text-slate-500"}`}
+        className={`${HERO_CONTROL} flex items-center justify-between gap-3 px-3 text-left ${
+          summary ? "text-slate-900" : "text-slate-500"
+        }`}
       >
-        <span className="truncate">{summary || "Цена"}</span>
+        <span className="truncate">{summary || "Любая"}</span>
         {open ? (
-          <ChevronUp size={18} className="shrink-0 text-slate-400" />
+          <ChevronUp size={16} className="shrink-0 text-slate-400" />
         ) : (
-          <ChevronDown size={18} className="shrink-0 text-slate-400" />
+          <ChevronDown size={16} className="shrink-0 text-slate-400" />
         )}
       </button>
 
       {open && (
-        <div className="mt-2 flex h-11 items-stretch overflow-hidden rounded-xl border border-slate-200 bg-white">
-          <input
-            type="text"
-            inputMode="numeric"
-            placeholder="от"
-            value={priceFrom ? formatPriceInput(priceFrom) : ""}
-            onChange={(e) =>
-              onChange({
-                priceFrom: getPriceDigits(e.target.value),
-                priceTo,
-                priceCurrency,
-              })
-            }
-            className="w-1/2 min-w-0 px-3 text-sm outline-none border-r border-slate-200 placeholder:text-slate-400"
-          />
+        <div className="absolute left-0 right-0 top-[calc(100%+6px)] z-50 rounded-xl border border-slate-200 bg-white p-2 shadow-xl">
+          <div className="flex h-11 items-stretch overflow-hidden rounded-lg border border-slate-200">
+            <input
+              type="text"
+              inputMode="numeric"
+              placeholder="от"
+              value={priceFrom ? formatPriceInput(priceFrom) : ""}
+              onChange={(e) =>
+                onChange({
+                  priceFrom: getPriceDigits(e.target.value),
+                  priceTo,
+                  priceCurrency,
+                })
+              }
+              className="w-1/2 min-w-0 px-3 text-sm outline-none border-r border-slate-200 placeholder:text-slate-400"
+            />
 
-          <input
-            type="text"
-            inputMode="numeric"
-            placeholder="до"
-            value={priceTo ? formatPriceInput(priceTo) : ""}
-            onChange={(e) =>
-              onChange({
-                priceFrom,
-                priceTo: getPriceDigits(e.target.value),
-                priceCurrency,
-              })
-            }
-            className="w-1/2 min-w-0 px-3 text-sm outline-none border-r border-slate-200 placeholder:text-slate-400"
-          />
-
-          <div className="relative shrink-0">
-            <select
-              value={priceCurrency}
+            <input
+              type="text"
+              inputMode="numeric"
+              placeholder="до"
+              value={priceTo ? formatPriceInput(priceTo) : ""}
               onChange={(e) =>
                 onChange({
                   priceFrom,
-                  priceTo,
-                  priceCurrency: e.target.value,
+                  priceTo: getPriceDigits(e.target.value),
+                  priceCurrency,
                 })
               }
-              className="h-full min-w-[3.5rem] appearance-none bg-white pl-2.5 pr-7 text-sm outline-none"
-            >
-              <option value="с.">с.</option>
-              <option value="$">$</option>
-            </select>
-            <ChevronDown
-              size={14}
-              className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-slate-400"
+              className="w-1/2 min-w-0 px-3 text-sm outline-none border-r border-slate-200 placeholder:text-slate-400"
             />
+
+            <div className="relative shrink-0">
+              <select
+                value={priceCurrency}
+                onChange={(e) =>
+                  onChange({
+                    priceFrom,
+                    priceTo,
+                    priceCurrency: e.target.value,
+                  })
+                }
+                className="h-full min-w-[3.5rem] appearance-none bg-white pl-2.5 pr-7 text-sm outline-none"
+              >
+                <option value="с.">с.</option>
+                <option value="$">$</option>
+              </select>
+              <ChevronDown
+                size={14}
+                className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-slate-400"
+              />
+            </div>
           </div>
         </div>
       )}
@@ -126,6 +178,18 @@ export default function RealEstateSearchHero({
   const [priceCurrency, setPriceCurrency] = React.useState("с.");
   const [moreOpen, setMoreOpen] = React.useState(false);
 
+  React.useEffect(() => {
+    setCity(initialCity);
+  }, [initialCity]);
+
+  React.useEffect(() => {
+    setSubcategory(initialSubcategory);
+  }, [initialSubcategory]);
+
+  React.useEffect(() => {
+    setDealType(initialDeal);
+  }, [initialDeal]);
+
   const submit = (e) => {
     e?.preventDefault?.();
 
@@ -148,23 +212,21 @@ export default function RealEstateSearchHero({
   return (
     <>
       <section
-        className={`rounded-3xl border border-white/20 bg-gradient-to-br from-ink-800 via-ink-700 to-lagoon-800 text-white shadow-lift overflow-hidden ${
+        className={`rounded-3xl border border-white/20 bg-gradient-to-br from-ink-800 via-ink-700 to-lagoon-800 text-white shadow-lift ${
           compact ? "p-4 md:p-5" : "p-5 md:p-8"
         }`}
       >
-        <div className={compact ? "mb-4" : "mb-6"}>
-          <h1
-            className={`font-display font-extrabold leading-tight ${
-              compact ? "text-2xl" : "text-3xl md:text-4xl"
-            }`}
-          >
-            Недвижимость в {city || "Таджикистане"}
-          </h1>
-          <p className="text-white/70 mt-2 text-sm md:text-base max-w-2xl">
-            Квартиры, дома, участки и коммерция — с фильтрами как на ведущих
-            площадках.
-          </p>
-        </div>
+        {!compact && (
+          <div className="mb-6">
+            <h1 className="font-display text-3xl md:text-4xl font-extrabold leading-tight">
+              Недвижимость в {city || "Таджикистане"}
+            </h1>
+            <p className="text-white/75 mt-2 text-sm md:text-base max-w-2xl">
+              Квартиры, дома, участки и коммерция — с фильтрами как на ведущих
+              площадках.
+            </p>
+          </div>
+        )}
 
         <div className="flex flex-wrap gap-2 mb-4">
           {DEAL_TYPES.map((item) => (
@@ -172,7 +234,7 @@ export default function RealEstateSearchHero({
               key={item.value}
               type="button"
               onClick={() => setDealType(item.value)}
-              className={`px-4 py-2 rounded-xl text-sm font-semibold transition ${
+              className={`h-11 px-4 rounded-xl text-sm font-semibold transition ${
                 dealType === item.value
                   ? "bg-sun text-white shadow-md"
                   : "bg-white/10 hover:bg-white/15 text-white/90"
@@ -184,78 +246,62 @@ export default function RealEstateSearchHero({
         </div>
 
         <form onSubmit={submit} className="space-y-3">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            <label className="block">
-              <span className="text-xs text-white/60 mb-1 block">Город</span>
-              <div className="relative">
-                <MapPin
-                  size={16}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-                />
-                <select
-                  value={city}
-                  onChange={(e) => setCity(e.target.value)}
-                  className="w-full h-12 rounded-xl bg-white text-slate-900 pl-9 pr-8 text-sm font-medium outline-none"
-                >
-                  {REAL_ESTATE_CITIES.map((item) => (
-                    <option key={item} value={item}>
-                      {item}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+            <HeroSelect
+              label="Город"
+              value={city}
+              onChange={(e) => setCity(e.target.value)}
+              icon={MapPin}
+            >
+              {REAL_ESTATE_CITIES.map((item) => (
+                <option key={item} value={item}>
+                  {item}
+                </option>
+              ))}
+            </HeroSelect>
 
-            <label className="block">
-              <span className="text-xs text-white/60 mb-1 block">Тип</span>
-              <select
-                value={subcategory}
-                onChange={(e) => setSubcategory(e.target.value)}
-                className="w-full h-12 rounded-xl bg-white text-slate-900 px-3 text-sm font-medium outline-none"
-              >
-                <option value="">Все типы</option>
-                {Object.keys(SUBCATEGORY_META).map((item) => (
-                  <option key={item} value={item}>
-                    {item}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <HeroSelect
+              label="Тип"
+              value={subcategory}
+              onChange={(e) => setSubcategory(e.target.value)}
+            >
+              <option value="">Все типы</option>
+              {Object.keys(SUBCATEGORY_META).map((item) => (
+                <option key={item} value={item}>
+                  {item}
+                </option>
+              ))}
+            </HeroSelect>
 
-            <label className="block">
-              <span className="text-xs text-white/60 mb-1 block">Комнат</span>
-              <select
-                value={rooms}
-                onChange={(e) => setRooms(e.target.value)}
-                className="w-full h-12 rounded-xl bg-white text-slate-900 px-3 text-sm font-medium outline-none"
-              >
-                <option value="">Любое</option>
-                {ROOM_OPTIONS.map((item) => (
-                  <option key={item} value={item}>
-                    {item}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <HeroSelect
+              label="Комнат"
+              value={rooms}
+              onChange={(e) => setRooms(e.target.value)}
+            >
+              <option value="">Любое</option>
+              {ROOM_OPTIONS.map((item) => (
+                <option key={item} value={item}>
+                  {item}
+                </option>
+              ))}
+            </HeroSelect>
 
-            <div className="block">
-              <HeroPriceFilter
-                priceFrom={priceFrom}
-                priceTo={priceTo}
-                priceCurrency={priceCurrency}
-                onChange={({ priceFrom: nextFrom, priceTo: nextTo, priceCurrency: nextCurrency }) => {
-                  setPriceFrom(nextFrom);
-                  setPriceTo(nextTo);
-                  setPriceCurrency(nextCurrency);
-                }}
-              />
-            </div>
+            <HeroPriceFilter
+              priceFrom={priceFrom}
+              priceTo={priceTo}
+              priceCurrency={priceCurrency}
+              onChange={({ priceFrom: nextFrom, priceTo: nextTo, priceCurrency: nextCurrency }) => {
+                setPriceFrom(nextFrom);
+                setPriceTo(nextTo);
+                setPriceCurrency(nextCurrency);
+              }}
+            />
           </div>
 
-          <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3 pt-1">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
             <button
               type="submit"
-              className="inline-flex items-center justify-center gap-2 h-12 px-6 rounded-xl bg-sun hover:bg-sun-600 text-white font-bold transition shadow-md"
+              className="mobile-btn bg-sun text-white hover:bg-sun-600 font-bold shadow-md"
             >
               <Search size={18} />
               Показать объявления
@@ -264,7 +310,7 @@ export default function RealEstateSearchHero({
             <button
               type="button"
               onClick={() => setMoreOpen(true)}
-              className="inline-flex items-center justify-center gap-1 h-12 px-4 rounded-xl bg-white/10 hover:bg-white/15 text-sm font-semibold transition"
+              className="mobile-btn border border-white/25 bg-white/10 hover:bg-white/15 text-white font-semibold"
             >
               Ещё фильтры
             </button>

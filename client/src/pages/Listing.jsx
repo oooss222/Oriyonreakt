@@ -489,19 +489,21 @@ export default function Listing() {
           </div>
 
           <div className="flex items-center gap-2 md:hidden">
-            <button
-              type="button"
-              onClick={() => setMobileFiltersOpen(true)}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border hover:bg-slate-50"
-            >
-              <SlidersHorizontal size={18} />
-              Фильтры
-              {activeFilterCount > 0 && (
-                <span className="min-w-[1.25rem] h-5 px-1 rounded-full bg-sun text-white text-xs grid place-items-center">
-                  {activeFilterCount}
-                </span>
-              )}
-            </button>
+            {!isRealEstate && (
+              <button
+                type="button"
+                onClick={() => setMobileFiltersOpen(true)}
+                className="mobile-btn border bg-white hover:bg-slate-50"
+              >
+                <SlidersHorizontal size={18} />
+                Фильтры
+                {activeFilterCount > 0 && (
+                  <span className="min-w-[1.25rem] h-5 px-1 rounded-full bg-sun text-white text-xs grid place-items-center">
+                    {activeFilterCount}
+                  </span>
+                )}
+              </button>
+            )}
           </div>
         </div>
 
@@ -515,20 +517,22 @@ export default function Listing() {
           </div>
         )}
 
-        <div className="hidden md:block">
-          <ListingFiltersPanel
-            draft={draft}
-            setDraft={setDraft}
-            activeCat={activeCat}
-            availableSubcategories={availableSubcategories}
-            showCategorySelect={!cat}
-            onApply={applyFilters}
-            onReset={resetFilters}
-            previewTotal={draftIsDirty ? previewTotal : total}
-            previewLoading={previewLoading}
-            hasActiveFilters={hasActiveFilters}
-          />
-        </div>
+        {!isRealEstate && (
+          <div className="hidden md:block">
+            <ListingFiltersPanel
+              draft={draft}
+              setDraft={setDraft}
+              activeCat={activeCat}
+              availableSubcategories={availableSubcategories}
+              showCategorySelect={!cat}
+              onApply={applyFilters}
+              onReset={resetFilters}
+              previewTotal={draftIsDirty ? previewTotal : total}
+              previewLoading={previewLoading}
+              hasActiveFilters={hasActiveFilters}
+            />
+          </div>
+        )}
 
         <div className="hidden md:block mt-4">
           <SavedSearchesPanel
@@ -545,7 +549,7 @@ export default function Listing() {
         </div>
       </div>
 
-      {mobileFiltersOpen && (
+      {mobileFiltersOpen && !isRealEstate && (
         <div className="md:hidden fixed inset-0 z-[70]">
           <button
             type="button"
