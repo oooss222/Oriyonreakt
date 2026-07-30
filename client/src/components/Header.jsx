@@ -173,12 +173,12 @@ export default function Header() {
 
   const searchField = (compact = false) => (
     <div
-      className={`relative flex items-center w-full rounded-2xl bg-ink-600/90 overflow-visible ring-1 ring-white/10 focus-within:ring-sun/60 focus-within:shadow-[0_0_0_3px_rgb(255_106_0/0.12)] transition ${
+      className={`relative flex items-center w-full rounded-xl bg-ink-600 overflow-visible ring-1 ring-white/10 focus-within:ring-sun/70 transition ${
         compact ? "min-w-0" : ""
       }`}
     >
-      <div className="flex items-center w-full rounded-2xl overflow-hidden">
-      <Search size={18} className="text-ink-300 shrink-0 ml-3.5" />
+      <div className="flex items-center w-full rounded-xl overflow-hidden bg-ink-600">
+      <Search size={18} className="text-ink-300 shrink-0 ml-3" />
 
       <input
         className={`flex-1 outline-none bg-transparent text-sm text-white placeholder:text-ink-300 px-2 min-w-0 ${
@@ -218,44 +218,41 @@ export default function Header() {
             scrolled ? "h-14" : "h-16 lg:h-[72px]"
           }`}
         >
-          <Link to="/" className="flex items-center gap-2.5 group shrink-0 min-w-0">
+          <Link to="/" className="flex items-center gap-2 group shrink-0 min-w-0">
             <img
               src="/oriyon.store.png"
-              alt=""
-              aria-hidden="true"
-              className={`object-contain transition-all duration-300 group-hover:scale-105 drop-shadow-sm ${
-                scrolled ? "w-9 h-9" : "w-10 h-10 lg:w-11 lg:h-11"
+              alt="Oriyon Store"
+              className={`object-contain transition-all duration-300 group-hover:scale-105 ${
+                scrolled ? "w-10 h-10" : "w-12 h-12 lg:w-14 lg:h-14"
               }`}
             />
 
             <span
-              className={`brand-wordmark transition-all duration-300 truncate hidden sm:inline ${
-                scrolled ? "text-base" : "text-lg lg:text-xl"
+              className={`brand-wordmark transition-all duration-300 truncate ${
+                scrolled ? "text-base" : "text-lg"
               }`}
             >
               Oriyon
               <span className="text-sun">.</span>
-              <span className="text-white/75 font-semibold text-[0.82em]">store</span>
+              <span className="text-white/70 font-semibold text-[0.85em]">store</span>
             </span>
           </Link>
 
           <Link
             to="/add"
-            className="inline-flex items-center gap-1.5 shrink-0 px-3 py-2 rounded-xl bg-sun/10 border border-sun/40 text-sun text-sm font-semibold hover:bg-sun hover:text-white transition"
+            className="inline-flex items-center gap-1.5 shrink-0 px-3 py-2 rounded-xl border border-sun/50 text-sun text-sm font-semibold hover:bg-sun/10 transition"
           >
             <PlusCircle size={17} />
-            <span className="hidden xl:inline">Добавить объявление</span>
-            <span className="xl:hidden">Подать</span>
+            Добавить объявление
           </Link>
 
-          <div className="flex-1 min-w-0 relative max-w-3xl">{searchField(false)}</div>
+          <div className="flex-1 min-w-0 relative">{searchField(false)}{suggestionList}</div>
 
-          <nav className="flex items-center gap-0.5 shrink-0 ml-1">
+          <nav className="flex items-center gap-0.5 shrink-0">
             <Link
               to="/profile?tab=fav"
-              className="p-2.5 rounded-xl hover:bg-white/10 transition text-white/90 hover:text-white"
+              className="p-2.5 rounded-lg hover:bg-white/10 transition"
               title="Избранное"
-              aria-label="Избранное"
             >
               <Heart size={20} />
             </Link>
