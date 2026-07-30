@@ -278,9 +278,9 @@ const WalletTopUp = React.memo(function WalletTopUp({ token, onSuccess }) {
                 setError("");
                 setSuccess("");
               }}
-              className={`rounded-xl border px-3 py-2 text-sm transition ${
+              className={`mobile-btn border ${
                 Number(amount) === item
-                  ? "bg-sun text-white border-blue-600"
+                  ? "bg-sun text-white border-sun"
                   : "bg-white hover:bg-slate-50"
               }`}
             >
@@ -302,7 +302,7 @@ const WalletTopUp = React.memo(function WalletTopUp({ token, onSuccess }) {
               setSuccess("");
             }}
             placeholder="Например: 100"
-            className="input w-full pr-14"
+            className="mobile-control pr-14"
           />
 
           <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-500">
@@ -329,7 +329,7 @@ const WalletTopUp = React.memo(function WalletTopUp({ token, onSuccess }) {
 
       <button
         disabled={loading || !isValid || configLoading}
-        className="w-full inline-flex justify-center items-center gap-2 px-4 py-3 rounded-xl bg-sun text-white hover:bg-sun-600 transition disabled:opacity-60 disabled:cursor-not-allowed"
+        className="mobile-btn bg-sun text-white hover:bg-sun-600 disabled:opacity-60 disabled:cursor-not-allowed"
       >
         {loading
           ? paymentConfig.alifEnabled
@@ -476,10 +476,10 @@ const ListingCard = React.memo(function ListingCard({
 
       {canManage && (
         <div className="px-2 pb-2 flex flex-col gap-2">
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="grid grid-cols-2 gap-2">
             <Link
               to={`/edit/${id}`}
-              className="inline-flex flex-1 justify-center items-center gap-1 px-3 py-2 rounded-xl bg-sun text-white hover:bg-sun-600 transition text-sm"
+              className="mobile-btn bg-sun text-white hover:bg-sun-600"
             >
               <Pencil size={16} />
               Редактировать
@@ -487,7 +487,7 @@ const ListingCard = React.memo(function ListingCard({
 
             <button
               type="button"
-              className="inline-flex justify-center items-center gap-1 px-3 py-2 rounded-xl border text-red-600 hover:bg-red-50 transition text-sm"
+              className="mobile-btn border text-red-600 hover:bg-red-50"
               onClick={() => onRemove(id)}
             >
               <Trash2 size={16} />
@@ -496,10 +496,10 @@ const ListingCard = React.memo(function ListingCard({
           </div>
 
           {status === "approved" && (
-            <div className="flex flex-wrap gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <button
                 type="button"
-                className="inline-flex flex-1 justify-center px-3 py-2 rounded-xl border text-slate-700 hover:bg-slate-50 transition text-sm"
+                className="mobile-btn border text-slate-700 hover:bg-slate-50"
                 onClick={() => onStatusAction?.(id, "sold")}
               >
                 Продано
@@ -507,7 +507,7 @@ const ListingCard = React.memo(function ListingCard({
 
               <button
                 type="button"
-                className="inline-flex flex-1 justify-center px-3 py-2 rounded-xl border text-slate-700 hover:bg-slate-50 transition text-sm"
+                className="mobile-btn border text-slate-700 hover:bg-slate-50"
                 onClick={() => onStatusAction?.(id, "archive")}
               >
                 Снять с публикации
@@ -518,7 +518,7 @@ const ListingCard = React.memo(function ListingCard({
           {(status === "sold" || status === "archived") && (
             <button
               type="button"
-              className="inline-flex w-full justify-center px-3 py-2 rounded-xl border border-emerald-200 text-emerald-700 hover:bg-emerald-50 transition text-sm"
+              className="mobile-btn border border-emerald-200 text-emerald-700 hover:bg-emerald-50"
               onClick={() => onStatusAction?.(id, "republish")}
             >
               Опубликовать снова
@@ -672,7 +672,7 @@ function MyListingsPanel({
   return (
     <div className="space-y-5">
       <div className="rounded-3xl border bg-white p-4 md:p-5 space-y-5">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <div className="inline-flex items-center gap-2 text-sm text-sun-700 bg-sun-50 border border-sun-100 rounded-full px-3 py-1 mb-2">
               <PlusCircle size={16} />
@@ -688,7 +688,7 @@ function MyListingsPanel({
 
           <Link
             to="/add"
-            className="inline-flex justify-center items-center gap-2 px-5 py-3 rounded-xl bg-sun text-white hover:bg-sun-600 transition"
+            className="mobile-btn bg-sun text-white hover:bg-sun-600 lg:w-auto shrink-0"
           >
             <PlusCircle size={18} />
             Подать объявление
@@ -755,18 +755,18 @@ function MyListingsPanel({
           </button>
         </div>
 
-        <div className="rounded-2xl border bg-slate-50 p-3 grid grid-cols-1 md:grid-cols-[1fr_auto_auto] gap-3">
+        <div className="rounded-2xl border bg-slate-50 p-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[1fr_auto_auto] gap-3">
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Поиск по названию, описанию, категории или городу"
-            className="h-11 rounded-xl border px-3 outline-none focus:ring-2 focus:ring-sun/40"
+            className="mobile-control sm:col-span-2 lg:col-span-1"
           />
 
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="h-11 rounded-xl border px-3 outline-none focus:ring-2 focus:ring-sun/40"
+            className="mobile-control"
           >
             <option value="all">Все статусы</option>
             <option value="approved">Опубликованные</option>
@@ -779,7 +779,7 @@ function MyListingsPanel({
           <select
             value={view}
             onChange={(e) => setView(e.target.value)}
-            className="h-11 rounded-xl border px-3 outline-none focus:ring-2 focus:ring-sun/40"
+            className="mobile-control"
           >
             <option value="grid">Сетка</option>
             <option value="compact">Компактно</option>
@@ -1351,63 +1351,66 @@ export default function Profile() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 space-y-6">
-      <div className="rounded-2xl border bg-white p-4 md:p-5 flex items-center gap-4">
-        <div className="relative w-16 h-16 md:w-20 md:h-20 rounded-full bg-gradient-to-br from-slate-100 to-white border grid place-items-center overflow-hidden">
-          <UserIcon className="text-slate-500" size={28} />
-        </div>
-
-        <div className="flex-1 min-w-0">
-          <div className="inline-flex items-center gap-2 mb-1">
-            <span className="px-2 py-0.5 text-xs rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100 inline-flex items-center gap-1">
-              <ShieldCheck size={14} />
-              Личный кабинет
-            </span>
-
-            <span className="px-2 py-0.5 text-xs rounded-full bg-sun-50 text-sun-700 border border-sun-100">
-              {role}
-            </span>
-
-            <EmailBadge status={emailStatus} />
+    <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 space-y-4 sm:space-y-6">
+      <div className="rounded-2xl border bg-white p-4 md:p-5 flex flex-col gap-4">
+        <div className="flex items-start gap-3 min-w-0">
+          <div className="relative w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-full bg-gradient-to-br from-slate-100 to-white border grid place-items-center overflow-hidden shrink-0">
+            <UserIcon className="text-slate-500" size={28} />
           </div>
 
-          <h1 className="text-2xl font-bold leading-tight truncate">
-            {me?.name || "Без имени"}
-          </h1>
-
-          <div className="text-slate-600 text-sm flex flex-wrap items-center gap-x-4 gap-y-1 mt-1">
-            {me?.email && (
-              <span className="inline-flex items-center gap-1">
-                <Mail size={16} className="text-slate-400" />
-                {me.email}
+          <div className="flex-1 min-w-0">
+            <div className="flex flex-wrap items-center gap-1.5 mb-2">
+              <span className="px-2 py-0.5 text-xs rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100 inline-flex items-center gap-1 max-w-full">
+                <ShieldCheck size={14} className="shrink-0" />
+                <span className="truncate">Личный кабинет</span>
               </span>
-            )}
 
-            {me?.phone && (
-              <span className="inline-flex items-center gap-1">
-                <Phone size={16} className="text-slate-400" />
-                {me.phone}
+              <span className="px-2 py-0.5 text-xs rounded-full bg-sun-50 text-sun-700 border border-sun-100 truncate max-w-full">
+                {role}
               </span>
-            )}
 
-            <span className="inline-flex items-center gap-1">
-              <Wallet size={16} className="text-slate-400" />
-              Баланс: {walletBalance.toLocaleString("ru-RU")} TJS
-            </span>
+              <EmailBadge status={emailStatus} />
+            </div>
+
+            <h1 className="text-xl sm:text-2xl font-bold leading-tight break-words">
+              {me?.name || "Без имени"}
+            </h1>
+
+            <div className="text-slate-600 text-sm mt-2 space-y-1">
+              {me?.email && (
+                <div className="inline-flex items-start gap-1.5 min-w-0 max-w-full">
+                  <Mail size={16} className="text-slate-400 shrink-0 mt-0.5" />
+                  <span className="break-all">{me.email}</span>
+                </div>
+              )}
+
+              {me?.phone && (
+                <div className="inline-flex items-center gap-1.5 min-w-0">
+                  <Phone size={16} className="text-slate-400 shrink-0" />
+                  <span className="break-all">{me.phone}</span>
+                </div>
+              )}
+
+              <div className="inline-flex items-center gap-1.5">
+                <Wallet size={16} className="text-slate-400 shrink-0" />
+                <span>Баланс: {walletBalance.toLocaleString("ru-RU")} TJS</span>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div className="flex gap-2">
+        <div className="grid grid-cols-2 gap-2 w-full">
           <Link
             to="/add"
-            className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-sun text-white hover:bg-sun-600 transition shadow-sm"
+            className="mobile-btn bg-sun text-white hover:bg-sun-600 shadow-sm"
           >
             <PlusCircle size={18} />
             Добавить
           </Link>
 
           <button
-            className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border hover:bg-slate-50 transition"
+            type="button"
+            className="mobile-btn border border-slate-200 bg-white hover:bg-slate-50"
             onClick={logout}
           >
             <LogOut size={18} />
@@ -1416,8 +1419,8 @@ export default function Profile() {
         </div>
       </div>
 
-      <div className="rounded-2xl border bg-white p-2">
-        <div className="flex flex-wrap gap-2">
+      <div className="rounded-2xl border bg-white p-2 sm:p-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
           <TabButton active={tab === "profile"} onClick={() => setTab("profile")}>
             <UserIcon size={18} />
             Профиль
@@ -1429,9 +1432,8 @@ export default function Profile() {
           </TabButton>
 
           {canOpenAdmin && (
-            <Link
+            <ProfileTabLink
               to={canAccessAccountant(role) ? "/admin?section=finance" : "/admin"}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-medium hover:bg-slate-50 transition"
             >
               {canAccessAccountant(role) ? (
                 <Wallet size={18} />
@@ -1439,7 +1441,7 @@ export default function Profile() {
                 <Shield size={18} />
               )}
               {canAccessAccountant(role) ? "Финансы" : "Админка"}
-            </Link>
+            </ProfileTabLink>
           )}
 
           {canOpenModeration && (
@@ -1757,7 +1759,7 @@ export default function Profile() {
               </div>
 
               <input
-                className="h-12 rounded-2xl border px-4 w-full outline-none focus:ring-2 focus:ring-sun/40"
+                className="mobile-control"
                 value={form.name}
                 onChange={(e) =>
                   setForm((v) => ({
@@ -1775,7 +1777,7 @@ export default function Profile() {
               </div>
 
               <input
-                className="h-12 rounded-2xl border px-4 w-full bg-slate-50"
+                className="mobile-control bg-slate-50"
                 type="email"
                 value={form.email}
                 readOnly
@@ -1788,23 +1790,23 @@ export default function Profile() {
               </div>
 
               <input
-  className="h-12 rounded-2xl border px-4 w-full outline-none focus:ring-2 focus:ring-sun/40"
-  placeholder="+992 ..."
-  value={form.phone}
-  onChange={(e) =>
-    setForm((prev) => ({
-      ...prev,
-      phone: e.target.value,
-    }))
-  }
-/>
+                className="mobile-control"
+                placeholder="+992 ..."
+                value={form.phone}
+                onChange={(e) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    phone: e.target.value,
+                  }))
+                }
+              />
 
             </label>
 
             <label className="block">
               <div className="text-sm font-medium mb-2">WhatsApp</div>
               <input
-                className="h-12 rounded-2xl border px-4 w-full outline-none focus:ring-2 focus:ring-sun/40"
+                className="mobile-control"
                 placeholder="992901234567"
                 value={form.whatsapp}
                 onChange={(e) =>
@@ -1819,7 +1821,7 @@ export default function Profile() {
             <label className="block">
               <div className="text-sm font-medium mb-2">Telegram</div>
               <input
-                className="h-12 rounded-2xl border px-4 w-full outline-none focus:ring-2 focus:ring-sun/40"
+                className="mobile-control"
                 placeholder="@username или https://t.me/username"
                 value={form.telegram}
                 onChange={(e) =>
@@ -2050,15 +2052,26 @@ export default function Profile() {
 const TabButton = React.memo(function TabButton({ active, onClick, children }) {
   return (
     <button
-      className={`inline-flex items-center gap-2 px-3 py-2 rounded-xl border transition ${
+      className={`mobile-btn border ${
         active
-          ? "bg-sun text-white border-blue-600"
-          : "hover:bg-slate-50"
+          ? "bg-sun text-white border-sun shadow-sm"
+          : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
       }`}
       onClick={onClick}
       type="button"
     >
       {children}
     </button>
+  );
+});
+
+const ProfileTabLink = React.memo(function ProfileTabLink({ to, children }) {
+  return (
+    <Link
+      to={to}
+      className="mobile-btn border bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
+    >
+      {children}
+    </Link>
   );
 });
