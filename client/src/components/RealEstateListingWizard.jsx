@@ -73,6 +73,7 @@ export default function RealEstateListingWizard({
   photoLimit = getListingPhotoLimit("realestate"),
   onSubmit,
   saving,
+  isEdit = false,
 }) {
   const [step, setStep] = React.useState(0);
   const [localErr, setLocalErr] = React.useState("");
@@ -523,7 +524,13 @@ export default function RealEstateListingWizard({
             disabled={saving}
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-sun text-white font-semibold disabled:opacity-60"
           >
-            {saving ? "Публикация..." : "Опубликовать"}
+            {saving
+              ? isEdit
+                ? "Сохранение..."
+                : "Публикация..."
+              : isEdit
+                ? "Сохранить изменения"
+                : "Опубликовать"}
           </button>
         )}
       </div>

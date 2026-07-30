@@ -84,6 +84,7 @@ export default function Header() {
     pathname === "/" ||
     pathname === "/listing" ||
     pathname === "/realestate" ||
+    pathname.startsWith("/realestate/") ||
     pathname.startsWith("/c/");
 
   const compactCategories = pathname !== "/";

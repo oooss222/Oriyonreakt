@@ -166,15 +166,19 @@ export default function RealEstateSearchHero({
   initialDeal = "Купить",
   initialCity = "Душанбе",
   initialSubcategory = "",
+  initialRooms = "",
+  initialPriceFrom = "",
+  initialPriceTo = "",
+  onCityChange,
   onSearch,
 }) {
   const nav = useNavigate();
   const [dealType, setDealType] = React.useState(initialDeal);
   const [city, setCity] = React.useState(initialCity);
   const [subcategory, setSubcategory] = React.useState(initialSubcategory);
-  const [rooms, setRooms] = React.useState("");
-  const [priceFrom, setPriceFrom] = React.useState("");
-  const [priceTo, setPriceTo] = React.useState("");
+  const [rooms, setRooms] = React.useState(initialRooms);
+  const [priceFrom, setPriceFrom] = React.useState(initialPriceFrom);
+  const [priceTo, setPriceTo] = React.useState(initialPriceTo);
   const [priceCurrency, setPriceCurrency] = React.useState("с.");
   const [moreOpen, setMoreOpen] = React.useState(false);
 
@@ -189,6 +193,23 @@ export default function RealEstateSearchHero({
   React.useEffect(() => {
     setDealType(initialDeal);
   }, [initialDeal]);
+
+  React.useEffect(() => {
+    setRooms(initialRooms);
+  }, [initialRooms]);
+
+  React.useEffect(() => {
+    setPriceFrom(initialPriceFrom);
+  }, [initialPriceFrom]);
+
+  React.useEffect(() => {
+    setPriceTo(initialPriceTo);
+  }, [initialPriceTo]);
+
+  const handleCityChange = (nextCity) => {
+    setCity(nextCity);
+    onCityChange?.(nextCity);
+  };
 
   const submit = (e) => {
     e?.preventDefault?.();
@@ -250,7 +271,7 @@ export default function RealEstateSearchHero({
             <HeroSelect
               label="Город"
               value={city}
-              onChange={(e) => setCity(e.target.value)}
+              onChange={(e) => handleCityChange(e.target.value)}
               icon={MapPin}
             >
               {REAL_ESTATE_CITIES.map((item) => (

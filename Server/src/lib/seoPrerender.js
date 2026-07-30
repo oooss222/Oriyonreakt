@@ -84,9 +84,24 @@ function buildListingJsonLd(listing, requestUrl = "") {
 
 function buildSitemapXml(listings = []) {
   const baseUrl = getSiteBaseUrl();
-  const staticUrls = ["", "/listing", "/auth"].map((pathSuffix) => {
+  const staticUrls = ["", "/listing", "/auth", "/realestate"].map((pathSuffix) => {
     const loc = `${baseUrl}${pathSuffix}`;
     return `<url><loc>${escapeHtml(loc)}</loc><changefreq>daily</changefreq></url>`;
+  });
+
+  const realEstatePaths = [
+    "/realestate/dushanbe",
+    "/realestate/dushanbe/kvartiry",
+    "/realestate/dushanbe/kvartiry/kupit",
+    "/realestate/dushanbe/kvartiry/snyat",
+    "/realestate/dushanbe/novostroyki",
+    "/realestate/dushanbe/doma",
+    "/realestate/dushanbe/uchastki",
+    "/realestate/khujand/kvartiry",
+    "/realestate/khujand/kvartiry/kupit",
+  ].map((pathSuffix) => {
+    const loc = `${baseUrl}${pathSuffix}`;
+    return `<url><loc>${escapeHtml(loc)}</loc><changefreq>daily</changefreq><priority>0.7</priority></url>`;
   });
 
   const listingUrls = listings.map((listing) => {
@@ -100,7 +115,7 @@ function buildSitemapXml(listings = []) {
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${[...staticUrls, ...listingUrls].join("\n")}
+${[...staticUrls, ...realEstatePaths, ...listingUrls].join("\n")}
 </urlset>`;
 }
 

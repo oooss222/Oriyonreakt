@@ -433,8 +433,7 @@ export default function ListingForm({
   const photosCount = existingImages.length + previews.length;
   const photoLimit = getListingPhotoLimit(form.cat);
   const filledSpecs = compactSpecsForSubmit(specs).length;
-  const useRealEstateWizard =
-    isRealEstateWizardCategory(form.cat) && !isEdit;
+  const useRealEstateWizard = isRealEstateWizardCategory(form.cat);
 
   const locationOptions = React.useMemo(() => {
     if (form.location && !LOCATIONS.includes(form.location)) {
@@ -527,6 +526,7 @@ export default function ListingForm({
           photoLimit={photoLimit}
           onSubmit={submit}
           saving={saving}
+          isEdit={isEdit}
         />
       ) : (
       <form onSubmit={submit} className="grid grid-cols-1 lg:grid-cols-3 gap-6">

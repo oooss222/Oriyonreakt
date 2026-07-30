@@ -191,4 +191,43 @@ export function buildRealEstateListingUrl({
   return `/listing?${params.toString()}`;
 }
 
+export function buildRealEstatePageTitle(draft = {}) {
+  const city = draft.location || "";
+  const subcategory = draft.subcategory || "";
+  const deal = draft.specs?.["Тип сделки"] || "";
+  const rooms = draft.specs?.["Комнат"] || "";
+  const district = draft.specs?.["Район"] || "";
+
+  const parts = [];
+
+  if (subcategory) {
+    parts.push(subcategory);
+  } else {
+    parts.push("Недвижимость");
+  }
+
+  if (rooms) {
+    parts.push(`${rooms}-комн.`);
+  }
+
+  if (deal) {
+    parts.push(deal.toLowerCase());
+  }
+
+  if (city) {
+    parts.push(`в ${city}`);
+  }
+
+  if (district) {
+    parts.push(`· ${district}`);
+  }
+
+  return parts.join(" ");
+}
+
+export function buildRealEstateMetaDescription(draft = {}) {
+  const title = buildRealEstatePageTitle(draft);
+  return `${title} — объявления на Oriyon.store. Фильтры по цене, площади, этажу и району.`;
+}
+
 export { CITY_SLUGS, SUBCATEGORY_SLUGS, DEAL_SLUGS, ROOM_SLUGS, DEAL_TYPES, ROOM_OPTIONS };

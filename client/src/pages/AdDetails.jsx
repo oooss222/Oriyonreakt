@@ -875,7 +875,7 @@ export default function AdDetails() {
             )}
 
             {isRealEstateListing(ad) && (
-              <section className="card p-5 md:p-6 rounded-3xl space-y-2">
+              <section className="card p-5 md:p-6 rounded-3xl space-y-3">
                 <h2 className="text-lg font-bold text-slate-900">Расположение</h2>
                 <p className="text-slate-700 flex items-start gap-2">
                   <MapPin className="w-4 h-4 text-sun shrink-0 mt-1" />
@@ -885,6 +885,17 @@ export default function AdDetails() {
                       .join(", ")}
                   </span>
                 </p>
+                {realEstateEnriched?.realEstateSummary?.mapPosition && (
+                  <a
+                    href={`https://www.openstreetmap.org/?mlat=${realEstateEnriched.realEstateSummary.mapPosition.lat}&mlon=${realEstateEnriched.realEstateSummary.mapPosition.lng}#map=15/${realEstateEnriched.realEstateSummary.mapPosition.lat}/${realEstateEnriched.realEstateSummary.mapPosition.lng}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 text-sm font-semibold text-sun hover:text-sun-600 transition"
+                  >
+                    <MapPin size={14} />
+                    Показать на карте
+                  </a>
+                )}
               </section>
             )}
 

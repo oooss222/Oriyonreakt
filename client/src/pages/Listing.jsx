@@ -18,6 +18,8 @@ import {
   buildRealEstateListingUrl,
   isRealEstateSeoPath,
   parseRealEstateSeoParams,
+  buildRealEstatePageTitle,
+  buildRealEstateMetaDescription,
 } from "../lib/realestateSeo";
 import { FEED_AD_INTERVAL } from "../lib/adPlacements";
 import { usePageMeta } from "../lib/usePageMeta";
@@ -289,9 +291,16 @@ export default function Listing() {
     return activeCat ? CATS[activeCat]?.subs || [] : [];
   }, [activeCat]);
 
+  const effectiveSubcategory = appliedDraft.subcategory || subcategory;
+  const effectiveLocation = appliedDraft.location || location;
+
   const pageTitle = React.useMemo(() => {
-    if (subcategory && catConfig) {
-      return `${catConfig.title} · ${subcategory}`;
+    if (isRealEstate) {
+      return buildRealEstatePageTitle(appliedDraft);
+    }
+
+    if (effectiveSubcategory && catConfig) {
+      return `${catConfig.title} · ${effectiveSubcategory}`;
     }
 
     if (catConfig) {
@@ -303,7 +312,19 @@ export default function Listing() {
     }
 
     return "Объявления в Душанбе";
-  }, [subcategory, catConfig, search]);
+  }, [isRealEstate, appliedDraft, effectiveSubcategory, catConfig, search]);
+
+  const pageDescription = React.useMemo(() => {
+    if (isRealEstate) {
+      return buildRealEstateMetaDescription(appliedDraft);
+    }
+
+    if (catConfig) {
+      return `Объявления в категории «${pageTitle}» на Oriyon.store.`;
+    }
+
+    return "Объявления на Oriyon.store — покупка и продажа в Таджикистане.";
+  }, [isRealEstate, appliedDraft, catConfig, pageTitle]);
 
   const breadcrumbItems = React.useMemo(() => {
     const crumbs = [{ label: "Главная", to: "/" }];
@@ -311,12 +332,27 @@ export default function Listing() {
     if (catConfig) {
       crumbs.push({
         label: catConfig.title,
-        to: catConfig.landingPath || `/c/${cat}`,
+        to: catConfig.landingPath || `/c/${effectiveListingCat}`,
       });
     }
 
-    if (subcategory) {
-      crumbs.push({ label: subcategory });
+    if (effectiveLocation && isRealEstate) {
+      crumbs.push({
+        label: effectiveLocation,
+        to: buildRealEstateListingUrl({ city: effectiveLocation }),
+      });
+    }
+
+    if (effectiveSubcategory) {
+      crumbs.push({
+        label: effectiveSubcategory,
+        to: isRealEstate
+          ? buildRealEstateListingUrl({
+              city: effectiveLocation,
+              subcategory: effectiveSubcategory,
+            })
+          : undefined,
+      });
     } else if (!catConfig && search) {
       crumbs.push({ label: "Поиск" });
     } else if (!catConfig) {
@@ -324,13 +360,18 @@ export default function Listing() {
     }
 
     return crumbs;
-  }, [catConfig, cat, subcategory, search]);
+  }, [
+    catConfig,
+    effectiveListingCat,
+    effectiveSubcategory,
+    effectiveLocation,
+    isRealEstate,
+    search,
+  ]);
 
   usePageMeta({
     title: pageTitle,
-    description: catConfig
-      ? `Объявления в категории «${pageTitle}» на Oriyon.store.`
-      : "Объявления на Oriyon.store — покупка и продажа в Таджикистане.",
+    description: pageDescription,
     url: typeof window !== "undefined" ? window.location.href : undefined,
   });
 
@@ -378,6 +419,11 @@ export default function Listing() {
   );
 
   const resetFilters = () => {
+    if (isRealEstate) {
+      nav("/realestate");
+      return;
+    }
+
     setDraft({
       search: "",
       cat: cat || "",
@@ -470,6 +516,9 @@ export default function Listing() {
           initialCity={draft.location || "Душанбе"}
           initialSubcategory={draft.subcategory || ""}
           initialDeal={draft.specs?.["Тип сделки"] || "Купить"}
+          initialRooms={draft.specs?.["Комнат"] || ""}
+          initialPriceFrom={draft.priceFrom || ""}
+          initialPriceTo={draft.priceTo || ""}
         />
       )}
 
@@ -511,7 +560,7 @@ export default function Listing() {
           <div className="md:hidden sticky top-0 z-20 -mx-4 px-4 py-2 bg-mist/95 backdrop-blur border-b border-slate-200/80">
             <SubcategoryChips
               subcategories={availableSubcategories}
-              activeSubcategory={subcategory}
+              activeSubcategory={effectiveSubcategory}
               onSelect={selectSubcategory}
             />
           </div>
@@ -723,10 +772,10 @@ export default function Listing() {
         </>
       )}
 
-      {cat && !loading && !error && (
+      {effectiveListingCat && !loading && !error && (
         <SimilarListingsSection
-          cat={cat}
-          subcategory={subcategory}
+          cat={effectiveListingCat}
+          subcategory={effectiveSubcategory}
           excludeIds={visibleListingIds}
         />
       )}

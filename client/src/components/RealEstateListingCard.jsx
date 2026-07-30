@@ -1,6 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import CompareListingButton from "./CompareListingButton";
+import FavoriteButton from "./FavoriteButton";
 import PriceAdequacyBadge from "./PriceAdequacyBadge";
 import ListingCardOverlays from "./ListingCardOverlays";
 import BusinessBadge from "./BusinessBadge";

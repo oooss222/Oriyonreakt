@@ -548,7 +548,7 @@ export default function ListingFiltersPanel({
   );
 
   const showCompanyFilter =
-    activeCat === "realestate" || activeCat === "auto";
+    activeCat === "realestate" || activeCat === "transport";
 
   const saveSearch = () => {
     const key = "oriyon_saved_searches";
