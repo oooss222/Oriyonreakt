@@ -124,6 +124,13 @@ export function buildRealEstateListingUrl({
   specs = {},
   sort = "",
   view = "",
+  areaFrom = "",
+  areaTo = "",
+  floorFrom = "",
+  floorTo = "",
+  floorNotFirst = false,
+  floorNotLast = false,
+  sellerType = "",
 } = {}) {
   if (dealType) specs = { ...specs, "Тип сделки": dealType };
   if (rooms) specs = { ...specs, Комнат: rooms };
@@ -133,6 +140,13 @@ export function buildRealEstateListingUrl({
     priceTo ||
     sort ||
     view ||
+    areaFrom ||
+    areaTo ||
+    floorFrom ||
+    floorTo ||
+    floorNotFirst ||
+    floorNotLast ||
+    sellerType ||
     Object.keys(specs).some(
       (key) =>
         key !== "Тип сделки" &&
@@ -158,6 +172,13 @@ export function buildRealEstateListingUrl({
   if (priceTo) params.set("priceTo", priceTo);
   if (sort) params.set("sort", sort);
   if (view) params.set("view", view);
+  if (areaFrom) params.set("areaFrom", areaFrom);
+  if (areaTo) params.set("areaTo", areaTo);
+  if (floorFrom) params.set("floorFrom", floorFrom);
+  if (floorTo) params.set("floorTo", floorTo);
+  if (floorNotFirst) params.set("floorNotFirst", "1");
+  if (floorNotLast) params.set("floorNotLast", "1");
+  if (sellerType) params.set("sellerType", sellerType);
 
   const specEntries = Object.entries(specs).filter(
     ([key, value]) => String(key).trim() && String(value).trim()

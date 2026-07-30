@@ -359,6 +359,13 @@ export default function Listing() {
             specs: payload.specs,
             sort: payload.sort,
             view: payload.view,
+            areaFrom: payload.areaFrom,
+            areaTo: payload.areaTo,
+            floorFrom: payload.floorFrom,
+            floorTo: payload.floorTo,
+            floorNotFirst: payload.floorNotFirst,
+            floorNotLast: payload.floorNotLast,
+            sellerType: payload.sellerType,
           })
         );
       } else {
@@ -549,7 +556,7 @@ export default function Listing() {
 
           <div className="absolute inset-x-0 bottom-0 flex max-h-[92vh] flex-col rounded-t-3xl bg-mist shadow-2xl">
             <div className="flex shrink-0 items-center justify-between gap-3 border-b border-slate-200/80 px-4 py-3">
-              <h2 className="text-lg font-semibold">Фильтры</h2>
+              <h2 className="text-lg font-semibold">Ещё фильтры</h2>
 
               <button
                 type="button"
