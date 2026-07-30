@@ -23,8 +23,7 @@ import {
 import { api } from "../lib/api";
 import { goToAuth } from "../lib/auth";
 import { resolveMediaUrl } from "../lib/media";
-import { formatPrice, formatViewsLabel, getListingDisplayDate, formatMoney } from "../lib/format";
-import { getPromotionPlan } from "../lib/promotionPlans";
+import { formatPrice, formatViewsLabel, getListingDisplayDate } from "../lib/format";
 import { markListingViewed, markViewRecorded, wasViewRecorded } from "../lib/viewedListings";
 import { usePageMeta } from "../lib/usePageMeta";
 import ListingCard from "../components/ListingCard";
@@ -32,7 +31,6 @@ import RealEstateHighlights from "../components/RealEstateHighlights";
 import RealEstateListingCard from "../components/RealEstateListingCard";
 import Breadcrumbs from "../components/Breadcrumbs";
 import EmptyState from "../components/EmptyState";
-import ListingPromotionActions from "../components/ListingPromotionActions";
 import SellerContactButtons from "../components/SellerContactButtons";
 import SellerReviewsPanel, { StarRating } from "../components/SellerReviewsPanel";
 import AdSlot from "../components/AdSlot";
@@ -165,32 +163,10 @@ export default function AdDetails() {
   const [reportReason, setReportReason] = React.useState("fraud");
   const [reportDetails, setReportDetails] = React.useState("");
   const [reportSending, setReportSending] = React.useState(false);
-  const [promotionPrices, setPromotionPrices] = React.useState({
-    vipPrice: 25,
-    topPrice: 15,
-    bumpPrice: 5,
-  });
-  const [promotingType, setPromotingType] = React.useState(null);
-  const [walletBalance, setWalletBalance] = React.useState(0);
   const [sellerReviews, setSellerReviews] = React.useState({
     summary: { average: 0, count: 0 },
     items: [],
   });
-
-  React.useEffect(() => {
-    api
-      .siteSettings()
-      .then((settings) => {
-        if (!settings) return;
-
-        setPromotionPrices({
-          vipPrice: settings.vipPrice ?? 25,
-          topPrice: settings.topPrice ?? 15,
-          bumpPrice: settings.bumpPrice ?? 5,
-        });
-      })
-      .catch(() => {});
-  }, []);
 
   React.useEffect(() => {
     if (!token) {
@@ -205,7 +181,6 @@ export default function AdDetails() {
       .then((user) => {
         if (active) {
           setCurrentUserId(user?.id || user?._id || null);
-          setWalletBalance(Number(user?.walletBalance || 0));
         }
       })
       .catch(() => {
@@ -554,82 +529,6 @@ export default function AdDetails() {
       );
     } catch (e) {
       setToast(e.message || "Не удалось обновить статус");
-    }
-  };
-
-  const promoteListing = async (type, days) => {
-    if (!token || !ad) {
-      goToAuth(nav);
-      return;
-    }
-
-    if (type === "bump") {
-      const price = Number(promotionPrices.bumpPrice || 0);
-      const priceLabel = price <= 0 ? "бесплатно" : formatMoney(price);
-      const confirmText =
-        price <= 0
-          ? "Обновить дату объявления бесплатно?"
-          : `Обновить дату объявления за ${priceLabel}?`;
-
-      if (!confirm(confirmText)) {
-        return;
-      }
-    } else {
-      const plan = getPromotionPlan(type, days);
-
-      if (!plan) {
-        setToast("Выберите срок продвижения");
-        return;
-      }
-    }
-
-    const listingId = ad._id || ad.id;
-
-    try {
-      setPromotingType(type);
-
-      const updated = await api.promoteListing(
-        token,
-        listingId,
-        type,
-        type === "bump" ? undefined : days
-      );
-      setAd((current) => ({ ...current, ...updated }));
-
-      const user = await api.me(token);
-
-      if (user) {
-        setWalletBalance(Number(user.walletBalance || 0));
-      }
-
-      setToast(
-        type === "vip"
-          ? "VIP продвижение активировано"
-          : type === "top"
-          ? "TOP продвижение активировано"
-          : "Дата объявления обновлена"
-      );
-    } catch (e) {
-      const message = e?.message || "";
-
-      if (
-        message.includes("Insufficient balance") ||
-        message.includes("402")
-      ) {
-        if (
-          confirm(
-            "Недостаточно средств на кошельке. Перейти к пополнению?"
-          )
-        ) {
-          nav("/profile?tab=wallet");
-        }
-
-        return;
-      }
-
-      setToast(message || "Не удалось подключить продвижение");
-    } finally {
-      setPromotingType(null);
     }
   };
 
@@ -1240,8 +1139,11 @@ export default function AdDetails() {
                   <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
                     Объявление активно до{" "}
                     {new Date(ad.expiresAt).toLocaleDateString("ru-RU")}. После этой
-                    даты оно будет автоматически снято — опубликуйте снова или
-                    подключите VIP/TOP.
+                    даты оно будет автоматически снято — опубликуйте снова или{" "}
+                    <Link to="/profile?tab=promote" className="font-semibold underline">
+                      подключите VIP/TOP
+                    </Link>
+                    .
                   </div>
                 )}
 
@@ -1255,17 +1157,12 @@ export default function AdDetails() {
                 {isOwner ? (
                     <>
                       {moderationStatus === "approved" && (
-                        <ListingPromotionActions
-                          listing={ad}
-                          bumpPrice={promotionPrices.bumpPrice}
-                          walletBalance={walletBalance}
-                          promoting={
-                            promotingType
-                              ? `${listingId}-${promotingType}`
-                              : null
-                          }
-                          onPromote={promoteListing}
-                        />
+                        <Link
+                          to={`/profile?tab=promote&listing=${listingId}`}
+                          className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-amber-200 bg-gradient-to-r from-amber-50 to-teal-50 px-4 py-3 text-sm font-semibold text-ink hover:brightness-[0.98] transition"
+                        >
+                          Продвинуть объявление (VIP, TOP)
+                        </Link>
                       )}
 
                       {moderationStatus === "approved" && (

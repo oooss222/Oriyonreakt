@@ -22,13 +22,14 @@ import {
   Wallet,
   Shield,
   ClipboardCheck,
+  Sparkles,
 } from "lucide-react";
 import {
   canAccessAdminPanel,
   canAccessAccountant,
 } from "../lib/adminUtils";
 import ModerationListingsPanel from "../components/admin/ModerationListingsPanel";
-import ListingPromotionActions from "../components/ListingPromotionActions";
+import ListingPromotionPanel from "../components/ListingPromotionPanel";
 import BusinessProfileSection from "../components/BusinessProfileSection";
 import BusinessBadge from "../components/BusinessBadge";
 import BusinessPromoBanner from "../components/BusinessPromoBanner";
@@ -48,7 +49,9 @@ const WALLET_TYPE_LABELS = {
 const normalizeTab = (value) => {
   if (value === "favorites") return "fav";
   if (
-    ["fav", "profile", "wallet", "admin", "moderation", "my"].includes(value)
+    ["fav", "profile", "wallet", "admin", "moderation", "my", "promote"].includes(
+      value
+    )
   ) {
     return value;
   }
@@ -345,10 +348,6 @@ const ListingCard = React.memo(function ListingCard({
   canManage,
   onRemove,
   onStatusAction,
-  onPromote,
-  promotionPrices,
-  walletBalance,
-  promotingId,
   compact = false,
   isFavorite = false,
   onAppeal,
@@ -516,17 +515,6 @@ const ListingCard = React.memo(function ListingCard({
             </div>
           )}
 
-          {status === "approved" && onPromote && (
-            <ListingPromotionActions
-              listing={ad}
-              bumpPrice={promotionPrices?.bumpPrice}
-              walletBalance={walletBalance}
-              promoting={promotingId}
-              compact
-              onPromote={(type, days) => onPromote(id, type, days)}
-            />
-          )}
-
           {(status === "sold" || status === "archived") && (
             <button
               type="button"
@@ -548,10 +536,6 @@ const ListingsGrid = React.memo(function ListingsGrid({
   canManage,
   onRemove,
   onStatusAction,
-  onPromote,
-  promotionPrices,
-  walletBalance,
-  promotingId,
   compact = false,
   onAppeal,
 }) {
@@ -607,10 +591,6 @@ const ListingsGrid = React.memo(function ListingsGrid({
           canManage={canManage}
           onRemove={onRemove}
           onStatusAction={onStatusAction}
-          onPromote={onPromote}
-          promotionPrices={promotionPrices}
-          walletBalance={walletBalance}
-          promotingId={promotingId}
           compact={compact}
           isFavorite={tab === "fav"}
           onAppeal={onAppeal}
@@ -626,10 +606,6 @@ function MyListingsPanel({
   canManage,
   onRemove,
   onStatusAction,
-  onPromote,
-  promotionPrices,
-  walletBalance,
-  promotingId,
   onAppeal,
 }) {
   const [query, setQuery] = React.useState("");
@@ -836,10 +812,6 @@ function MyListingsPanel({
         canManage={canManage}
         onRemove={onRemove}
         onStatusAction={onStatusAction}
-        onPromote={onPromote}
-        promotionPrices={promotionPrices}
-        walletBalance={walletBalance}
-        promotingId={promotingId}
         compact={view === "compact"}
         onAppeal={onAppeal}
       />
@@ -1480,6 +1452,11 @@ export default function Profile() {
             </TabButton>
           )}
 
+          <TabButton active={tab === "promote"} onClick={() => setTab("promote")}>
+            <Sparkles size={18} />
+            Продвижение
+          </TabButton>
+
           <TabButton active={tab === "my"} onClick={() => setTab("my")}>
             Мои объявления
             <span className="ml-1 rounded-full border px-2 py-0.5 text-xs bg-white text-slate-700">
@@ -2025,6 +2002,17 @@ export default function Profile() {
   </div>
 )}
 
+      {tab === "promote" && (
+        <ListingPromotionPanel
+          listings={myItems}
+          bumpPrice={promotionPrices.bumpPrice}
+          walletBalance={walletBalance}
+          promotingId={promotingId}
+          onPromote={promoteListing}
+          initialListingId={searchParams.get("listing") || ""}
+        />
+      )}
+
       {tab === "my" && (
   <MyListingsPanel
     items={myItems}
@@ -2032,11 +2020,7 @@ export default function Profile() {
     canManage={true}
     onRemove={remove}
     onStatusAction={updateListingStatus}
-    onPromote={promoteListing}
     onAppeal={submitAppeal}
-    promotionPrices={promotionPrices}
-    walletBalance={walletBalance}
-    promotingId={promotingId}
   />
 )}
 
