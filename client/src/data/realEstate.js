@@ -146,7 +146,7 @@ export const APARTMENT_SPECS = [
   { name: "Санузел", type: "select", options: ["Раздельный", "Совмещённый", "2 санузла"] },
   { name: "Мебель", type: "select", options: ["С мебелью", "Без мебели", "Частично"] },
   { name: "Парковка", type: "select", options: ["Есть", "Нет", "Гараж", "Подземная"] },
-  { name: "Состояние", type: "select", options: ["Новостройка", "Вторичка", "Требует ремонта"] },
+  { name: "Состояние", type: "select", options: ["Новостройка", "Вторичка"] },
 ];
 
 export const HOUSE_SPECS = [
