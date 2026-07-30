@@ -10,6 +10,8 @@ import {
   ArrowUp,
 } from "lucide-react";
 import { formatMoney } from "../lib/format";
+import { getMinPromotionPrice } from "../lib/promotionPlans";
+import PromotionPlanModal from "./PromotionPlanModal";
 
 function formatUntil(until) {
   if (!until) return null;
@@ -52,18 +54,20 @@ function Benefit({ icon: Icon, children }) {
 
 export default function ListingPromotionActions({
   listing,
-  vipPrice = 25,
-  topPrice = 15,
   bumpPrice = 5,
   walletBalance = 0,
   onPromote,
   promoting = null,
   compact = false,
 }) {
+  const [planPickerType, setPlanPickerType] = React.useState(null);
+
   const vipActive = Boolean(listing?.vip);
   const topActive = Boolean(listing?.top);
   const listingId = listing?._id || listing?.id;
   const balance = Number(walletBalance || 0);
+  const vipFromPrice = getMinPromotionPrice("vip");
+  const topFromPrice = getMinPromotionPrice("top");
 
   const vipUntilLabel = formatUntil(listing?.vipUntil);
   const topUntilLabel = formatUntil(listing?.topUntil);
@@ -73,68 +77,99 @@ export default function ListingPromotionActions({
   const topBusy = promoting === `${listingId}-top`;
   const bumpBusy = promoting === `${listingId}-bump`;
 
+  const openPlanPicker = (type) => {
+    if (promoting) return;
+    setPlanPickerType(type);
+  };
+
+  const handlePlanConfirm = (type, days) => {
+    setPlanPickerType(null);
+    onPromote?.(type, days);
+  };
+
+  const planModal = (
+    <PromotionPlanModal
+      open={Boolean(planPickerType)}
+      type={planPickerType}
+      walletBalance={balance}
+      confirming={
+        planPickerType === "vip"
+          ? vipBusy
+          : planPickerType === "top"
+          ? topBusy
+          : false
+      }
+      onClose={() => setPlanPickerType(null)}
+      onConfirm={handlePlanConfirm}
+    />
+  );
+
   if (compact) {
     return (
-      <div className="rounded-2xl border border-sun-100 bg-gradient-to-br from-sun-50/80 to-white p-2 space-y-2">
-        <div className="grid grid-cols-1 gap-2">
-          <button
-            type="button"
-            disabled={Boolean(promoting)}
-            onClick={() => onPromote?.("vip")}
-            className={`inline-flex items-center justify-center gap-2 rounded-xl border px-3 py-2 text-xs font-semibold transition disabled:opacity-60 ${
-              vipActive
-                ? "border-amber-300 bg-gradient-to-r from-amber-100 to-orange-100 text-amber-900"
-                : "border-amber-200 bg-white text-amber-800 hover:bg-amber-50"
-            }`}
-          >
-            <Crown className="w-4 h-4" />
-            {vipBusy
-              ? "Подключаем..."
-              : vipActive
-              ? `VIP до ${vipUntilLabel || "—"}`
-              : `VIP · ${formatMoney(vipPrice)}`}
-          </button>
+      <>
+        <div className="rounded-2xl border border-sun-100 bg-gradient-to-br from-sun-50/80 to-white p-2 space-y-2">
+          <div className="grid grid-cols-1 gap-2">
+            <button
+              type="button"
+              disabled={Boolean(promoting)}
+              onClick={() => openPlanPicker("vip")}
+              className={`inline-flex items-center justify-center gap-2 rounded-xl border px-3 py-2 text-xs font-semibold transition disabled:opacity-60 ${
+                vipActive
+                  ? "border-amber-300 bg-gradient-to-r from-amber-100 to-orange-100 text-amber-900"
+                  : "border-amber-200 bg-white text-amber-800 hover:bg-amber-50"
+              }`}
+            >
+              <Crown className="w-4 h-4" />
+              {vipBusy
+                ? "Подключаем..."
+                : vipActive
+                ? `VIP до ${vipUntilLabel || "—"}`
+                : `VIP от ${formatMoney(vipFromPrice)}`}
+            </button>
 
-          <button
-            type="button"
-            disabled={Boolean(promoting)}
-            onClick={() => onPromote?.("top")}
-            className={`inline-flex items-center justify-center gap-2 rounded-xl border px-3 py-2 text-xs font-semibold transition disabled:opacity-60 ${
-              topActive
-                ? "border-teal-300 bg-gradient-to-r from-teal-50 to-cyan-50 text-teal-900"
-                : "border-teal-200 bg-white text-teal-800 hover:bg-teal-50"
-            }`}
-          >
-            <TrendingUp className="w-4 h-4" />
-            {topBusy
-              ? "Подключаем..."
-              : topActive
-              ? `TOP до ${topUntilLabel || "—"}`
-              : `TOP · ${formatMoney(topPrice)}`}
-          </button>
+            <button
+              type="button"
+              disabled={Boolean(promoting)}
+              onClick={() => openPlanPicker("top")}
+              className={`inline-flex items-center justify-center gap-2 rounded-xl border px-3 py-2 text-xs font-semibold transition disabled:opacity-60 ${
+                topActive
+                  ? "border-teal-300 bg-gradient-to-r from-teal-50 to-cyan-50 text-teal-900"
+                  : "border-teal-200 bg-white text-teal-800 hover:bg-teal-50"
+              }`}
+            >
+              <TrendingUp className="w-4 h-4" />
+              {topBusy
+                ? "Подключаем..."
+                : topActive
+                ? `TOP до ${topUntilLabel || "—"}`
+                : `TOP от ${formatMoney(topFromPrice)}`}
+            </button>
 
-          <button
-            type="button"
-            disabled={Boolean(promoting)}
-            onClick={() => onPromote?.("bump")}
-            className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition disabled:opacity-60"
-          >
-            <CalendarClock className="w-4 h-4" />
-            {bumpBusy
-              ? "Обновляем..."
-              : Number(bumpPrice) <= 0
-              ? "Обновить дату · бесплатно"
-              : bumpedAtLabel
-              ? `Обновлено ${bumpedAtLabel}`
-              : `Обновить дату · ${formatMoney(bumpPrice)}`}
-          </button>
+            <button
+              type="button"
+              disabled={Boolean(promoting)}
+              onClick={() => onPromote?.("bump")}
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition disabled:opacity-60"
+            >
+              <CalendarClock className="w-4 h-4" />
+              {bumpBusy
+                ? "Обновляем..."
+                : Number(bumpPrice) <= 0
+                ? "Обновить дату · бесплатно"
+                : bumpedAtLabel
+                ? `Обновлено ${bumpedAtLabel}`
+                : `Обновить дату · ${formatMoney(bumpPrice)}`}
+            </button>
+          </div>
         </div>
-      </div>
+        {planModal}
+      </>
     );
   }
 
   return (
-    <div className="rounded-3xl border border-amber-100/80 bg-gradient-to-br from-white via-amber-50/30 to-teal-50/20 p-4 sm:p-5 space-y-4 shadow-soft">
+    <>
+      <div className="rounded-3xl border border-amber-100/80 bg-gradient-to-br from-white via-amber-50/30 to-teal-50/20 p-4 sm:p-5 space-y-4 shadow-soft">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <div className="inline-flex items-center gap-2 text-sm font-bold text-ink">
@@ -192,14 +227,14 @@ export default function ListingPromotionActions({
 
             <ul className="space-y-1.5">
               <Benefit icon={Crown}>Золотой значок VIP на карточке</Benefit>
-              <Benefit icon={Zap}>Первое место в ленте на 7 дней</Benefit>
+              <Benefit icon={Zap}>Первое место в ленте на выбранный срок</Benefit>
               <Benefit icon={Eye}>Больше просмотров и откликов</Benefit>
             </ul>
 
             <button
               type="button"
               disabled={Boolean(promoting)}
-              onClick={() => onPromote?.("vip")}
+              onClick={() => openPlanPicker("vip")}
               className={`relative w-full overflow-hidden rounded-xl px-4 py-3 text-sm font-bold transition disabled:opacity-60 ${
                 vipActive
                   ? "bg-amber-100 text-amber-900 border border-amber-300"
@@ -210,7 +245,7 @@ export default function ListingPromotionActions({
                 ? "Подключаем VIP..."
                 : vipActive
                 ? `VIP активен до ${vipUntilLabel || "—"}`
-                : `Подключить VIP · ${formatMoney(vipPrice)}`}
+                : `Подключить VIP от ${formatMoney(vipFromPrice)}`}
             </button>
           </div>
         </div>
@@ -250,13 +285,13 @@ export default function ListingPromotionActions({
             <ul className="space-y-1.5">
               <Benefit icon={ArrowUp}>Поднятие выше обычных объявлений</Benefit>
               <Benefit icon={TrendingUp}>Яркий TOP-значок на фото</Benefit>
-              <Benefit icon={Sparkles}>3 дня повышенной видимости</Benefit>
+              <Benefit icon={Sparkles}>Повышенная видимость на выбранный срок</Benefit>
             </ul>
 
             <button
               type="button"
               disabled={Boolean(promoting)}
-              onClick={() => onPromote?.("top")}
+              onClick={() => openPlanPicker("top")}
               className={`relative w-full overflow-hidden rounded-xl px-4 py-3 text-sm font-bold transition disabled:opacity-60 ${
                 topActive
                   ? "bg-teal-50 text-teal-900 border border-teal-300"
@@ -267,7 +302,7 @@ export default function ListingPromotionActions({
                 ? "Подключаем TOP..."
                 : topActive
                 ? `TOP активен до ${topUntilLabel || "—"}`
-                : `Подключить TOP · ${formatMoney(topPrice)}`}
+                : `Подключить TOP от ${formatMoney(topFromPrice)}`}
             </button>
           </div>
         </div>
@@ -306,6 +341,8 @@ export default function ListingPromotionActions({
           Пополнить кошелёк →
         </Link>
       </div>
-    </div>
+      </div>
+      {planModal}
+    </>
   );
 }

@@ -24,6 +24,7 @@ import { api } from "../lib/api";
 import { goToAuth } from "../lib/auth";
 import { resolveMediaUrl } from "../lib/media";
 import { formatPrice, formatViewsLabel, getListingDisplayDate, formatMoney } from "../lib/format";
+import { getPromotionPlan } from "../lib/promotionPlans";
 import { markListingViewed, markViewRecorded, wasViewRecorded } from "../lib/viewedListings";
 import { usePageMeta } from "../lib/usePageMeta";
 import ListingCard from "../components/ListingCard";
@@ -556,37 +557,30 @@ export default function AdDetails() {
     }
   };
 
-  const promoteListing = async (type) => {
+  const promoteListing = async (type, days) => {
     if (!token || !ad) {
       goToAuth(nav);
       return;
     }
 
-    const priceByType = {
-      vip: promotionPrices.vipPrice,
-      top: promotionPrices.topPrice,
-      bump: promotionPrices.bumpPrice,
-    };
-    const labelByType = {
-      vip: "VIP (7 дней)",
-      top: "TOP (3 дня)",
-      bump: "Обновление даты",
-    };
-    const price = Number(priceByType[type] || 0);
-    const label = labelByType[type] || type;
-    const priceLabel =
-      type === "bump" && price <= 0
-        ? "бесплатно"
-        : formatMoney(price);
-    const confirmText =
-      type === "bump"
-        ? price <= 0
+    if (type === "bump") {
+      const price = Number(promotionPrices.bumpPrice || 0);
+      const priceLabel = price <= 0 ? "бесплатно" : formatMoney(price);
+      const confirmText =
+        price <= 0
           ? "Обновить дату объявления бесплатно?"
-          : `Обновить дату объявления за ${priceLabel}?`
-        : `Подключить ${label} за ${priceLabel}?`;
+          : `Обновить дату объявления за ${priceLabel}?`;
 
-    if (!confirm(confirmText)) {
-      return;
+      if (!confirm(confirmText)) {
+        return;
+      }
+    } else {
+      const plan = getPromotionPlan(type, days);
+
+      if (!plan) {
+        setToast("Выберите срок продвижения");
+        return;
+      }
     }
 
     const listingId = ad._id || ad.id;
@@ -594,7 +588,12 @@ export default function AdDetails() {
     try {
       setPromotingType(type);
 
-      const updated = await api.promoteListing(token, listingId, type);
+      const updated = await api.promoteListing(
+        token,
+        listingId,
+        type,
+        type === "bump" ? undefined : days
+      );
       setAd((current) => ({ ...current, ...updated }));
 
       const user = await api.me(token);
@@ -1258,8 +1257,6 @@ export default function AdDetails() {
                       {moderationStatus === "approved" && (
                         <ListingPromotionActions
                           listing={ad}
-                          vipPrice={promotionPrices.vipPrice}
-                          topPrice={promotionPrices.topPrice}
                           bumpPrice={promotionPrices.bumpPrice}
                           walletBalance={walletBalance}
                           promoting={

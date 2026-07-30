@@ -412,11 +412,12 @@ router.post("/:id/republish", auth, async (req, res) => {
 
 router.post("/:id/promote", auth, async (req, res) => {
   try {
-    const { type } = req.body || {};
+    const { type, days } = req.body || {};
     const listing = await Listing.promote(
       req.params.id,
       req.user.id,
-      type
+      type,
+      days
     );
 
     if (!listing) {
@@ -442,6 +443,12 @@ router.post("/:id/promote", auth, async (req, res) => {
     if (e?.message === "INVALID_TYPE") {
       return res.status(400).json({
         error: "Invalid promotion type",
+      });
+    }
+
+    if (e?.message === "INVALID_DAYS") {
+      return res.status(400).json({
+        error: "Invalid promotion duration",
       });
     }
 

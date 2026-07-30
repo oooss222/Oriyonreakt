@@ -243,11 +243,11 @@ export const api = {
       token,
     }),
 
-  promoteListing: (token, id, type) =>
+  promoteListing: (token, id, type, days) =>
     request(`/listings/${id}/promote`, {
       method: "POST",
       token,
-      body: { type },
+      body: { type, days },
     }),
 
   adminDeleteListing: (token, id) =>

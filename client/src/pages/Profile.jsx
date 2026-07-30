@@ -6,6 +6,7 @@ import FavoriteButton from "../components/FavoriteButton";
 import ListingGridSkeleton from "../components/ListingGridSkeleton";
 import { getListingThumb } from "../lib/media";
 import { formatPrice, formatListingDate, formatMoney } from "../lib/format";
+import { getPromotionPlan } from "../lib/promotionPlans";
 import {
   User as UserIcon,
   LogOut,
@@ -518,13 +519,11 @@ const ListingCard = React.memo(function ListingCard({
           {status === "approved" && onPromote && (
             <ListingPromotionActions
               listing={ad}
-              vipPrice={promotionPrices?.vipPrice}
-              topPrice={promotionPrices?.topPrice}
               bumpPrice={promotionPrices?.bumpPrice}
               walletBalance={walletBalance}
               promoting={promotingId}
               compact
-              onPromote={(type) => onPromote(id, type)}
+              onPromote={(type, days) => onPromote(id, type, days)}
             />
           )}
 
@@ -1281,38 +1280,36 @@ export default function Profile() {
   );
 
   const promoteListing = React.useCallback(
-    async (id, type) => {
-      const priceByType = {
-        vip: promotionPrices.vipPrice,
-        top: promotionPrices.topPrice,
-        bump: promotionPrices.bumpPrice,
-      };
-      const labelByType = {
-        vip: "VIP (7 дней)",
-        top: "TOP (3 дня)",
-        bump: "Обновление даты",
-      };
-      const price = Number(priceByType[type] || 0);
-      const label = labelByType[type] || type;
-      const priceLabel =
-        type === "bump" && price <= 0
-          ? "бесплатно"
-          : formatMoney(price);
-      const confirmText =
-        type === "bump"
-          ? price <= 0
+    async (id, type, days) => {
+      if (type === "bump") {
+        const price = Number(promotionPrices.bumpPrice || 0);
+        const priceLabel = price <= 0 ? "бесплатно" : formatMoney(price);
+        const confirmText =
+          price <= 0
             ? "Обновить дату объявления бесплатно?"
-            : `Обновить дату объявления за ${priceLabel}?`
-          : `Подключить ${label} за ${priceLabel}?`;
+            : `Обновить дату объявления за ${priceLabel}?`;
 
-      if (!confirm(confirmText)) {
-        return;
+        if (!confirm(confirmText)) {
+          return;
+        }
+      } else {
+        const plan = getPromotionPlan(type, days);
+
+        if (!plan) {
+          alert("Выберите срок продвижения");
+          return;
+        }
       }
 
       try {
         setPromotingId(`${id}-${type}`);
 
-        const updated = await api.promoteListing(token, id, type);
+        const updated = await api.promoteListing(
+          token,
+          id,
+          type,
+          type === "bump" ? undefined : days
+        );
 
         setMyItems((items) =>
           items.map((item) =>

@@ -1202,7 +1202,7 @@ class ListingModel {
     return mapListing(result.rows[0]);
   }
 
-  static async promote(id, userId, type) {
+  static async promote(id, userId, type, days) {
     const normalizedType = String(type || "").trim().toLowerCase();
 
     if (!["vip", "top", "bump"].includes(normalizedType)) {
@@ -1253,8 +1253,15 @@ class ListingModel {
     }
 
     const isVip = normalizedType === "vip";
-    const price = isVip ? settings.vipPrice : settings.topPrice;
-    const days = isVip ? 7 : 3;
+    const { getPromotionPlan } = require("../lib/promotionPlans");
+    const plan = getPromotionPlan(normalizedType, days);
+
+    if (!plan) {
+      throw new Error("INVALID_DAYS");
+    }
+
+    const price = plan.price;
+    const planDays = plan.days;
     const now = new Date();
     const msPerDay = 86400000;
 
@@ -1268,16 +1275,16 @@ class ListingModel {
         : null;
 
     const nextVipUntil = isVip
-      ? new Date((currentVipUntil || now).getTime() + days * msPerDay)
+      ? new Date((currentVipUntil || now).getTime() + planDays * msPerDay)
       : currentVipUntil;
     const nextTopUntil = !isVip
-      ? new Date((currentTopUntil || now).getTime() + days * msPerDay)
+      ? new Date((currentTopUntil || now).getTime() + planDays * msPerDay)
       : currentTopUntil;
 
     await User.chargeWallet(userId, price, {
       description: isVip
-        ? `VIP продвижение: ${safeTitle}`
-        : `TOP продвижение: ${safeTitle}`,
+        ? `VIP продвижение (${planDays} дн.): ${safeTitle}`
+        : `TOP продвижение (${planDays} дн.): ${safeTitle}`,
     });
 
     const result = await query(
