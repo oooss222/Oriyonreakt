@@ -320,6 +320,9 @@ export const api = {
     if (params.sort) qs.set("sort", params.sort);
     if (params.page) qs.set("page", String(params.page));
     if (params.limit) qs.set("limit", String(params.limit));
+    if (params.business && params.business !== "all") {
+      qs.set("business", params.business);
+    }
 
     const query = qs.toString();
 

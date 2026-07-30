@@ -32,7 +32,11 @@ function useDebouncedValue(value, delay = 350) {
   return debounced;
 }
 
-export default function AdminUsersSection({ token, currentUser }) {
+export default function AdminUsersSection({
+  token,
+  currentUser,
+  initialBusinessFilter = "all",
+}) {
   const [users, setUsers] = React.useState([]);
   const [total, setTotal] = React.useState(0);
   const [totalPages, setTotalPages] = React.useState(1);
@@ -43,11 +47,18 @@ export default function AdminUsersSection({ token, currentUser }) {
   const [query, setQuery] = React.useState("");
   const [roleFilter, setRoleFilter] = React.useState("all");
   const [statusFilter, setStatusFilter] = React.useState("all");
+  const [businessFilter, setBusinessFilter] = React.useState(
+    initialBusinessFilter || "all"
+  );
   const [sortKey, setSortKey] = React.useState("created_desc");
   const [page, setPage] = React.useState(1);
   const [selectedUserId, setSelectedUserId] = React.useState(null);
 
   const debouncedQuery = useDebouncedValue(query);
+
+  React.useEffect(() => {
+    setBusinessFilter(initialBusinessFilter || "all");
+  }, [initialBusinessFilter]);
 
   const currentRole = currentUser?.role || "user";
   const isSuperAdmin = currentRole === "super_admin";
@@ -61,6 +72,7 @@ export default function AdminUsersSection({ token, currentUser }) {
         q: debouncedQuery,
         role: roleFilter,
         status: statusFilter,
+        business: businessFilter,
         sort: sortKey,
         page,
         limit: PAGE_SIZE,
@@ -75,7 +87,7 @@ export default function AdminUsersSection({ token, currentUser }) {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [token, debouncedQuery, roleFilter, statusFilter, sortKey, page]);
+  }, [token, debouncedQuery, roleFilter, statusFilter, businessFilter, sortKey, page]);
 
   React.useEffect(() => {
     loadUsers();
@@ -83,7 +95,7 @@ export default function AdminUsersSection({ token, currentUser }) {
 
   React.useEffect(() => {
     setPage(1);
-  }, [debouncedQuery, roleFilter, statusFilter, sortKey]);
+  }, [debouncedQuery, roleFilter, statusFilter, businessFilter, sortKey]);
 
   const changeRole = async (userId, nextRole) => {
     if (!isSuperAdmin) {
@@ -173,12 +185,12 @@ export default function AdminUsersSection({ token, currentUser }) {
           </div>
         )}
 
-        <div className="rounded-2xl border bg-slate-50 p-3 grid grid-cols-1 md:grid-cols-5 gap-3">
+        <div className="rounded-2xl border bg-slate-50 p-3 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-6 gap-3">
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Поиск: имя, email, телефон"
-            className="h-11 rounded-xl border px-3 outline-none focus:ring-2 focus:ring-sun/40 md:col-span-2"
+            placeholder="Поиск: имя, email, телефон, компания"
+            className="h-11 rounded-xl border px-3 outline-none focus:ring-2 focus:ring-sun/40 xl:col-span-2"
           />
 
           <select
@@ -192,6 +204,17 @@ export default function AdminUsersSection({ token, currentUser }) {
                 {roleLabel(role)}
               </option>
             ))}
+          </select>
+
+          <select
+            value={businessFilter}
+            onChange={(e) => setBusinessFilter(e.target.value)}
+            className="h-11 rounded-xl border px-3 outline-none focus:ring-2 focus:ring-sun/40"
+          >
+            <option value="all">Все аккаунты</option>
+            <option value="company">Компании</option>
+            <option value="unverified">Ждут верификации</option>
+            <option value="verified">Проверенный бизнес</option>
           </select>
 
           <select
@@ -258,6 +281,7 @@ export default function AdminUsersSection({ token, currentUser }) {
                 <tr className="border-b text-left text-slate-500">
                   <th className="py-3 px-3">Пользователь</th>
                   <th className="py-3 px-3">Контакты</th>
+                  <th className="py-3 px-3">Тип</th>
                   <th className="py-3 px-3">Роль</th>
                   <th className="py-3 px-3">Баланс</th>
                   <th className="py-3 px-3">Статус</th>
@@ -279,9 +303,15 @@ export default function AdminUsersSection({ token, currentUser }) {
                       onClick={() => setSelectedUserId(id)}
                     >
                       <td className="py-3 px-3">
-                        <div className="font-semibold">{user.name || "Без имени"}</div>
+                        <div className="font-semibold">
+                          {user.sellerType === "company" && user.companyName
+                            ? user.companyName
+                            : user.name || "Без имени"}
+                        </div>
                         <div className="text-xs text-slate-500">
-                          ID: {String(id).slice(0, 8)}...
+                          {user.sellerType === "company" && user.companyName
+                            ? user.name
+                            : `ID: ${String(id).slice(0, 8)}...`}
                         </div>
                       </td>
 
@@ -290,6 +320,22 @@ export default function AdminUsersSection({ token, currentUser }) {
                         <div className="text-xs text-slate-500">
                           {user.phone || "Телефон не указан"}
                         </div>
+                      </td>
+
+                      <td className="py-3 px-3">
+                        {user.sellerType === "company" ? (
+                          <span
+                            className={`inline-flex px-2 py-0.5 rounded-full text-xs border ${
+                              user.businessVerified
+                                ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                : "bg-blue-50 text-blue-700 border-blue-200"
+                            }`}
+                          >
+                            {user.businessVerified ? "Проверен" : "Компания"}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-slate-400">Частник</span>
+                        )}
                       </td>
 
                       <td className="py-3 px-3" onClick={(e) => e.stopPropagation()}>

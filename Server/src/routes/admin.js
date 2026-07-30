@@ -656,7 +656,7 @@ router.post(
 
 router.get("/stats", requireRole("admin", "super_admin"), async (req, res) => {
   try {
-    const [usersResult, listingsResult, reportsResult, walletResult] =
+    const [usersResult, listingsResult, reportsResult, walletResult, businessResult] =
       await Promise.all([
         query(`
           SELECT
@@ -665,7 +665,8 @@ router.get("/stats", requireRole("admin", "super_admin"), async (req, res) => {
             COUNT(*) FILTER (WHERE NOT is_blocked)::int AS active,
             COUNT(*) FILTER (WHERE created_at >= now() - interval '7 days')::int AS new_week,
             COUNT(*) FILTER (WHERE role = 'super_admin')::int AS super_admins,
-            COUNT(*) FILTER (WHERE role = 'moderator')::int AS moderators
+            COUNT(*) FILTER (WHERE role = 'moderator')::int AS moderators,
+            COUNT(*) FILTER (WHERE role = 'admin')::int AS admins
           FROM users
         `),
         query(`
@@ -682,9 +683,19 @@ router.get("/stats", requireRole("admin", "super_admin"), async (req, res) => {
           SELECT COALESCE(SUM(wallet_balance), 0)::numeric AS total_balance
           FROM users
         `),
+        query(`
+          SELECT
+            COUNT(*) FILTER (WHERE seller_type = 'company')::int AS total_companies,
+            COUNT(*) FILTER (
+              WHERE seller_type = 'company' AND business_verified = false
+            )::int AS pending_verification
+          FROM users
+          WHERE is_blocked = false
+        `),
       ]);
 
     const users = usersResult.rows[0] || {};
+    const business = businessResult.rows[0] || {};
     const listingsByStatus = listingsResult.rows.reduce((acc, row) => {
       acc[row.status] = Number(row.count || 0);
       return acc;
@@ -703,6 +714,7 @@ router.get("/stats", requireRole("admin", "super_admin"), async (req, res) => {
         newWeek: Number(users.new_week || 0),
         superAdmins: Number(users.super_admins || 0),
         moderators: Number(users.moderators || 0),
+        admins: Number(users.admins || 0),
       },
       listings: {
         total: listingsTotal,
@@ -717,6 +729,10 @@ router.get("/stats", requireRole("admin", "super_admin"), async (req, res) => {
       },
       wallet: {
         totalBalance: Number(walletResult.rows[0]?.total_balance || 0),
+      },
+      business: {
+        totalCompanies: Number(business.total_companies || 0),
+        pendingVerification: Number(business.pending_verification || 0),
       },
     });
   } catch (e) {
@@ -825,6 +841,7 @@ router.get(
       const q = String(req.query.q || "").trim();
     const role = String(req.query.role || "all").trim();
     const status = String(req.query.status || "all").trim();
+    const business = String(req.query.business || "all").trim();
     const sort = String(req.query.sort || "created_desc").trim();
     const limit = Number(req.query.limit || 25);
     const page = Math.max(Number(req.query.page) || 1, 1);
@@ -834,6 +851,7 @@ router.get(
       q,
       role,
       status,
+      business: business === "all" ? "" : business,
       sort,
       limit,
       offset,

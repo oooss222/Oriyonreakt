@@ -14,6 +14,7 @@ import {
   Settings,
   Download,
   Megaphone,
+  MessageCircle,
 } from "lucide-react";
 import { api } from "../lib/api";
 import { goToAuth, TOKEN_KEY, USER_KEY } from "../lib/auth";
@@ -23,6 +24,8 @@ import {
   canAccessAdminSection,
   canAccessAccountant,
   defaultAdminSection,
+  roleBadgeClass,
+  roleLabel,
 } from "../lib/adminUtils";
 import AdminDashboard from "../components/admin/AdminDashboard";
 import AdminUsersSection from "../components/admin/AdminUsersSection";
@@ -37,7 +40,7 @@ import ModerationReports from "../components/ModerationReports";
 import AdminAdsSection from "../components/admin/AdminAdsSection";
 
 const SECTIONS = [
-  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { id: "dashboard", label: "Обзор", icon: LayoutDashboard },
   { id: "analytics", label: "Аналитика", icon: BarChart3 },
   { id: "users", label: "Пользователи", icon: Users },
   { id: "listings", label: "Объявления", icon: FileText },
@@ -49,6 +52,24 @@ const SECTIONS = [
   { id: "export", label: "Экспорт", icon: Download },
   { id: "audit", label: "Журнал", icon: ScrollText },
 ];
+
+function getSectionBadge(sectionId, stats) {
+  if (!stats) return 0;
+
+  if (sectionId === "moderation") {
+    return Number(stats.listings?.pending || 0);
+  }
+
+  if (sectionId === "reports") {
+    return Number(stats.reports?.pending || 0);
+  }
+
+  if (sectionId === "users") {
+    return Number(stats.business?.pendingVerification || 0);
+  }
+
+  return 0;
+}
 
 export default function Admin() {
   const navigate = useNavigate();
@@ -76,6 +97,7 @@ export default function Admin() {
   const sectionParam = searchParams.get("section") || "";
   const defaultSection = defaultAdminSection(role);
   const section = sectionParam || defaultSection;
+  const businessFilter = searchParams.get("business") || "all";
 
   const visibleSections = SECTIONS.filter((item) =>
     canAccessAdminSection(role, item.id)
@@ -147,13 +169,25 @@ export default function Admin() {
     return null;
   }
 
-  const setSection = (id) => {
-    setSearchParams({ section: id });
+  const setSection = (id, extra = {}) => {
+    const next = { section: id };
+
+    if (extra.business) {
+      next.business = extra.business;
+    } else if (id !== "users") {
+      // keep business filter only on users section navigation intent
+    }
+
+    setSearchParams(next);
+  };
+
+  const goToSection = (id, extra = {}) => {
+    setSection(id, extra);
   };
 
   return (
     <div className="page-container py-6 md:py-8">
-      <div className="mb-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div className="mb-5 flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
         <div>
           <Link
             to="/profile"
@@ -162,42 +196,73 @@ export default function Admin() {
             <ArrowLeft size={16} />
             Назад в профиль
           </Link>
-          <h1 className="font-display text-2xl md:text-3xl font-bold text-ink flex items-center gap-2">
-            <Shield className="text-sun" />
-            Админ-панель
-          </h1>
-          <p className="text-sm text-slate-500 mt-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <h1 className="font-display text-2xl md:text-3xl font-bold text-ink flex items-center gap-2">
+              <Shield className="text-sun" />
+              Админ-панель
+            </h1>
+            <span
+              className={`px-2.5 py-1 rounded-full text-xs font-semibold border ${roleBadgeClass(role)}`}
+            >
+              {roleLabel(role)}
+            </span>
+          </div>
+          <p className="text-sm text-slate-500 mt-1 max-w-2xl">
             {isSuperAdmin
-              ? "Полный доступ: пользователи, модерация, финансы."
+              ? "Полный доступ: пользователи, модерация, финансы и настройки."
               : isAdmin
-                ? "Управление пользователями и модерация."
+                ? "Модерация, пользователи, объявления, бизнес-верификация и жалобы."
                 : isAccountant
                   ? "Финансы и экспорт данных."
                   : "Модерация объявлений и жалоб."}
           </p>
         </div>
+
+        <div className="flex flex-wrap gap-2">
+          <Link
+            to="/messages"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border bg-white hover:bg-slate-50 text-sm font-semibold"
+          >
+            <MessageCircle size={16} />
+            Сообщения
+          </Link>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[240px_1fr] gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-[250px_1fr] gap-5">
         <aside className="rounded-2xl border bg-white p-3 h-fit lg:sticky lg:top-24">
           <nav className="flex lg:flex-col gap-1 overflow-x-auto pb-1 lg:pb-0">
             {visibleSections.map((item) => {
               const Icon = item.icon;
               const active = section === item.id;
+              const badge = getSectionBadge(item.id, stats);
 
               return (
                 <button
                   key={item.id}
                   type="button"
                   onClick={() => setSection(item.id)}
-                  className={`inline-flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium whitespace-nowrap transition ${
+                  className={`inline-flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl text-sm font-medium whitespace-nowrap transition w-full ${
                     active
                       ? "bg-slate-900 text-white"
                       : "hover:bg-slate-50 text-slate-700"
                   }`}
                 >
-                  <Icon size={16} />
-                  {item.label}
+                  <span className="inline-flex items-center gap-2 min-w-0">
+                    <Icon size={16} className="shrink-0" />
+                    {item.label}
+                  </span>
+                  {badge > 0 && (
+                    <span
+                      className={`min-w-[20px] h-5 px-1.5 rounded-full text-[11px] font-bold flex items-center justify-center ${
+                        active
+                          ? "bg-sun text-white"
+                          : "bg-red-100 text-red-700"
+                      }`}
+                    >
+                      {badge > 99 ? "99+" : badge}
+                    </span>
+                  )}
                 </button>
               );
             })}
@@ -211,6 +276,8 @@ export default function Admin() {
                 stats={stats}
                 loading={statsLoading}
                 error={statsError}
+                role={role}
+                onGoToSection={goToSection}
               />
             </div>
           )}
@@ -220,7 +287,11 @@ export default function Admin() {
           )}
 
           {section === "users" && isAdmin && (
-            <AdminUsersSection token={token} currentUser={me} />
+            <AdminUsersSection
+              token={token}
+              currentUser={me}
+              initialBusinessFilter={businessFilter}
+            />
           )}
 
           {section === "listings" && isAdmin && (
@@ -257,7 +328,9 @@ export default function Admin() {
             <AdminExportSection token={token} role={role} />
           )}
 
-          {!isSectionAllowed && <Navigate to={`/admin?section=${defaultSection}`} replace />}
+          {!isSectionAllowed && (
+            <Navigate to={`/admin?section=${defaultSection}`} replace />
+          )}
         </main>
       </div>
     </div>

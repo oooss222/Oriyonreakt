@@ -121,6 +121,7 @@ class UserModel {
     q = "",
     role = "",
     status = "",
+    business = "",
     sort = "created_desc",
     limit = 25,
     offset = 0,
@@ -131,6 +132,18 @@ class UserModel {
     if (role && role !== "all") {
       values.push(role);
       conditions.push(`role = $${values.length}`);
+    }
+
+    if (business === "company") {
+      conditions.push("seller_type = 'company'");
+    } else if (business === "unverified") {
+      conditions.push(
+        "seller_type = 'company' AND business_verified = false"
+      );
+    } else if (business === "verified") {
+      conditions.push(
+        "seller_type = 'company' AND business_verified = true"
+      );
     }
 
     if (status === "active") {
@@ -150,6 +163,7 @@ class UserModel {
           name ILIKE $${idx}
           OR email ILIKE $${idx}
           OR phone ILIKE $${idx}
+          OR company_name ILIKE $${idx}
         )
       `);
     }
