@@ -108,6 +108,15 @@
   .grid-items {
     @apply grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5;
   }
+
+  .category-strip-scroll {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .category-strip-scroll::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 @layer utilities {
