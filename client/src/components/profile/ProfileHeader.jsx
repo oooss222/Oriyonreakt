@@ -25,9 +25,9 @@ export default function ProfileHeader({
   const showRole = isStaffRole(role);
 
   return (
-    <div className="rounded-2xl border bg-gradient-to-br from-white via-white to-slate-50 overflow-hidden">
+    <div className="rounded-2xl border bg-gradient-to-br from-white via-white to-slate-50">
       <div className="p-4 md:p-6">
-        <div className="flex flex-col lg:flex-row lg:items-center gap-4 lg:gap-6">
+        <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-6">
           <div className="flex items-start gap-4 flex-1 min-w-0">
             <div className="relative w-16 h-16 sm:w-[4.5rem] sm:h-[4.5rem] rounded-2xl bg-gradient-to-br from-sun to-sun-600 text-white font-bold text-xl grid place-items-center shrink-0 shadow-sm">
               {initials !== "?" ? initials : <UserIcon size={28} />}
@@ -72,10 +72,10 @@ export default function ProfileHeader({
             </div>
           </div>
 
-          <div className="flex items-center gap-2 lg:flex-col lg:items-stretch xl:flex-row xl:items-center shrink-0">
+          <div className="flex items-center gap-2 w-full md:w-auto md:shrink-0">
             <Link
               to="/add"
-              className="mobile-btn bg-sun text-white hover:bg-sun-600 shadow-sm flex-1 lg:flex-none"
+              className="mobile-btn bg-sun text-white hover:bg-sun-600 shadow-sm flex-1 md:flex-none md:w-auto md:min-w-[9.5rem]"
             >
               <PlusCircle size={18} />
               Добавить
@@ -83,7 +83,7 @@ export default function ProfileHeader({
 
             <button
               type="button"
-              className="mobile-btn border border-slate-200 bg-white hover:bg-slate-50 flex-1 lg:flex-none"
+              className="mobile-btn border border-slate-200 bg-white hover:bg-slate-50 flex-1 md:flex-none md:w-auto md:min-w-[7.5rem]"
               onClick={onLogout}
             >
               <LogOut size={18} />
