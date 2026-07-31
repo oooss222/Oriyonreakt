@@ -4,6 +4,8 @@ function getAllowedOrigins() {
   for (const value of [
     process.env.CORS_ORIGIN,
     process.env.RENDER_EXTERNAL_URL,
+    process.env.CLIENT_URL,
+    process.env.APP_URL,
   ]) {
     if (!value) continue;
 

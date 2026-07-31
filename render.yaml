@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: oriyon-store
+    runtime: node
+    plan: starter
+    buildCommand: npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: 20.11.0
+      - key: VITE_API_BASE
+        value: /api
+      - key: CLIENT_URL
+        value: https://oriyon.store
+      - key: CORS_ORIGIN
+        value: https://oriyon.store,https://www.oriyon.store
+      - key: JWT_SECRET
+        sync: false
+      - key: DATABASE_URL
+        sync: false
