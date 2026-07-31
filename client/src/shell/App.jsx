@@ -1,6 +1,7 @@
 import React from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import Header from "../components/Header";
+import AuthHeader from "../components/auth/AuthHeader";
 import Footer from "../components/Footer";
 import MobileNav from "../components/MobileNav";
 import CompareFloatingBar from "../components/CompareFloatingBar";
@@ -12,6 +13,7 @@ export default function App() {
 
   const isMessagesPage = location.pathname === "/messages";
   const isAdDetailsPage = location.pathname.startsWith("/ad/");
+  const isAuthPage = location.pathname === "/auth";
 
   React.useEffect(() => {
     const connect = () => {
@@ -42,19 +44,25 @@ export default function App() {
 
   return (
     <div className="page-shell min-h-screen flex flex-col overflow-x-clip">
-      <Header />
+      {isAuthPage ? <AuthHeader /> : <Header />}
 
-      <main className={`flex-1 ${isAdDetailsPage ? "" : "animate-fade-in-up"} ${isMessagesPage ? "" : "pb-[calc(4rem+env(safe-area-inset-bottom))] lg:pb-0"}`}>
+      <main
+        className={`flex-1 ${isAdDetailsPage || isAuthPage ? "" : "animate-fade-in-up"} ${
+          isMessagesPage || isAuthPage
+            ? ""
+            : "pb-[calc(4rem+env(safe-area-inset-bottom))] lg:pb-0"
+        }`}
+      >
         <Outlet />
       </main>
 
-      {!isMessagesPage && (
+      {!isMessagesPage && !isAuthPage && (
         <div className="hidden lg:block">
           <Footer />
         </div>
       )}
-      <MobileNav />
-      <CompareFloatingBar />
+      {!isAuthPage && <MobileNav />}
+      {!isAuthPage && <CompareFloatingBar />}
     </div>
   );
 }
