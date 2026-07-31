@@ -337,7 +337,7 @@ export default function ListingForm({
     setErr("");
 
     if (!token) {
-      goToAuth(nav);
+      goToAuth(nav, `${window.location.pathname}${window.location.search}`);
       return;
     }
 
