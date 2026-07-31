@@ -19,14 +19,47 @@ export default function SellerContactButtons({
 
   const whatsappHref = buildWhatsappHref(whatsapp);
   const telegramHref = buildTelegramHref(telegram);
+  const hasPhone = Boolean(String(phone || "").trim());
+  const btnSize = compact ? "py-2.5 text-sm" : "py-3 text-base";
 
   return (
     <div className={`space-y-2.5 ${className}`}>
-      {phone ? (
-        phoneVisible ? (
+      {whatsappHref ? (
+        <a
+          href={whatsappHref}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={`btn w-full rounded-2xl bg-[#25D366] text-white border-[#25D366] hover:bg-[#20bd5a] font-semibold ${btnSize}`}
+        >
+          Написать в WhatsApp
+        </a>
+      ) : (
+        <button
+          type="button"
+          className={`btn btn-primary w-full rounded-2xl font-semibold ${btnSize}`}
+          onClick={onChat}
+        >
+          <MessageCircle className="w-5 h-5" />
+          {compact ? "Написать" : "Написать продавцу"}
+        </button>
+      )}
+
+      {whatsappHref && (
+        <button
+          type="button"
+          className={`btn w-full rounded-2xl border ${btnSize}`}
+          onClick={onChat}
+        >
+          <MessageCircle className="w-5 h-5" />
+          {compact ? "Чат на сайте" : "Написать в чат Oriyon"}
+        </button>
+      )}
+
+      {hasPhone &&
+        (phoneVisible ? (
           <a
             href={`tel:${phone}`}
-            className={`btn btn-primary w-full rounded-2xl ${compact ? "py-2.5 text-sm" : "py-3 text-base"}`}
+            className={`btn w-full rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 ${btnSize}`}
           >
             <Phone className="w-5 h-5" />
             {phone}
@@ -34,57 +67,29 @@ export default function SellerContactButtons({
         ) : (
           <button
             type="button"
-            className={`btn btn-primary w-full rounded-2xl ${compact ? "py-2.5 text-sm" : "py-3 text-base"}`}
+            className={`btn w-full rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 ${btnSize}`}
             onClick={onRevealPhone}
           >
             <Phone className="w-5 h-5" />
             {compact ? "Позвонить" : "Показать телефон"}
           </button>
-        )
-      ) : (
-        <button
-          type="button"
-          className="btn w-full py-3 rounded-2xl opacity-60 cursor-not-allowed"
-          disabled
+        ))}
+
+      {telegramHref && (
+        <a
+          href={telegramHref}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={`btn w-full rounded-2xl bg-[#229ED9] text-white border-[#229ED9] hover:bg-[#1d8fc7] ${btnSize}`}
         >
-          <Phone className="w-5 h-5" />
-          Телефон не указан
-        </button>
+          Telegram
+        </a>
       )}
 
-      <button
-        type="button"
-        className={`btn w-full rounded-2xl ${compact ? "py-2.5 text-sm" : "py-3"}`}
-        onClick={onChat}
-      >
-        <MessageCircle className="w-5 h-5" />
-        {compact ? "Чат" : "Написать продавцу"}
-      </button>
-
-      {(whatsappHref || telegramHref) && (
-        <div className={`grid gap-2 ${whatsappHref && telegramHref ? "grid-cols-2" : "grid-cols-1"}`}>
-          {whatsappHref && (
-            <a
-              href={whatsappHref}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`btn rounded-2xl bg-[#25D366] text-white border-[#25D366] hover:bg-[#20bd5a] ${compact ? "py-2.5 text-sm" : "py-3"}`}
-            >
-              WhatsApp
-            </a>
-          )}
-
-          {telegramHref && (
-            <a
-              href={telegramHref}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`btn rounded-2xl bg-[#229ED9] text-white border-[#229ED9] hover:bg-[#1d8fc7] ${compact ? "py-2.5 text-sm" : "py-3"}`}
-            >
-              Telegram
-            </a>
-          )}
-        </div>
+      {!hasPhone && !whatsappHref && (
+        <p className="text-xs text-center text-slate-500 px-2">
+          Продавец предпочитает сообщения на сайте
+        </p>
       )}
     </div>
   );

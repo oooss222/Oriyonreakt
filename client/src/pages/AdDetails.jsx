@@ -33,6 +33,7 @@ import RealEstateListingCard from "../components/RealEstateListingCard";
 import Breadcrumbs from "../components/Breadcrumbs";
 import EmptyState from "../components/EmptyState";
 import SellerContactButtons from "../components/SellerContactButtons";
+import { buildWhatsappHref } from "../lib/sellerContact";
 import { StarRating } from "../components/SellerReviewsPanel";
 import AdSlot from "../components/AdSlot";
 import { PromotionBadgeGroup } from "../components/PromotionBadge";
@@ -622,6 +623,7 @@ export default function AdDetails() {
       ? `${ad.cat ? "&" : "?"}subcategory=${encodeURIComponent(ad.subcategory)}`
       : ""
   }`;
+  const whatsappHref = buildWhatsappHref(ad.sellerWhatsapp);
 
   const isOwner = Boolean(
     ad?.owner &&
@@ -877,9 +879,140 @@ export default function AdDetails() {
                   {formatViewsLabel(ad.views)}
                 </span>
               </div>
-
-              <div className="text-2xl text-price">{price}</div>
             </section>
+
+            {!isOwner && (
+              <section className="xl:hidden card p-5 rounded-3xl space-y-4 shadow-md">
+                <div>
+                  <div className="text-sm text-slate-500 mb-1">Цена</div>
+                  <div className="text-3xl font-extrabold text-slate-900 tracking-tight">
+                    {price}
+                  </div>
+                  {realEstatePricePerSqm && (
+                    <div className="text-sm font-semibold text-sun-700 mt-1">
+                      {realEstatePricePerSqm}
+                    </div>
+                  )}
+                </div>
+
+                <div className="border-t border-slate-100 pt-4 space-y-4">
+                  <div className="text-sm text-slate-500">Продавец</div>
+
+                  <div className="flex items-center gap-3">
+                    {ad.owner ? (
+                      <Link
+                        to={`/seller/${ad.owner}`}
+                        className="w-12 h-12 rounded-2xl bg-gradient-to-br from-sun to-lagoon flex items-center justify-center text-white font-bold text-sm shadow-sm shrink-0 hover:opacity-90 transition overflow-hidden"
+                      >
+                        {ad.ownerCompanyLogo ? (
+                          <img
+                            src={ad.ownerCompanyLogo}
+                            alt=""
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          getInitials(sellerName)
+                        )}
+                      </Link>
+                    ) : (
+                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-sun to-lagoon flex items-center justify-center text-white font-bold text-sm shadow-sm shrink-0">
+                        {getInitials(sellerName)}
+                      </div>
+                    )}
+
+                    <div className="min-w-0">
+                      {ad.owner ? (
+                        <Link
+                          to={`/seller/${ad.owner}`}
+                          className="font-bold text-slate-900 truncate block hover:text-sun transition"
+                        >
+                          {sellerName}
+                        </Link>
+                      ) : (
+                        <div className="font-bold text-slate-900 truncate">
+                          {sellerName}
+                        </div>
+                      )}
+                      <div className="mt-1">
+                        <BusinessBadge
+                          sellerType={ad.ownerSellerType}
+                          businessVerified={ad.ownerBusinessVerified}
+                          size="lg"
+                        />
+                      </div>
+                      {sellerReviews.summary.count > 0 && (
+                        <div className="flex items-center gap-2 mt-1">
+                          <StarRating value={sellerReviews.summary.average} size={14} />
+                          <span className="text-xs text-slate-500">
+                            {Number(sellerReviews.summary.average).toFixed(1)} (
+                            {sellerReviews.summary.count})
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-2 text-xs text-emerald-800 bg-emerald-50 border border-emerald-100 rounded-2xl p-3">
+                    <ShieldCheck className="w-4 h-4 shrink-0 mt-0.5 text-emerald-600" />
+                    <span>
+                      Встречайтесь лично и проверяйте товар перед оплатой
+                    </span>
+                  </div>
+                </div>
+
+                {canContact ? (
+                  <SellerContactButtons
+                    phone={ad.phone}
+                    whatsapp={ad.sellerWhatsapp}
+                    telegram={ad.sellerTelegram}
+                    phoneVisible={phoneVisible}
+                    onRevealPhone={() => setPhoneVisible(true)}
+                    onChat={openSellerChat}
+                    canContact={canContact}
+                    compact
+                  />
+                ) : isInactive ? (
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+                    Связаться с продавцом по этому объявлению нельзя.
+                  </div>
+                ) : null}
+
+                <div className="grid grid-cols-2 gap-2 pt-1">
+                  <button
+                    type="button"
+                    className={`btn py-2.5 rounded-2xl ${
+                      isFav ? "bg-red-50 border-red-200 text-red-600 hover:bg-red-100" : ""
+                    }`}
+                    onClick={toggleFav}
+                  >
+                    <Heart className={`w-4 h-4 ${isFav ? "fill-current" : ""}`} />
+                    {isFav ? "В избранном" : "В избранное"}
+                  </button>
+
+                  <button
+                    type="button"
+                    className="btn py-2.5 rounded-2xl"
+                    onClick={shareAd}
+                  >
+                    {copied ? (
+                      <Check className="w-4 h-4 text-emerald-600" />
+                    ) : (
+                      <Share2 className="w-4 h-4" />
+                    )}
+                    Поделиться
+                  </button>
+                </div>
+
+                <button
+                  type="button"
+                  className="btn w-full py-2.5 rounded-2xl text-slate-600 hover:text-red-600 hover:border-red-200 hover:bg-red-50"
+                  onClick={openReport}
+                >
+                  <Flag className="w-4 h-4" />
+                  Пожаловаться
+                </button>
+              </section>
+            )}
 
             {isRealEstateListing(ad) && <RealEstateHighlights ad={ad} />}
 
@@ -985,8 +1118,12 @@ export default function AdDetails() {
             )}
           </div>
 
-          {/* Right sidebar */}
-          <aside className="xl:col-span-5 space-y-4 animate-fade-in-up">
+          {/* Right sidebar — desktop + owner actions on mobile */}
+          <aside
+            className={`xl:col-span-5 space-y-4 animate-fade-in-up ${
+              isOwner ? "" : "hidden xl:block"
+            }`}
+          >
             <div className="xl:sticky xl:top-[72px] space-y-4">
               {/* Desktop title block */}
               <section className="hidden xl:block card p-6 rounded-3xl space-y-4">
@@ -1030,102 +1167,104 @@ export default function AdDetails() {
 
               {/* Price & actions card */}
               <section className="card p-6 rounded-3xl space-y-5 shadow-md">
-                <div>
-                  <div className="text-sm text-slate-500 mb-1">Цена</div>
-                  <div className="text-3xl font-extrabold text-slate-900 tracking-tight">
-                    {price}
-                  </div>
-                  {realEstatePricePerSqm && (
+                <div className="hidden xl:block space-y-5">
+                  <div>
+                    <div className="text-sm text-slate-500 mb-1">Цена</div>
+                    <div className="text-3xl font-extrabold text-slate-900 tracking-tight">
+                      {price}
+                    </div>
+                    {realEstatePricePerSqm && (
                       <div className="text-sm font-semibold text-sun-700 mt-1">
                         {realEstatePricePerSqm}
                       </div>
                     )}
-                </div>
+                  </div>
 
-                <div className="border-t border-slate-100 pt-5 space-y-4">
-                  <div className="text-sm text-slate-500">Продавец</div>
+                  <div className="border-t border-slate-100 pt-5 space-y-4">
+                    <div className="text-sm text-slate-500">Продавец</div>
 
-                  <div className="flex items-center gap-3">
-                    {ad.owner ? (
-                      <Link
-                        to={`/seller/${ad.owner}`}
-                        className="w-12 h-12 rounded-2xl bg-gradient-to-br from-sun to-lagoon flex items-center justify-center text-white font-bold text-sm shadow-sm shrink-0 hover:opacity-90 transition overflow-hidden"
-                      >
-                        {ad.ownerCompanyLogo ? (
-                          <img
-                            src={ad.ownerCompanyLogo}
-                            alt=""
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          getInitials(sellerName)
-                        )}
-                      </Link>
-                    ) : (
-                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-sun to-lagoon flex items-center justify-center text-white font-bold text-sm shadow-sm shrink-0">
-                        {getInitials(sellerName)}
-                      </div>
-                    )}
-
-                    <div className="min-w-0">
+                    <div className="flex items-center gap-3">
                       {ad.owner ? (
                         <Link
                           to={`/seller/${ad.owner}`}
-                          className="font-bold text-slate-900 truncate block hover:text-sun transition"
+                          className="w-12 h-12 rounded-2xl bg-gradient-to-br from-sun to-lagoon flex items-center justify-center text-white font-bold text-sm shadow-sm shrink-0 hover:opacity-90 transition overflow-hidden"
                         >
-                          {sellerName}
+                          {ad.ownerCompanyLogo ? (
+                            <img
+                              src={ad.ownerCompanyLogo}
+                              alt=""
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            getInitials(sellerName)
+                          )}
                         </Link>
                       ) : (
-                        <div className="font-bold text-slate-900 truncate">
-                          {sellerName}
+                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-sun to-lagoon flex items-center justify-center text-white font-bold text-sm shadow-sm shrink-0">
+                          {getInitials(sellerName)}
                         </div>
                       )}
-                      <div className="mt-1">
-                        <BusinessBadge
-                          sellerType={ad.ownerSellerType}
-                          businessVerified={ad.ownerBusinessVerified}
-                          size="lg"
-                        />
-                      </div>
-                      <div className="text-xs text-slate-500">
-                        {published ? `Объявление ${published.toLowerCase()}` : "На сайте"}
-                      </div>
-                      {sellerReviews.summary.count > 0 && (
-                        <div className="flex items-center gap-2 mt-1">
-                          <StarRating value={sellerReviews.summary.average} size={14} />
-                          <span className="text-xs text-slate-500">
-                            {Number(sellerReviews.summary.average).toFixed(1)} (
-                            {sellerReviews.summary.count})
-                          </span>
+
+                      <div className="min-w-0">
+                        {ad.owner ? (
+                          <Link
+                            to={`/seller/${ad.owner}`}
+                            className="font-bold text-slate-900 truncate block hover:text-sun transition"
+                          >
+                            {sellerName}
+                          </Link>
+                        ) : (
+                          <div className="font-bold text-slate-900 truncate">
+                            {sellerName}
+                          </div>
+                        )}
+                        <div className="mt-1">
+                          <BusinessBadge
+                            sellerType={ad.ownerSellerType}
+                            businessVerified={ad.ownerBusinessVerified}
+                            size="lg"
+                          />
                         </div>
-                      )}
+                        <div className="text-xs text-slate-500">
+                          {published ? `Объявление ${published.toLowerCase()}` : "На сайте"}
+                        </div>
+                        {sellerReviews.summary.count > 0 && (
+                          <div className="flex items-center gap-2 mt-1">
+                            <StarRating value={sellerReviews.summary.average} size={14} />
+                            <span className="text-xs text-slate-500">
+                              {Number(sellerReviews.summary.average).toFixed(1)} (
+                              {sellerReviews.summary.count})
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-2 text-xs text-emerald-800 bg-emerald-50 border border-emerald-100 rounded-2xl p-3">
+                      <ShieldCheck className="w-4 h-4 shrink-0 mt-0.5 text-emerald-600" />
+                      <span>
+                        Встречайтесь лично и проверяйте товар перед оплатой
+                      </span>
                     </div>
                   </div>
 
-                  <div className="flex items-start gap-2 text-xs text-emerald-800 bg-emerald-50 border border-emerald-100 rounded-2xl p-3">
-                    <ShieldCheck className="w-4 h-4 shrink-0 mt-0.5 text-emerald-600" />
-                    <span>
-                      Встречайтесь лично и проверяйте товар перед оплатой
-                    </span>
+                  <div className="space-y-2.5">
+                    {canContact ? (
+                      <SellerContactButtons
+                        phone={ad.phone}
+                        whatsapp={ad.sellerWhatsapp}
+                        telegram={ad.sellerTelegram}
+                        phoneVisible={phoneVisible}
+                        onRevealPhone={() => setPhoneVisible(true)}
+                        onChat={openSellerChat}
+                        canContact={canContact}
+                      />
+                    ) : !isOwner && isInactive ? (
+                      <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+                        Связаться с продавцом по этому объявлению нельзя.
+                      </div>
+                    ) : null}
                   </div>
-                </div>
-
-                <div className="space-y-2.5">
-                  {canContact ? (
-                    <SellerContactButtons
-                      phone={ad.phone}
-                      whatsapp={ad.sellerWhatsapp}
-                      telegram={ad.sellerTelegram}
-                      phoneVisible={phoneVisible}
-                      onRevealPhone={() => setPhoneVisible(true)}
-                      onChat={openSellerChat}
-                      canContact={canContact}
-                    />
-                  ) : !isOwner && isInactive ? (
-                    <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-                      Связаться с продавцом по этому объявлению нельзя.
-                    </div>
-                  ) : null}
                 </div>
 
                 {isOwner && ad.expiresAt && (
@@ -1208,7 +1347,7 @@ export default function AdDetails() {
                     </Link>
                   )}
 
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="hidden xl:grid grid-cols-2 gap-2">
                     <button
                       type="button"
                       className={`btn py-2.5 rounded-2xl ${
@@ -1239,7 +1378,7 @@ export default function AdDetails() {
                   {!isOwner && (
                     <button
                       type="button"
-                      className="btn w-full py-2.5 rounded-2xl text-slate-600 hover:text-red-600 hover:border-red-200 hover:bg-red-50"
+                      className="hidden xl:flex btn w-full py-2.5 rounded-2xl text-slate-600 hover:text-red-600 hover:border-red-200 hover:bg-red-50"
                       onClick={openReport}
                     >
                       <Flag className="w-4 h-4" />
@@ -1254,47 +1393,65 @@ export default function AdDetails() {
 
       {/* Mobile sticky action bar */}
       <div className="fixed bottom-0 inset-x-0 z-40 xl:hidden border-t border-slate-200 bg-white/95 backdrop-blur-md px-4 py-3 safe-area-pb">
-        <div className="flex items-center gap-3 max-w-lg mx-auto">
-          <div className="flex-1 min-w-0">
-            <div className="text-xs text-slate-500">Цена</div>
-            <div className="font-extrabold text-lg text-slate-900 truncate">
-              {price}
-            </div>
-          </div>
+        <div className="flex items-center gap-2 max-w-lg mx-auto">
+          {canContact && whatsappHref ? (
+            <a
+              href={whatsappHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn flex-1 rounded-2xl bg-[#25D366] text-white border-[#25D366] hover:bg-[#20bd5a] min-w-0 font-semibold"
+            >
+              WhatsApp
+            </a>
+          ) : canContact ? (
+            <button
+              type="button"
+              className="btn btn-primary flex-1 rounded-2xl min-w-0"
+              onClick={openSellerChat}
+            >
+              <MessageCircle className="w-4 h-4" />
+              Написать
+            </button>
+          ) : isOwner ? (
+            <Link
+              to="/messages"
+              className="btn btn-primary flex-1 rounded-2xl min-w-0"
+            >
+              <MessageCircle className="w-4 h-4" />
+              Сообщения
+            </Link>
+          ) : null}
+
+          {canContact && whatsappHref && (
+            <button
+              type="button"
+              className="btn shrink-0 rounded-2xl px-4"
+              onClick={openSellerChat}
+              aria-label="Чат на сайте"
+            >
+              <MessageCircle className="w-4 h-4" />
+            </button>
+          )}
 
           {canContact && ad.phone ? (
             phoneVisible ? (
               <a
                 href={`tel:${ad.phone}`}
-                className="btn btn-primary shrink-0 rounded-2xl px-5"
+                className="btn shrink-0 rounded-2xl px-4"
+                aria-label="Позвонить"
               >
                 <Phone className="w-4 h-4" />
-                Звонок
               </a>
             ) : (
               <button
                 type="button"
-                className="btn btn-primary shrink-0 rounded-2xl px-5"
+                className="btn shrink-0 rounded-2xl px-4"
                 onClick={() => setPhoneVisible(true)}
+                aria-label="Показать телефон"
               >
                 <Phone className="w-4 h-4" />
-                Позвонить
               </button>
             )
-          ) : null}
-
-          {canContact ? (
-            <button
-              type="button"
-              className="btn shrink-0 rounded-2xl px-4"
-              onClick={openSellerChat}
-            >
-              <MessageCircle className="w-4 h-4" />
-            </button>
-          ) : isOwner ? (
-            <Link to="/messages" className="btn shrink-0 rounded-2xl px-4">
-              <MessageCircle className="w-4 h-4" />
-            </Link>
           ) : null}
         </div>
       </div>
