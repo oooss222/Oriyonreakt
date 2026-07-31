@@ -1,4 +1,5 @@
 import React from "react";
+import { createPortal } from "react-dom";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import {
   MapPin,
@@ -12,7 +13,6 @@ import {
   Calendar,
   Tag,
   Check,
-  ArrowRight,
   X,
   ZoomIn,
   Pencil,
@@ -26,10 +26,11 @@ import { resolveMediaUrl } from "../lib/media";
 import { formatPrice, formatViewsLabel, getListingDisplayDate } from "../lib/format";
 import { markListingViewed, markViewRecorded, wasViewRecorded } from "../lib/viewedListings";
 import { usePageMeta } from "../lib/usePageMeta";
-import ListingCard from "../components/ListingCard";
 import ListingImageLightbox from "../components/ListingImageLightbox";
+import AdRelatedListings from "../components/AdRelatedListings";
+import { getListingQuickFacts } from "../lib/listingQuickFacts";
+import { buildWhatsappHref } from "../lib/sellerContact";
 import RealEstateHighlights from "../components/RealEstateHighlights";
-import RealEstateListingCard from "../components/RealEstateListingCard";
 import Breadcrumbs from "../components/Breadcrumbs";
 import EmptyState from "../components/EmptyState";
 import SellerContactButtons from "../components/SellerContactButtons";
@@ -145,6 +146,23 @@ function Toast({ message, onClose }) {
   );
 }
 
+function QuickFactsChips({ chips }) {
+  if (!chips?.length) return null;
+
+  return (
+    <div className="flex flex-wrap gap-2">
+      {chips.map((chip) => (
+        <span
+          key={chip}
+          className="inline-flex px-2.5 py-1 rounded-full bg-slate-100 text-xs font-semibold text-slate-700"
+        >
+          {chip}
+        </span>
+      ))}
+    </div>
+  );
+}
+
 export default function AdDetails() {
   const { id } = useParams();
   const nav = useNavigate();
@@ -156,7 +174,6 @@ export default function AdDetails() {
   const desktopThumbsRef = React.useRef(null);
   const mobileThumbsRef = React.useRef(null);
   const galleryTouchStartX = React.useRef(null);
-  const [related, setRelated] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [isFav, setIsFav] = React.useState(false);
   const [phoneVisible, setPhoneVisible] = React.useState(false);
@@ -256,34 +273,6 @@ export default function AdDetails() {
     return () => {
       active = false;
     };
-  }, [ad]);
-
-  React.useEffect(() => {
-    if (!ad) return;
-
-    let active = true;
-
-    async function loadRelated() {
-      try {
-        const data = await api.listings({
-          cat: ad.cat || undefined,
-          subcategory: ad.subcategory || undefined,
-          limit: 12,
-        });
-
-        const currentId = String(ad._id || ad.id);
-
-        const list = Array.isArray(data)
-          ? data.filter((item) => String(item._id || item.id) !== currentId)
-          : [];
-
-        if (active) setRelated(list.slice(0, 10));
-      } catch {
-        if (active) setRelated([]);
-      }
-    }
-
-    loadRelated();
   }, [ad]);
 
   React.useEffect(() => {
@@ -622,6 +611,11 @@ export default function AdDetails() {
       ? `${ad.cat ? "&" : "?"}subcategory=${encodeURIComponent(ad.subcategory)}`
       : ""
   }`;
+  const quickFacts = getListingQuickFacts(ad, filteredSpecs, { published });
+  const whatsappHref = buildWhatsappHref(ad.sellerWhatsapp);
+  const relatedTitle = ad.subcategory
+    ? `Похожие: ${ad.subcategory}`
+    : `Похожие в «${catLabel}»`;
 
   const isOwner = Boolean(
     ad?.owner &&
@@ -883,6 +877,7 @@ export default function AdDetails() {
               </div>
 
               <div className="text-2xl text-price">{price}</div>
+              <QuickFactsChips chips={quickFacts} />
             </section>
 
             {isRealEstateListing(ad) && <RealEstateHighlights ad={ad} />}
@@ -914,23 +909,7 @@ export default function AdDetails() {
               <MortgageCalculator price={ad.price} />
             )}
 
-            {/* Description */}
-            <section className="card p-5 md:p-6 rounded-3xl">
-              <h2 className="text-lg font-bold text-slate-900 mb-4">
-                Описание
-              </h2>
-              <p className="text-slate-700 whitespace-pre-wrap leading-7 text-[15px]">
-                {ad.description || "Описание отсутствует."}
-              </p>
-            </section>
-
-            <AdSlot
-              placement="ad_details_mid"
-              cat={ad.cat || ""}
-              variant="native"
-            />
-
-            {/* Specs */}
+            {/* Specs before description for faster purchase decisions */}
             {filteredSpecs.length > 0 && (
               <section className="card p-5 md:p-6 rounded-3xl">
                 <h2 className="text-lg font-bold text-slate-900 mb-4">
@@ -952,6 +931,22 @@ export default function AdDetails() {
               </section>
             )}
 
+            {/* Description */}
+            <section className="card p-5 md:p-6 rounded-3xl">
+              <h2 className="text-lg font-bold text-slate-900 mb-4">
+                Описание
+              </h2>
+              <p className="text-slate-700 whitespace-pre-wrap leading-7 text-[15px]">
+                {ad.description || "Описание отсутствует."}
+              </p>
+            </section>
+
+            <AdSlot
+              placement="ad_details_mid"
+              cat={ad.cat || ""}
+              variant="native"
+            />
+
             {ad.owner && (
               <SellerReviewsPanel
                 sellerId={ad.owner}
@@ -970,103 +965,69 @@ export default function AdDetails() {
                 }}
               />
             )}
-
-            {/* Related */}
-            {related.length > 0 && (
-              <section className="space-y-4 pt-2">
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <h2 className="text-xl font-bold text-slate-900">
-                      Похожие объявления
-                    </h2>
-                    <p className="text-sm text-slate-500 mt-0.5">
-                      Из категории «{catLabel}»
-                    </p>
-                  </div>
-                  <Link
-                    to={listingUrl}
-                    className="hidden sm:inline-flex items-center gap-1 text-sm font-medium text-sun hover:underline shrink-0"
-                  >
-                    Все
-                    <ArrowRight className="w-4 h-4" />
-                  </Link>
-                </div>
-
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                  {related.map((item) =>
-                    isRealEstateListing(item) ? (
-                      <RealEstateListingCard
-                        key={item._id || item.id}
-                        item={item}
-                      />
-                    ) : (
-                      <ListingCard key={item._id || item.id} item={item} />
-                    )
-                  )}
-                </div>
-              </section>
-            )}
           </div>
 
           {/* Right sidebar */}
           <aside className="xl:col-span-5 space-y-4 animate-fade-in-up">
             <div className="xl:sticky xl:top-[72px] space-y-4">
-              {/* Desktop title block */}
-              <section className="hidden xl:block card p-6 rounded-3xl space-y-4">
-                <div className="flex flex-wrap gap-2">
-                  <span className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full bg-slate-100 text-slate-600">
-                    <Tag className="w-3 h-3" />
-                    №{publicId}
-                  </span>
-                  {ad.cat && (
-                    <Link
-                      to={listingUrl}
-                      className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full bg-sun-50 text-sun-700 hover:bg-sun-100 transition"
-                    >
-                      {catLabel}
-                      {ad.subcategory ? ` · ${ad.subcategory}` : ""}
-                    </Link>
-                  )}
-                </div>
-
-                <h1 className="text-2xl font-extrabold text-slate-900 leading-tight">
-                  {ad.title || "Без названия"}
-                </h1>
-
-                {(ad.vip || ad.top) && (
-                  <PromotionBadgeGroup vip={ad.vip} top={ad.top} size="md" />
-                )}
-
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-500">
-                  <span className="inline-flex items-center gap-1">
-                    <MapPin className="w-4 h-4 text-sun" />
-                    {ad.location || ad.city || "Душанбе"}
-                  </span>
-                  {published && (
-                    <span className="inline-flex items-center gap-1">
-                      <Calendar className="w-4 h-4" />
-                      {published}
-                    </span>
-                  )}
-                  <span className="inline-flex items-center gap-1">
-                    <Eye className="w-4 h-4" />
-                    {formatViewsLabel(ad.views)}
-                  </span>
-                </div>
-              </section>
-
               {/* Price & actions card */}
               <section className="card p-6 rounded-3xl space-y-5 shadow-md">
+                <div className="hidden xl:block space-y-3">
+                  <div className="flex flex-wrap gap-2">
+                    <span className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full bg-slate-100 text-slate-600">
+                      <Tag className="w-3 h-3" />
+                      №{publicId}
+                    </span>
+                    {ad.cat && (
+                      <Link
+                        to={listingUrl}
+                        className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full bg-sun-50 text-sun-700 hover:bg-sun-100 transition"
+                      >
+                        {catLabel}
+                        {ad.subcategory ? ` · ${ad.subcategory}` : ""}
+                      </Link>
+                    )}
+                  </div>
+
+                  <h1 className="text-2xl font-extrabold text-slate-900 leading-tight">
+                    {ad.title || "Без названия"}
+                  </h1>
+
+                  {(ad.vip || ad.top) && (
+                    <PromotionBadgeGroup vip={ad.vip} top={ad.top} size="md" />
+                  )}
+
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-500">
+                    <span className="inline-flex items-center gap-1">
+                      <MapPin className="w-4 h-4 text-sun" />
+                      {ad.location || ad.city || "Душанбе"}
+                    </span>
+                    {published && (
+                      <span className="inline-flex items-center gap-1">
+                        <Calendar className="w-4 h-4" />
+                        {published}
+                      </span>
+                    )}
+                    <span className="inline-flex items-center gap-1">
+                      <Eye className="w-4 h-4" />
+                      {formatViewsLabel(ad.views)}
+                    </span>
+                  </div>
+                </div>
+
                 <div>
                   <div className="text-sm text-slate-500 mb-1">Цена</div>
                   <div className="text-3xl font-extrabold text-slate-900 tracking-tight">
                     {price}
                   </div>
                   {realEstatePricePerSqm && (
-                      <div className="text-sm font-semibold text-sun-700 mt-1">
-                        {realEstatePricePerSqm}
-                      </div>
-                    )}
+                    <div className="text-sm font-semibold text-sun-700 mt-1">
+                      {realEstatePricePerSqm}
+                    </div>
+                  )}
+                  <div className="mt-3">
+                    <QuickFactsChips chips={quickFacts} />
+                  </div>
                 </div>
 
                 <div className="border-t border-slate-100 pt-5 space-y-4">
@@ -1166,13 +1127,6 @@ export default function AdDetails() {
                     .
                   </div>
                 )}
-
-                <AdSlot
-                  placement="ad_sidebar"
-                  cat={ad.cat || ""}
-                  variant="native"
-                  className="hidden xl:block"
-                />
 
                 {isOwner ? (
                     <>
@@ -1277,133 +1231,161 @@ export default function AdDetails() {
             </div>
           </aside>
         </div>
+
+        <AdRelatedListings
+          ad={ad}
+          listingUrl={listingUrl}
+          catLabel={catLabel}
+          title={relatedTitle}
+        />
+
+        <AdSlot
+          placement="ad_sidebar"
+          cat={ad.cat || ""}
+          variant="native"
+          className="mt-6"
+        />
       </div>
 
       {/* Mobile sticky action bar */}
       <div className="fixed bottom-0 inset-x-0 z-40 xl:hidden border-t border-slate-200 bg-white/95 backdrop-blur-md px-4 py-3 safe-area-pb">
-        <div className="flex items-center gap-3 max-w-lg mx-auto">
-          <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 max-w-lg mx-auto">
+          <div className="min-w-0 shrink">
             <div className="text-xs text-slate-500">Цена</div>
-            <div className="font-extrabold text-lg text-slate-900 truncate">
+            <div className="font-extrabold text-base text-slate-900 truncate">
               {price}
             </div>
           </div>
+
+          {canContact && whatsappHref ? (
+            <a
+              href={whatsappHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn flex-1 rounded-2xl bg-[#25D366] text-white border-[#25D366] hover:bg-[#20bd5a] min-w-0"
+            >
+              WhatsApp
+            </a>
+          ) : canContact ? (
+            <button
+              type="button"
+              className="btn btn-primary flex-1 rounded-2xl min-w-0"
+              onClick={openSellerChat}
+            >
+              <MessageCircle className="w-4 h-4" />
+              Написать
+            </button>
+          ) : null}
 
           {canContact && ad.phone ? (
             phoneVisible ? (
               <a
                 href={`tel:${ad.phone}`}
-                className="btn btn-primary shrink-0 rounded-2xl px-5"
+                className="btn shrink-0 rounded-2xl px-4"
+                aria-label="Позвонить"
               >
                 <Phone className="w-4 h-4" />
-                Звонок
               </a>
             ) : (
               <button
                 type="button"
-                className="btn btn-primary shrink-0 rounded-2xl px-5"
+                className="btn shrink-0 rounded-2xl px-4"
                 onClick={() => setPhoneVisible(true)}
+                aria-label="Показать телефон"
               >
                 <Phone className="w-4 h-4" />
-                Позвонить
               </button>
             )
-          ) : null}
-
-          {canContact ? (
-            <button
-              type="button"
-              className="btn shrink-0 rounded-2xl px-4"
-              onClick={openSellerChat}
-            >
-              <MessageCircle className="w-4 h-4" />
-            </button>
-          ) : isOwner ? (
-            <Link to="/messages" className="btn shrink-0 rounded-2xl px-4">
-              <MessageCircle className="w-4 h-4" />
-            </Link>
           ) : null}
         </div>
       </div>
 
-      {/* Report modal */}
-      {reportOpen && (
-        <div className="fixed inset-0 z-[110] bg-black/40 flex items-end sm:items-center justify-center p-0 sm:p-4">
-          <div className="w-full sm:max-w-lg rounded-t-3xl sm:rounded-2xl bg-white shadow-xl border p-5 space-y-4">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <h3 className="text-lg font-bold">Пожаловаться</h3>
-                <p className="text-sm text-slate-500 mt-1">
-                  Расскажите, что не так с этим объявлением.
-                </p>
+      {reportOpen &&
+        createPortal(
+          <div className="fixed inset-0 z-[120] flex items-end sm:items-center justify-center p-0 sm:p-4">
+            <button
+              type="button"
+              aria-label="Закрыть"
+              className="absolute inset-0 bg-black/40"
+              onClick={() => setReportOpen(false)}
+            />
+
+            <div className="relative w-full sm:max-w-lg rounded-t-3xl sm:rounded-2xl bg-white shadow-xl border p-5 space-y-4">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <h3 className="text-lg font-bold">Пожаловаться</h3>
+                  <p className="text-sm text-slate-500 mt-1">
+                    Расскажите, что не так с этим объявлением.
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setReportOpen(false)}
+                  className="p-2 rounded-xl border hover:bg-slate-50"
+                  aria-label="Закрыть"
+                >
+                  <X className="w-4 h-4" />
+                </button>
               </div>
 
-              <button
-                type="button"
-                onClick={() => setReportOpen(false)}
-                className="p-2 rounded-xl border hover:bg-slate-50"
-                aria-label="Закрыть"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
+              <div className="space-y-2">
+                {REPORT_REASONS.map((item) => (
+                  <label
+                    key={item.id}
+                    className={`flex items-center gap-3 rounded-xl border px-3 py-2.5 cursor-pointer transition ${
+                      reportReason === item.id
+                        ? "border-sun bg-sun-50"
+                        : "border-slate-200 hover:border-slate-300"
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="report-reason"
+                      value={item.id}
+                      checked={reportReason === item.id}
+                      onChange={() => setReportReason(item.id)}
+                      className="accent-sun"
+                    />
+                    <span className="text-sm font-medium text-slate-800">
+                      {item.label}
+                    </span>
+                  </label>
+                ))}
+              </div>
 
-            <div className="space-y-2">
-              {REPORT_REASONS.map((item) => (
-                <label
-                  key={item.id}
-                  className={`flex items-center gap-3 rounded-xl border px-3 py-2.5 cursor-pointer transition ${
-                    reportReason === item.id
-                      ? "border-sun bg-sun-50"
-                      : "border-slate-200 hover:border-slate-300"
-                  }`}
+              {reportReason === "other" && (
+                <textarea
+                  value={reportDetails}
+                  onChange={(e) => setReportDetails(e.target.value)}
+                  rows={4}
+                  placeholder="Опишите проблему..."
+                  className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-sun/40 resize-y"
+                />
+              )}
+
+              <div className="flex flex-col-reverse sm:flex-row justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setReportOpen(false)}
+                  className="btn rounded-xl"
                 >
-                  <input
-                    type="radio"
-                    name="report-reason"
-                    value={item.id}
-                    checked={reportReason === item.id}
-                    onChange={() => setReportReason(item.id)}
-                    className="accent-sun"
-                  />
-                  <span className="text-sm font-medium text-slate-800">
-                    {item.label}
-                  </span>
-                </label>
-              ))}
+                  Отмена
+                </button>
+
+                <button
+                  type="button"
+                  onClick={submitReport}
+                  disabled={reportSending}
+                  className="btn btn-primary rounded-xl disabled:opacity-60"
+                >
+                  {reportSending ? "Отправляем..." : "Отправить жалобу"}
+                </button>
+              </div>
             </div>
-
-            {reportReason === "other" && (
-              <textarea
-                value={reportDetails}
-                onChange={(e) => setReportDetails(e.target.value)}
-                rows={4}
-                placeholder="Опишите проблему..."
-                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-sun/40 resize-y"
-              />
-            )}
-
-            <div className="flex flex-col-reverse sm:flex-row justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => setReportOpen(false)}
-                className="btn rounded-xl"
-              >
-                Отмена
-              </button>
-
-              <button
-                type="button"
-                onClick={submitReport}
-                disabled={reportSending}
-                className="btn btn-primary rounded-xl disabled:opacity-60"
-              >
-                {reportSending ? "Отправляем..." : "Отправить жалобу"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body
+        )}
 
       <ListingImageLightbox
         open={lightboxOpen}

@@ -1,5 +1,5 @@
 import React from "react";
-import { Star } from "lucide-react";
+import { ChevronDown, ChevronUp, Star } from "lucide-react";
 
 export function StarRating({ value = 0, size = 16, className = "" }) {
   const rating = Number(value) || 0;
@@ -34,6 +34,17 @@ export default function SellerReviewsPanel({
   const [comment, setComment] = React.useState("");
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState("");
+  const [expanded, setExpanded] = React.useState(false);
+
+  const reviewCount = summary.count || 0;
+  const hasReviews = reviewCount > 0;
+  const showCompact = !hasReviews && !canReview;
+
+  React.useEffect(() => {
+    if (canReview || hasReviews) {
+      setExpanded(true);
+    }
+  }, [canReview, hasReviews]);
 
   const submit = async (event) => {
     event.preventDefault();
@@ -64,21 +75,50 @@ export default function SellerReviewsPanel({
     }
   };
 
+  if (showCompact) {
+    return (
+      <div className="rounded-2xl border bg-white px-4 py-3 text-sm text-slate-500">
+        У продавца пока нет отзывов
+      </div>
+    );
+  }
+
   return (
     <div className="rounded-2xl border bg-white p-4 md:p-5 space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <div className="text-lg font-semibold text-slate-900">Отзывы о продавце</div>
           <div className="flex items-center gap-2 mt-1">
-            <StarRating value={summary.average} />
-            <span className="text-sm text-slate-600">
-              {Number(summary.average || 0).toFixed(1)} · {summary.count || 0} отзывов
-            </span>
+            {hasReviews ? (
+              <>
+                <StarRating value={summary.average} />
+                <span className="text-sm text-slate-600">
+                  {Number(summary.average || 0).toFixed(1)} · {reviewCount} отзывов
+                </span>
+              </>
+            ) : (
+              <span className="text-sm text-slate-500">Пока нет отзывов</span>
+            )}
           </div>
         </div>
+
+        {hasReviews && (
+          <button
+            type="button"
+            onClick={() => setExpanded((value) => !value)}
+            className="inline-flex items-center gap-1 text-sm font-medium text-slate-600 hover:text-slate-900"
+          >
+            {expanded ? "Свернуть" : "Показать"}
+            {expanded ? (
+              <ChevronUp className="w-4 h-4" />
+            ) : (
+              <ChevronDown className="w-4 h-4" />
+            )}
+          </button>
+        )}
       </div>
 
-      {canReview && (
+      {expanded && canReview && (
         <form onSubmit={submit} className="rounded-2xl border bg-slate-50 p-4 space-y-3">
           <div className="text-sm font-medium text-slate-800">Оставить отзыв</div>
 
@@ -122,11 +162,9 @@ export default function SellerReviewsPanel({
         </form>
       )}
 
-      <div className="space-y-3">
-        {items.length === 0 ? (
-          <div className="text-sm text-slate-500">Пока нет отзывов.</div>
-        ) : (
-          items.map((item) => (
+      {expanded && hasReviews && (
+        <div className="space-y-3">
+          {items.map((item) => (
             <div key={item.id} className="rounded-xl border bg-slate-50 p-3">
               <div className="flex items-center justify-between gap-3">
                 <div className="font-medium text-slate-900">
@@ -143,9 +181,9 @@ export default function SellerReviewsPanel({
                   : ""}
               </div>
             </div>
-          ))
-        )}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
