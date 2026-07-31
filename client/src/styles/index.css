@@ -248,15 +248,3 @@
 .shadow-lift {
   box-shadow: 0 8px 24px rgb(28 27 26 / 0.08);
 }
-
-.leaflet-container {
-  z-index: 0;
-  font-family: inherit;
-}
-
-.leaflet-top,
-.leaflet-bottom,
-.leaflet-pane,
-.leaflet-control-container {
-  z-index: 400;
-}

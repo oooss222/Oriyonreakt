@@ -13,6 +13,8 @@ import SimilarListingsSection from "../components/SimilarListingsSection";
 import AdSlot, { AdFeedCard, useAdPlacement } from "../components/AdSlot";
 import RealEstateSearchHero from "../components/RealEstateSearchHero";
 import RealEstateListingCard from "../components/RealEstateListingCard";
+import RealEstateMoreFiltersModal from "../components/RealEstateMoreFiltersModal";
+import SaveSearchButton from "../components/SaveSearchButton";
 import { buildFeedWithAds } from "../lib/adFeed";
 import {
   buildRealEstateListingUrl,
@@ -38,7 +40,11 @@ import {
   X,
   MapPin,
   PackageSearch,
+  Loader2,
 } from "lucide-react";
+
+const RE_PAGE_SIZE = 48;
+const DEFAULT_PAGE_SIZE = 100;
 
 function buildListingParams(draft, urlCat = "") {
   const next = {};
@@ -63,7 +69,6 @@ function buildListingParams(draft, urlCat = "") {
   if (draft.floorTo) next.floorTo = draft.floorTo;
   if (draft.floorNotFirst) next.floorNotFirst = "1";
   if (draft.floorNotLast) next.floorNotLast = "1";
-  if (draft.view) next.view = draft.view;
   if (draft.sellerType) next.sellerType = draft.sellerType;
 
   const specEntries = Object.entries(draft.specs || {}).filter(
@@ -93,26 +98,31 @@ function searchParamsToDraft(params) {
     floorTo: params.get("floorTo") || "",
     floorNotFirst: params.get("floorNotFirst") === "1",
     floorNotLast: params.get("floorNotLast") === "1",
-    view: params.get("view") || "list",
     sellerType: params.get("sellerType") || "",
     specs: parseSpecsParam(params.get("specs")),
   };
 }
 
-function buildListingQueryFromSearchParams(params) {
+function buildListingQueryFromSearchParams(params, { limit = DEFAULT_PAGE_SIZE, offset = 0 } = {}) {
   const draft = searchParamsToDraft(params);
   return {
     ...buildListingParams(draft, draft.cat),
     sort: draft.sort || "new",
-    limit: 100,
+    limit,
+    offset,
   };
 }
 
-function buildListingQueryFromDraft(draft, urlCat = "") {
+function buildListingQueryFromDraft(
+  draft,
+  urlCat = "",
+  { limit = DEFAULT_PAGE_SIZE, offset = 0 } = {}
+) {
   return {
     ...buildListingParams(draft, urlCat),
     sort: draft.sort || "new",
-    limit: 100,
+    limit,
+    offset,
   };
 }
 
@@ -139,8 +149,10 @@ export default function Listing() {
   const [previewTotal, setPreviewTotal] = React.useState(0);
   const [previewLoading, setPreviewLoading] = React.useState(false);
   const [loading, setLoading] = React.useState(true);
+  const [loadingMore, setLoadingMore] = React.useState(false);
   const [error, setError] = React.useState("");
   const [mobileFiltersOpen, setMobileFiltersOpen] = React.useState(false);
+  const [reMoreFiltersOpen, setReMoreFiltersOpen] = React.useState(false);
 
   const cat = searchParams.get("cat") || "";
   const subcategory = searchParams.get("subcategory") || "";
@@ -189,11 +201,23 @@ export default function Listing() {
   }, [mobileFiltersOpen]);
 
   const listingQuery = React.useMemo(() => {
+    const pageSize =
+      (seoDraft && !searchParams.get("cat")) ||
+      searchParams.get("cat") === REAL_ESTATE_CAT
+        ? RE_PAGE_SIZE
+        : DEFAULT_PAGE_SIZE;
+
     if (seoDraft && !searchParams.get("cat")) {
-      return buildListingQueryFromDraft(appliedDraft, REAL_ESTATE_CAT);
+      return buildListingQueryFromDraft(appliedDraft, REAL_ESTATE_CAT, {
+        limit: pageSize,
+        offset: 0,
+      });
     }
 
-    return buildListingQueryFromSearchParams(searchParams);
+    return buildListingQueryFromSearchParams(searchParams, {
+      limit: pageSize,
+      offset: 0,
+    });
   }, [paramsKey, searchParams, seoDraft, appliedDraft]);
 
   const draftIsDirty = React.useMemo(
@@ -399,7 +423,6 @@ export default function Listing() {
             priceTo: payload.priceTo,
             specs: payload.specs,
             sort: payload.sort,
-            view: payload.view,
             areaFrom: payload.areaFrom,
             areaTo: payload.areaTo,
             floorFrom: payload.floorFrom,
@@ -439,7 +462,6 @@ export default function Listing() {
       floorTo: "",
       floorNotFirst: false,
       floorNotLast: false,
-      view: "list",
       sellerType: "",
       specs: {},
     });
@@ -506,6 +528,33 @@ export default function Listing() {
     [items]
   );
 
+  const canLoadMore = isRealEstate && items.length > 0 && items.length < total;
+
+  const loadMore = React.useCallback(async () => {
+    if (loadingMore || loading || !canLoadMore) return;
+
+    const pageSize = RE_PAGE_SIZE;
+    const nextQuery = {
+      ...listingQuery,
+      offset: items.length,
+      limit: pageSize,
+    };
+
+    try {
+      setLoadingMore(true);
+      const data = await api.listings(nextQuery);
+      const list = Array.isArray(data) ? data.filter(Boolean) : [];
+
+      setItems((current) =>
+        sortListingsByMode([...current, ...list], sort || "new")
+      );
+    } catch {
+      // ignore load-more errors
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [loadingMore, loading, canLoadMore, listingQuery, items.length, sort]);
+
   return (
     <div className="container mx-auto px-4 py-6 space-y-5">
       <Breadcrumbs items={breadcrumbItems} />
@@ -538,7 +587,28 @@ export default function Listing() {
           </div>
 
           <div className="flex items-center gap-2 md:hidden">
-            {!isRealEstate && (
+            {isRealEstate ? (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setReMoreFiltersOpen(true)}
+                  className="mobile-btn border bg-white hover:bg-slate-50"
+                >
+                  <SlidersHorizontal size={18} />
+                  Ещё фильтры
+                  {activeFilterCount > 0 && (
+                    <span className="min-w-[1.25rem] h-5 px-1 rounded-full bg-sun text-white text-xs grid place-items-center">
+                      {activeFilterCount}
+                    </span>
+                  )}
+                </button>
+                <SaveSearchButton
+                  draft={appliedDraft}
+                  activeCat={activeCat}
+                  compact
+                />
+              </>
+            ) : (
               <button
                 type="button"
                 onClick={() => setMobileFiltersOpen(true)}
@@ -596,6 +666,22 @@ export default function Listing() {
             }
           />
         </div>
+
+        {isRealEstate && (
+          <div className="md:hidden">
+            <SavedSearchesPanel
+              draft={appliedDraft}
+              activeCat={activeCat}
+              onApply={(filters) =>
+                applyFilters({
+                  ...appliedDraft,
+                  ...filters,
+                  cat: filters.cat || activeCat,
+                })
+              }
+            />
+          </div>
+        )}
       </div>
 
       {mobileFiltersOpen && !isRealEstate && (
@@ -769,7 +855,48 @@ export default function Listing() {
             );
           })}
           </div>
+
+          {canLoadMore && (
+            <div className="flex flex-col items-center gap-2 pt-2">
+              <p className="text-sm text-slate-500">
+                Показано {items.length.toLocaleString("ru-RU")} из{" "}
+                {total.toLocaleString("ru-RU")}
+              </p>
+              <button
+                type="button"
+                onClick={loadMore}
+                disabled={loadingMore}
+                className="mobile-btn border bg-white hover:bg-slate-50 min-w-[220px]"
+              >
+                {loadingMore ? (
+                  <>
+                    <Loader2 size={18} className="animate-spin" />
+                    Загрузка...
+                  </>
+                ) : (
+                  "Показать ещё"
+                )}
+              </button>
+            </div>
+          )}
         </>
+      )}
+
+      {isRealEstate && (
+        <RealEstateMoreFiltersModal
+          open={reMoreFiltersOpen}
+          onClose={() => setReMoreFiltersOpen(false)}
+          dealType={appliedDraft.specs?.["Тип сделки"] || "Купить"}
+          city={appliedDraft.location || "Душанбе"}
+          subcategory={appliedDraft.subcategory || ""}
+          rooms={appliedDraft.specs?.["Комнат"] || ""}
+          priceFrom={appliedDraft.priceFrom || ""}
+          priceTo={appliedDraft.priceTo || ""}
+          onNavigate={(url) => {
+            setReMoreFiltersOpen(false);
+            nav(url);
+          }}
+        />
       )}
 
       {effectiveListingCat && !loading && !error && (

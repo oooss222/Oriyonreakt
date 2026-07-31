@@ -10,7 +10,9 @@ import {
   Sparkles,
   ArrowRight,
   PlusCircle,
+  Scale,
 } from "lucide-react";
+import { readCompareIds, COMPARE_MAX } from "../lib/compareListings";
 import RealEstateSearchHero from "../components/RealEstateSearchHero";
 import RealEstateListingCard from "../components/RealEstateListingCard";
 import ListingGridSkeleton from "../components/ListingGridSkeleton";
@@ -45,6 +47,13 @@ export default function RealEstate() {
   const [loading, setLoading] = React.useState(true);
   const [city, setCity] = React.useState("Душанбе");
   const [developments, setDevelopments] = React.useState([]);
+  const [compareCount, setCompareCount] = React.useState(() => readCompareIds().length);
+
+  React.useEffect(() => {
+    const sync = () => setCompareCount(readCompareIds().length);
+    window.addEventListener("oriyon:compare-change", sync);
+    return () => window.removeEventListener("oriyon:compare-change", sync);
+  }, []);
 
   React.useEffect(() => {
     api
@@ -116,6 +125,19 @@ export default function RealEstate() {
       />
 
       <RealEstateSearchHero initialCity={city} onCityChange={setCity} />
+
+      {compareCount > 0 && (
+        <Link
+          to="/realestate/sravnenie"
+          className="flex items-center justify-between gap-3 rounded-2xl border border-slate-900/10 bg-slate-900 px-4 py-3 text-white hover:bg-slate-800 transition"
+        >
+          <span className="inline-flex items-center gap-2 text-sm font-semibold">
+            <Scale size={18} className="text-sun" />
+            Открыть сравнение · {compareCount}/{COMPARE_MAX}
+          </span>
+          <ArrowRight size={18} className="text-white/70" />
+        </Link>
+      )}
 
       <section className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3">
         {Object.entries(SUBCATEGORY_META).map(([name, meta]) => {

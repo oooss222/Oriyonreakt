@@ -123,7 +123,6 @@ export function buildRealEstateListingUrl({
   priceTo = "",
   specs = {},
   sort = "",
-  view = "",
   areaFrom = "",
   areaTo = "",
   floorFrom = "",
@@ -139,7 +138,6 @@ export function buildRealEstateListingUrl({
     priceFrom ||
     priceTo ||
     sort ||
-    view ||
     areaFrom ||
     areaTo ||
     floorFrom ||
@@ -171,7 +169,6 @@ export function buildRealEstateListingUrl({
   if (priceFrom) params.set("priceFrom", priceFrom);
   if (priceTo) params.set("priceTo", priceTo);
   if (sort) params.set("sort", sort);
-  if (view) params.set("view", view);
   if (areaFrom) params.set("areaFrom", areaFrom);
   if (areaTo) params.set("areaTo", areaTo);
   if (floorFrom) params.set("floorFrom", floorFrom);

@@ -1,13 +1,56 @@
 import React from "react";
-import { Link } from "react-router-dom";
 import { Scale, Trash2 } from "lucide-react";
 import Breadcrumbs from "../components/Breadcrumbs";
+import EmptyState from "../components/EmptyState";
 import RealEstateListingCard from "../components/RealEstateListingCard";
 import { api } from "../lib/api";
 import { clearCompare, readCompareIds } from "../lib/compareListings";
 import { enrichRealEstateListing, getSpecValue } from "../lib/realEstate";
 import { formatPrice } from "../lib/format";
 import { usePageMeta } from "../lib/usePageMeta";
+
+const COMPARE_FIELDS = [
+  { key: "price", label: "Цена", get: (item) => formatPrice(item.price) },
+  {
+    key: "pricePerSqm",
+    label: "Цена за м²",
+    get: (item) => item.realEstateSummary?.pricePerSqm || "—",
+  },
+  {
+    key: "rooms",
+    label: "Комнат",
+    get: (item) => item.realEstateSummary?.rooms || "—",
+  },
+  {
+    key: "area",
+    label: "Площадь",
+    get: (item) => item.realEstateSummary?.area || "—",
+  },
+  {
+    key: "floor",
+    label: "Этаж",
+    get: (item) => {
+      const s = item.realEstateSummary || {};
+      if (!s.floor) return "—";
+      return s.floorsTotal ? `${s.floor}/${s.floorsTotal}` : s.floor;
+    },
+  },
+  {
+    key: "district",
+    label: "Район",
+    get: (item) => item.realEstateSummary?.district || "—",
+  },
+  {
+    key: "repair",
+    label: "Ремонт",
+    get: (item) => getSpecValue(item.specs, "Ремонт") || "—",
+  },
+  {
+    key: "development",
+    label: "ЖК",
+    get: (item) => getSpecValue(item.specs, "ЖК") || "—",
+  },
+];
 
 function CompareRow({ label, values }) {
   return (
@@ -19,6 +62,31 @@ function CompareRow({ label, values }) {
         </td>
       ))}
     </tr>
+  );
+}
+
+function CompareMobileCard({ item }) {
+  return (
+    <article className="rounded-2xl border bg-white p-4 space-y-3">
+      <div>
+        <div className="font-semibold text-slate-900 leading-snug">{item.title}</div>
+        <div className="text-lg font-extrabold text-lagoon-700 mt-1">
+          {formatPrice(item.price)}
+        </div>
+      </div>
+
+      <dl className="space-y-2">
+        {COMPARE_FIELDS.slice(1).map((field) => (
+          <div
+            key={field.key}
+            className="flex items-start justify-between gap-3 text-sm border-t border-slate-100 pt-2 first:border-t-0 first:pt-0"
+          >
+            <dt className="text-slate-500 shrink-0">{field.label}</dt>
+            <dd className="font-medium text-slate-900 text-right">{field.get(item)}</dd>
+          </div>
+        ))}
+      </dl>
+    </article>
   );
 }
 
@@ -106,12 +174,13 @@ export default function RealEstateCompare() {
       {loading && <div className="text-sm text-slate-500">Загрузка...</div>}
 
       {!loading && enriched.length === 0 && (
-        <div className="rounded-2xl border bg-white p-8 text-center space-y-3">
-          <p className="text-slate-600">Добавьте объявления через кнопку «Сравнить» в каталоге.</p>
-          <Link to="/realestate/dushanbe/kvartiry" className="btn rounded-xl">
-            Перейти в каталог
-          </Link>
-        </div>
+        <EmptyState
+          icon={Scale}
+          title="Список сравнения пуст"
+          description="Добавьте до 3 объявлений через кнопку «Сравнить» в каталоге недвижимости."
+          actionLabel="Перейти в каталог"
+          actionTo="/realestate/dushanbe/kvartiry"
+        />
       )}
 
       {!loading && enriched.length > 0 && (
@@ -122,11 +191,19 @@ export default function RealEstateCompare() {
             ))}
           </div>
 
-          <div className="overflow-x-auto rounded-2xl border bg-white">
+          <div className="md:hidden space-y-3">
+            {enriched.map((item) => (
+              <CompareMobileCard key={item.id || item._id} item={item} />
+            ))}
+          </div>
+
+          <div className="hidden md:block overflow-x-auto rounded-2xl border bg-white">
             <table className="min-w-full">
               <thead>
                 <tr className="border-b bg-slate-50">
-                  <th className="p-3 text-left text-sm font-semibold text-slate-600">Параметр</th>
+                  <th className="p-3 text-left text-sm font-semibold text-slate-600">
+                    Параметр
+                  </th>
                   {enriched.map((item) => (
                     <th key={item.id || item._id} className="p-3 text-left text-sm font-semibold">
                       {item.title}
@@ -135,45 +212,13 @@ export default function RealEstateCompare() {
                 </tr>
               </thead>
               <tbody>
-                <CompareRow
-                  label="Цена"
-                  values={enriched.map((item) => formatPrice(item.price))}
-                />
-                <CompareRow
-                  label="Цена за м²"
-                  values={enriched.map((item) => item.realEstateSummary?.pricePerSqm || "—")}
-                />
-                <CompareRow
-                  label="Комнат"
-                  values={enriched.map((item) => item.realEstateSummary?.rooms || "—")}
-                />
-                <CompareRow
-                  label="Площадь"
-                  values={enriched.map((item) => item.realEstateSummary?.area || "—")}
-                />
-                <CompareRow
-                  label="Этаж"
-                  values={enriched.map((item) => {
-                    const s = item.realEstateSummary || {};
-                    return s.floor
-                      ? s.floorsTotal
-                        ? `${s.floor}/${s.floorsTotal}`
-                        : s.floor
-                      : "—";
-                  })}
-                />
-                <CompareRow
-                  label="Район"
-                  values={enriched.map((item) => item.realEstateSummary?.district || "—")}
-                />
-                <CompareRow
-                  label="Ремонт"
-                  values={enriched.map((item) => getSpecValue(item.specs, "Ремонт") || "—")}
-                />
-                <CompareRow
-                  label="ЖК"
-                  values={enriched.map((item) => getSpecValue(item.specs, "ЖК") || "—")}
-                />
+                {COMPARE_FIELDS.map((field) => (
+                  <CompareRow
+                    key={field.key}
+                    label={field.label}
+                    values={enriched.map((item) => field.get(item))}
+                  />
+                ))}
               </tbody>
             </table>
           </div>

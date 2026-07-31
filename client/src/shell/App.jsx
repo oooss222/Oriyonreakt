@@ -3,6 +3,7 @@ import { Outlet, useLocation } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import MobileNav from "../components/MobileNav";
+import CompareFloatingBar from "../components/CompareFloatingBar";
 import { connectChatSocket, disconnectChatSocket, getChatSocket } from "../lib/chatSocket";
 import { TOKEN_KEY } from "../lib/auth";
 
@@ -52,6 +53,7 @@ export default function App() {
         </div>
       )}
       <MobileNav />
+      <CompareFloatingBar />
     </div>
   );
 }
