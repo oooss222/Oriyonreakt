@@ -2,15 +2,11 @@ import React from "react";
 import { Link } from "react-router-dom";
 import {
   Building2,
-  Home,
-  LandPlot,
-  Store,
-  Car,
-  DoorOpen,
   Sparkles,
   ArrowRight,
   PlusCircle,
   Scale,
+  Layers,
 } from "lucide-react";
 import { readCompareIds, COMPARE_MAX } from "../lib/compareListings";
 import RealEstateSearchHero from "../components/RealEstateSearchHero";
@@ -18,27 +14,17 @@ import RealEstateListingCard from "../components/RealEstateListingCard";
 import ListingGridSkeleton from "../components/ListingGridSkeleton";
 import AdSlot from "../components/AdSlot";
 import Breadcrumbs from "../components/Breadcrumbs";
+import RealEstateSectionHeader from "../components/realestate/RealEstateSectionHeader";
+import RealEstateCategoryGrid from "../components/realestate/RealEstateCategoryGrid";
+import RealEstateDistrictBar from "../components/realestate/RealEstateDistrictBar";
 import { usePageMeta } from "../lib/usePageMeta";
 import { api } from "../lib/api";
 import { sortListingsByPromotion } from "../lib/listingSort";
 import {
   REAL_ESTATE_CAT,
-  SUBCATEGORY_META,
   QUICK_COLLECTIONS,
-  REAL_ESTATE_CITIES,
-  DUSHANBE_DISTRICTS,
 } from "../data/realEstate";
 import { buildRealEstateListingUrl } from "../lib/realEstate";
-
-const SUB_ICONS = {
-  building: Building2,
-  apartment: Building2,
-  door: DoorOpen,
-  home: Home,
-  land: LandPlot,
-  garage: Car,
-  commercial: Store,
-};
 
 export default function RealEstate() {
   const [stats, setStats] = React.useState({ total: 0, bySubcategory: {} });
@@ -102,7 +88,6 @@ export default function RealEstate() {
     }
 
     load();
-
     return () => {
       active = false;
     };
@@ -116,7 +101,7 @@ export default function RealEstate() {
   });
 
   return (
-    <div className="container mx-auto px-4 py-6 space-y-8">
+    <div className="container mx-auto px-3 sm:px-4 py-5 sm:py-8 space-y-8 max-w-6xl">
       <Breadcrumbs
         items={[
           { label: "Главная", to: "/" },
@@ -124,114 +109,50 @@ export default function RealEstate() {
         ]}
       />
 
-      <RealEstateSearchHero initialCity={city} onCityChange={setCity} />
+      <RealEstateSearchHero
+        initialCity={city}
+        totalCount={stats.total}
+        onCityChange={setCity}
+      />
 
       {compareCount > 0 && (
         <Link
           to="/realestate/sravnenie"
-          className="flex items-center justify-between gap-3 rounded-2xl border border-slate-900/10 bg-slate-900 px-4 py-3 text-white hover:bg-slate-800 transition"
+          className="flex items-center justify-between gap-3 rounded-2xl border border-slate-900/10 bg-slate-900 px-4 py-3.5 text-white hover:bg-slate-800 transition shadow-sm"
         >
           <span className="inline-flex items-center gap-2 text-sm font-semibold">
             <Scale size={18} className="text-sun" />
-            Открыть сравнение · {compareCount}/{COMPARE_MAX}
+            Сравнение объектов · {compareCount}/{COMPARE_MAX}
           </span>
           <ArrowRight size={18} className="text-white/70" />
         </Link>
       )}
 
-      <section className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3">
-        {Object.entries(SUBCATEGORY_META).map(([name, meta]) => {
-          const Icon = SUB_ICONS[meta.icon] || Building2;
-          const count = stats.bySubcategory?.[name] || 0;
+      <div className="space-y-3">
+        <RealEstateSectionHeader
+          title="Категории"
+          description="Выберите тип недвижимости для быстрого перехода к объявлениям"
+        />
+        <RealEstateCategoryGrid city={city} statsBySubcategory={stats.bySubcategory} />
+      </div>
 
-          return (
-            <Link
-              key={name}
-              to={buildRealEstateListingUrl({
-                subcategory: name,
-                city,
-              })}
-              className={`rounded-2xl border p-4 transition hover:shadow-md hover:border-sun/30 ${
-                meta.highlight ? "bg-sun-50/50 border-sun/20" : "bg-white"
-              }`}
-            >
-              <div className="w-10 h-10 rounded-xl bg-white border grid place-items-center mb-3 text-sun">
-                <Icon size={20} />
-              </div>
-              <div className="font-semibold text-sm text-slate-900 leading-tight">
-                {name}
-              </div>
-              <div className="text-xs text-slate-500 mt-1">{meta.desc}</div>
-              {count > 0 && (
-                <div className="text-xs font-bold text-sun mt-2">{count} объяв.</div>
-              )}
-            </Link>
-          );
-        })}
-      </section>
-
-      <section className="rounded-3xl border bg-white p-4 md:p-5">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
-          <div>
-            <h2 className="text-lg font-bold">Город</h2>
-            <p className="text-sm text-slate-500">
-              Всего объявлений: {stats.total}
-            </p>
-          </div>
-
-          <div className="flex flex-wrap gap-2">
-            {REAL_ESTATE_CITIES.map((item) => (
-              <button
-                key={item}
-                type="button"
-                onClick={() => setCity(item)}
-                className={`px-4 py-2 rounded-full text-sm font-medium border transition ${
-                  city === item
-                    ? "bg-slate-900 text-white border-slate-900"
-                    : "bg-white hover:bg-slate-50"
-                }`}
-              >
-                {item}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {city === "Душанбе" && (
-          <div className="flex flex-wrap gap-2 pt-2 border-t">
-            {DUSHANBE_DISTRICTS.map((district) => (
-              <Link
-                key={district}
-                to={buildRealEstateListingUrl({
-                  city: "Душанбе",
-                  specs: { Район: district },
-                })}
-                className="px-3 py-1.5 rounded-full text-xs font-medium bg-slate-50 border hover:bg-slate-100 transition"
-              >
-                {district}
-              </Link>
-            ))}
-          </div>
-        )}
-      </section>
+      <RealEstateDistrictBar
+        city={city}
+        onCityChange={setCity}
+        totalCount={stats.total}
+      />
 
       {premium.length > 0 && (
-        <section className="space-y-4">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <Sparkles className="text-sun" size={20} />
-              <h2 className="text-xl font-bold">Премиум объявления</h2>
-            </div>
-            <Link
-              to={buildRealEstateListingUrl({ city })}
-              className="text-sm font-semibold text-sun hover:text-sun-600 inline-flex items-center gap-1"
-            >
-              Все
-              <ArrowRight size={16} />
-            </Link>
-          </div>
+        <section className="space-y-1">
+          <RealEstateSectionHeader
+            icon={Sparkles}
+            title="Премиум объявления"
+            description={`VIP и TOP в ${city}`}
+            actionLabel="Все премиум"
+            actionTo={buildRealEstateListingUrl({ city, sort: "promoted" })}
+          />
 
-          <div className="grid gap-3">
+          <div className="grid gap-3 lg:grid-cols-2">
             {premium.slice(0, 6).map((item) => (
               <RealEstateListingCard
                 key={item.id || item._id}
@@ -246,49 +167,52 @@ export default function RealEstate() {
       <AdSlot placement="home_mid" cat={REAL_ESTATE_CAT} className="rounded-3xl overflow-hidden" />
 
       {developments.length > 0 && (
-        <section className="space-y-4">
-          <div className="flex items-center justify-between gap-3">
-            <h2 className="text-xl font-bold">Новостройки и ЖК</h2>
-            <Link
-              to={buildRealEstateListingUrl({ city, subcategory: "Новостройки" })}
-              className="text-sm font-semibold text-sun hover:text-sun-600 inline-flex items-center gap-1"
-            >
-              Все новостройки
-              <ArrowRight size={16} />
-            </Link>
-          </div>
+        <section>
+          <RealEstateSectionHeader
+            icon={Building2}
+            title="Новостройки и ЖК"
+            description="Жилые комплексы и проекты от застройщиков"
+            actionLabel="Все новостройки"
+            actionTo={buildRealEstateListingUrl({ city, subcategory: "Новостройки" })}
+          />
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {developments.map((item) => (
               <Link
                 key={item.id}
                 to={`/realestate/zhk/${item.slug}`}
-                className="rounded-3xl border bg-white overflow-hidden hover:shadow-lg transition"
+                className="group rounded-2xl border bg-white overflow-hidden hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5"
               >
-                <div className="aspect-[16/10] bg-slate-100">
+                <div className="relative aspect-[16/10] bg-slate-100 overflow-hidden">
                   {item.imageUrl ? (
                     <img
                       src={item.imageUrl}
                       alt={item.name}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
                   ) : (
                     <div className="w-full h-full grid place-items-center text-slate-300">
                       <Building2 size={40} />
                     </div>
                   )}
+                  <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/55 to-transparent" />
+                  {item.developer && (
+                    <span className="absolute left-3 bottom-3 text-[11px] font-semibold uppercase tracking-wide text-white/90">
+                      {item.developer}
+                    </span>
+                  )}
                 </div>
+
                 <div className="p-4 space-y-1">
-                  <div className="text-xs text-sun-700 font-semibold">
-                    {item.developer || "Застройщик"}
+                  <div className="font-bold text-slate-900 group-hover:text-sun transition">
+                    {item.name}
                   </div>
-                  <div className="font-bold text-slate-900">{item.name}</div>
                   <div className="text-sm text-slate-500">
                     {item.district ? `${item.district}, ` : ""}
                     {item.city}
                   </div>
                   {item.completionDate && (
-                    <div className="text-xs text-slate-400">Сдача: {item.completionDate}</div>
+                    <div className="text-xs text-slate-400 pt-1">Сдача: {item.completionDate}</div>
                   )}
                 </div>
               </Link>
@@ -297,12 +221,14 @@ export default function RealEstate() {
         </section>
       )}
 
-      <section className="space-y-4">
-        <div className="flex items-center justify-between gap-3">
-          <h2 className="text-xl font-bold">Подборки</h2>
-        </div>
+      <section>
+        <RealEstateSectionHeader
+          icon={Layers}
+          title="Быстрые подборки"
+          description="Популярные запросы одним кликом"
+        />
 
-        <div className="flex flex-wrap gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
           {QUICK_COLLECTIONS.map((collection) => (
             <Link
               key={collection.title}
@@ -310,7 +236,7 @@ export default function RealEstate() {
                 ...collection.params,
                 city: collection.params.location || city,
               })}
-              className="px-4 py-2 rounded-full border bg-white hover:bg-slate-900 hover:text-white text-sm font-medium transition"
+              className="rounded-xl border bg-white px-4 py-3 text-sm font-semibold text-slate-800 hover:border-sun/40 hover:bg-sun-50/50 hover:text-sun transition text-center"
             >
               {collection.title}
             </Link>
@@ -318,28 +244,25 @@ export default function RealEstate() {
         </div>
       </section>
 
-      <section className="space-y-4">
-        <div className="flex items-center justify-between gap-3">
-          <h2 className="text-xl font-bold">Свежие объявления в {city}</h2>
-          <Link
-            to={buildRealEstateListingUrl({ city })}
-            className="text-sm font-semibold text-sun hover:text-sun-600 inline-flex items-center gap-1"
-          >
-            Смотреть все
-            <ArrowRight size={16} />
-          </Link>
-        </div>
+      <section>
+        <RealEstateSectionHeader
+          title={`Свежие объявления · ${city}`}
+          description="Недавно добавленные объекты в выбранном городе"
+          actionLabel="Смотреть все"
+          actionTo={buildRealEstateListingUrl({ city })}
+        />
 
         {loading && <ListingGridSkeleton count={8} />}
 
         {!loading && listings.length === 0 && (
-          <div className="rounded-3xl border border-dashed p-10 text-center">
+          <div className="rounded-2xl border border-dashed bg-slate-50/50 p-10 text-center">
             <Building2 className="mx-auto text-slate-300 mb-3" size={40} />
             <div className="font-semibold text-slate-800">
-              Пока нет объявлений в этой категории
+              Пока нет объявлений в {city}
             </div>
-            <p className="text-sm text-slate-500 mt-2 mb-4">
-              Станьте первым — разместите квартиру, дом или участок.
+            <p className="text-sm text-slate-500 mt-2 mb-5 max-w-md mx-auto">
+              Станьте первым — разместите квартиру, дом или участок. Объявление появится после
+              модерации.
             </p>
             <Link
               to={`/add?cat=${REAL_ESTATE_CAT}`}

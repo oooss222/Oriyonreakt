@@ -43,9 +43,9 @@ export default function RealEstateListingCard({
           openAd();
         }
       }}
-      className={`group relative flex cursor-pointer overflow-hidden rounded-2xl border bg-white transition hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-sun/40 ${getPromotionCardClass(
+      className={`group relative flex cursor-pointer overflow-hidden rounded-2xl border bg-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-sun/40 ${getPromotionCardClass(
         { vip: listing.vip, top: listing.top }
-      )} ${isHorizontal ? "flex-row p-2 gap-3" : "flex-col p-1.5"}`}
+      )} ${isHorizontal ? "flex-row p-2.5 gap-3" : "flex-col p-1.5"}`}
     >
       <span
         className={getPromotionCardAccent({ vip: listing.vip, top: listing.top })}
@@ -54,7 +54,7 @@ export default function RealEstateListingCard({
 
       <div
         className={`relative overflow-hidden shrink-0 ${
-          isHorizontal ? "w-36 h-28 rounded-xl" : "w-full"
+          isHorizontal ? "w-40 h-32 rounded-xl sm:w-44" : "w-full"
         }`}
       >
         <img
@@ -62,7 +62,7 @@ export default function RealEstateListingCard({
           alt={listing.title || "Недвижимость"}
           loading="lazy"
           className={`object-cover bg-slate-100 transition-transform duration-500 group-hover:scale-105 ${
-            isHorizontal ? "w-full h-full" : "w-full h-36"
+            isHorizontal ? "w-full h-full" : "w-full h-40 sm:h-44"
           }`}
         />
 
@@ -81,9 +81,16 @@ export default function RealEstateListingCard({
         )}
       </div>
 
-      <div className={`min-w-0 flex-1 flex flex-col ${isHorizontal ? "py-1" : "p-1.5"}`}>
-        <div className="font-display font-extrabold text-lg text-lagoon-700 leading-tight">
-          {formatPrice(listing.price)}
+      <div className={`min-w-0 flex-1 flex flex-col ${isHorizontal ? "py-0.5" : "p-2"}`}>
+        <div className="flex items-start justify-between gap-2">
+          <div className="font-display font-extrabold text-lg text-lagoon-700 leading-tight">
+            {formatPrice(listing.price)}
+          </div>
+          {summary.deal && isHorizontal && (
+            <span className="shrink-0 inline-flex px-2 py-0.5 rounded-lg bg-slate-100 text-slate-600 text-[10px] font-bold uppercase">
+              {summary.deal}
+            </span>
+          )}
         </div>
 
         {summary.pricePerSqm && (
