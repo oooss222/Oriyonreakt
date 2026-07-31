@@ -525,7 +525,7 @@ export default function Profile() {
   }
 
   return (
-    <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 space-y-4 sm:space-y-6">
+    <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 space-y-5 sm:space-y-6 max-w-6xl">
       <ProfileHeader
         me={me}
         role={role}

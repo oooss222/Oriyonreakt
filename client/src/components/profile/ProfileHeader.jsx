@@ -6,9 +6,10 @@ import {
   PlusCircle,
   Wallet,
   ExternalLink,
+  ChevronRight,
 } from "lucide-react";
 import EmailBadge from "./EmailBadge";
-import { calculateProfileCompletion } from "./profileUtils";
+import { calculateProfileCompletion, getUserInitials, isStaffRole } from "./profileUtils";
 
 export default function ProfileHeader({
   me,
@@ -20,84 +21,101 @@ export default function ProfileHeader({
 }) {
   const completion = calculateProfileCompletion(me, emailStatus);
   const userId = me?.id || me?._id;
+  const initials = getUserInitials(me?.name);
+  const showRole = isStaffRole(role);
 
   return (
-    <div className="rounded-2xl border bg-white p-4 md:p-5 space-y-4">
-      <div className="flex items-start gap-3 min-w-0">
-        <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-slate-100 to-white border grid place-items-center shrink-0">
-          <UserIcon className="text-slate-500" size={28} />
-        </div>
+    <div className="rounded-2xl border bg-gradient-to-br from-white via-white to-slate-50 overflow-hidden">
+      <div className="p-4 md:p-6">
+        <div className="flex flex-col lg:flex-row lg:items-center gap-4 lg:gap-6">
+          <div className="flex items-start gap-4 flex-1 min-w-0">
+            <div className="relative w-16 h-16 sm:w-[4.5rem] sm:h-[4.5rem] rounded-2xl bg-gradient-to-br from-sun to-sun-600 text-white font-bold text-xl grid place-items-center shrink-0 shadow-sm">
+              {initials !== "?" ? initials : <UserIcon size={28} />}
+            </div>
 
-        <div className="flex-1 min-w-0">
-          <div className="flex flex-wrap items-center gap-1.5 mb-1">
-            <EmailBadge status={emailStatus} />
-            <span className="px-2 py-0.5 text-xs rounded-full bg-sun-50 text-sun-700 border border-sun-100">
-              {role}
-            </span>
+            <div className="flex-1 min-w-0">
+              <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                <EmailBadge status={emailStatus} />
+                {showRole && (
+                  <span className="px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide rounded-full bg-slate-100 text-slate-600 border">
+                    {role.replace("_", " ")}
+                  </span>
+                )}
+              </div>
+
+              <h1 className="text-xl sm:text-2xl font-bold leading-tight break-words text-slate-900">
+                {me?.name || "Без имени"}
+              </h1>
+
+              <p className="text-sm text-slate-500 mt-1 truncate">{me?.email}</p>
+
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={onOpenWallet}
+                  className="inline-flex items-center gap-1.5 rounded-full border bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:border-sun/40 hover:text-sun transition"
+                >
+                  <Wallet size={14} className="text-sun" />
+                  {walletBalance.toLocaleString("ru-RU")} TJS
+                </button>
+
+                {userId && (
+                  <Link
+                    to={`/seller/${userId}`}
+                    className="inline-flex items-center gap-1 rounded-full border bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:border-sun/40 hover:text-sun transition"
+                  >
+                    <ExternalLink size={14} />
+                    Как меня видят
+                  </Link>
+                )}
+              </div>
+            </div>
           </div>
 
-          <h1 className="text-xl sm:text-2xl font-bold leading-tight break-words">
-            {me?.name || "Без имени"}
-          </h1>
+          <div className="flex items-center gap-2 lg:flex-col lg:items-stretch xl:flex-row xl:items-center shrink-0">
+            <Link
+              to="/add"
+              className="mobile-btn bg-sun text-white hover:bg-sun-600 shadow-sm flex-1 lg:flex-none"
+            >
+              <PlusCircle size={18} />
+              Добавить
+            </Link>
 
-          <p className="text-sm text-slate-500 mt-1 truncate">{me?.email}</p>
-
-          <div className="mt-2 flex flex-wrap items-center gap-2 text-sm">
             <button
               type="button"
-              onClick={onOpenWallet}
-              className="inline-flex items-center gap-1 text-slate-600 hover:text-sun transition"
+              className="mobile-btn border border-slate-200 bg-white hover:bg-slate-50 flex-1 lg:flex-none"
+              onClick={onLogout}
             >
-              <Wallet size={15} className="text-sun" />
-              {walletBalance.toLocaleString("ru-RU")} TJS
+              <LogOut size={18} />
+              Выйти
             </button>
-
-            {userId && (
-              <Link
-                to={`/seller/${userId}`}
-                className="inline-flex items-center gap-1 text-sun font-semibold hover:text-sun-600"
-              >
-                <ExternalLink size={14} />
-                Как меня видят
-              </Link>
-            )}
           </div>
         </div>
-      </div>
 
-      <div className="rounded-xl border bg-slate-50 p-3 space-y-2">
-        <div className="flex items-center justify-between gap-2 text-sm">
-          <span className="font-medium text-slate-700">Заполненность профиля</span>
-          <span className="font-bold text-sun">{completion.percent}%</span>
+        <div className="mt-5 rounded-xl border bg-white/80 p-3 md:p-4">
+          <div className="flex items-center justify-between gap-3 text-sm mb-2">
+            <span className="font-medium text-slate-700">Заполненность профиля</span>
+            <span className="font-bold tabular-nums text-sun">{completion.percent}%</span>
+          </div>
+
+          <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-sun to-sun-500 transition-all duration-500"
+              style={{ width: `${completion.percent}%` }}
+            />
+          </div>
+
+          {completion.percent < 100 && completion.hints[0] && (
+            <Link
+              to="/profile?tab=profile"
+              className="mt-2 inline-flex items-center gap-1 text-xs text-slate-500 hover:text-sun transition"
+            >
+              Следующий шаг: {completion.hints[0]}
+              <ChevronRight size={14} />
+            </Link>
+          )}
         </div>
-
-        <div className="h-2 rounded-full bg-white overflow-hidden border">
-          <div
-            className="h-full bg-sun transition-all duration-500"
-            style={{ width: `${completion.percent}%` }}
-          />
-        </div>
-
-        {completion.percent < 100 && completion.hints[0] && (
-          <p className="text-xs text-slate-500">Следующий шаг: {completion.hints[0]}</p>
-        )}
       </div>
-
-      <div className="grid grid-cols-2 gap-2">
-        <Link to="/add" className="mobile-btn bg-sun text-white hover:bg-sun-600 shadow-sm">
-          <PlusCircle size={18} />
-          Добавить
-        </Link>
-      </div>
-
-      <button
-        type="button"
-        className="mobile-btn border border-slate-200 bg-white hover:bg-slate-50 w-full sm:w-auto"
-        onClick={onLogout}
-      >
-        <LogOut size={18} />
-        Выйти
-      </button>
     </div>
   );
 }

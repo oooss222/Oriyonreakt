@@ -139,10 +139,10 @@ export default function BusinessProfileSection({ token, me, onUpdated }) {
 
   return (
     <div className="rounded-3xl border bg-white overflow-hidden">
-      <div className="px-5 py-5 border-b bg-gradient-to-r from-blue-50 to-indigo-50">
+      <div className="px-5 py-5 border-b bg-gradient-to-r from-slate-50 to-white">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <div className="inline-flex items-center gap-2 text-blue-700 font-semibold">
+            <div className="inline-flex items-center gap-2 text-sun-700 font-semibold">
               <Sparkles size={18} />
               Oriyon Бизнес
             </div>
@@ -218,7 +218,7 @@ export default function BusinessProfileSection({ token, me, onUpdated }) {
             }
             className={`rounded-2xl border p-4 text-left transition ${
               form.sellerType === "private"
-                ? "border-slate-900 bg-slate-900 text-white"
+                ? "border-sun bg-sun text-white shadow-sm"
                 : "bg-white hover:border-slate-300"
             }`}
           >
