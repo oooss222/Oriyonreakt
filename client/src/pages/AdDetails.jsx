@@ -910,22 +910,6 @@ export default function AdDetails() {
               <MortgageCalculator price={ad.price} />
             )}
 
-            {/* Description */}
-            <section className="card p-5 md:p-6 rounded-3xl">
-              <h2 className="text-lg font-bold text-slate-900 mb-4">
-                Описание
-              </h2>
-              <p className="text-slate-700 whitespace-pre-wrap leading-7 text-[15px]">
-                {ad.description || "Описание отсутствует."}
-              </p>
-            </section>
-
-            <AdSlot
-              placement="ad_details_mid"
-              cat={ad.cat || ""}
-              variant="native"
-            />
-
             {/* Specs */}
             {filteredSpecs.length > 0 && (
               <section className="card p-5 md:p-6 rounded-3xl">
@@ -947,6 +931,22 @@ export default function AdDetails() {
                 </div>
               </section>
             )}
+
+            <AdSlot
+              placement="ad_details_mid"
+              cat={ad.cat || ""}
+              variant="native"
+            />
+
+            {/* Description */}
+            <section className="card p-5 md:p-6 rounded-3xl">
+              <h2 className="text-lg font-bold text-slate-900 mb-4">
+                Описание
+              </h2>
+              <p className="text-slate-700 whitespace-pre-wrap leading-7 text-[15px]">
+                {ad.description || "Описание отсутствует."}
+              </p>
+            </section>
 
             {/* Related */}
             {related.length > 0 && (
