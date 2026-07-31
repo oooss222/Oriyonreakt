@@ -33,7 +33,7 @@ import RealEstateListingCard from "../components/RealEstateListingCard";
 import Breadcrumbs from "../components/Breadcrumbs";
 import EmptyState from "../components/EmptyState";
 import SellerContactButtons from "../components/SellerContactButtons";
-import SellerReviewsPanel, { StarRating } from "../components/SellerReviewsPanel";
+import { StarRating } from "../components/SellerReviewsPanel";
 import AdSlot from "../components/AdSlot";
 import { PromotionBadgeGroup } from "../components/PromotionBadge";
 import BusinessBadge from "../components/BusinessBadge";
@@ -861,10 +861,6 @@ export default function AdDetails() {
                 {ad.title || "Без названия"}
               </h1>
 
-              {(ad.vip || ad.top) && (
-                <PromotionBadgeGroup vip={ad.vip} top={ad.top} size="md" />
-              )}
-
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-500">
                 <span className="inline-flex items-center gap-1">
                   <MapPin className="w-4 h-4 text-sun" />
@@ -952,25 +948,6 @@ export default function AdDetails() {
               </section>
             )}
 
-            {ad.owner && (
-              <SellerReviewsPanel
-                sellerId={ad.owner}
-                listingId={listingId}
-                token={token}
-                canReview={canContact && Boolean(token)}
-                summary={sellerReviews.summary}
-                items={sellerReviews.items}
-                onSubmitted={(result) => {
-                  setSellerReviews({
-                    summary: result.summary || sellerReviews.summary,
-                    items: result.review
-                      ? [result.review, ...sellerReviews.items]
-                      : sellerReviews.items,
-                  });
-                }}
-              />
-            )}
-
             {/* Related */}
             {related.length > 0 && (
               <section className="space-y-4 pt-2">
@@ -1032,10 +1009,6 @@ export default function AdDetails() {
                 <h1 className="text-2xl font-extrabold text-slate-900 leading-tight">
                   {ad.title || "Без названия"}
                 </h1>
-
-                {(ad.vip || ad.top) && (
-                  <PromotionBadgeGroup vip={ad.vip} top={ad.top} size="md" />
-                )}
 
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-500">
                   <span className="inline-flex items-center gap-1">
