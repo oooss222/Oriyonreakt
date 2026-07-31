@@ -609,7 +609,7 @@ export default function AdDetails() {
     <div className="pb-10">
       <Toast message={toast} onClose={() => setToast("")} />
 
-      <div className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-30">
+      <div className="border-b bg-white/80 backdrop-blur-sm sticky top-16 lg:top-[72px] z-30">
         <div className="container-x py-3 overflow-x-auto">
           <Breadcrumbs items={breadcrumbItems} />
         </div>
@@ -652,7 +652,7 @@ export default function AdDetails() {
 
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 xl:gap-8">
           {/* Left column */}
-          <div className="xl:col-span-7 space-y-5 animate-fade-in-up">
+          <div className="xl:col-span-7 space-y-5">
             {/* Gallery */}
             <section className="rounded-3xl overflow-hidden bg-white border border-slate-200 shadow-sm">
               <div className="flex flex-col md:flex-row">
@@ -903,11 +903,11 @@ export default function AdDetails() {
 
           {/* Right sidebar — desktop + owner actions on mobile */}
           <aside
-            className={`xl:col-span-5 space-y-4 animate-fade-in-up ${
+            className={`xl:col-span-5 xl:self-start ${
               isOwner ? "" : "hidden xl:block"
             }`}
           >
-            <div className="xl:sticky xl:top-[72px] space-y-4">
+            <div className="xl:sticky xl:top-[7.75rem] xl:max-h-[calc(100vh-7.75rem)] xl:overflow-y-auto scrollbar-hide space-y-4">
               <section className="card p-6 rounded-3xl space-y-5 shadow-md">
                 <div className="hidden xl:block space-y-5">
                   <AdListingHeader
