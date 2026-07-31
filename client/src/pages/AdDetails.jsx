@@ -27,6 +27,7 @@ import { formatPrice, formatViewsLabel, getListingDisplayDate } from "../lib/for
 import { markListingViewed, markViewRecorded, wasViewRecorded } from "../lib/viewedListings";
 import { usePageMeta } from "../lib/usePageMeta";
 import ListingCard from "../components/ListingCard";
+import ListingImageLightbox from "../components/ListingImageLightbox";
 import RealEstateHighlights from "../components/RealEstateHighlights";
 import RealEstateListingCard from "../components/RealEstateListingCard";
 import Breadcrumbs from "../components/Breadcrumbs";
@@ -152,6 +153,9 @@ export default function AdDetails() {
   const [ad, setAd] = React.useState(null);
   const [activeImageIndex, setActiveImageIndex] = React.useState(0);
   const [lightboxOpen, setLightboxOpen] = React.useState(false);
+  const desktopThumbsRef = React.useRef(null);
+  const mobileThumbsRef = React.useRef(null);
+  const galleryTouchStartX = React.useRef(null);
   const [related, setRelated] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [isFav, setIsFav] = React.useState(false);
@@ -373,28 +377,14 @@ export default function AdDetails() {
   }, []);
 
   React.useEffect(() => {
-    if (!lightboxOpen) return;
+    desktopThumbsRef.current
+      ?.querySelector('[data-active="true"]')
+      ?.scrollIntoView({ behavior: "smooth", block: "nearest" });
 
-    const handler = (e) => {
-      if (e.key === "Escape") setLightboxOpen(false);
-
-      if (e.key === "ArrowLeft") {
-        setActiveImageIndex((prev) =>
-          prev === 0 ? images.length - 1 : prev - 1
-        );
-      }
-
-      if (e.key === "ArrowRight") {
-        setActiveImageIndex((prev) =>
-          prev === images.length - 1 ? 0 : prev + 1
-        );
-      }
-    };
-
-    window.addEventListener("keydown", handler);
-
-    return () => window.removeEventListener("keydown", handler);
-  }, [lightboxOpen, images.length]);
+    mobileThumbsRef.current
+      ?.querySelector('[data-active="true"]')
+      ?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+  }, [activeImageIndex]);
 
   const toggleFav = async () => {
     if (!token) {
@@ -559,6 +549,24 @@ export default function AdDetails() {
       prev === images.length - 1 ? 0 : prev + 1
     );
 
+  const onGalleryTouchStart = (event) => {
+    galleryTouchStartX.current = event.touches[0]?.clientX ?? null;
+  };
+
+  const onGalleryTouchEnd = (event) => {
+    if (galleryTouchStartX.current == null || images.length <= 1) return;
+
+    const endX = event.changedTouches[0]?.clientX;
+    if (endX == null) return;
+
+    const diff = endX - galleryTouchStartX.current;
+    galleryTouchStartX.current = null;
+
+    if (Math.abs(diff) < 48) return;
+    if (diff > 0) goPrev();
+    else goNext();
+  };
+
   if (loading) return <PageSkeleton />;
 
   if (!ad) {
@@ -704,15 +712,19 @@ export default function AdDetails() {
             <section className="rounded-3xl overflow-hidden bg-white border border-slate-200 shadow-sm">
               <div className="flex flex-col md:flex-row">
                 {images.length > 1 && (
-                  <div className="hidden md:flex flex-col gap-2 p-3 w-24 shrink-0 border-r border-slate-100 max-h-[520px] overflow-y-auto">
+                  <div
+                    ref={desktopThumbsRef}
+                    className="hidden md:flex flex-col gap-2 p-3 w-24 shrink-0 border-r border-slate-100 max-h-[520px] overflow-y-auto scrollbar-hide"
+                  >
                     {images.map((src, index) => (
                       <button
                         key={`${src}-${index}`}
                         type="button"
+                        data-active={activeImageIndex === index ? "true" : "false"}
                         onClick={() => setActiveImageIndex(index)}
                         className={`rounded-xl overflow-hidden border-2 transition-all ${
                           activeImageIndex === index
-                            ? "border-blue-600 ring-2 ring-blue-100"
+                            ? "border-sun ring-2 ring-sun/20"
                             : "border-transparent opacity-70 hover:opacity-100"
                         }`}
                       >
@@ -730,7 +742,11 @@ export default function AdDetails() {
                   </div>
                 )}
 
-                <div className="relative flex-1 group">
+                <div
+                  className="relative flex-1 group"
+                  onTouchStart={onGalleryTouchStart}
+                  onTouchEnd={onGalleryTouchEnd}
+                >
                   <button
                     type="button"
                     className="w-full block cursor-zoom-in"
@@ -761,7 +777,7 @@ export default function AdDetails() {
                     </div>
                   )}
 
-                  <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="absolute top-3 right-3 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                     <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-black/60 text-white text-xs">
                       <ZoomIn className="w-3.5 h-3.5" />
                       Увеличить
@@ -773,7 +789,7 @@ export default function AdDetails() {
                       <button
                         type="button"
                         onClick={goPrev}
-                        className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/95 shadow-md flex items-center justify-center hover:bg-white transition opacity-0 group-hover:opacity-100"
+                        className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/95 shadow-md flex items-center justify-center hover:bg-white transition md:opacity-0 md:group-hover:opacity-100"
                         aria-label="Предыдущее фото"
                       >
                         <ChevronLeft className="w-5 h-5" />
@@ -781,7 +797,7 @@ export default function AdDetails() {
                       <button
                         type="button"
                         onClick={goNext}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/95 shadow-md flex items-center justify-center hover:bg-white transition opacity-0 group-hover:opacity-100"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/95 shadow-md flex items-center justify-center hover:bg-white transition md:opacity-0 md:group-hover:opacity-100"
                         aria-label="Следующее фото"
                       >
                         <ChevronRight className="w-5 h-5" />
@@ -792,16 +808,20 @@ export default function AdDetails() {
               </div>
 
               {images.length > 1 && (
-                <div className="flex md:hidden gap-2 p-3 overflow-x-auto border-t border-slate-100">
+                <div
+                  ref={mobileThumbsRef}
+                  className="flex md:hidden gap-2 p-3 overflow-x-auto scrollbar-hide snap-x snap-mandatory border-t border-slate-100"
+                >
                   {images.map((src, index) => (
                     <button
                       key={`mob-${src}-${index}`}
                       type="button"
+                      data-active={activeImageIndex === index ? "true" : "false"}
                       onClick={() => setActiveImageIndex(index)}
-                      className={`shrink-0 rounded-xl overflow-hidden border-2 ${
+                      className={`snap-start shrink-0 rounded-xl overflow-hidden border-2 transition ${
                         activeImageIndex === index
-                          ? "border-blue-600"
-                          : "border-transparent"
+                          ? "border-sun ring-2 ring-sun/20"
+                          : "border-transparent opacity-80"
                       }`}
                     >
                       <img
@@ -1385,63 +1405,14 @@ export default function AdDetails() {
         </div>
       )}
 
-      {/* Lightbox */}
-      {lightboxOpen && (
-        <div
-          className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center"
-          onClick={() => setLightboxOpen(false)}
-          role="dialog"
-          aria-modal="true"
-          aria-label="Просмотр фото"
-        >
-          <button
-            type="button"
-            onClick={() => setLightboxOpen(false)}
-            className="absolute right-4 top-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition"
-            aria-label="Закрыть"
-          >
-            <X className="w-5 h-5" />
-          </button>
-
-          {images.length > 1 && (
-            <>
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  goPrev();
-                }}
-                className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition"
-                aria-label="Предыдущее"
-              >
-                <ChevronLeft className="w-6 h-6" />
-              </button>
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  goNext();
-                }}
-                className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition"
-                aria-label="Следующее"
-              >
-                <ChevronRight className="w-6 h-6" />
-              </button>
-              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-full bg-black/50 text-white text-sm">
-                {activeImageIndex + 1} / {images.length}
-              </div>
-            </>
-          )}
-
-          <img
-            src={images[activeImageIndex] || images[0]}
-            alt={ad.title || "Фото объявления"}
-            className="max-w-[95vw] max-h-[90vh] object-contain select-none"
-            onClick={(e) => e.stopPropagation()}
-            draggable={false}
-          />
-        </div>
-      )}
+      <ListingImageLightbox
+        open={lightboxOpen}
+        onClose={() => setLightboxOpen(false)}
+        images={images}
+        activeIndex={activeImageIndex}
+        onChangeIndex={setActiveImageIndex}
+        title={ad.title || "Фото объявления"}
+      />
     </div>
   );
 }
