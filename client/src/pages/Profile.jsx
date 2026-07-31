@@ -8,11 +8,6 @@ import {
   canAccessAdminPanel,
   canAccessAccountant,
 } from "../lib/adminUtils";
-import {
-  getUnreadTotal,
-  subscribeUnreadCount,
-  subscribeUnreadRefresh,
-} from "../lib/unread";
 import ModerationListingsPanel from "../components/admin/ModerationListingsPanel";
 import ListingPromotionPanel from "../components/ListingPromotionPanel";
 import ListingGridSkeleton from "../components/ListingGridSkeleton";
@@ -64,7 +59,6 @@ export default function Profile() {
     bumpPrice: 5,
   });
   const [promotingId, setPromotingId] = React.useState(null);
-  const [unreadCount, setUnreadCount] = React.useState(0);
 
   const meRef = React.useRef(me);
   const firstProfileSave = React.useRef(true);
@@ -90,28 +84,6 @@ export default function Profile() {
       nav("/admin", { replace: true });
     }
   }, [searchParams, nav]);
-
-  const loadUnread = React.useCallback(async () => {
-    if (!token) {
-      setUnreadCount(0);
-      return;
-    }
-    try {
-      const data = await api.messageInbox(token);
-      setUnreadCount(getUnreadTotal(data));
-    } catch {
-      setUnreadCount(0);
-    }
-  }, [token]);
-
-  React.useEffect(() => {
-    loadUnread();
-    const timer = setInterval(loadUnread, 15000);
-    return () => clearInterval(timer);
-  }, [loadUnread]);
-
-  React.useEffect(() => subscribeUnreadCount(setUnreadCount), []);
-  React.useEffect(() => subscribeUnreadRefresh(loadUnread), [loadUnread]);
 
   React.useEffect(() => {
     api
@@ -559,9 +531,7 @@ export default function Profile() {
         role={role}
         emailStatus={emailStatus}
         walletBalance={walletBalance}
-        unreadCount={unreadCount}
         onOpenWallet={() => setTab("wallet")}
-        onOpenPromote={() => setTab("promote")}
         onLogout={logout}
       />
 

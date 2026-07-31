@@ -5,8 +5,6 @@ import {
   LogOut,
   PlusCircle,
   Wallet,
-  Sparkles,
-  MessageCircle,
   ExternalLink,
 } from "lucide-react";
 import EmailBadge from "./EmailBadge";
@@ -17,9 +15,7 @@ export default function ProfileHeader({
   role,
   emailStatus,
   walletBalance,
-  unreadCount = 0,
   onOpenWallet,
-  onOpenPromote,
   onLogout,
 }) {
   const completion = calculateProfileCompletion(me, emailStatus);
@@ -47,10 +43,14 @@ export default function ProfileHeader({
           <p className="text-sm text-slate-500 mt-1 truncate">{me?.email}</p>
 
           <div className="mt-2 flex flex-wrap items-center gap-2 text-sm">
-            <span className="inline-flex items-center gap-1 text-slate-600">
+            <button
+              type="button"
+              onClick={onOpenWallet}
+              className="inline-flex items-center gap-1 text-slate-600 hover:text-sun transition"
+            >
               <Wallet size={15} className="text-sun" />
               {walletBalance.toLocaleString("ru-RU")} TJS
-            </span>
+            </button>
 
             {userId && (
               <Link
@@ -83,39 +83,11 @@ export default function ProfileHeader({
         )}
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+      <div className="grid grid-cols-2 gap-2">
         <Link to="/add" className="mobile-btn bg-sun text-white hover:bg-sun-600 shadow-sm">
           <PlusCircle size={18} />
           Добавить
         </Link>
-
-        <Link to="/messages" className="mobile-btn border bg-white hover:bg-slate-50 relative">
-          <MessageCircle size={18} />
-          Сообщения
-          {unreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 min-w-[1.1rem] h-[1.1rem] px-1 rounded-full bg-red-500 text-white text-[10px] grid place-items-center">
-              {unreadCount > 9 ? "9+" : unreadCount}
-            </span>
-          )}
-        </Link>
-
-        <button
-          type="button"
-          onClick={onOpenWallet}
-          className="mobile-btn border bg-white hover:bg-slate-50"
-        >
-          <Wallet size={18} />
-          Кошелёк
-        </button>
-
-        <button
-          type="button"
-          onClick={onOpenPromote}
-          className="mobile-btn border bg-white hover:bg-slate-50"
-        >
-          <Sparkles size={18} />
-          Продвижение
-        </button>
       </div>
 
       <button

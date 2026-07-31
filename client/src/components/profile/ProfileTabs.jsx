@@ -5,7 +5,6 @@ import {
   Wallet,
   Shield,
   ClipboardCheck,
-  Sparkles,
   FolderHeart,
   Bookmark,
 } from "lucide-react";
@@ -51,8 +50,12 @@ export default function ProfileTabs({
     <div className="rounded-2xl border bg-white p-2">
       <div className="flex gap-2 overflow-x-auto pb-1 snap-x snap-mandatory scrollbar-hide">
         <TabButton active={tab === "my"} onClick={() => setTab("my")}>
-          Мои
-          <span className="rounded-full border px-2 py-0.5 text-xs bg-white/20 border-white/30">
+          Мои объявления
+          <span
+            className={`rounded-full border px-2 py-0.5 text-xs ${
+              tab === "my" ? "bg-white/20 border-white/30" : ""
+            }`}
+          >
             {myCount}
           </span>
         </TabButton>
@@ -66,16 +69,6 @@ export default function ProfileTabs({
         <TabButton active={tab === "searches"} onClick={() => setTab("searches")}>
           <Bookmark size={16} />
           Поиски
-        </TabButton>
-
-        <TabButton active={tab === "wallet"} onClick={() => setTab("wallet")}>
-          <Wallet size={16} />
-          Кошелёк
-        </TabButton>
-
-        <TabButton active={tab === "promote"} onClick={() => setTab("promote")}>
-          <Sparkles size={16} />
-          Продвижение
         </TabButton>
 
         <TabButton active={tab === "profile"} onClick={() => setTab("profile")}>
