@@ -1,42 +1,32 @@
 import React from "react";
+import { createPortal } from "react-dom";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import {
   MapPin,
-  Phone,
   MessageCircle,
-  Heart,
-  ShieldCheck,
   ChevronLeft,
   ChevronRight,
-  Share2,
-  Calendar,
-  Tag,
-  Check,
-  ArrowRight,
   X,
   ZoomIn,
   Pencil,
-  Eye,
-  Flag,
+  Check,
   PackageSearch,
 } from "lucide-react";
 import { api } from "../lib/api";
 import { goToAuth } from "../lib/auth";
 import { resolveMediaUrl } from "../lib/media";
-import { formatPrice, formatViewsLabel, getListingDisplayDate } from "../lib/format";
+import { formatPrice, getListingDisplayDate } from "../lib/format";
 import { markListingViewed, markViewRecorded, wasViewRecorded } from "../lib/viewedListings";
 import { usePageMeta } from "../lib/usePageMeta";
-import ListingCard from "../components/ListingCard";
 import ListingImageLightbox from "../components/ListingImageLightbox";
+import AdRelatedListings from "../components/AdRelatedListings";
+import AdListingHeader from "../components/ad/AdListingHeader";
+import AdPurchasePanel from "../components/ad/AdPurchasePanel";
 import RealEstateHighlights from "../components/RealEstateHighlights";
-import RealEstateListingCard from "../components/RealEstateListingCard";
 import Breadcrumbs from "../components/Breadcrumbs";
 import EmptyState from "../components/EmptyState";
-import SellerContactButtons from "../components/SellerContactButtons";
-import { StarRating } from "../components/SellerReviewsPanel";
 import AdSlot from "../components/AdSlot";
 import { PromotionBadgeGroup } from "../components/PromotionBadge";
-import BusinessBadge from "../components/BusinessBadge";
 import { CAT_LABELS } from "../data/listingCategories";
 import { enrichRealEstateListing, getSpecValue, isRealEstateListing } from "../lib/realEstate";
 import { REPORT_REASONS } from "../data/reportReasons";
@@ -59,21 +49,6 @@ function formatDate(dateStr) {
     month: "long",
     year: "numeric",
   });
-}
-
-function getInitials(name) {
-  const parts = String(name || "")
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean);
-
-  if (!parts.length) return "П";
-
-  return parts
-    .slice(0, 2)
-    .map((p) => p[0])
-    .join("")
-    .toUpperCase();
 }
 
 function getSellerName(ad) {
@@ -156,7 +131,6 @@ export default function AdDetails() {
   const desktopThumbsRef = React.useRef(null);
   const mobileThumbsRef = React.useRef(null);
   const galleryTouchStartX = React.useRef(null);
-  const [related, setRelated] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [isFav, setIsFav] = React.useState(false);
   const [phoneVisible, setPhoneVisible] = React.useState(false);
@@ -256,34 +230,6 @@ export default function AdDetails() {
     return () => {
       active = false;
     };
-  }, [ad]);
-
-  React.useEffect(() => {
-    if (!ad) return;
-
-    let active = true;
-
-    async function loadRelated() {
-      try {
-        const data = await api.listings({
-          cat: ad.cat || undefined,
-          subcategory: ad.subcategory || undefined,
-          limit: 12,
-        });
-
-        const currentId = String(ad._id || ad.id);
-
-        const list = Array.isArray(data)
-          ? data.filter((item) => String(item._id || item.id) !== currentId)
-          : [];
-
-        if (active) setRelated(list.slice(0, 10));
-      } catch {
-        if (active) setRelated([]);
-      }
-    }
-
-    loadRelated();
   }, [ad]);
 
   React.useEffect(() => {
@@ -838,176 +784,41 @@ export default function AdDetails() {
               )}
             </section>
 
-            {/* Title & meta — visible on mobile, hidden price duplicate handled in sidebar */}
-            <section className="xl:hidden space-y-3">
-              <div className="flex flex-wrap gap-2">
-                <span className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full bg-slate-100 text-slate-600">
-                  <Tag className="w-3 h-3" />
-                  №{publicId}
-                </span>
-                {ad.cat && (
-                  <Link
-                    to={listingUrl}
-                    className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full bg-sun-50 text-sun-700 hover:bg-sun-100 transition"
-                  >
-                    {catLabel}
-                    {ad.subcategory ? ` · ${ad.subcategory}` : ""}
-                  </Link>
-                )}
-              </div>
-
-              <h1 className="text-2xl font-extrabold text-slate-900 leading-tight">
-                {ad.title || "Без названия"}
-              </h1>
-
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-500">
-                <span className="inline-flex items-center gap-1">
-                  <MapPin className="w-4 h-4 text-sun" />
-                  {ad.location || ad.city || "Душанбе"}
-                </span>
-                {published && (
-                  <span className="inline-flex items-center gap-1">
-                    <Calendar className="w-4 h-4" />
-                    {published}
-                  </span>
-                )}
-                <span className="inline-flex items-center gap-1">
-                  <Eye className="w-4 h-4" />
-                  {formatViewsLabel(ad.views)}
-                </span>
-              </div>
+            <section className="xl:hidden card p-5 rounded-3xl shadow-sm">
+              <AdListingHeader
+                title={ad.title}
+                publicId={publicId}
+                catLabel={catLabel}
+                subcategory={ad.subcategory}
+                listingUrl={listingUrl}
+                location={ad.location || ad.city}
+                published={published}
+                views={ad.views}
+              />
             </section>
 
             {!isOwner && (
-              <section className="xl:hidden card p-5 rounded-3xl space-y-4 shadow-md">
-                <div>
-                  <div className="text-sm text-slate-500 mb-1">Цена</div>
-                  <div className="text-3xl font-extrabold text-slate-900 tracking-tight">
-                    {price}
-                  </div>
-                  {realEstatePricePerSqm && (
-                    <div className="text-sm font-semibold text-sun-700 mt-1">
-                      {realEstatePricePerSqm}
-                    </div>
-                  )}
-                </div>
-
-                <div className="border-t border-slate-100 pt-4 space-y-4">
-                  <div className="text-sm text-slate-500">Продавец</div>
-
-                  <div className="flex items-center gap-3">
-                    {ad.owner ? (
-                      <Link
-                        to={`/seller/${ad.owner}`}
-                        className="w-12 h-12 rounded-2xl bg-gradient-to-br from-sun to-lagoon flex items-center justify-center text-white font-bold text-sm shadow-sm shrink-0 hover:opacity-90 transition overflow-hidden"
-                      >
-                        {ad.ownerCompanyLogo ? (
-                          <img
-                            src={ad.ownerCompanyLogo}
-                            alt=""
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          getInitials(sellerName)
-                        )}
-                      </Link>
-                    ) : (
-                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-sun to-lagoon flex items-center justify-center text-white font-bold text-sm shadow-sm shrink-0">
-                        {getInitials(sellerName)}
-                      </div>
-                    )}
-
-                    <div className="min-w-0">
-                      {ad.owner ? (
-                        <Link
-                          to={`/seller/${ad.owner}`}
-                          className="font-bold text-slate-900 truncate block hover:text-sun transition"
-                        >
-                          {sellerName}
-                        </Link>
-                      ) : (
-                        <div className="font-bold text-slate-900 truncate">
-                          {sellerName}
-                        </div>
-                      )}
-                      <div className="mt-1">
-                        <BusinessBadge
-                          sellerType={ad.ownerSellerType}
-                          businessVerified={ad.ownerBusinessVerified}
-                          size="lg"
-                        />
-                      </div>
-                      {sellerReviews.summary.count > 0 && (
-                        <div className="flex items-center gap-2 mt-1">
-                          <StarRating value={sellerReviews.summary.average} size={14} />
-                          <span className="text-xs text-slate-500">
-                            {Number(sellerReviews.summary.average).toFixed(1)} (
-                            {sellerReviews.summary.count})
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-2 text-xs text-emerald-800 bg-emerald-50 border border-emerald-100 rounded-2xl p-3">
-                    <ShieldCheck className="w-4 h-4 shrink-0 mt-0.5 text-emerald-600" />
-                    <span>
-                      Встречайтесь лично и проверяйте товар перед оплатой
-                    </span>
-                  </div>
-                </div>
-
-                {canContact ? (
-                  <SellerContactButtons
-                    phone={ad.phone}
-                    whatsapp={ad.sellerWhatsapp}
-                    telegram={ad.sellerTelegram}
-                    phoneVisible={phoneVisible}
-                    onRevealPhone={() => setPhoneVisible(true)}
-                    onChat={openSellerChat}
-                    canContact={canContact}
-                    compact
-                  />
-                ) : isInactive ? (
-                  <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-                    Связаться с продавцом по этому объявлению нельзя.
-                  </div>
-                ) : null}
-
-                <div className="grid grid-cols-2 gap-2 pt-1">
-                  <button
-                    type="button"
-                    className={`btn py-2.5 rounded-2xl ${
-                      isFav ? "bg-red-50 border-red-200 text-red-600 hover:bg-red-100" : ""
-                    }`}
-                    onClick={toggleFav}
-                  >
-                    <Heart className={`w-4 h-4 ${isFav ? "fill-current" : ""}`} />
-                    {isFav ? "В избранном" : "В избранное"}
-                  </button>
-
-                  <button
-                    type="button"
-                    className="btn py-2.5 rounded-2xl"
-                    onClick={shareAd}
-                  >
-                    {copied ? (
-                      <Check className="w-4 h-4 text-emerald-600" />
-                    ) : (
-                      <Share2 className="w-4 h-4" />
-                    )}
-                    Поделиться
-                  </button>
-                </div>
-
-                <button
-                  type="button"
-                  className="btn w-full py-2.5 rounded-2xl text-slate-600 hover:text-red-600 hover:border-red-200 hover:bg-red-50"
-                  onClick={openReport}
-                >
-                  <Flag className="w-4 h-4" />
-                  Пожаловаться
-                </button>
+              <section className="xl:hidden card p-5 rounded-3xl shadow-md">
+                <AdPurchasePanel
+                  price={price}
+                  realEstatePricePerSqm={realEstatePricePerSqm}
+                  ad={ad}
+                  sellerName={sellerName}
+                  published={published}
+                  sellerReviews={sellerReviews}
+                  canContact={canContact}
+                  isInactive={isInactive}
+                  phoneVisible={phoneVisible}
+                  onRevealPhone={() => setPhoneVisible(true)}
+                  onChat={openSellerChat}
+                  isFav={isFav}
+                  onToggleFav={toggleFav}
+                  onShare={shareAd}
+                  copied={copied}
+                  onReport={openReport}
+                  compact
+                  secondaryLayout="compact"
+                />
               </section>
             )}
 
@@ -1050,7 +861,12 @@ export default function AdDetails() {
                   {filteredSpecs.map((spec, index) => (
                     <div
                       key={`${spec.name}-${index}`}
-                      className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 bg-white px-4 py-3 text-sm"
+                      className={`flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 bg-white px-4 py-3 text-sm ${
+                        filteredSpecs.length % 2 === 1 &&
+                        index === filteredSpecs.length - 1
+                          ? "sm:col-span-2"
+                          : ""
+                      }`}
                     >
                       <span className="text-slate-500">{spec.name}</span>
                       <span className="font-semibold text-slate-800 sm:text-right">
@@ -1078,41 +894,11 @@ export default function AdDetails() {
               </p>
             </section>
 
-            {/* Related */}
-            {related.length > 0 && (
-              <section className="space-y-4 pt-2">
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <h2 className="text-xl font-bold text-slate-900">
-                      Похожие объявления
-                    </h2>
-                    <p className="text-sm text-slate-500 mt-0.5">
-                      Из категории «{catLabel}»
-                    </p>
-                  </div>
-                  <Link
-                    to={listingUrl}
-                    className="hidden sm:inline-flex items-center gap-1 text-sm font-medium text-sun hover:underline shrink-0"
-                  >
-                    Все
-                    <ArrowRight className="w-4 h-4" />
-                  </Link>
-                </div>
-
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                  {related.map((item) =>
-                    isRealEstateListing(item) ? (
-                      <RealEstateListingCard
-                        key={item._id || item.id}
-                        item={item}
-                      />
-                    ) : (
-                      <ListingCard key={item._id || item.id} item={item} />
-                    )
-                  )}
-                </div>
-              </section>
-            )}
+            <AdRelatedListings
+              ad={ad}
+              listingUrl={listingUrl}
+              catLabel={catLabel}
+            />
           </div>
 
           {/* Right sidebar — desktop + owner actions on mobile */}
@@ -1122,146 +908,42 @@ export default function AdDetails() {
             }`}
           >
             <div className="xl:sticky xl:top-[72px] space-y-4">
-              {/* Desktop title block */}
-              <section className="hidden xl:block card p-6 rounded-3xl space-y-4">
-                <div className="flex flex-wrap gap-2">
-                  <span className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full bg-slate-100 text-slate-600">
-                    <Tag className="w-3 h-3" />
-                    №{publicId}
-                  </span>
-                  {ad.cat && (
-                    <Link
-                      to={listingUrl}
-                      className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full bg-sun-50 text-sun-700 hover:bg-sun-100 transition"
-                    >
-                      {catLabel}
-                      {ad.subcategory ? ` · ${ad.subcategory}` : ""}
-                    </Link>
-                  )}
-                </div>
-
-                <h1 className="text-2xl font-extrabold text-slate-900 leading-tight">
-                  {ad.title || "Без названия"}
-                </h1>
-
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-500">
-                  <span className="inline-flex items-center gap-1">
-                    <MapPin className="w-4 h-4 text-sun" />
-                    {ad.location || ad.city || "Душанбе"}
-                  </span>
-                  {published && (
-                    <span className="inline-flex items-center gap-1">
-                      <Calendar className="w-4 h-4" />
-                      {published}
-                    </span>
-                  )}
-                  <span className="inline-flex items-center gap-1">
-                    <Eye className="w-4 h-4" />
-                    {formatViewsLabel(ad.views)}
-                  </span>
-                </div>
-              </section>
-
-              {/* Price & actions card */}
               <section className="card p-6 rounded-3xl space-y-5 shadow-md">
                 <div className="hidden xl:block space-y-5">
-                  <div>
-                    <div className="text-sm text-slate-500 mb-1">Цена</div>
-                    <div className="text-3xl font-extrabold text-slate-900 tracking-tight">
-                      {price}
+                  <AdListingHeader
+                    title={ad.title}
+                    publicId={publicId}
+                    catLabel={catLabel}
+                    subcategory={ad.subcategory}
+                    listingUrl={listingUrl}
+                    location={ad.location || ad.city}
+                    published={published}
+                    views={ad.views}
+                  />
+
+                  {!isOwner && (
+                    <div className="border-t border-slate-100 pt-5">
+                      <AdPurchasePanel
+                      price={price}
+                      realEstatePricePerSqm={realEstatePricePerSqm}
+                      ad={ad}
+                      sellerName={sellerName}
+                      published={published}
+                      sellerReviews={sellerReviews}
+                      canContact={canContact}
+                      isInactive={isInactive}
+                      phoneVisible={phoneVisible}
+                      onRevealPhone={() => setPhoneVisible(true)}
+                      onChat={openSellerChat}
+                      isFav={isFav}
+                      onToggleFav={toggleFav}
+                      onShare={shareAd}
+                      copied={copied}
+                      onReport={openReport}
+                      secondaryLayout="compact"
+                    />
                     </div>
-                    {realEstatePricePerSqm && (
-                      <div className="text-sm font-semibold text-sun-700 mt-1">
-                        {realEstatePricePerSqm}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="border-t border-slate-100 pt-5 space-y-4">
-                    <div className="text-sm text-slate-500">Продавец</div>
-
-                    <div className="flex items-center gap-3">
-                      {ad.owner ? (
-                        <Link
-                          to={`/seller/${ad.owner}`}
-                          className="w-12 h-12 rounded-2xl bg-gradient-to-br from-sun to-lagoon flex items-center justify-center text-white font-bold text-sm shadow-sm shrink-0 hover:opacity-90 transition overflow-hidden"
-                        >
-                          {ad.ownerCompanyLogo ? (
-                            <img
-                              src={ad.ownerCompanyLogo}
-                              alt=""
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            getInitials(sellerName)
-                          )}
-                        </Link>
-                      ) : (
-                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-sun to-lagoon flex items-center justify-center text-white font-bold text-sm shadow-sm shrink-0">
-                          {getInitials(sellerName)}
-                        </div>
-                      )}
-
-                      <div className="min-w-0">
-                        {ad.owner ? (
-                          <Link
-                            to={`/seller/${ad.owner}`}
-                            className="font-bold text-slate-900 truncate block hover:text-sun transition"
-                          >
-                            {sellerName}
-                          </Link>
-                        ) : (
-                          <div className="font-bold text-slate-900 truncate">
-                            {sellerName}
-                          </div>
-                        )}
-                        <div className="mt-1">
-                          <BusinessBadge
-                            sellerType={ad.ownerSellerType}
-                            businessVerified={ad.ownerBusinessVerified}
-                            size="lg"
-                          />
-                        </div>
-                        <div className="text-xs text-slate-500">
-                          {published ? `Объявление ${published.toLowerCase()}` : "На сайте"}
-                        </div>
-                        {sellerReviews.summary.count > 0 && (
-                          <div className="flex items-center gap-2 mt-1">
-                            <StarRating value={sellerReviews.summary.average} size={14} />
-                            <span className="text-xs text-slate-500">
-                              {Number(sellerReviews.summary.average).toFixed(1)} (
-                              {sellerReviews.summary.count})
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="flex items-start gap-2 text-xs text-emerald-800 bg-emerald-50 border border-emerald-100 rounded-2xl p-3">
-                      <ShieldCheck className="w-4 h-4 shrink-0 mt-0.5 text-emerald-600" />
-                      <span>
-                        Встречайтесь лично и проверяйте товар перед оплатой
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2.5">
-                    {canContact ? (
-                      <SellerContactButtons
-                        phone={ad.phone}
-                        whatsapp={ad.sellerWhatsapp}
-                        telegram={ad.sellerTelegram}
-                        phoneVisible={phoneVisible}
-                        onRevealPhone={() => setPhoneVisible(true)}
-                        onChat={openSellerChat}
-                        canContact={canContact}
-                      />
-                    ) : !isOwner && isInactive ? (
-                      <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-                        Связаться с продавцом по этому объявлению нельзя.
-                      </div>
-                    ) : null}
-                  </div>
+                  )}
                 </div>
 
                 {isOwner && ad.expiresAt && (
@@ -1275,13 +957,6 @@ export default function AdDetails() {
                     .
                   </div>
                 )}
-
-                <AdSlot
-                  placement="ad_sidebar"
-                  cat={ad.cat || ""}
-                  variant="native"
-                  className="hidden xl:block"
-                />
 
                 {isOwner ? (
                     <>
@@ -1344,128 +1019,98 @@ export default function AdDetails() {
                     </Link>
                   )}
 
-                  <div className="hidden xl:grid grid-cols-2 gap-2">
-                    <button
-                      type="button"
-                      className={`btn py-2.5 rounded-2xl ${
-                        isFav ? "bg-red-50 border-red-200 text-red-600 hover:bg-red-100" : ""
-                      }`}
-                      onClick={toggleFav}
-                    >
-                      <Heart
-                        className={`w-4 h-4 ${isFav ? "fill-current" : ""}`}
-                      />
-                      {isFav ? "В избранном" : "В избранное"}
-                    </button>
-
-                    <button
-                      type="button"
-                      className="btn py-2.5 rounded-2xl"
-                      onClick={shareAd}
-                    >
-                      {copied ? (
-                        <Check className="w-4 h-4 text-emerald-600" />
-                      ) : (
-                        <Share2 className="w-4 h-4" />
-                      )}
-                      Поделиться
-                    </button>
-                  </div>
-
-                  {!isOwner && (
-                    <button
-                      type="button"
-                      className="hidden xl:flex btn w-full py-2.5 rounded-2xl text-slate-600 hover:text-red-600 hover:border-red-200 hover:bg-red-50"
-                      onClick={openReport}
-                    >
-                      <Flag className="w-4 h-4" />
-                      Пожаловаться
-                    </button>
-                  )}
               </section>
             </div>
           </aside>
         </div>
       </div>
 
-      {/* Report modal */}
-      {reportOpen && (
-        <div className="fixed inset-0 z-[110] bg-black/40 flex items-end sm:items-center justify-center p-0 sm:p-4">
-          <div className="w-full sm:max-w-lg rounded-t-3xl sm:rounded-2xl bg-white shadow-xl border p-5 space-y-4">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <h3 className="text-lg font-bold">Пожаловаться</h3>
-                <p className="text-sm text-slate-500 mt-1">
-                  Расскажите, что не так с этим объявлением.
-                </p>
+      {reportOpen &&
+        createPortal(
+          <div className="fixed inset-0 z-[120] flex items-end sm:items-center justify-center p-0 sm:p-4">
+            <button
+              type="button"
+              aria-label="Закрыть"
+              className="absolute inset-0 bg-black/40"
+              onClick={() => setReportOpen(false)}
+            />
+
+            <div className="relative w-full sm:max-w-lg rounded-t-3xl sm:rounded-2xl bg-white shadow-xl border p-5 space-y-4">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <h3 className="text-lg font-bold">Пожаловаться</h3>
+                  <p className="text-sm text-slate-500 mt-1">
+                    Расскажите, что не так с этим объявлением.
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setReportOpen(false)}
+                  className="p-2 rounded-xl border hover:bg-slate-50"
+                  aria-label="Закрыть"
+                >
+                  <X className="w-4 h-4" />
+                </button>
               </div>
 
-              <button
-                type="button"
-                onClick={() => setReportOpen(false)}
-                className="p-2 rounded-xl border hover:bg-slate-50"
-                aria-label="Закрыть"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
+              <div className="space-y-2">
+                {REPORT_REASONS.map((item) => (
+                  <label
+                    key={item.id}
+                    className={`flex items-center gap-3 rounded-xl border px-3 py-2.5 cursor-pointer transition ${
+                      reportReason === item.id
+                        ? "border-sun bg-sun-50"
+                        : "border-slate-200 hover:border-slate-300"
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="report-reason"
+                      value={item.id}
+                      checked={reportReason === item.id}
+                      onChange={() => setReportReason(item.id)}
+                      className="accent-sun"
+                    />
+                    <span className="text-sm font-medium text-slate-800">
+                      {item.label}
+                    </span>
+                  </label>
+                ))}
+              </div>
 
-            <div className="space-y-2">
-              {REPORT_REASONS.map((item) => (
-                <label
-                  key={item.id}
-                  className={`flex items-center gap-3 rounded-xl border px-3 py-2.5 cursor-pointer transition ${
-                    reportReason === item.id
-                      ? "border-sun bg-sun-50"
-                      : "border-slate-200 hover:border-slate-300"
-                  }`}
+              {reportReason === "other" && (
+                <textarea
+                  value={reportDetails}
+                  onChange={(e) => setReportDetails(e.target.value)}
+                  rows={4}
+                  placeholder="Опишите проблему..."
+                  className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-sun/40 resize-y"
+                />
+              )}
+
+              <div className="flex flex-col-reverse sm:flex-row justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setReportOpen(false)}
+                  className="btn rounded-xl"
                 >
-                  <input
-                    type="radio"
-                    name="report-reason"
-                    value={item.id}
-                    checked={reportReason === item.id}
-                    onChange={() => setReportReason(item.id)}
-                    className="accent-sun"
-                  />
-                  <span className="text-sm font-medium text-slate-800">
-                    {item.label}
-                  </span>
-                </label>
-              ))}
+                  Отмена
+                </button>
+
+                <button
+                  type="button"
+                  onClick={submitReport}
+                  disabled={reportSending}
+                  className="btn btn-primary rounded-xl disabled:opacity-60"
+                >
+                  {reportSending ? "Отправляем..." : "Отправить жалобу"}
+                </button>
+              </div>
             </div>
-
-            {reportReason === "other" && (
-              <textarea
-                value={reportDetails}
-                onChange={(e) => setReportDetails(e.target.value)}
-                rows={4}
-                placeholder="Опишите проблему..."
-                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-sun/40 resize-y"
-              />
-            )}
-
-            <div className="flex flex-col-reverse sm:flex-row justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => setReportOpen(false)}
-                className="btn rounded-xl"
-              >
-                Отмена
-              </button>
-
-              <button
-                type="button"
-                onClick={submitReport}
-                disabled={reportSending}
-                className="btn btn-primary rounded-xl disabled:opacity-60"
-              >
-                {reportSending ? "Отправляем..." : "Отправить жалобу"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body
+        )}
 
       <ListingImageLightbox
         open={lightboxOpen}
