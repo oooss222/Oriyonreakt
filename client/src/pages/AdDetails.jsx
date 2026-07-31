@@ -33,7 +33,6 @@ import RealEstateListingCard from "../components/RealEstateListingCard";
 import Breadcrumbs from "../components/Breadcrumbs";
 import EmptyState from "../components/EmptyState";
 import SellerContactButtons from "../components/SellerContactButtons";
-import { buildWhatsappHref } from "../lib/sellerContact";
 import { StarRating } from "../components/SellerReviewsPanel";
 import AdSlot from "../components/AdSlot";
 import { PromotionBadgeGroup } from "../components/PromotionBadge";
@@ -623,8 +622,6 @@ export default function AdDetails() {
       ? `${ad.cat ? "&" : "?"}subcategory=${encodeURIComponent(ad.subcategory)}`
       : ""
   }`;
-  const whatsappHref = buildWhatsappHref(ad.sellerWhatsapp);
-
   const isOwner = Boolean(
     ad?.owner &&
       (String(currentUserId) === String(ad.owner) ||
@@ -663,7 +660,7 @@ export default function AdDetails() {
   ];
 
   return (
-    <div className="pb-28 xl:pb-10">
+    <div className="pb-10">
       <Toast message={toast} onClose={() => setToast("")} />
 
       <div className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-30">
@@ -1388,71 +1385,6 @@ export default function AdDetails() {
               </section>
             </div>
           </aside>
-        </div>
-      </div>
-
-      {/* Mobile sticky action bar */}
-      <div className="fixed bottom-0 inset-x-0 z-40 xl:hidden border-t border-slate-200 bg-white/95 backdrop-blur-md px-4 py-3 safe-area-pb">
-        <div className="flex items-center gap-2 max-w-lg mx-auto">
-          {canContact && whatsappHref ? (
-            <a
-              href={whatsappHref}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn flex-1 rounded-2xl bg-[#25D366] text-white border-[#25D366] hover:bg-[#20bd5a] min-w-0 font-semibold"
-            >
-              WhatsApp
-            </a>
-          ) : canContact ? (
-            <button
-              type="button"
-              className="btn btn-primary flex-1 rounded-2xl min-w-0"
-              onClick={openSellerChat}
-            >
-              <MessageCircle className="w-4 h-4" />
-              Написать
-            </button>
-          ) : isOwner ? (
-            <Link
-              to="/messages"
-              className="btn btn-primary flex-1 rounded-2xl min-w-0"
-            >
-              <MessageCircle className="w-4 h-4" />
-              Сообщения
-            </Link>
-          ) : null}
-
-          {canContact && whatsappHref && (
-            <button
-              type="button"
-              className="btn shrink-0 rounded-2xl px-4"
-              onClick={openSellerChat}
-              aria-label="Чат на сайте"
-            >
-              <MessageCircle className="w-4 h-4" />
-            </button>
-          )}
-
-          {canContact && ad.phone ? (
-            phoneVisible ? (
-              <a
-                href={`tel:${ad.phone}`}
-                className="btn shrink-0 rounded-2xl px-4"
-                aria-label="Позвонить"
-              >
-                <Phone className="w-4 h-4" />
-              </a>
-            ) : (
-              <button
-                type="button"
-                className="btn shrink-0 rounded-2xl px-4"
-                onClick={() => setPhoneVisible(true)}
-                aria-label="Показать телефон"
-              >
-                <Phone className="w-4 h-4" />
-              </button>
-            )
-          ) : null}
         </div>
       </div>
 
