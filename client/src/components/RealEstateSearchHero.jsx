@@ -102,7 +102,7 @@ function HeroPriceFilter({ priceFrom, priceTo, priceCurrency, onChange }) {
       </button>
 
       {open && (
-        <div className="absolute left-0 right-0 top-[calc(100%+6px)] z-50 rounded-xl border border-slate-200 bg-white p-2 shadow-xl">
+        <div className="absolute left-0 right-0 top-[calc(100%+6px)] z-50 rounded-xl border border-slate-200 bg-white p-2 shadow-xl text-slate-900">
           <div className="flex h-11 items-stretch overflow-hidden rounded-lg border border-slate-200">
             <input
               type="text"
@@ -116,7 +116,7 @@ function HeroPriceFilter({ priceFrom, priceTo, priceCurrency, onChange }) {
                   priceCurrency,
                 })
               }
-              className="w-1/2 min-w-0 px-3 text-sm outline-none border-r border-slate-200 placeholder:text-slate-400"
+              className="w-1/2 min-w-0 px-3 text-sm text-slate-900 outline-none border-r border-slate-200 placeholder:text-slate-400 bg-white"
             />
 
             <input
@@ -131,7 +131,7 @@ function HeroPriceFilter({ priceFrom, priceTo, priceCurrency, onChange }) {
                   priceCurrency,
                 })
               }
-              className="w-1/2 min-w-0 px-3 text-sm outline-none border-r border-slate-200 placeholder:text-slate-400"
+              className="w-1/2 min-w-0 px-3 text-sm text-slate-900 outline-none border-r border-slate-200 placeholder:text-slate-400 bg-white"
             />
 
             <div className="relative shrink-0">
@@ -144,7 +144,7 @@ function HeroPriceFilter({ priceFrom, priceTo, priceCurrency, onChange }) {
                     priceCurrency: e.target.value,
                   })
                 }
-                className="h-full min-w-[3.5rem] appearance-none bg-white pl-2.5 pr-7 text-sm outline-none"
+                className="h-full min-w-[3.5rem] appearance-none bg-white pl-2.5 pr-7 text-sm text-slate-900 outline-none"
               >
                 <option value="с.">с.</option>
                 <option value="$">$</option>
@@ -242,10 +242,6 @@ export default function RealEstateSearchHero({
             <h1 className="font-display text-3xl md:text-4xl font-extrabold leading-tight">
               Недвижимость в {city || "Таджикистане"}
             </h1>
-            <p className="text-white/75 mt-2 text-sm md:text-base max-w-2xl">
-              Квартиры, дома, участки и коммерция — с фильтрами как на ведущих
-              площадках.
-            </p>
           </div>
         )}
 

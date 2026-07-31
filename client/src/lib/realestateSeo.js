@@ -3,15 +3,6 @@ import { REAL_ESTATE_CAT, DEAL_TYPES, ROOM_OPTIONS } from "../data/realEstate";
 const CITY_SLUGS = {
   dushanbe: "Душанбе",
   khujand: "Худжанд",
-  bokhtar: "Бохтар",
-  kulob: "Куляб",
-  vahdat: "Вахдат",
-  istaravshan: "Истаравшан",
-  tursunzade: "Турсунзаде",
-  isfara: "Исфара",
-  penjikent: "Пенджикент",
-  khorog: "Хорог",
-  rogun: "Рогун",
 };
 
 const SUBCATEGORY_SLUGS = {

@@ -359,23 +359,6 @@ export default function RealEstate() {
           </div>
         )}
       </section>
-
-      <section className="rounded-3xl bg-gradient-to-br from-lagoon-700 to-ink-800 text-white p-6 md:p-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-bold">Продайте или сдайте недвижимость</h2>
-          <p className="text-white/75 mt-2 max-w-xl text-sm">
-            Подробные характеристики, фото, район и цена за м² — ваше объявление
-            увидят тысячи покупателей и арендаторов.
-          </p>
-        </div>
-        <Link
-          to={`/add?cat=${REAL_ESTATE_CAT}`}
-          className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-white text-lagoon-800 font-bold hover:bg-sun-50 transition shrink-0"
-        >
-          <PlusCircle size={18} />
-          Разместить объявление
-        </Link>
-      </section>
     </div>
   );
 }
