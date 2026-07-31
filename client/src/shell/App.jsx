@@ -11,6 +11,7 @@ export default function App() {
   const location = useLocation();
 
   const isMessagesPage = location.pathname === "/messages";
+  const isAdDetailsPage = location.pathname.startsWith("/ad/");
 
   React.useEffect(() => {
     const connect = () => {
@@ -43,7 +44,7 @@ export default function App() {
     <div className="page-shell min-h-screen flex flex-col overflow-x-hidden">
       <Header />
 
-      <main className={`flex-1 animate-fade-in-up ${isMessagesPage ? "" : "pb-[calc(4rem+env(safe-area-inset-bottom))] lg:pb-0"}`}>
+      <main className={`flex-1 ${isAdDetailsPage ? "" : "animate-fade-in-up"} ${isMessagesPage ? "" : "pb-[calc(4rem+env(safe-area-inset-bottom))] lg:pb-0"}`}>
         <Outlet />
       </main>
 

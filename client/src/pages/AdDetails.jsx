@@ -650,9 +650,9 @@ export default function AdDetails() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 xl:gap-8">
+        <div className="flex flex-col xl:flex-row xl:items-stretch gap-6 xl:gap-8">
           {/* Left column */}
-          <div className="xl:col-span-7 space-y-5">
+          <div className="xl:flex-[7] min-w-0 space-y-5">
             {/* Gallery */}
             <section className="rounded-3xl overflow-hidden bg-white border border-slate-200 shadow-sm">
               <div className="flex flex-col md:flex-row">
@@ -903,11 +903,11 @@ export default function AdDetails() {
 
           {/* Right sidebar — desktop + owner actions on mobile */}
           <aside
-            className={`xl:col-span-5 xl:self-start ${
+            className={`xl:flex-[5] xl:min-w-[320px] ${
               isOwner ? "" : "hidden xl:block"
             }`}
           >
-            <div className="xl:sticky xl:top-[7.75rem] xl:max-h-[calc(100vh-7.75rem)] xl:overflow-y-auto scrollbar-hide space-y-4">
+            <div className="xl:sticky xl:top-[7.75rem] z-10">
               <section className="card p-6 rounded-3xl space-y-5 shadow-md">
                 <div className="hidden xl:block space-y-5">
                   <AdListingHeader
