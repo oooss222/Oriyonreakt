@@ -383,7 +383,7 @@ export default function Auth() {
 
               {tab === "register" && registrationEnabled && (
                 <form onSubmit={onRegister} className="space-y-4">
-                  <Field label="Имя" icon={UserIcon}>
+                  <Field label="ФИО" icon={UserIcon}>
                     <Input
                       placeholder="Как к вам обращаться"
                       value={reg.name}
