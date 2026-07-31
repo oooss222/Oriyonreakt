@@ -21,6 +21,7 @@ import { usePageMeta } from "../lib/usePageMeta";
 import ListingImageLightbox from "../components/ListingImageLightbox";
 import AdRelatedListings from "../components/AdRelatedListings";
 import AdListingHeader from "../components/ad/AdListingHeader";
+import AdStickyAside from "../components/ad/AdStickyAside";
 import AdPurchasePanel from "../components/ad/AdPurchasePanel";
 import RealEstateHighlights from "../components/RealEstateHighlights";
 import Breadcrumbs from "../components/Breadcrumbs";
@@ -609,7 +610,10 @@ export default function AdDetails() {
     <div className="pb-10">
       <Toast message={toast} onClose={() => setToast("")} />
 
-      <div className="border-b bg-white/80 backdrop-blur-sm sticky top-16 lg:top-[72px] z-30">
+      <div
+        data-ad-breadcrumbs
+        className="border-b bg-white/80 backdrop-blur-sm sticky top-16 lg:top-[72px] z-30"
+      >
         <div className="container-x py-3 overflow-x-auto">
           <Breadcrumbs items={breadcrumbItems} />
         </div>
@@ -902,12 +906,11 @@ export default function AdDetails() {
           </div>
 
           {/* Right sidebar — desktop + owner actions on mobile */}
-          <aside
+          <AdStickyAside
             className={`xl:flex-[5] xl:min-w-[320px] ${
               isOwner ? "" : "hidden xl:block"
             }`}
           >
-            <div className="xl:sticky xl:top-[7.75rem] z-10">
               <section className="card p-6 rounded-3xl space-y-5 shadow-md">
                 <div className="hidden xl:block space-y-5">
                   <AdListingHeader
@@ -1020,8 +1023,7 @@ export default function AdDetails() {
                   )}
 
               </section>
-            </div>
-          </aside>
+          </AdStickyAside>
         </div>
       </div>
 
