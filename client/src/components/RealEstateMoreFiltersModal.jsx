@@ -1,4 +1,5 @@
 import React from "react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { api } from "../lib/api";
 import { REAL_ESTATE_CAT, REAL_ESTATE_PRICE_PRESETS, REAL_ESTATE_RENT_PRESETS } from "../data/realEstate";
@@ -302,8 +303,8 @@ export default function RealEstateMoreFiltersModal({
     onClose?.();
   };
 
-  return (
-    <div className="fixed inset-0 z-[80] flex items-end sm:items-center justify-center p-0 sm:p-4">
+  return createPortal(
+    <div className="fixed inset-0 z-[120] flex items-end sm:items-center justify-center p-0 sm:p-4">
       <button
         type="button"
         aria-label="Закрыть"
@@ -572,6 +573,7 @@ export default function RealEstateMoreFiltersModal({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
