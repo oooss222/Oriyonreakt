@@ -35,17 +35,15 @@ import {
 import { CATS, parseSpecsParam } from "../data/listingCategories";
 import { resolveLegacyCategoryFilters } from "../data/categoryConsolidation";
 import { REAL_ESTATE_CAT } from "../data/realEstate";
+import Pagination from "../components/Pagination";
+import { LISTING_PAGE_SIZE, getPageFromSearchParams, getTotalPages } from "../lib/pagination";
 import {
   Search,
   SlidersHorizontal,
   X,
   MapPin,
   PackageSearch,
-  Loader2,
 } from "lucide-react";
-
-const RE_PAGE_SIZE = 48;
-const DEFAULT_PAGE_SIZE = 100;
 
 function buildListingParams(draft, urlCat = "") {
   const next = {};
@@ -104,7 +102,7 @@ function searchParamsToDraft(params) {
   };
 }
 
-function buildListingQueryFromSearchParams(params, { limit = DEFAULT_PAGE_SIZE, offset = 0 } = {}) {
+function buildListingQueryFromSearchParams(params, { limit = LISTING_PAGE_SIZE, offset = 0 } = {}) {
   const draft = searchParamsToDraft(params);
   return {
     ...buildListingParams(draft, draft.cat),
@@ -117,7 +115,7 @@ function buildListingQueryFromSearchParams(params, { limit = DEFAULT_PAGE_SIZE, 
 function buildListingQueryFromDraft(
   draft,
   urlCat = "",
-  { limit = DEFAULT_PAGE_SIZE, offset = 0 } = {}
+  { limit = LISTING_PAGE_SIZE, offset = 0 } = {}
 ) {
   return {
     ...buildListingParams(draft, urlCat),
@@ -150,7 +148,6 @@ export default function Listing() {
   const [previewTotal, setPreviewTotal] = React.useState(0);
   const [previewLoading, setPreviewLoading] = React.useState(false);
   const [loading, setLoading] = React.useState(true);
-  const [loadingMore, setLoadingMore] = React.useState(false);
   const [error, setError] = React.useState("");
   const [mobileFiltersOpen, setMobileFiltersOpen] = React.useState(false);
   const [reMoreFiltersOpen, setReMoreFiltersOpen] = React.useState(false);
@@ -160,6 +157,7 @@ export default function Listing() {
   const search =
     searchParams.get("search") || searchParams.get("q") || "";
   const paramsKey = searchParams.toString();
+  const currentPage = getPageFromSearchParams(searchParams);
 
   React.useEffect(() => {
     const legacy = resolveLegacyCategoryFilters(
@@ -219,24 +217,20 @@ export default function Listing() {
   }, [mobileFiltersOpen]);
 
   const listingQuery = React.useMemo(() => {
-    const pageSize =
-      (seoDraft && !searchParams.get("cat")) ||
-      searchParams.get("cat") === REAL_ESTATE_CAT
-        ? RE_PAGE_SIZE
-        : DEFAULT_PAGE_SIZE;
+    const offset = (currentPage - 1) * LISTING_PAGE_SIZE;
 
     if (seoDraft && !searchParams.get("cat")) {
       return buildListingQueryFromDraft(appliedDraft, REAL_ESTATE_CAT, {
-        limit: pageSize,
-        offset: 0,
+        limit: LISTING_PAGE_SIZE,
+        offset,
       });
     }
 
     return buildListingQueryFromSearchParams(searchParams, {
-      limit: pageSize,
-      offset: 0,
+      limit: LISTING_PAGE_SIZE,
+      offset,
     });
-  }, [paramsKey, searchParams, seoDraft, appliedDraft]);
+  }, [paramsKey, searchParams, seoDraft, appliedDraft, currentPage]);
 
   const draftIsDirty = React.useMemo(
     () => !draftsMatch(appliedDraft, draft, cat),
@@ -546,32 +540,36 @@ export default function Listing() {
     [items]
   );
 
-  const canLoadMore = isRealEstate && items.length > 0 && items.length < total;
+  const totalPages = getTotalPages(total, LISTING_PAGE_SIZE);
 
-  const loadMore = React.useCallback(async () => {
-    if (loadingMore || loading || !canLoadMore) return;
-
-    const pageSize = RE_PAGE_SIZE;
-    const nextQuery = {
-      ...listingQuery,
-      offset: items.length,
-      limit: pageSize,
-    };
-
-    try {
-      setLoadingMore(true);
-      const data = await api.listings(nextQuery);
-      const list = Array.isArray(data) ? data.filter(Boolean) : [];
-
-      setItems((current) =>
-        sortListingsByMode([...current, ...list], sort || "new")
-      );
-    } catch {
-      // ignore load-more errors
-    } finally {
-      setLoadingMore(false);
+  React.useEffect(() => {
+    if (totalPages > 0 && currentPage > totalPages) {
+      const next = new URLSearchParams(searchParams);
+      if (totalPages <= 1) {
+        next.delete("page");
+      } else {
+        next.set("page", String(totalPages));
+      }
+      setSearchParams(next, { replace: true });
     }
-  }, [loadingMore, loading, canLoadMore, listingQuery, items.length, sort]);
+  }, [currentPage, totalPages, searchParams, setSearchParams]);
+
+  const goToPage = React.useCallback(
+    (page) => {
+      const nextPage = Math.max(1, Math.min(page, totalPages || 1));
+      const next = new URLSearchParams(searchParams);
+
+      if (nextPage <= 1) {
+        next.delete("page");
+      } else {
+        next.set("page", String(nextPage));
+      }
+
+      setSearchParams(next);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    },
+    [searchParams, setSearchParams, totalPages]
+  );
 
   return (
     <div className="container mx-auto px-4 py-6 space-y-5">
@@ -601,6 +599,12 @@ export default function Listing() {
 
             <p className="text-sm text-slate-500 mt-1">
               Найдено: {loading ? "…" : total.toLocaleString("ru-RU")}
+              {!loading && totalPages > 1 && (
+                <span className="text-slate-400">
+                  {" "}
+                  · страница {currentPage} из {totalPages}
+                </span>
+              )}
             </p>
           </div>
 
@@ -870,29 +874,12 @@ export default function Listing() {
           })}
           </div>
 
-          {canLoadMore && (
-            <div className="flex flex-col items-center gap-2 pt-2">
-              <p className="text-sm text-slate-500">
-                Показано {items.length.toLocaleString("ru-RU")} из{" "}
-                {total.toLocaleString("ru-RU")}
-              </p>
-              <button
-                type="button"
-                onClick={loadMore}
-                disabled={loadingMore}
-                className="mobile-btn border bg-white hover:bg-slate-50 min-w-[220px]"
-              >
-                {loadingMore ? (
-                  <>
-                    <Loader2 size={18} className="animate-spin" />
-                    Загрузка...
-                  </>
-                ) : (
-                  "Показать ещё"
-                )}
-              </button>
-            </div>
-          )}
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={goToPage}
+            className="pt-4"
+          />
         </>
       )}
 
