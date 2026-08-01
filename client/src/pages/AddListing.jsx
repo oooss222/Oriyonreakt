@@ -1,7 +1,6 @@
 import React from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import ListingForm from "../components/ListingForm";
-import ListingPublishSuccess from "../components/listing-form/ListingPublishSuccess";
 import { goToAuth, TOKEN_KEY } from "../lib/auth";
 
 export default function AddListing() {
@@ -10,7 +9,6 @@ export default function AddListing() {
   const initialCat = searchParams.get("cat") || "";
   const token = localStorage.getItem(TOKEN_KEY) || "";
   const [allowed, setAllowed] = React.useState(Boolean(token));
-  const [published, setPublished] = React.useState(null);
 
   React.useEffect(() => {
     if (!token) {
@@ -34,21 +32,12 @@ export default function AddListing() {
     );
   }
 
-  if (published) {
-    return (
-      <ListingPublishSuccess
-        listing={published}
-        onDone={() => nav("/profile?tab=my")}
-      />
-    );
-  }
-
   return (
     <ListingForm
       mode="create"
       initialCat={initialCat}
       backTo="/profile?tab=my"
-      onSuccess={(created) => setPublished(created)}
+      onSuccess={(created) => nav(`/ad/${created.id || created._id}`)}
     />
   );
 }
