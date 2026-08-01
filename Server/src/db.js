@@ -586,6 +586,29 @@ async function initDb() {
       updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
       updated_by UUID REFERENCES users(id) ON DELETE SET NULL
     );
+
+    CREATE TABLE IF NOT EXISTS user_events (
+      id BIGSERIAL PRIMARY KEY,
+      user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+      session_id TEXT NOT NULL DEFAULT '',
+      event_type TEXT NOT NULL,
+      listing_id UUID REFERENCES listings(id) ON DELETE SET NULL,
+      cat TEXT NOT NULL DEFAULT '',
+      subcategory TEXT NOT NULL DEFAULT '',
+      price TEXT NOT NULL DEFAULT '',
+      payload JSONB NOT NULL DEFAULT '{}'::jsonb,
+      city TEXT NOT NULL DEFAULT '',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_user_events_session_created
+      ON user_events(session_id, created_at DESC);
+
+    CREATE INDEX IF NOT EXISTS idx_user_events_user_created
+      ON user_events(user_id, created_at DESC);
+
+    CREATE INDEX IF NOT EXISTS idx_user_events_type_created
+      ON user_events(event_type, created_at DESC);
   `);
 
   await backfillRealEstateMeta();

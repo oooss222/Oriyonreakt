@@ -6,6 +6,8 @@ import RealEstateListingCard from "../components/RealEstateListingCard";
 import AdSlot from "../components/AdSlot";
 import BusinessPromoBanner from "../components/BusinessPromoBanner";
 import { api } from "../lib/api";
+import { getDefaultCity } from "../lib/recommendationProfile";
+import { trackListingClick } from "../lib/track";
 import { getListingThumb } from "../lib/media";
 import { formatPrice, formatListingDate } from "../lib/format";
 import { sortListingsByPromotion } from "../lib/listingSort";
@@ -28,6 +30,7 @@ import {
   Smartphone,
   Monitor,
   Building2,
+  Eye,
 } from "lucide-react";
 
 function ListingCard({ ad, listings }) {
@@ -37,6 +40,7 @@ function ListingCard({ ad, listings }) {
 
   const openAd = () => {
     if (!id) return;
+    trackListingClick(ad, { source: "home" });
     sessionStorage.setItem("ad_preview", JSON.stringify(ad));
     sessionStorage.setItem("ad_list", JSON.stringify(listings));
     nav(`/ad/${id}`);
@@ -215,6 +219,9 @@ function ListingSkeleton() {
 }
 
 export default function Home() {
+  const [forYou, setForYou] = React.useState([]);
+  const [recentlyViewed, setRecentlyViewed] = React.useState([]);
+  const [personalized, setPersonalized] = React.useState(false);
   const [listings, setListings] = React.useState([]);
   const [realEstateListings, setRealEstateListings] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
@@ -228,7 +235,10 @@ export default function Home() {
         setLoading(true);
         setError("");
 
-        const [data, realEstate] = await Promise.all([
+        const city = getDefaultCity();
+
+        const [recommendations, catalog, realEstate] = await Promise.all([
+          api.homeRecommendations({ city, limit: 20 }).catch(() => null),
           api.listings({
             limit: 50,
             sort: "promoted",
@@ -242,7 +252,20 @@ export default function Home() {
         ]);
 
         if (active) {
-          setListings(Array.isArray(data) ? data : []);
+          const catalogList = Array.isArray(catalog) ? catalog : [];
+
+          setListings(catalogList);
+          setForYou(
+            Array.isArray(recommendations?.blocks?.forYou)
+              ? recommendations.blocks.forYou
+              : catalogList.slice(0, 20)
+          );
+          setRecentlyViewed(
+            Array.isArray(recommendations?.blocks?.recentlyViewed)
+              ? recommendations.blocks.recentlyViewed
+              : []
+          );
+          setPersonalized(Boolean(recommendations?.personalized));
           setRealEstateListings(
             sortListingsByPromotion(Array.isArray(realEstate) ? realEstate : [])
           );
@@ -265,12 +288,24 @@ export default function Home() {
     };
   }, []);
 
+  const feedPool = React.useMemo(() => {
+    const merged = [...forYou, ...listings];
+    const seen = new Set();
+
+    return merged.filter((item) => {
+      const id = item?.id || item?._id;
+      if (!id || seen.has(id)) return false;
+      seen.add(id);
+      return true;
+    });
+  }, [forYou, listings]);
+
   const sortedListings = React.useMemo(
-    () => sortListingsByPromotion(listings),
-    [listings]
+    () => sortListingsByPromotion(feedPool),
+    [feedPool]
   );
 
-  const hotListings = sortedListings.slice(0, 10);
+  const hotListings = (forYou.length ? forYou : sortedListings).slice(0, 10);
 
   const electronicsListings = sortedListings
     .filter((item) => item.cat === "electronics")
@@ -327,9 +362,18 @@ export default function Home() {
               </div>
             ) : (
               <div className="space-y-10">
+            {recentlyViewed.length > 0 && (
+              <HorizontalSection
+                title="Вы смотрели"
+                icon={Eye}
+                items={recentlyViewed}
+                linkTo="/listing"
+              />
+            )}
+
             <HorizontalSection
-              title="Горящие товары"
-              icon={Flame}
+              title={personalized ? "Подобрано для вас" : "Горящие товары"}
+              icon={personalized ? Sparkles : Flame}
               items={hotListings}
               linkTo="/listing"
             />

@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 
 import { api } from "../lib/api";
+import { trackSearch } from "../lib/track";
 import { TOKEN_KEY, USER_KEY } from "../lib/auth";
 import { canAccessModeration } from "../lib/adminUtils";
 import { subscribeModerationQueue } from "../lib/moderationSocket";
@@ -150,6 +151,7 @@ export default function Header() {
     setShowSuggestions(false);
 
     if (text) {
+      trackSearch(text);
       nav(`/listing?search=${encodeURIComponent(text)}`);
     } else {
       nav("/listing");

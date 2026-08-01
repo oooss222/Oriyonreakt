@@ -1328,6 +1328,130 @@ class ListingModel {
 
     return result.rows.map(mapListing);
   }
+
+  static async findByIds(ids = []) {
+    const clean = [...new Set(ids.map((id) => String(id || "").trim()).filter(Boolean))];
+    if (!clean.length) return [];
+
+    const result = await query(
+      `
+      SELECT
+        listings.*,
+        (
+          SELECT seller_type
+          FROM users
+          WHERE id = listings.owner
+        ) AS owner_seller_type,
+        (
+          SELECT business_verified
+          FROM users
+          WHERE id = listings.owner
+        ) AS owner_business_verified,
+        (
+          SELECT company_name
+          FROM users
+          WHERE id = listings.owner
+        ) AS owner_company_name
+      FROM listings
+      WHERE status = 'approved'
+        AND id = ANY($1::uuid[])
+      `,
+      [clean]
+    );
+
+    const mapped = new Map(
+      result.rows.map((row) => [String(row.id), mapListing(row)])
+    );
+
+    return clean.map((id) => mapped.get(id)).filter(Boolean);
+  }
+
+  static async findPopularByCity(location = "Душанбе", limit = 60) {
+    return this.findAll({
+      location,
+      sort: "views_desc",
+      limit,
+      offset: 0,
+    });
+  }
+
+  static async findForRecommendations({
+    cats = [],
+    location,
+    priceFrom,
+    priceTo,
+    limit = 200,
+  } = {}) {
+    const safeLimit = Math.min(Math.max(Number(limit) || 200, 1), 200);
+    const conditions = [`listings.status = 'approved'`];
+    const values = [];
+
+    const normalizedCats = [...new Set(cats.map(String).filter(Boolean))];
+    if (normalizedCats.length) {
+      values.push(normalizedCats);
+      conditions.push(`listings.cat = ANY($${values.length}::text[])`);
+    }
+
+    if (location) {
+      values.push(String(location).trim());
+      conditions.push(`listings.location = $${values.length}`);
+    }
+
+    const priceExpr = `
+      NULLIF(
+        replace(
+          regexp_replace(listings.price, '[^0-9,.-]', '', 'g'),
+          ',',
+          '.'
+        ),
+        ''
+      )::numeric
+    `;
+
+    const minPrice = toNumberOrNull(priceFrom);
+    const maxPrice = toNumberOrNull(priceTo);
+
+    if (minPrice != null) {
+      values.push(minPrice);
+      conditions.push(`${priceExpr} >= $${values.length}`);
+    }
+
+    if (maxPrice != null) {
+      values.push(maxPrice);
+      conditions.push(`${priceExpr} <= $${values.length}`);
+    }
+
+    values.push(safeLimit);
+
+    const result = await query(
+      `
+      SELECT
+        listings.*,
+        (
+          SELECT seller_type
+          FROM users
+          WHERE id = listings.owner
+        ) AS owner_seller_type,
+        (
+          SELECT business_verified
+          FROM users
+          WHERE id = listings.owner
+        ) AS owner_business_verified,
+        (
+          SELECT company_name
+          FROM users
+          WHERE id = listings.owner
+        ) AS owner_company_name
+      FROM listings
+      WHERE ${conditions.join(" AND ")}
+      ORDER BY ${PROMOTION_ORDER}, COALESCE(listings.bumped_at, listings.created_at) DESC, listings.created_at DESC
+      LIMIT $${values.length}
+      `,
+      values
+    );
+
+    return result.rows.map(mapListing);
+  }
 }
 
 module.exports = ListingModel;

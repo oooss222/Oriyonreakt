@@ -70,6 +70,10 @@ app.use("/api/upload", require("./routes/upload"));
 
 app.use("/api/listings", require("./routes/listings"));
 
+app.use("/api/events", require("./routes/events"));
+
+app.use("/api/recommendations", require("./routes/recommendations"));
+
 app.use("/api/settings", require("./routes/settings"));
 
 app.use("/api/messages", require("./routes/messages"));

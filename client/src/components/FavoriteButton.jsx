@@ -3,12 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { Heart } from "lucide-react";
 import { api } from "../lib/api";
 import { goToAuth } from "../lib/auth";
+import { trackFavorite } from "../lib/track";
 
 export default function FavoriteButton({
   id,
   defaultActive = false,
   onChange,
   compact = false,
+  listing = null,
 }) {
   const nav = useNavigate();
   const token = localStorage.getItem("auth_token") || "";
@@ -44,6 +46,7 @@ export default function FavoriteButton({
     try {
       if (next) {
         await api.addFavorite(token, id);
+        if (listing) trackFavorite(listing);
       } else {
         await api.removeFavorite(token, id);
       }

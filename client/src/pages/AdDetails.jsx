@@ -17,6 +17,7 @@ import { goToAuth } from "../lib/auth";
 import { resolveMediaUrl } from "../lib/media";
 import { formatPrice, getListingDisplayDate } from "../lib/format";
 import { markListingViewed, markViewRecorded, wasViewRecorded } from "../lib/viewedListings";
+import { trackContactIntent, trackListingView } from "../lib/track";
 import { usePageMeta } from "../lib/usePageMeta";
 import ListingImageLightbox from "../components/ListingImageLightbox";
 import AdRelatedListings from "../components/AdRelatedListings";
@@ -206,6 +207,7 @@ export default function AdDetails() {
     const adId = String(ad._id || ad.id);
 
     markListingViewed(adId);
+    trackListingView(ad);
 
     if (wasViewRecorded(adId)) {
       return undefined;
@@ -369,11 +371,18 @@ export default function AdDetails() {
       return;
     }
 
+    trackContactIntent(ad, "message");
+
     const listingId = ad._id || ad.id;
 
     nav(
       `/messages?listingId=${listingId}&peerId=${ad.owner}&title=${encodeURIComponent(ad.title || "Объявление")}`
     );
+  };
+
+  const revealPhone = () => {
+    trackContactIntent(ad, "phone");
+    setPhoneVisible(true);
   };
 
   const openReport = () => {
@@ -813,7 +822,7 @@ export default function AdDetails() {
                   canContact={canContact}
                   isInactive={isInactive}
                   phoneVisible={phoneVisible}
-                  onRevealPhone={() => setPhoneVisible(true)}
+                  onRevealPhone={revealPhone}
                   onChat={openSellerChat}
                   isFav={isFav}
                   onToggleFav={toggleFav}
@@ -936,7 +945,7 @@ export default function AdDetails() {
                       canContact={canContact}
                       isInactive={isInactive}
                       phoneVisible={phoneVisible}
-                      onRevealPhone={() => setPhoneVisible(true)}
+                      onRevealPhone={revealPhone}
                       onChat={openSellerChat}
                       isFav={isFav}
                       onToggleFav={toggleFav}

@@ -1,3 +1,9 @@
+import {
+  getOrCreateSessionId,
+  getRecommendationHeaders,
+  readRecommendationProfile,
+} from "./recommendationProfile";
+
 const API = (
   import.meta.env.VITE_API_BASE ||
   import.meta.env.VITE_API_URL ||
@@ -10,9 +16,10 @@ async function request(
     method = "GET",
     body,
     token,
+    headers: extraHeaders = {},
   } = {}
 ) {
-  const headers = {};
+  const headers = { ...extraHeaders };
 
   if (!(body instanceof FormData)) {
     headers["Content-Type"] =
@@ -148,6 +155,27 @@ export const api = {
     request(`/listings/${id}/view`, {
       method: "POST",
     }),
+
+  trackEvents: (payload) =>
+    request("/events", {
+      method: "POST",
+      body: payload,
+    }),
+
+  homeRecommendations: ({ city = "Душанбе", limit = 20 } = {}) => {
+    const profile = readRecommendationProfile();
+    const token = localStorage.getItem("auth_token") || "";
+    const q = new URLSearchParams({
+      city,
+      limit: String(limit),
+      sessionId: profile.sid || getOrCreateSessionId(),
+    }).toString();
+
+    return request(`/recommendations/home?${q}`, {
+      token: token || undefined,
+      headers: getRecommendationHeaders(profile),
+    });
+  },
 
   reportListing: (token, id, body) =>
     request(`/listings/${id}/report`, {
