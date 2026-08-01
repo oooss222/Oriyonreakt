@@ -20,6 +20,7 @@ import { buildRealEstateListingUrl } from "../lib/realEstate";
 import RealEstatePricePerSqmCalculator from "./RealEstatePricePerSqmCalculator";
 import RealEstateCitySelect from "./RealEstateCitySelect";
 import RealEstateGuestsPicker from "./realestate/RealEstateGuestsPicker";
+import RealEstateDateRangePicker from "./realestate/RealEstateDateRangePicker";
 
 const AREA_PRESETS = ["20", "30", "40", "50", "60", "70", "80", "100", "120", "150"];
 
@@ -450,37 +451,19 @@ export default function RealEstateMoreFiltersModal({
           {isDaily && (
             <FilterSection title="Поездка">
               <FilterRow label="Заезд / выезд">
-                <div className="grid grid-cols-2 gap-2">
-                  <input
-                    type="date"
-                    value={draft.checkIn || ""}
-                    onChange={(e) =>
-                      setDraft((current) => ({
-                        ...current,
-                        checkIn: e.target.value,
-                        checkOut:
-                          current.checkOut &&
-                          e.target.value &&
-                          current.checkOut <= e.target.value
-                            ? ""
-                            : current.checkOut,
-                      }))
-                    }
-                    className="mobile-control"
-                  />
-                  <input
-                    type="date"
-                    value={draft.checkOut || ""}
-                    min={draft.checkIn || undefined}
-                    onChange={(e) =>
-                      setDraft((current) => ({
-                        ...current,
-                        checkOut: e.target.value,
-                      }))
-                    }
-                    className="mobile-control"
-                  />
-                </div>
+                <RealEstateDateRangePicker
+                  splitFields={false}
+                  compact
+                  checkIn={draft.checkIn || ""}
+                  checkOut={draft.checkOut || ""}
+                  onChange={({ checkIn, checkOut }) =>
+                    setDraft((current) => ({
+                      ...current,
+                      checkIn,
+                      checkOut,
+                    }))
+                  }
+                />
               </FilterRow>
 
               <FilterRow label="Гости">

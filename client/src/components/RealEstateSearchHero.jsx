@@ -4,6 +4,7 @@ import { Search, MapPin, ChevronDown, ChevronUp, SlidersHorizontal } from "lucid
 import RealEstateMoreFiltersModal from "./RealEstateMoreFiltersModal";
 import RealEstateCitySelect from "./RealEstateCitySelect";
 import RealEstateGuestsPicker from "./realestate/RealEstateGuestsPicker";
+import RealEstateDateRangePicker from "./realestate/RealEstateDateRangePicker";
 import {
   DEAL_TYPES,
   ROOM_OPTIONS,
@@ -12,7 +13,6 @@ import {
   getPricePresetsForDeal,
   realEstateSubcategoryUsesRooms,
   isDailyDeal,
-  countNights,
 } from "../data/realEstate";
 import { buildRealEstateListingUrl } from "../lib/realEstate";
 import { formatPriceInput, getPriceDigits } from "../data/specOptions";
@@ -30,22 +30,6 @@ function formatHeroPriceSummary(from, to, currency = "с.") {
   if (fromLabel) return `от ${fromLabel} ${currency}`;
   if (toLabel) return `до ${toLabel} ${currency}`;
   return "";
-}
-
-function formatShortDate(value = "") {
-  if (!value) return "";
-  try {
-    return new Date(`${value}T12:00:00`).toLocaleDateString("ru-RU", {
-      day: "numeric",
-      month: "short",
-    });
-  } catch {
-    return value;
-  }
-}
-
-function todayIso() {
-  return new Date().toISOString().slice(0, 10);
 }
 
 function pluralAds(count) {
@@ -284,7 +268,6 @@ export default function RealEstateSearchHero({
   };
 
   const isDaily = isDailyDeal(dealType);
-  const nights = countNights(checkIn, checkOut);
 
   const dealLabel = isDaily
     ? "Посуточная аренда"
@@ -396,33 +379,14 @@ export default function RealEstateSearchHero({
                     </div>
                   </label>
 
-                  <label className="block min-w-0">
-                    <span className={FIELD_LABEL}>Заезд</span>
-                    <input
-                      type="date"
-                      value={checkIn}
-                      min={todayIso()}
-                      onChange={(e) => {
-                        const next = e.target.value;
-                        setCheckIn(next);
-                        if (checkOut && next && checkOut <= next) {
-                          setCheckOut("");
-                        }
-                      }}
-                      className={`${FIELD_CONTROL} px-3`}
-                    />
-                  </label>
-
-                  <label className="block min-w-0">
-                    <span className={FIELD_LABEL}>Выезд</span>
-                    <input
-                      type="date"
-                      value={checkOut}
-                      min={checkIn || todayIso()}
-                      onChange={(e) => setCheckOut(e.target.value)}
-                      className={`${FIELD_CONTROL} px-3`}
-                    />
-                  </label>
+                  <RealEstateDateRangePicker
+                    checkIn={checkIn}
+                    checkOut={checkOut}
+                    onChange={({ checkIn: nextIn, checkOut: nextOut }) => {
+                      setCheckIn(nextIn);
+                      setCheckOut(nextOut);
+                    }}
+                  />
 
                   <RealEstateGuestsPicker value={guests} onChange={setGuests} />
                 </div>
@@ -458,14 +422,6 @@ export default function RealEstateSearchHero({
                     }}
                   />
 
-                  {nights > 0 && (
-                    <div className="flex items-end">
-                      <div className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 flex items-center text-sm text-slate-600">
-                        {formatShortDate(checkIn)} – {formatShortDate(checkOut)} · {nights}{" "}
-                        {nights === 1 ? "ночь" : nights < 5 ? "ночи" : "ночей"}
-                      </div>
-                    </div>
-                  )}
                 </div>
               </>
             ) : (
