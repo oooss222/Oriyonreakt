@@ -35,6 +35,8 @@ export default function Header() {
   const [unreadCount, setUnreadCount] = React.useState(0);
   const [moderationCount, setModerationCount] = React.useState(0);
   const [scrolled, setScrolled] = React.useState(false);
+  const [categoriesHidden, setCategoriesHidden] = React.useState(false);
+  const lastScrollYRef = React.useRef(0);
 
   const token = localStorage.getItem(TOKEN_KEY) || "";
 
@@ -104,10 +106,37 @@ export default function Header() {
   }, [token, onMessagesPage]);
 
   React.useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 48);
+    let frame = 0;
+
+    const onScroll = () => {
+      if (frame) return;
+
+      frame = window.requestAnimationFrame(() => {
+        frame = 0;
+        const y = window.scrollY;
+        const previousY = lastScrollYRef.current;
+        const delta = y - previousY;
+
+        setScrolled(y > 48);
+
+        if (y < 24) {
+          setCategoriesHidden(false);
+        } else if (delta > 6 && y > 96) {
+          setCategoriesHidden(true);
+        } else if (delta < -6) {
+          setCategoriesHidden(false);
+        }
+
+        lastScrollYRef.current = y;
+      });
+    };
+
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (frame) window.cancelAnimationFrame(frame);
+    };
   }, []);
 
   React.useEffect(() => {
@@ -344,13 +373,15 @@ export default function Header() {
 
       {isBrowsePage && (
         <div
-          className={`overflow-hidden transition-[max-height,opacity,transform] duration-300 ease-in-out ${
-            scrolled
-              ? "max-h-0 opacity-0 -translate-y-1 pointer-events-none"
-              : "max-h-44 opacity-100 translate-y-0"
+          className={`grid transition-[grid-template-rows,opacity] duration-300 ease-out ${
+            categoriesHidden
+              ? "grid-rows-[0fr] opacity-0 pointer-events-none"
+              : "grid-rows-[1fr] opacity-100"
           }`}
         >
-          <CategoryStrip compact={compactCategories} />
+          <div className="overflow-hidden min-h-0 pointer-events-auto">
+            <CategoryStrip compact={compactCategories} />
+          </div>
         </div>
       )}
     </header>
