@@ -11,9 +11,10 @@ import {
 import { buildRealEstateListingUrl } from "../lib/realEstate";
 import { formatPriceInput, getPriceDigits } from "../data/specOptions";
 
-const FIELD_LABEL = "text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1.5 block";
+const FIELD_LABEL =
+  "mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500";
 const FIELD_CONTROL =
-  "w-full h-11 rounded-xl border border-slate-200 bg-white text-slate-900 text-sm font-medium outline-none focus:ring-2 focus:ring-sun/25 focus:border-sun/40 appearance-none";
+  "h-11 w-full rounded-xl border border-slate-200/90 bg-white text-sm font-medium text-slate-900 outline-none transition focus:border-sun/50 focus:ring-2 focus:ring-sun/20 appearance-none";
 
 function formatHeroPriceSummary(from, to, currency = "с.") {
   const fromLabel = from ? formatPriceInput(from) : "";
@@ -23,6 +24,15 @@ function formatHeroPriceSummary(from, to, currency = "с.") {
   if (fromLabel) return `от ${fromLabel} ${currency}`;
   if (toLabel) return `до ${toLabel} ${currency}`;
   return "";
+}
+
+function pluralAds(count) {
+  const mod10 = count % 10;
+  const mod100 = count % 100;
+
+  if (mod10 === 1 && mod100 !== 11) return "объявление";
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return "объявления";
+  return "объявлений";
 }
 
 function HeroSelect({ label, value, onChange, children, className = "", icon: Icon }) {
@@ -64,8 +74,16 @@ function HeroPriceFilter({ priceFrom, priceTo, priceCurrency, onChange }) {
       if (!rootRef.current?.contains(event.target)) setOpen(false);
     };
 
+    const handleEscape = (event) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+
     document.addEventListener("mousedown", handleOutside);
-    return () => document.removeEventListener("mousedown", handleOutside);
+    document.addEventListener("keydown", handleEscape);
+    return () => {
+      document.removeEventListener("mousedown", handleOutside);
+      document.removeEventListener("keydown", handleEscape);
+    };
   }, [open]);
 
   return (
@@ -74,6 +92,8 @@ function HeroPriceFilter({ priceFrom, priceTo, priceCurrency, onChange }) {
 
       <button
         type="button"
+        aria-expanded={open}
+        aria-haspopup="dialog"
         onClick={() => setOpen((value) => !value)}
         className={`${FIELD_CONTROL} flex items-center justify-between gap-3 px-3 text-left ${
           summary ? "text-slate-900" : "text-slate-500"
@@ -88,7 +108,11 @@ function HeroPriceFilter({ priceFrom, priceTo, priceCurrency, onChange }) {
       </button>
 
       {open && (
-        <div className="absolute left-0 right-0 top-[calc(100%+6px)] z-50 rounded-xl border border-slate-200 bg-white p-2 shadow-xl text-slate-900">
+        <div
+          role="dialog"
+          aria-label="Диапазон цены"
+          className="absolute left-0 right-0 top-[calc(100%+6px)] z-50 rounded-xl border border-slate-200 bg-white p-2 shadow-xl text-slate-900"
+        >
           <div className="flex h-11 items-stretch overflow-hidden rounded-lg border border-slate-200">
             <input
               type="text"
@@ -102,7 +126,7 @@ function HeroPriceFilter({ priceFrom, priceTo, priceCurrency, onChange }) {
                   priceCurrency,
                 })
               }
-              className="w-1/2 min-w-0 px-3 text-sm text-slate-900 outline-none border-r border-slate-200 placeholder:text-slate-400 bg-white"
+              className="w-1/2 min-w-0 border-r border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none placeholder:text-slate-400"
             />
             <input
               type="text"
@@ -116,7 +140,7 @@ function HeroPriceFilter({ priceFrom, priceTo, priceCurrency, onChange }) {
                   priceCurrency,
                 })
               }
-              className="w-1/2 min-w-0 px-3 text-sm text-slate-900 outline-none border-r border-slate-200 placeholder:text-slate-400 bg-white"
+              className="w-1/2 min-w-0 border-r border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none placeholder:text-slate-400"
             />
             <div className="relative shrink-0">
               <select
@@ -191,6 +215,17 @@ export default function RealEstateSearchHero({
     nav(url);
   };
 
+  const dealLabel =
+    DEAL_TYPES.find((item) => item.value === dealType)?.label?.toLowerCase() || "купить";
+  const submitLabel =
+    totalCount > 0
+      ? `Показать ${totalCount.toLocaleString("ru-RU")} ${pluralAds(totalCount)}`
+      : "Показать объявления";
+
+  const hasActiveFilters = Boolean(
+    subcategory || rooms || priceFrom || priceTo || dealType !== "Купить"
+  );
+
   return (
     <>
       <section
@@ -208,12 +243,12 @@ export default function RealEstateSearchHero({
         />
 
         {!compact && (
-          <div className="relative mb-6 max-w-3xl">
-            <p className="text-xs font-bold uppercase tracking-[0.14em] text-sun-300 mb-2">
+          <div className="relative mb-5 md:mb-6 max-w-3xl">
+            <p className="mb-2 text-xs font-bold uppercase tracking-[0.14em] text-sun-300">
               Oriyon · Недвижимость
             </p>
             <h1 className="font-display text-3xl md:text-[2.35rem] font-extrabold leading-tight">
-              Недвижимость в {city || "Таджикистане"}
+              {dealLabel.charAt(0).toUpperCase() + dealLabel.slice(1)} в {city || "Таджикистане"}
             </h1>
             {totalCount > 0 && (
               <p className="mt-2 text-sm text-white/70">
@@ -223,26 +258,36 @@ export default function RealEstateSearchHero({
           </div>
         )}
 
-        <div className="relative rounded-2xl bg-white/95 backdrop-blur-sm p-4 md:p-5 text-slate-900 shadow-xl">
-          <div className="inline-flex w-full sm:w-auto rounded-xl border bg-slate-50 p-1 gap-1 mb-4">
-            {DEAL_TYPES.map((item) => (
-              <button
-                key={item.value}
-                type="button"
-                onClick={() => setDealType(item.value)}
-                className={`flex-1 sm:flex-none px-4 py-2.5 rounded-lg text-sm font-semibold transition ${
-                  dealType === item.value
-                    ? "bg-sun text-white shadow-sm"
-                    : "text-slate-600 hover:text-slate-900 hover:bg-white"
-                }`}
-              >
-                {item.label}
-              </button>
-            ))}
+        <div className="relative rounded-2xl bg-white p-4 md:p-5 text-slate-900 shadow-xl ring-1 ring-slate-900/5">
+          <div
+            role="tablist"
+            aria-label="Тип сделки"
+            className="mb-4 inline-flex w-full gap-1 rounded-xl border border-slate-200/80 bg-slate-100/80 p-1 sm:w-auto"
+          >
+            {DEAL_TYPES.map((item) => {
+              const active = dealType === item.value;
+
+              return (
+                <button
+                  key={item.value}
+                  type="button"
+                  role="tab"
+                  aria-selected={active}
+                  onClick={() => setDealType(item.value)}
+                  className={`min-h-[42px] flex-1 rounded-lg px-4 py-2.5 text-sm font-semibold transition sm:flex-none sm:min-w-[6.5rem] ${
+                    active
+                      ? "bg-sun text-white shadow-sm"
+                      : "text-slate-600 hover:bg-white hover:text-slate-900"
+                  }`}
+                >
+                  {item.label}
+                </button>
+              );
+            })}
           </div>
 
           <form onSubmit={submit} className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <HeroSelect
                 label="Город"
                 value={city}
@@ -269,7 +314,11 @@ export default function RealEstateSearchHero({
                 ))}
               </HeroSelect>
 
-              <HeroSelect label="Комнат" value={rooms} onChange={(e) => setRooms(e.target.value)}>
+              <HeroSelect
+                label="Комнаты"
+                value={rooms}
+                onChange={(e) => setRooms(e.target.value)}
+              >
                 <option value="">Любое</option>
                 {ROOM_OPTIONS.map((item) => (
                   <option key={item} value={item}>
@@ -290,19 +339,23 @@ export default function RealEstateSearchHero({
               />
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-3">
+            <div className="flex flex-col gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:items-stretch">
               <button
                 type="submit"
-                className="mobile-btn bg-sun text-white hover:bg-sun-600 font-bold shadow-sm"
+                className="mobile-btn min-h-[46px] flex-1 bg-sun font-bold text-white shadow-sm hover:bg-sun-600"
               >
                 <Search size={18} />
-                Показать объявления
+                {submitLabel}
               </button>
 
               <button
                 type="button"
                 onClick={() => setMoreOpen(true)}
-                className="mobile-btn border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold"
+                className={`mobile-btn min-h-[46px] border bg-white font-semibold text-slate-700 hover:bg-slate-50 sm:min-w-[10.5rem] ${
+                  hasActiveFilters
+                    ? "border-sun/40 ring-1 ring-sun/15"
+                    : "border-slate-200"
+                }`}
               >
                 <SlidersHorizontal size={18} />
                 Ещё фильтры
