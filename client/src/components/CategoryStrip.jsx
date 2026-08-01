@@ -7,12 +7,12 @@ export default function CategoryStrip({ compact = false }) {
 
   return (
     <div className="border-t border-white/10 bg-ink-800">
-      <div className="container mx-auto max-w-5xl px-3 sm:px-4">
+      <div className="container mx-auto max-w-6xl px-2 sm:px-4">
         <nav
           aria-label="Категории"
-          className={`flex flex-wrap items-start gap-2 sm:gap-2.5 scroll-smooth ${
+          className={`flex items-start gap-2 sm:gap-3 overflow-x-auto scroll-smooth [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${
             compact ? "py-2" : "py-3"
-          } justify-center`}
+          }`}
         >
           {HOME_CATEGORIES.map((cat) => {
             const active =
@@ -22,12 +22,13 @@ export default function CategoryStrip({ compact = false }) {
               <Link
                 key={cat.slug}
                 to={cat.landingPath}
-                className="group shrink-0 flex w-[64px] sm:w-[72px] flex-col items-center text-center"
+                title={cat.title}
+                className="group shrink-0 flex w-[84px] sm:w-[92px] flex-col items-center text-center"
               >
                 <div
-                  className={`relative h-[48px] sm:h-[56px] w-full overflow-hidden rounded-xl bg-ink-600 ring-1 transition duration-200 group-hover:ring-sun/70 ${
+                  className={`relative h-[50px] sm:h-[56px] w-full overflow-hidden rounded-xl bg-ink-600 ring-1 transition duration-200 group-hover:ring-sun/60 group-hover:shadow-md ${
                     active
-                      ? "ring-sun shadow-[0_0_0_1px_rgba(255,122,26,0.35)]"
+                      ? "ring-sun shadow-[0_0_0_1px_rgba(255,122,26,0.4)]"
                       : "ring-white/10"
                   }`}
                 >
@@ -42,13 +43,17 @@ export default function CategoryStrip({ compact = false }) {
                     }}
                   />
 
-                  <div className="absolute inset-0 bg-gradient-to-t from-ink/55 via-ink/10 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-ink/60 via-ink/15 to-transparent" />
+
+                  {active && (
+                    <span className="absolute bottom-1 left-1/2 h-1 w-5 -translate-x-1/2 rounded-full bg-sun" />
+                  )}
                 </div>
 
                 <span
-                  className={`mt-1.5 w-full px-0.5 font-medium leading-tight line-clamp-2 transition group-hover:text-sun ${
-                    active ? "text-sun" : "text-white/90"
-                  } ${compact ? "text-[10px]" : "text-[11px] sm:text-xs"}`}
+                  className={`mt-1.5 min-h-[2.35rem] w-full px-0.5 font-medium leading-[1.2] transition group-hover:text-sun ${
+                    active ? "text-sun" : "text-white/95"
+                  } ${compact ? "text-[11px]" : "text-[11px] sm:text-xs"}`}
                 >
                   {cat.title}
                 </span>
