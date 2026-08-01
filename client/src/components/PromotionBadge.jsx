@@ -1,18 +1,21 @@
 import React from "react";
-import { Crown, TrendingUp } from "lucide-react";
+import { Crown, Sparkles } from "lucide-react";
 
 const SIZE_MAP = {
   sm: {
-    wrap: "px-2 py-0.5 text-[10px] gap-1 rounded-lg",
-    icon: 11,
+    wrap: "h-6 px-2 text-[10px] gap-1",
+    iconWrap: "h-4 w-4",
+    icon: 10,
   },
   md: {
-    wrap: "px-2.5 py-1 text-[11px] gap-1 rounded-lg",
-    icon: 12,
+    wrap: "h-7 px-2.5 text-[11px] gap-1.5",
+    iconWrap: "h-4 w-4",
+    icon: 11,
   },
   lg: {
-    wrap: "px-3 py-1.5 text-xs gap-1.5 rounded-xl",
-    icon: 14,
+    wrap: "h-8 px-3 text-xs gap-2",
+    iconWrap: "h-5 w-5",
+    icon: 13,
   },
 };
 
@@ -24,20 +27,28 @@ export default function PromotionBadge({
 }) {
   const sizeConfig = SIZE_MAP[size] || SIZE_MAP.md;
   const isVip = type === "vip";
+  const Icon = isVip ? Crown : Sparkles;
 
   return (
     <span
-      className={`promotion-badge inline-flex items-center font-bold uppercase tracking-wide text-white shadow-md ${
-        isVip ? "promotion-badge-vip" : "promotion-badge-top"
-      } ${sizeConfig.wrap} ${className}`}
+      className={[
+        "promotion-badge inline-flex items-center rounded-full font-bold uppercase tracking-[0.08em] text-white",
+        isVip ? "promotion-badge-vip" : "promotion-badge-top",
+        sizeConfig.wrap,
+        className,
+      ].join(" ")}
     >
-      {showIcon &&
-        (isVip ? (
-          <Crown size={sizeConfig.icon} className="shrink-0 drop-shadow-sm" />
-        ) : (
-          <TrendingUp size={sizeConfig.icon} className="shrink-0 drop-shadow-sm" />
-        ))}
-      {isVip ? "VIP" : "TOP"}
+      {showIcon && (
+        <span
+          className={[
+            "inline-flex shrink-0 items-center justify-center rounded-full bg-white/20 ring-1 ring-white/30",
+            sizeConfig.iconWrap,
+          ].join(" ")}
+        >
+          <Icon size={sizeConfig.icon} className="drop-shadow-sm" strokeWidth={2.5} />
+        </span>
+      )}
+      <span className="leading-none">{isVip ? "VIP" : "TOP"}</span>
     </span>
   );
 }
@@ -53,7 +64,7 @@ export function PromotionBadgeGroup({
   }
 
   return (
-    <div className={`flex flex-wrap items-center gap-1.5 ${className}`}>
+    <div className={`flex flex-col items-start gap-1 ${className}`}>
       {vip && <PromotionBadge type="vip" size={size} />}
       {top && <PromotionBadge type="top" size={size} />}
     </div>

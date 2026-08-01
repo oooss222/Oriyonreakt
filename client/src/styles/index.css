@@ -176,6 +176,8 @@
     position: relative;
     overflow: hidden;
     isolation: isolate;
+    border: 1px solid rgb(255 255 255 / 0.35);
+    text-shadow: 0 1px 1px rgb(0 0 0 / 0.18);
   }
 
   .promotion-badge::after {
@@ -184,27 +186,44 @@
     inset: 0;
     background: linear-gradient(
       105deg,
-      transparent 35%,
-      rgb(255 255 255 / 0.45) 50%,
-      transparent 65%
+      transparent 30%,
+      rgb(255 255 255 / 0.5) 50%,
+      transparent 70%
     );
-    transform: translateX(-120%) skewX(-12deg);
-    animation: promotion-shimmer 2.8s ease-in-out infinite;
+    transform: translateX(-130%) skewX(-14deg);
+    animation: promotion-shimmer 3.2s ease-in-out infinite;
     pointer-events: none;
   }
 
   .promotion-badge-vip {
-    background: linear-gradient(135deg, #fcd34d 0%, #f59e0b 45%, #ea580c 100%);
+    background: linear-gradient(135deg, #fde68a 0%, #f59e0b 38%, #ea580c 100%);
     box-shadow:
-      0 4px 14px rgb(245 158 11 / 0.45),
-      inset 0 1px 0 rgb(255 255 255 / 0.35);
+      0 2px 10px rgb(234 88 12 / 0.45),
+      0 0 0 1px rgb(251 191 36 / 0.35),
+      inset 0 1px 0 rgb(255 255 255 / 0.45);
   }
 
   .promotion-badge-top {
-    background: linear-gradient(135deg, #2dd4bf 0%, #0e7c7b 55%, #0f766e 100%);
+    background: linear-gradient(135deg, #5eead4 0%, #14b8a6 42%, #0e7490 100%);
     box-shadow:
-      0 4px 14px rgb(14 124 123 / 0.4),
-      inset 0 1px 0 rgb(255 255 255 / 0.28);
+      0 2px 10px rgb(14 116 144 / 0.4),
+      0 0 0 1px rgb(45 212 191 / 0.35),
+      inset 0 1px 0 rgb(255 255 255 / 0.4);
+  }
+
+  .promotion-card {
+    border-width: 2px;
+    transition:
+      box-shadow 0.25s ease,
+      transform 0.25s ease;
+  }
+
+  .promotion-card-vip:hover {
+    transform: translateY(-2px);
+  }
+
+  .promotion-card-top:hover {
+    transform: translateY(-2px);
   }
 
   .promotion-card-accent {
@@ -212,21 +231,23 @@
     position: absolute;
     inset-inline: 0;
     top: 0;
-    height: 3px;
+    height: 4px;
     z-index: 20;
     border-radius: inherit;
   }
 
   .promotion-card-accent-vip {
-    background: linear-gradient(90deg, #fbbf24, #f97316, #fbbf24);
-    background-size: 200% 100%;
-    animation: horizon-shine 3s linear infinite;
+    background: linear-gradient(90deg, #fbbf24, #f97316, #fde68a, #f97316, #fbbf24);
+    background-size: 220% 100%;
+    animation: horizon-shine 4s linear infinite;
+    box-shadow: 0 2px 12px rgb(251 191 36 / 0.55);
   }
 
   .promotion-card-accent-top {
-    background: linear-gradient(90deg, #5eead4, #0e7c7b, #5eead4);
-    background-size: 200% 100%;
-    animation: horizon-shine 3s linear infinite;
+    background: linear-gradient(90deg, #5eead4, #0e7c7b, #99f6e4, #0e7c7b, #5eead4);
+    background-size: 220% 100%;
+    animation: horizon-shine 4s linear infinite;
+    box-shadow: 0 2px 12px rgb(14 124 123 / 0.45);
   }
 
   .promotion-panel-vip {

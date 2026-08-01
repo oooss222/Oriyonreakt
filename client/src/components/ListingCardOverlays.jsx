@@ -20,24 +20,24 @@ export default function ListingCardOverlays({
         vip={vip}
         top={top}
         size="sm"
-        className="absolute left-2 top-2 z-10"
+        className="absolute left-2.5 top-2.5 z-10 drop-shadow-md"
       />
 
       {viewed && (
-        <span className="absolute top-2 right-2 z-10 px-2 py-0.5 text-[11px] font-medium rounded-md bg-black/55 text-white backdrop-blur-sm">
+        <span className="absolute top-2.5 right-2.5 z-10 rounded-full border border-white/10 bg-slate-900/65 px-2.5 py-1 text-[10px] font-semibold text-white backdrop-blur-md">
           Просмотрено
         </span>
       )}
 
       {viewCount > 0 && (
-        <span className="absolute bottom-2 left-2 z-10 inline-flex items-center gap-1 px-1.5 py-0.5 text-[11px] rounded-md bg-black/55 text-white backdrop-blur-sm">
-          <Eye className="w-3 h-3" />
+        <span className="absolute bottom-2.5 left-2.5 z-10 inline-flex items-center gap-1 rounded-full border border-white/10 bg-slate-900/65 px-2 py-1 text-[10px] font-medium text-white backdrop-blur-md">
+          <Eye className="h-3 w-3" />
           {formatViewCount(viewCount)}
         </span>
       )}
 
       {morePhotos > 0 && (
-        <span className="absolute bottom-2 right-2 z-10 text-[11px] bg-black/70 text-white rounded px-1.5 py-0.5">
+        <span className="absolute bottom-2.5 right-2.5 z-10 rounded-full bg-black/70 px-2 py-0.5 text-[10px] font-medium text-white">
           +{morePhotos}
         </span>
       )}
