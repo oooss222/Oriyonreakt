@@ -24,6 +24,7 @@ export const CAT_LABELS = {
   phones: "Телефоны",
   electronics: "Бытовая техника",
   computers: "Компьютеры и оргтехника",
+  services: "Услуги",
   repair: "Ремонт",
 };
 
@@ -59,6 +60,12 @@ const TIRES_SPECS = [
 const AUTO_SERVICE_SPECS = [
   { name: "Тип услуги", type: "select", options: COMMON_SPEC_OPTIONS.autoServiceType },
   { name: "Состояние", type: "select", options: COMMON_SPEC_OPTIONS.condition },
+];
+
+const SERVICE_SPECS = [
+  { name: "Формат", type: "select", options: COMMON_SPEC_OPTIONS.serviceFormat },
+  { name: "Опыт", type: "select", options: COMMON_SPEC_OPTIONS.serviceExperience },
+  { name: "Срок выполнения", type: "text" },
 ];
 
 export const CATS = {
@@ -187,6 +194,27 @@ export const CATS = {
       { name: "Видеокарта", type: "text" },
       { name: "Состояние", type: "select", options: COMMON_SPEC_OPTIONS.condition },
     ],
+  },
+  services: {
+    title: "Услуги",
+    shortTitle: "Услуги",
+    img: "/img/services.png",
+    desc: "Специалисты, ремонт, обучение и сервис",
+    subs: [
+      "Ремонт и строительство",
+      "Красота и здоровье",
+      "Образование и репетиторы",
+      "IT и digital",
+      "Юридические услуги",
+      "Бухгалтерия и финансы",
+      "Клининг и уборка",
+      "Перевозки и грузчики",
+      "Ремонт техники",
+      "Фото и видео",
+      "Организация мероприятий",
+      "Другое",
+    ],
+    specTemplate: SERVICE_SPECS,
   },
   repair: {
     title: "Ремонт",

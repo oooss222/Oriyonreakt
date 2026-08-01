@@ -3,6 +3,7 @@ export const CATEGORY_PHOTO_LIMITS = {
   electronics: 5,
   transport: 6,
   computers: 6,
+  services: 5,
   repair: 3,
   realestate: 8,
   furniture: 6,
