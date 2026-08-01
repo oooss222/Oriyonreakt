@@ -322,3 +322,5 @@ export function realEstateFilterUsesFloor(subcategory = "") {
 export function realEstateFilterUsesArea(subcategory = "") {
   return subcategory !== "";
 }
+
+export { REAL_ESTATE_SORT };

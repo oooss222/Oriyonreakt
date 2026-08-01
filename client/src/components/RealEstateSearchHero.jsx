@@ -2,11 +2,13 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, MapPin, ChevronDown, ChevronUp, SlidersHorizontal } from "lucide-react";
 import RealEstateMoreFiltersModal from "./RealEstateMoreFiltersModal";
+import RealEstateCitySelect from "./RealEstateCitySelect";
 import {
   DEAL_TYPES,
   ROOM_OPTIONS,
-  REAL_ESTATE_CITIES,
   SUBCATEGORY_META,
+  getPricePresetsForDeal,
+  realEstateSubcategoryUsesRooms,
 } from "../data/realEstate";
 import { buildRealEstateListingUrl } from "../lib/realEstate";
 import { formatPriceInput, getPriceDigits } from "../data/specOptions";
@@ -62,10 +64,13 @@ function HeroSelect({ label, value, onChange, children, className = "", icon: Ic
   );
 }
 
-function HeroPriceFilter({ priceFrom, priceTo, priceCurrency, onChange }) {
+function HeroPriceFilter({ priceFrom, priceTo, priceCurrency, onChange, dealType = "Купить" }) {
   const [open, setOpen] = React.useState(false);
   const rootRef = React.useRef(null);
   const summary = formatHeroPriceSummary(priceFrom, priceTo, priceCurrency);
+  const presets = getPricePresetsForDeal(dealType).filter(
+    (item) => item.from || item.to
+  );
 
   React.useEffect(() => {
     if (!open) return undefined;
@@ -159,6 +164,27 @@ function HeroPriceFilter({ priceFrom, priceTo, priceCurrency, onChange }) {
               />
             </div>
           </div>
+
+          {presets.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {presets.slice(0, 5).map((preset) => (
+                <button
+                  key={preset.label}
+                  type="button"
+                  onClick={() =>
+                    onChange({
+                      priceFrom: preset.from ? String(preset.from) : "",
+                      priceTo: preset.to ? String(preset.to) : "",
+                      priceCurrency,
+                    })
+                  }
+                  className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-medium text-slate-600 hover:border-sun/40 hover:bg-sun-50 hover:text-sun-800"
+                >
+                  {preset.label.replace("Любая", "").trim() || preset.label}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -226,6 +252,8 @@ export default function RealEstateSearchHero({
     subcategory || rooms || priceFrom || priceTo || dealType !== "Купить"
   );
 
+  const showRooms = realEstateSubcategoryUsesRooms(subcategory);
+
   return (
     <>
       <section
@@ -287,19 +315,29 @@ export default function RealEstateSearchHero({
           </div>
 
           <form onSubmit={submit} className="space-y-4">
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              <HeroSelect
-                label="Город"
-                value={city}
-                onChange={(e) => handleCityChange(e.target.value)}
-                icon={MapPin}
-              >
-                {REAL_ESTATE_CITIES.map((item) => (
-                  <option key={item} value={item}>
-                    {item}
-                  </option>
-                ))}
-              </HeroSelect>
+            <div
+              className={`grid grid-cols-1 gap-3 sm:grid-cols-2 ${
+                showRooms ? "lg:grid-cols-4" : "lg:grid-cols-3"
+              }`}
+            >
+              <label className="block min-w-0">
+                <span className={FIELD_LABEL}>Город</span>
+                <div className="relative">
+                  <MapPin
+                    size={15}
+                    className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 z-10"
+                  />
+                  <RealEstateCitySelect
+                    value={city}
+                    onChange={(e) => handleCityChange(e.target.value)}
+                    className={`${FIELD_CONTROL} pl-9 pr-9`}
+                  />
+                  <ChevronDown
+                    size={15}
+                    className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"
+                  />
+                </div>
+              </label>
 
               <HeroSelect
                 label="Тип"
@@ -314,20 +352,23 @@ export default function RealEstateSearchHero({
                 ))}
               </HeroSelect>
 
-              <HeroSelect
-                label="Комнаты"
-                value={rooms}
-                onChange={(e) => setRooms(e.target.value)}
-              >
-                <option value="">Любое</option>
-                {ROOM_OPTIONS.map((item) => (
-                  <option key={item} value={item}>
-                    {item}
-                  </option>
-                ))}
-              </HeroSelect>
+              {showRooms && (
+                <HeroSelect
+                  label="Комнаты"
+                  value={rooms}
+                  onChange={(e) => setRooms(e.target.value)}
+                >
+                  <option value="">Любое</option>
+                  {ROOM_OPTIONS.map((item) => (
+                    <option key={item} value={item}>
+                      {item}
+                    </option>
+                  ))}
+                </HeroSelect>
+              )}
 
               <HeroPriceFilter
+                dealType={dealType}
                 priceFrom={priceFrom}
                 priceTo={priceTo}
                 priceCurrency={priceCurrency}

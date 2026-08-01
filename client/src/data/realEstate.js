@@ -8,10 +8,9 @@ export const DEAL_TYPES = [
 
 export const ROOM_OPTIONS = ["1", "2", "3", "4", "5", "5+"];
 
-export const REAL_ESTATE_CITIES = [
-  "Душанбе",
-  "Худжанд",
-];
+export const REAL_ESTATE_CITIES = ["Душанбе", "Худжанд"];
+
+export const REAL_ESTATE_PRIMARY_CITIES = REAL_ESTATE_CITIES;
 
 export const DUSHANBE_DISTRICTS = [
   "Центр",
@@ -19,17 +18,41 @@ export const DUSHANBE_DISTRICTS = [
   "Фирдавси",
   "Шохмансур",
   "Исмоил Сомони",
+  "82-й микрорайон",
+  "84-й микрорайон",
   "92-й микрорайон",
+  "98-й микрорайон",
   "102-й микрорайон",
+  "116-й микрорайон",
   "120-й микрорайон",
   "140-й микрорайон",
   "Нижняя часть",
   "Варзоб",
+  "Рудаки",
+  "Айни",
+];
+
+export const POPULAR_DUSHANBE_DISTRICTS = [
+  "Сино",
+  "Фирдавси",
+  "Шохмансур",
+  "Исмоил Сомони",
+  "102-й микрорайон",
+  "120-й микрорайон",
 ];
 
 export const CITY_DISTRICTS = {
   Душанбе: DUSHANBE_DISTRICTS,
-  Худжанд: ["Центр", "Караван", "Авиагородок", "Зарафшон", "Куруш", "20 микрорайон"],
+  Худжанд: [
+    "Центр",
+    "Караван",
+    "Авиагородок",
+    "Зарафшон",
+    "Куруш",
+    "20 микрорайон",
+    "Балх",
+    "Согдиён",
+  ],
 };
 
 export const CITY_COORDINATES = {
@@ -81,22 +104,62 @@ export const SUBCATEGORY_META = {
 
 export const REAL_ESTATE_PRICE_PRESETS = [
   { label: "Любая", from: "", to: "" },
-  { label: "до 200 000 с.", from: "", to: "200000" },
-  { label: "200 000 – 500 000 с.", from: "200000", to: "500000" },
-  { label: "500 000 – 1 000 000 с.", from: "500000", to: "1000000" },
-  { label: "1 – 2 млн с.", from: "1000000", to: "2000000" },
-  { label: "2 – 5 млн с.", from: "2000000", to: "5000000" },
-  { label: "от 5 млн с.", from: "5000000", to: "" },
+  { label: "до 300 000 с.", from: "", to: "300000" },
+  { label: "300 000 – 700 000 с.", from: "300000", to: "700000" },
+  { label: "700 000 – 1 500 000 с.", from: "700000", to: "1500000" },
+  { label: "1,5 – 3 млн с.", from: "1500000", to: "3000000" },
+  { label: "3 – 7 млн с.", from: "3000000", to: "7000000" },
+  { label: "от 7 млн с.", from: "7000000", to: "" },
 ];
 
 export const REAL_ESTATE_RENT_PRESETS = [
   { label: "Любая", from: "", to: "" },
-  { label: "до 1 500 с.", from: "", to: "1500" },
-  { label: "1 500 – 3 000 с.", from: "1500", to: "3000" },
-  { label: "3 000 – 5 000 с.", from: "3000", to: "5000" },
+  { label: "до 800 с./мес.", from: "", to: "800" },
+  { label: "800 – 1 500 с.", from: "800", to: "1500" },
+  { label: "1 500 – 2 500 с.", from: "1500", to: "2500" },
+  { label: "2 500 – 5 000 с.", from: "2500", to: "5000" },
   { label: "5 000 – 10 000 с.", from: "5000", to: "10000" },
   { label: "от 10 000 с.", from: "10000", to: "" },
 ];
+
+export const REAL_ESTATE_DAILY_PRESETS = [
+  { label: "Любая", from: "", to: "" },
+  { label: "до 150 с./сут.", from: "", to: "150" },
+  { label: "150 – 300 с.", from: "150", to: "300" },
+  { label: "300 – 500 с.", from: "300", to: "500" },
+  { label: "500 – 800 с.", from: "500", to: "800" },
+  { label: "от 800 с.", from: "800", to: "" },
+];
+
+export const REAL_ESTATE_PRICE_PER_SQM_PRESETS = [
+  { label: "до 4 000 с./м²", from: "", to: "4000" },
+  { label: "4 000 – 6 000 с./м²", from: "4000", to: "6000" },
+  { label: "6 000 – 8 000 с./м²", from: "6000", to: "8000" },
+  { label: "8 000 – 12 000 с./м²", from: "8000", to: "12000" },
+  { label: "от 12 000 с./м²", from: "12000", to: "" },
+];
+
+export function getPricePresetsForDeal(dealType = "") {
+  if (dealType === "Снять") return REAL_ESTATE_RENT_PRESETS;
+  if (dealType === "Посуточно") return REAL_ESTATE_DAILY_PRESETS;
+  return REAL_ESTATE_PRICE_PRESETS;
+}
+
+export function realEstateSubcategoryUsesRooms(subcategory = "") {
+  return ["", "Квартиры", "Новостройки", "Комнаты", "Дома и коттеджи"].includes(
+    subcategory
+  );
+}
+
+export function realEstateSubcategoryUsesFloor(subcategory = "") {
+  return ["", "Квартиры", "Новостройки", "Комнаты", "Коммерческая недвижимость"].includes(
+    subcategory
+  );
+}
+
+export function realEstateSubcategoryUsesArea(subcategory = "") {
+  return subcategory !== "";
+}
 
 const BUILD_YEARS = Array.from({ length: 2026 - 1970 + 1 }, (_, i) =>
   String(2026 - i)
@@ -182,6 +245,14 @@ export const QUICK_COLLECTIONS = [
     params: {
       subcategory: "Квартиры",
       specs: { Комнат: "1", "Тип сделки": "Купить" },
+      location: "Душанбе",
+    },
+  },
+  {
+    title: "Снять в Душанбе",
+    params: {
+      subcategory: "Квартиры",
+      specs: { Комнат: "2", "Тип сделки": "Снять" },
       location: "Душанбе",
     },
   },

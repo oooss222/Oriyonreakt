@@ -4,7 +4,12 @@ import { MapPin } from "lucide-react";
 import { buildRealEstateListingUrl } from "../../lib/realEstate";
 import { REAL_ESTATE_CITIES, getDistrictsForCity } from "../../data/realEstate";
 
-export default function RealEstateDistrictBar({ city, onCityChange, totalCount = 0 }) {
+export default function RealEstateDistrictBar({
+  city,
+  onCityChange,
+  totalCount = 0,
+  activeDistrict = "",
+}) {
   const districts = getDistrictsForCity(city);
 
   return (
@@ -18,8 +23,8 @@ export default function RealEstateDistrictBar({ city, onCityChange, totalCount =
             <h2 className="text-lg font-bold text-slate-900">Город и районы</h2>
             <p className="text-sm text-slate-500 mt-0.5">
               {totalCount > 0
-                ? `${totalCount.toLocaleString("ru-RU")} объявлений в категории`
-                : "Выберите город для просмотра объявлений"}
+                ? `${totalCount.toLocaleString("ru-RU")} объявлений · цены в сомони`
+                : "Душанбе и Худжанд — выберите район"}
             </p>
           </div>
         </div>
@@ -29,7 +34,7 @@ export default function RealEstateDistrictBar({ city, onCityChange, totalCount =
             <button
               key={item}
               type="button"
-              onClick={() => onCityChange(item)}
+              onClick={() => onCityChange?.(item)}
               className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${
                 city === item
                   ? "bg-white text-slate-900 shadow-sm"
@@ -46,7 +51,11 @@ export default function RealEstateDistrictBar({ city, onCityChange, totalCount =
         <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide snap-x snap-mandatory">
           <Link
             to={buildRealEstateListingUrl({ city })}
-            className="snap-start shrink-0 px-3.5 py-2 rounded-full text-xs font-semibold border bg-slate-900 text-white hover:bg-slate-800 transition"
+            className={`snap-start shrink-0 px-3.5 py-2 rounded-full text-xs font-semibold border transition ${
+              !activeDistrict
+                ? "bg-slate-900 text-white border-slate-900"
+                : "bg-white text-slate-700 hover:border-sun/40 hover:text-sun"
+            }`}
           >
             Весь {city}
           </Link>
@@ -58,7 +67,11 @@ export default function RealEstateDistrictBar({ city, onCityChange, totalCount =
                 city,
                 specs: { Район: district },
               })}
-              className="snap-start shrink-0 px-3.5 py-2 rounded-full text-xs font-medium border bg-white text-slate-700 hover:border-sun/40 hover:text-sun transition"
+              className={`snap-start shrink-0 px-3.5 py-2 rounded-full text-xs font-medium border transition ${
+                activeDistrict === district
+                  ? "bg-lagoon-50 text-lagoon-800 border-lagoon/30"
+                  : "bg-white text-slate-700 hover:border-sun/40 hover:text-sun"
+              }`}
             >
               {district}
             </Link>

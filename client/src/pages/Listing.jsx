@@ -14,6 +14,7 @@ import AdSlot, { AdFeedCard, useAdPlacement } from "../components/AdSlot";
 import RealEstateSearchHero from "../components/RealEstateSearchHero";
 import RealEstateListingCard from "../components/RealEstateListingCard";
 import RealEstateMoreFiltersModal from "../components/RealEstateMoreFiltersModal";
+import RealEstateDistrictBar from "../components/realestate/RealEstateDistrictBar";
 import SaveSearchButton from "../components/SaveSearchButton";
 import { buildFeedWithAds } from "../lib/adFeed";
 import {
@@ -598,6 +599,23 @@ export default function Listing() {
         />
       )}
 
+      {isRealEstate && (
+        <RealEstateDistrictBar
+          city={appliedDraft.location || "Душанбе"}
+          activeDistrict={appliedDraft.specs?.["Район"] || ""}
+          totalCount={total}
+          onCityChange={(nextCity) => {
+            const nextSpecs = { ...appliedDraft.specs };
+            delete nextSpecs["Район"];
+            applyFilters({
+              ...appliedDraft,
+              location: nextCity,
+              specs: nextSpecs,
+            });
+          }}
+        />
+      )}
+
       <div className="space-y-4">
         <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 px-1">
           <div className="min-w-0">
@@ -619,7 +637,7 @@ export default function Listing() {
             </p>
           </div>
 
-          <div className="flex items-center gap-2 md:hidden">
+          <div className="flex items-center gap-2">
             {isRealEstate ? (
               <>
                 <button
@@ -645,7 +663,7 @@ export default function Listing() {
               <button
                 type="button"
                 onClick={() => setMobileFiltersOpen(true)}
-                className="mobile-btn border bg-white hover:bg-slate-50"
+                className="mobile-btn border bg-white hover:bg-slate-50 md:hidden"
               >
                 <SlidersHorizontal size={18} />
                 Фильтры

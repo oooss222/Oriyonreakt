@@ -17,8 +17,6 @@ const DUSHANBE_PRICE_PER_SQM = {
 const CITY_DEFAULT = {
   Душанбе: DUSHANBE_PRICE_PER_SQM.default,
   Худжанд: 4200,
-  Бохтар: 3500,
-  Куляб: 3200,
 };
 
 function parsePriceNumber(raw = "") {

@@ -221,7 +221,7 @@ export function buildRealEstatePageTitle(draft = {}) {
 
 export function buildRealEstateMetaDescription(draft = {}) {
   const title = buildRealEstatePageTitle(draft);
-  return `${title} — объявления на Oriyon.store. Фильтры по цене, площади, этажу и району.`;
+  return `${title} — объявления на Oriyon.store. Цены в сомони, фильтры по району, площади и цене за м².`;
 }
 
 export { CITY_SLUGS, SUBCATEGORY_SLUGS, DEAL_SLUGS, ROOM_SLUGS, DEAL_TYPES, ROOM_OPTIONS };

@@ -1,15 +1,6 @@
 const CITY_COORDINATES = {
   Душанбе: { lat: 38.5598, lng: 68.787, zoom: 12 },
   Худжанд: { lat: 40.283, lng: 69.622, zoom: 12 },
-  Бохтар: { lat: 37.836, lng: 68.781, zoom: 12 },
-  Куляб: { lat: 37.909, lng: 69.782, zoom: 12 },
-  Вахдат: { lat: 38.556, lng: 69.015, zoom: 13 },
-  Истаравшан: { lat: 39.914, lng: 69.007, zoom: 12 },
-  Турсунзаде: { lat: 38.512, lng: 68.231, zoom: 12 },
-  Исфара: { lat: 40.126, lng: 70.625, zoom: 12 },
-  Пенджикент: { lat: 39.492, lng: 67.608, zoom: 12 },
-  Хорог: { lat: 37.491, lng: 71.559, zoom: 12 },
-  Рогун: { lat: 38.691, lng: 69.958, zoom: 12 },
 };
 
 function getSpecValue(specs, name) {

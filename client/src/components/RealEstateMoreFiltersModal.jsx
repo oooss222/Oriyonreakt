@@ -2,12 +2,20 @@ import React from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { api } from "../lib/api";
-import { REAL_ESTATE_CAT, REAL_ESTATE_PRICE_PRESETS, REAL_ESTATE_RENT_PRESETS } from "../data/realEstate";
-import { getRealEstateFilterGrid } from "../data/realEstateFilters";
-import { getDistrictsForCity } from "../data/realEstate";
+import {
+  REAL_ESTATE_CAT,
+  REAL_ESTATE_PRICE_PER_SQM_PRESETS,
+  getPricePresetsForDeal,
+  getDistrictsForCity,
+  POPULAR_DUSHANBE_DISTRICTS,
+  realEstateSubcategoryUsesFloor,
+  realEstateSubcategoryUsesRooms,
+} from "../data/realEstate";
+import { getRealEstateFilterGrid, REAL_ESTATE_SORT } from "../data/realEstateFilters";
 import { formatPriceInput, getPriceDigits } from "../data/specOptions";
 import { buildRealEstateListingUrl } from "../lib/realEstate";
 import RealEstatePricePerSqmCalculator from "./RealEstatePricePerSqmCalculator";
+import RealEstateCitySelect from "./RealEstateCitySelect";
 
 const AREA_PRESETS = ["20", "30", "40", "50", "60", "70", "80", "100", "120", "150"];
 
@@ -42,6 +50,7 @@ function buildDraft({
     sellerType: extra.sellerType || "",
     pricePerSqmFrom: extra.pricePerSqmFrom || "",
     pricePerSqmTo: extra.pricePerSqmTo || "",
+    sort: extra.sort || "new",
     specs,
   };
 }
@@ -49,7 +58,7 @@ function buildDraft({
 function buildCountQuery(draft) {
   const params = {
     cat: REAL_ESTATE_CAT,
-    sort: "new",
+    sort: draft.sort || "new",
   };
 
   if (draft.location) params.location = draft.location;
@@ -75,6 +84,17 @@ function buildCountQuery(draft) {
   }
 
   return params;
+}
+
+function FilterSection({ title, children }) {
+  return (
+    <section className="py-3 border-b border-slate-100 last:border-b-0">
+      <h3 className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400 mb-3">
+        {title}
+      </h3>
+      <div className="space-y-3">{children}</div>
+    </section>
+  );
 }
 
 function FilterRow({ label, children }) {
@@ -115,6 +135,40 @@ function PillGroup({ value, options, onChange, anyLabel = "Любой" }) {
           {option}
         </button>
       ))}
+    </div>
+  );
+}
+
+function PresetPills({ presets, onSelect, activeFrom = "", activeTo = "" }) {
+  return (
+    <div className="flex flex-wrap gap-2">
+      {presets.map((preset) => {
+        if (!preset.from && !preset.to) return null;
+
+        const active =
+          String(activeFrom || "") === String(preset.from || "") &&
+          String(activeTo || "") === String(preset.to || "");
+
+        return (
+          <button
+            key={preset.label}
+            type="button"
+            onClick={() =>
+              onSelect({
+                from: preset.from ? String(preset.from) : "",
+                to: preset.to ? String(preset.to) : "",
+              })
+            }
+            className={`h-9 px-3 rounded-full border text-xs font-medium transition ${
+              active
+                ? "border-lagoon bg-lagoon-50 text-lagoon-800"
+                : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+            }`}
+          >
+            {preset.label}
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -183,10 +237,12 @@ export default function RealEstateMoreFiltersModal({
     [subcategory]
   );
 
-  const pricePresets =
-    dealType === "Снять" || dealType === "Посуточно"
-      ? REAL_ESTATE_RENT_PRESETS
-      : REAL_ESTATE_PRICE_PRESETS;
+  const pricePresets = getPricePresetsForDeal(dealType);
+  const effectiveSubcategory = draft.subcategory || subcategory;
+  const showRooms = realEstateSubcategoryUsesRooms(effectiveSubcategory);
+  const showFloor = realEstateSubcategoryUsesFloor(effectiveSubcategory);
+  const isRentDeal = dealType === "Снять" || dealType === "Посуточно";
+  const activeCity = draft.location || city || "Душанбе";
 
   const specField = (key) =>
     grid.more?.find((field) => field.type === "spec" && field.specKey === key) ||
@@ -209,7 +265,15 @@ export default function RealEstateMoreFiltersModal({
   const parkingOptions = specField("Парковка")?.options || [];
   const houseTypeOptions = specField("Тип дома")?.options || [];
 
-  const districts = getDistrictsForCity(draft.location || city || "Душанбе");
+  const districts = getDistrictsForCity(activeCity);
+  const popularDistricts =
+    activeCity === "Душанбе"
+      ? POPULAR_DUSHANBE_DISTRICTS
+      : districts.slice(0, 6);
+  const otherDistricts =
+    activeCity === "Душанбе"
+      ? districts.filter((item) => !POPULAR_DUSHANBE_DISTRICTS.includes(item))
+      : districts.slice(6);
 
   React.useEffect(() => {
     if (!open) return;
@@ -325,6 +389,7 @@ export default function RealEstateMoreFiltersModal({
       sellerType: draft.sellerType,
       pricePerSqmFrom: draft.pricePerSqmFrom,
       pricePerSqmTo: draft.pricePerSqmTo,
+      sort: draft.sort,
     });
 
     if (onNavigate) {
@@ -358,243 +423,339 @@ export default function RealEstateMoreFiltersModal({
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto px-4 py-2">
-          <FilterRow label="Цена до">
-            <input
-              value={draft.priceTo ? formatPriceInput(draft.priceTo) : ""}
-              onChange={(e) =>
-                setDraft((current) => ({
-                  ...current,
-                  priceTo: getPriceDigits(e.target.value),
-                }))
+          <FilterSection title="Местоположение">
+            <FilterRow label="Город">
+              <RealEstateCitySelect
+                value={draft.location || city}
+                onChange={(e) => {
+                  const nextCity = e.target.value;
+                  setDraft((current) => {
+                    const nextSpecs = { ...current.specs };
+                    delete nextSpecs["Район"];
+                    return {
+                      ...current,
+                      location: nextCity,
+                      specs: nextSpecs,
+                    };
+                  });
+                }}
+              />
+            </FilterRow>
+
+            {districts.length > 0 && (
+              <FilterRow label="Район">
+                <div className="space-y-3">
+                  {popularDistricts.length > 0 && (
+                    <PillGroup
+                      value={draft.specs?.["Район"] || ""}
+                      options={popularDistricts}
+                      onChange={(value) => setSpec("Район", value)}
+                      anyLabel="Любой"
+                    />
+                  )}
+                  {otherDistricts.length > 0 && (
+                    <select
+                      value={
+                        otherDistricts.includes(draft.specs?.["Район"])
+                          ? draft.specs["Район"]
+                          : ""
+                      }
+                      onChange={(e) => setSpec("Район", e.target.value)}
+                      className="mobile-control"
+                    >
+                      <option value="">
+                        {activeCity === "Душанбе"
+                          ? "Другие районы и микрорайоны"
+                          : "Все районы"}
+                      </option>
+                      {otherDistricts.map((item) => (
+                        <option key={item} value={item}>
+                          {item}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                </div>
+              </FilterRow>
+            )}
+          </FilterSection>
+
+          <FilterSection title="Цена, сомони">
+            <FilterRow label="Диапазон">
+              <div className="grid grid-cols-2 gap-2">
+                <input
+                  value={draft.priceFrom ? formatPriceInput(draft.priceFrom) : ""}
+                  onChange={(e) =>
+                    setDraft((current) => ({
+                      ...current,
+                      priceFrom: getPriceDigits(e.target.value),
+                    }))
+                  }
+                  placeholder="от"
+                  className="mobile-control"
+                />
+                <input
+                  value={draft.priceTo ? formatPriceInput(draft.priceTo) : ""}
+                  onChange={(e) =>
+                    setDraft((current) => ({
+                      ...current,
+                      priceTo: getPriceDigits(e.target.value),
+                    }))
+                  }
+                  placeholder="до"
+                  className="mobile-control"
+                />
+              </div>
+            </FilterRow>
+
+            <FilterRow
+              label={
+                dealType === "Посуточно"
+                  ? "Быстрый выбор, сут."
+                  : dealType === "Снять"
+                    ? "Быстрый выбор, мес."
+                    : "Быстрый выбор"
               }
-              placeholder="до"
-              className="mobile-control"
-            />
-          </FilterRow>
-
-          <FilterRow label="Быстрый выбор цены">
-            <select
-              defaultValue=""
-              onChange={(e) => {
-                const preset = pricePresets[Number(e.target.value)];
-                if (!preset) return;
-
-                setDraft((current) => ({
-                  ...current,
-                  priceFrom: preset.from ? String(preset.from) : current.priceFrom,
-                  priceTo: preset.to ? String(preset.to) : "",
-                }));
-              }}
-              className="mobile-control"
             >
-              <option value="" disabled>
-                Выберите диапазон
-              </option>
-              {pricePresets.map((preset, idx) => (
-                <option key={preset.label} value={idx}>
-                  {preset.label}
-                </option>
-              ))}
-            </select>
-          </FilterRow>
-
-          <FilterRow label="Продавец">
-            <PillGroup
-              anyLabel="Любой"
-              value={
-                draft.sellerType === "company" ? "Агент/Застройщик" : ""
-              }
-              options={["Агент/Застройщик"]}
-              onChange={(value) =>
-                setDraft((current) => ({
-                  ...current,
-                  sellerType: value ? "company" : "",
-                }))
-              }
-            />
-          </FilterRow>
-
-          <FilterRow label="Общая площадь">
-            <AreaRangeSelects
-              from={draft.areaFrom}
-              to={draft.areaTo}
-              onFromChange={(value) =>
-                setDraft((current) => ({ ...current, areaFrom: value }))
-              }
-              onToChange={(value) =>
-                setDraft((current) => ({ ...current, areaTo: value }))
-              }
-            />
-          </FilterRow>
-
-          <FilterRow label="Цена за м²">
-            <RealEstatePricePerSqmCalculator
-              pricePerSqmFrom={draft.pricePerSqmFrom}
-              pricePerSqmTo={draft.pricePerSqmTo}
-              onChange={({ pricePerSqmFrom, pricePerSqmTo }) =>
-                setDraft((current) => ({
-                  ...current,
-                  pricePerSqmFrom,
-                  pricePerSqmTo,
-                }))
-              }
-            />
-          </FilterRow>
-
-          <FilterRow label="Этаж">
-            <div className="grid grid-cols-2 gap-2">
-              <input
-                value={draft.floorFrom}
-                onChange={(e) =>
+              <PresetPills
+                presets={pricePresets}
+                activeFrom={draft.priceFrom}
+                activeTo={draft.priceTo}
+                onSelect={({ from, to }) =>
                   setDraft((current) => ({
                     ...current,
-                    floorFrom: e.target.value.replace(/[^\d]/g, ""),
+                    priceFrom: from,
+                    priceTo: to,
                   }))
                 }
-                placeholder="от"
-                className="mobile-control"
               />
-              <input
-                value={draft.floorTo}
-                onChange={(e) =>
+            </FilterRow>
+
+            {dealType !== "Посуточно" && (
+              <FilterRow label="Цена за м²">
+                <div className="space-y-3">
+                  <PresetPills
+                    presets={REAL_ESTATE_PRICE_PER_SQM_PRESETS}
+                    activeFrom={draft.pricePerSqmFrom}
+                    activeTo={draft.pricePerSqmTo}
+                    onSelect={({ from, to }) =>
+                      setDraft((current) => ({
+                        ...current,
+                        pricePerSqmFrom: from,
+                        pricePerSqmTo: to,
+                      }))
+                    }
+                  />
+                  <RealEstatePricePerSqmCalculator
+                    pricePerSqmFrom={draft.pricePerSqmFrom}
+                    pricePerSqmTo={draft.pricePerSqmTo}
+                    onChange={({ pricePerSqmFrom, pricePerSqmTo }) =>
+                      setDraft((current) => ({
+                        ...current,
+                        pricePerSqmFrom,
+                        pricePerSqmTo,
+                      }))
+                    }
+                  />
+                </div>
+              </FilterRow>
+            )}
+          </FilterSection>
+
+          <FilterSection title="Параметры объекта">
+            <FilterRow label="Продавец">
+              <PillGroup
+                anyLabel="Любой"
+                value={
+                  draft.sellerType === "company" ? "Агент/Застройщик" : ""
+                }
+                options={["Агент/Застройщик"]}
+                onChange={(value) =>
                   setDraft((current) => ({
                     ...current,
-                    floorTo: e.target.value.replace(/[^\d]/g, ""),
+                    sellerType: value ? "company" : "",
                   }))
                 }
-                placeholder="до"
-                className="mobile-control"
               />
-            </div>
-          </FilterRow>
+            </FilterRow>
 
-          <FilterRow label="Этажность">
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                onClick={() =>
-                  setDraft((current) => ({
-                    ...current,
-                    floorNotFirst: !current.floorNotFirst,
-                  }))
+            <FilterRow label="Общая площадь">
+              <AreaRangeSelects
+                from={draft.areaFrom}
+                to={draft.areaTo}
+                onFromChange={(value) =>
+                  setDraft((current) => ({ ...current, areaFrom: value }))
                 }
-                className={`mobile-btn border ${
-                  draft.floorNotFirst
-                    ? "border-lagoon bg-lagoon-50 text-lagoon-800"
-                    : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
-                }`}
-              >
-                Не первый
-              </button>
-              <button
-                type="button"
-                onClick={() =>
-                  setDraft((current) => ({
-                    ...current,
-                    floorNotLast: !current.floorNotLast,
-                  }))
+                onToChange={(value) =>
+                  setDraft((current) => ({ ...current, areaTo: value }))
                 }
-                className={`mobile-btn border ${
-                  draft.floorNotLast
-                    ? "border-lagoon bg-lagoon-50 text-lagoon-800"
-                    : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
-                }`}
-              >
-                Не последний
-              </button>
-            </div>
-          </FilterRow>
+              />
+            </FilterRow>
 
-          {districts.length > 0 && (
-            <FilterRow label="Район">
+            {showFloor && (
+              <>
+                <FilterRow label="Этаж">
+                  <div className="grid grid-cols-2 gap-2">
+                    <input
+                      value={draft.floorFrom}
+                      onChange={(e) =>
+                        setDraft((current) => ({
+                          ...current,
+                          floorFrom: e.target.value.replace(/[^\d]/g, ""),
+                        }))
+                      }
+                      placeholder="от"
+                      className="mobile-control"
+                    />
+                    <input
+                      value={draft.floorTo}
+                      onChange={(e) =>
+                        setDraft((current) => ({
+                          ...current,
+                          floorTo: e.target.value.replace(/[^\d]/g, ""),
+                        }))
+                      }
+                      placeholder="до"
+                      className="mobile-control"
+                    />
+                  </div>
+                </FilterRow>
+
+                <FilterRow label="Этажность">
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setDraft((current) => ({
+                          ...current,
+                          floorNotFirst: !current.floorNotFirst,
+                        }))
+                      }
+                      className={`mobile-btn border ${
+                        draft.floorNotFirst
+                          ? "border-lagoon bg-lagoon-50 text-lagoon-800"
+                          : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                      }`}
+                    >
+                      Не первый
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setDraft((current) => ({
+                          ...current,
+                          floorNotLast: !current.floorNotLast,
+                        }))
+                      }
+                      className={`mobile-btn border ${
+                        draft.floorNotLast
+                          ? "border-lagoon bg-lagoon-50 text-lagoon-800"
+                          : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                      }`}
+                    >
+                      Не последний
+                    </button>
+                  </div>
+                </FilterRow>
+              </>
+            )}
+
+            {furnitureOptions.length > 0 && (isRentDeal || showRooms) && (
+              <FilterRow label="Мебель">
+                <PillGroup
+                  value={draft.specs?.["Мебель"] || ""}
+                  options={furnitureOptions}
+                  onChange={(value) => setSpec("Мебель", value)}
+                />
+              </FilterRow>
+            )}
+
+            {houseTypeOptions.length > 0 && (
+              <FilterRow label="Тип дома">
+                <PillGroup
+                  value={draft.specs?.["Тип дома"] || ""}
+                  options={houseTypeOptions}
+                  onChange={(value) => setSpec("Тип дома", value)}
+                />
+              </FilterRow>
+            )}
+
+            {repairOptions.length > 0 && (
+              <FilterRow label="Ремонт">
+                <PillGroup
+                  value={draft.specs?.["Ремонт"] || ""}
+                  options={repairOptions}
+                  onChange={(value) => setSpec("Ремонт", value)}
+                />
+              </FilterRow>
+            )}
+
+            {conditionOptions.length > 0 && (
+              <FilterRow label="Состояние">
+                <PillGroup
+                  value={draft.specs?.["Состояние"] || ""}
+                  options={conditionOptions}
+                  onChange={(value) => setSpec("Состояние", value)}
+                />
+              </FilterRow>
+            )}
+
+            {showFloor && (
+              <>
+                <FilterRow label="Санузел">
+                  <PillGroup
+                    value={draft.specs?.["Санузел"] || ""}
+                    options={bathroomOptions}
+                    onChange={(value) => setSpec("Санузел", value)}
+                  />
+                </FilterRow>
+
+                <FilterRow label="Балкон">
+                  <PillGroup
+                    value={draft.specs?.["Балкон"] || ""}
+                    options={balconyOptions}
+                    onChange={(value) => setSpec("Балкон", value)}
+                  />
+                </FilterRow>
+              </>
+            )}
+
+            {parkingOptions.length > 0 && (
+              <FilterRow label="Парковка">
+                <PillGroup
+                  value={draft.specs?.["Парковка"] || ""}
+                  options={parkingOptions}
+                  onChange={(value) => setSpec("Парковка", value)}
+                />
+              </FilterRow>
+            )}
+
+            {showFloor && (
+              <FilterRow label="Высота потолков">
+                <PillGroup
+                  value={draft.specs?.["Высота потолков"] || ""}
+                  options={CEILING_HEIGHTS}
+                  onChange={(value) => setSpec("Высота потолков", value)}
+                />
+              </FilterRow>
+            )}
+
+            <FilterRow label="Сортировка">
               <select
-                value={draft.specs?.["Район"] || ""}
-                onChange={(e) => setSpec("Район", e.target.value)}
+                value={draft.sort || "new"}
+                onChange={(e) =>
+                  setDraft((current) => ({ ...current, sort: e.target.value }))
+                }
                 className="mobile-control"
               >
-                <option value="">Любой</option>
-                {districts.map((item) => (
-                  <option key={item} value={item}>
-                    {item}
+                {Object.entries(REAL_ESTATE_SORT).map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
                   </option>
                 ))}
               </select>
             </FilterRow>
-          )}
-
-          {houseTypeOptions.length > 0 && (
-            <FilterRow label="Тип дома">
-              <PillGroup
-                value={draft.specs?.["Тип дома"] || ""}
-                options={houseTypeOptions}
-                onChange={(value) => setSpec("Тип дома", value)}
-              />
-            </FilterRow>
-          )}
-
-          {repairOptions.length > 0 && (
-            <FilterRow label="Ремонт">
-              <PillGroup
-                value={draft.specs?.["Ремонт"] || ""}
-                options={repairOptions}
-                onChange={(value) => setSpec("Ремонт", value)}
-              />
-            </FilterRow>
-          )}
-
-          {conditionOptions.length > 0 && (
-            <FilterRow label="Состояние">
-              <PillGroup
-                value={draft.specs?.["Состояние"] || ""}
-                options={conditionOptions}
-                onChange={(value) => setSpec("Состояние", value)}
-              />
-            </FilterRow>
-          )}
-
-          {furnitureOptions.length > 0 && (
-            <FilterRow label="Мебель">
-              <PillGroup
-                value={draft.specs?.["Мебель"] || ""}
-                options={furnitureOptions}
-                onChange={(value) => setSpec("Мебель", value)}
-              />
-            </FilterRow>
-          )}
-
-          <FilterRow label="Санузел">
-            <PillGroup
-              value={draft.specs?.["Санузел"] || ""}
-              options={bathroomOptions}
-              onChange={(value) => setSpec("Санузел", value)}
-            />
-          </FilterRow>
-
-          <FilterRow label="Балкон">
-            <PillGroup
-              value={draft.specs?.["Балкон"] || ""}
-              options={balconyOptions}
-              onChange={(value) => setSpec("Балкон", value)}
-            />
-          </FilterRow>
-
-          {parkingOptions.length > 0 && (
-            <FilterRow label="Парковка">
-              <PillGroup
-                value={draft.specs?.["Парковка"] || ""}
-                options={parkingOptions}
-                onChange={(value) => setSpec("Парковка", value)}
-              />
-            </FilterRow>
-          )}
-
-          <FilterRow label="Высота потолков">
-            <PillGroup
-              value={draft.specs?.["Высота потолков"] || ""}
-              options={CEILING_HEIGHTS}
-              onChange={(value) => setSpec("Высота потолков", value)}
-            />
-          </FilterRow>
+          </FilterSection>
         </div>
 
         <div className="shrink-0 border-t bg-white px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
