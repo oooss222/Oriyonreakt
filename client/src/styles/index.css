@@ -176,8 +176,9 @@
     position: relative;
     overflow: hidden;
     isolation: isolate;
-    border: 1px solid rgb(255 255 255 / 0.35);
-    text-shadow: 0 1px 1px rgb(0 0 0 / 0.18);
+    border: 1px solid rgb(255 255 255 / 0.4);
+    text-shadow: 0 1px 2px rgb(0 0 0 / 0.22);
+    animation: promotion-badge-glow 2.8s ease-in-out infinite;
   }
 
   .promotion-badge::after {
@@ -186,44 +187,51 @@
     inset: 0;
     background: linear-gradient(
       105deg,
-      transparent 30%,
-      rgb(255 255 255 / 0.5) 50%,
-      transparent 70%
+      transparent 28%,
+      rgb(255 255 255 / 0.55) 50%,
+      transparent 72%
     );
     transform: translateX(-130%) skewX(-14deg);
-    animation: promotion-shimmer 3.2s ease-in-out infinite;
+    animation: promotion-shimmer 3.4s ease-in-out infinite;
     pointer-events: none;
   }
 
   .promotion-badge-vip {
-    background: linear-gradient(135deg, #fde68a 0%, #f59e0b 38%, #ea580c 100%);
+    background: linear-gradient(135deg, #fff7cc 0%, #fbbf24 24%, #f59e0b 52%, #ea580c 100%);
     box-shadow:
-      0 2px 10px rgb(234 88 12 / 0.45),
-      0 0 0 1px rgb(251 191 36 / 0.35),
-      inset 0 1px 0 rgb(255 255 255 / 0.45);
+      0 2px 12px rgb(234 88 12 / 0.5),
+      0 0 0 1px rgb(251 191 36 / 0.45),
+      inset 0 1px 0 rgb(255 255 255 / 0.55);
   }
 
   .promotion-badge-top {
-    background: linear-gradient(135deg, #5eead4 0%, #14b8a6 42%, #0e7490 100%);
+    background: linear-gradient(135deg, #ccfbf1 0%, #2dd4bf 26%, #0d9488 54%, #0e7490 100%);
     box-shadow:
-      0 2px 10px rgb(14 116 144 / 0.4),
-      0 0 0 1px rgb(45 212 191 / 0.35),
-      inset 0 1px 0 rgb(255 255 255 / 0.4);
+      0 2px 12px rgb(13 148 136 / 0.45),
+      0 0 0 1px rgb(45 212 191 / 0.4),
+      inset 0 1px 0 rgb(255 255 255 / 0.5);
   }
 
   .promotion-card {
+    position: relative;
     border-width: 2px;
     transition:
       box-shadow 0.25s ease,
-      transform 0.25s ease;
+      transform 0.25s ease,
+      border-color 0.25s ease;
   }
 
-  .promotion-card-vip:hover {
+  .promotion-card-vip:hover,
+  .promotion-card-top:hover,
+  .promotion-card-both:hover {
     transform: translateY(-2px);
   }
 
-  .promotion-card-top:hover {
-    transform: translateY(-2px);
+  .promotion-card-both {
+    border: 2px solid transparent;
+    background:
+      linear-gradient(135deg, rgb(255 251 235 / 0.55), #fff 45%, rgb(236 254 255 / 0.5)) padding-box,
+      linear-gradient(135deg, rgb(251 191 36 / 0.95), rgb(14 124 123 / 0.95)) border-box;
   }
 
   .promotion-card-accent {
@@ -231,23 +239,94 @@
     position: absolute;
     inset-inline: 0;
     top: 0;
-    height: 4px;
+    height: 5px;
     z-index: 20;
-    border-radius: inherit;
+    border-top-left-radius: inherit;
+    border-top-right-radius: inherit;
   }
 
   .promotion-card-accent-vip {
-    background: linear-gradient(90deg, #fbbf24, #f97316, #fde68a, #f97316, #fbbf24);
-    background-size: 220% 100%;
-    animation: horizon-shine 4s linear infinite;
-    box-shadow: 0 2px 12px rgb(251 191 36 / 0.55);
+    background: linear-gradient(90deg, #fde68a, #fbbf24, #f97316, #fde68a, #fbbf24);
+    background-size: 240% 100%;
+    animation: horizon-shine 3.5s linear infinite;
+    box-shadow: 0 3px 14px rgb(251 191 36 / 0.6);
   }
 
   .promotion-card-accent-top {
-    background: linear-gradient(90deg, #5eead4, #0e7c7b, #99f6e4, #0e7c7b, #5eead4);
-    background-size: 220% 100%;
-    animation: horizon-shine 4s linear infinite;
-    box-shadow: 0 2px 12px rgb(14 124 123 / 0.45);
+    background: linear-gradient(90deg, #99f6e4, #5eead4, #0e7c7b, #99f6e4, #5eead4);
+    background-size: 240% 100%;
+    animation: horizon-shine 3.5s linear infinite;
+    box-shadow: 0 3px 14px rgb(14 124 123 / 0.5);
+  }
+
+  .promotion-card-accent-both {
+    background: linear-gradient(
+      90deg,
+      #fbbf24,
+      #f59e0b,
+      #14b8a6,
+      #0e7c7b,
+      #fbbf24
+    );
+    background-size: 260% 100%;
+    animation: horizon-shine 3s linear infinite;
+    box-shadow:
+      0 3px 14px rgb(251 191 36 / 0.45),
+      0 3px 14px rgb(14 124 123 / 0.35);
+  }
+
+  .promotion-card-stripe {
+    pointer-events: none;
+    position: absolute;
+    inset-block: 0;
+    left: 0;
+    width: 4px;
+    z-index: 15;
+    border-top-left-radius: inherit;
+    border-bottom-left-radius: inherit;
+  }
+
+  .promotion-card-stripe-vip {
+    background: linear-gradient(180deg, #fde68a, #f59e0b, #ea580c);
+    box-shadow: 2px 0 10px rgb(245 158 11 / 0.35);
+  }
+
+  .promotion-card-stripe-top {
+    background: linear-gradient(180deg, #99f6e4, #14b8a6, #0e7490);
+    box-shadow: 2px 0 10px rgb(14 124 123 / 0.3);
+  }
+
+  .promotion-card-stripe-both {
+    background: linear-gradient(180deg, #fbbf24, #14b8a6, #0e7490);
+    box-shadow:
+      2px 0 10px rgb(245 158 11 / 0.28),
+      2px 0 10px rgb(14 124 123 / 0.22);
+  }
+
+  @keyframes promotion-badge-glow {
+    0%,
+    100% {
+      filter: brightness(1);
+    }
+    50% {
+      filter: brightness(1.08);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .promotion-badge,
+    .promotion-badge::after,
+    .promotion-card-accent-vip,
+    .promotion-card-accent-top,
+    .promotion-card-accent-both {
+      animation: none !important;
+    }
+
+    .promotion-card-vip:hover,
+    .promotion-card-top:hover,
+    .promotion-card-both:hover {
+      transform: none;
+    }
   }
 
   .promotion-panel-vip {
