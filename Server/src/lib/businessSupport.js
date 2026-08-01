@@ -1,6 +1,6 @@
 const { query } = require("../db");
 
-const SUPPORT_TITLE = "Oriyon Бизнес — консультация";
+const SUPPORT_TITLE = "Oriyon Premium — консультация";
 const SUPPORT_CAT = "support";
 
 async function findSupportAdmin() {
@@ -60,7 +60,7 @@ async function createSupportListing(adminId) {
       FLOOR(10000000 + RANDOM() * 90000000),
       $1,
       '',
-      'Служебный диалог для консультаций по бизнес-аккаунту Oriyon',
+      'Служебный диалог для консультаций по премиум-аккаунту Oriyon',
       '',
       $2,
       '',

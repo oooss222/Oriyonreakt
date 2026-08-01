@@ -946,7 +946,7 @@ export default function Messages() {
 
                           <div className="text-xs text-ink-400 mt-0.5 line-clamp-1">
                             {supportItem
-                              ? "Бизнес-аккаунт"
+                              ? "Премиум-аккаунт"
                               : item.senderName || item.senderEmail || "Пользователь"}
                           </div>
 
@@ -1018,7 +1018,7 @@ export default function Messages() {
                     <div className="flex flex-wrap items-center gap-2 text-xs text-ink-400">
                       <span>
                         {supportThread
-                          ? `${peerName} · бизнес-аккаунт`
+                          ? `${peerName} · премиум-аккаунт`
                           : peerName || "Пользователь"}
                       </span>
                       {!supportThread && (
@@ -1072,11 +1072,11 @@ export default function Messages() {
                             <Building2 size={20} />
                           </div>
                           <div className="font-display font-bold text-ink">
-                            Консультация по Oriyon Бизнес
+                            Консультация по Oriyon Premium
                           </div>
                           <p className="text-sm text-ink-400 mt-2 leading-relaxed">
                             Задайте вопрос об условиях, стоимости и подключении
-                            бизнес-аккаунта. Администратор ответит в этом чате.
+                            премиум-аккаунта. Администратор ответит в этом чате.
                           </p>
                         </div>
                       ) : (

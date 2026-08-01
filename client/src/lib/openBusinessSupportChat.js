@@ -1,10 +1,10 @@
 import { api } from "./api";
 import { goToAuth } from "./auth";
 
-export const BUSINESS_SUPPORT_TITLE = "Oriyon Бизнес — консультация";
+export const BUSINESS_SUPPORT_TITLE = "Oriyon Premium — консультация";
 
 export const BUSINESS_SUPPORT_DRAFT =
-  "Здравствуйте! Интересует бизнес-аккаунт Oriyon Бизнес. Подскажите, пожалуйста, условия подключения.";
+  "Здравствуйте! Интересует премиум-аккаунт Oriyon Premium. Подскажите, пожалуйста, условия подключения.";
 
 export function isBusinessSupportThread(item) {
   if (!item) return false;
@@ -13,6 +13,7 @@ export function isBusinessSupportThread(item) {
   const title = String(item.listingTitle || "").toLowerCase();
 
   return (
+    title.includes("oriyon premium") ||
     title.includes("oriyon бизнес") ||
     title.includes("консультация") ||
     title.includes("поддержка")

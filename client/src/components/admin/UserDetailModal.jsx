@@ -136,7 +136,7 @@ export default function UserDetailModal({
 
     if (user.sellerType === "company") {
       const ok = confirm(
-        `Отключить бизнес-аккаунт у «${user.companyName || user.name}»? Пользователь станет частным лицом.`
+        `Отключить премиум-аккаунт у «${user.companyName || user.name}»? Пользователь станет частным лицом.`
       );
       if (!ok) return;
 
@@ -148,7 +148,7 @@ export default function UserDetailModal({
         setDetail((prev) => ({ ...prev, user: { ...prev.user, ...updated } }));
         onUserUpdated?.(updated);
       } catch (e) {
-        alert(e.message || "Не удалось отключить бизнес-аккаунт");
+        alert(e.message || "Не удалось отключить премиум-аккаунт");
       } finally {
         setActionLoading(false);
       }
@@ -156,7 +156,7 @@ export default function UserDetailModal({
     }
 
     const companyName = prompt(
-      "Название компании для бизнес-аккаунта:",
+      "Название компании для премиум-аккаунта:",
       user.companyName || user.name || ""
     );
 
@@ -176,7 +176,7 @@ export default function UserDetailModal({
       setDetail((prev) => ({ ...prev, user: { ...prev.user, ...updated } }));
       onUserUpdated?.(updated);
     } catch (e) {
-      alert(e.message || "Не удалось подключить бизнес-аккаунт");
+      alert(e.message || "Не удалось подключить премиум-аккаунт");
     } finally {
       setActionLoading(false);
     }
@@ -304,14 +304,14 @@ export default function UserDetailModal({
                     <div className="rounded-xl border bg-blue-50 p-3 text-sm space-y-1">
                       <div className="inline-flex items-center gap-1 font-semibold text-blue-800">
                         <Building2 size={15} />
-                        {user.companyName || "Компания"}
+                        {user.companyName || "Премиум"}
                       </div>
                       {user.companyDescription && (
                         <p className="text-slate-600">{user.companyDescription}</p>
                       )}
                       <div className="text-xs text-slate-500">
                         {user.businessVerified
-                          ? "Проверенный бизнес"
+                          ? "Проверенный премиум"
                           : "Ожидает верификации"}
                       </div>
                     </div>
@@ -357,7 +357,7 @@ export default function UserDetailModal({
                       <BadgeCheck size={16} />
                       {user.businessVerified
                         ? "Снять верификацию"
-                        : "Верифицировать бизнес"}
+                        : "Верифицировать премиум"}
                     </button>
                   )}
 
@@ -374,8 +374,8 @@ export default function UserDetailModal({
                     >
                       <Building2 size={16} />
                       {user.sellerType === "company"
-                        ? "Отключить бизнес-аккаунт"
-                        : "Подключить бизнес-аккаунт"}
+                        ? "Отключить премиум-аккаунт"
+                        : "Подключить премиум-аккаунт"}
                     </button>
                   )}
                 </div>

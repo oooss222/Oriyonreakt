@@ -4,8 +4,8 @@ export const COMPANY_LISTING_LIMIT = 100;
 export const BUSINESS_BENEFITS = [
   "До 100 активных объявлений",
   "Бренд-страница с логотипом и описанием",
-  "Бейдж «Компания» на объявлениях",
-  "Верификация бизнеса модератором",
+  "Бейдж «Премиум» на объявлениях",
+  "Верификация премиум-аккаунта модератором",
   "Приоритетное доверие покупателей",
 ];
 
@@ -18,7 +18,7 @@ export function isCompanyAccount(user) {
 }
 
 export function sellerTypeLabel(type) {
-  return type === "company" ? "Компания" : "Частное лицо";
+  return type === "company" ? "Премиум" : "Частное лицо";
 }
 
 export function getDisplayName(user) {

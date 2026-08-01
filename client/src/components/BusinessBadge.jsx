@@ -23,7 +23,7 @@ export default function BusinessBadge({
         className={`inline-flex items-center rounded-full font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 ${sizeClasses} ${className}`}
       >
         <BadgeCheck className={size === "lg" ? "w-4 h-4" : "w-3 h-3"} />
-        Проверенный бизнес
+        Проверенный премиум
       </span>
     );
   }

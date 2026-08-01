@@ -212,9 +212,9 @@ export default function AdminUsersSection({
             className="h-11 rounded-xl border px-3 outline-none focus:ring-2 focus:ring-sun/40"
           >
             <option value="all">Все аккаунты</option>
-            <option value="company">Компании</option>
+            <option value="company">Премиум</option>
             <option value="unverified">Ждут верификации</option>
-            <option value="verified">Проверенный бизнес</option>
+            <option value="verified">Проверенный премиум</option>
           </select>
 
           <select
@@ -331,7 +331,7 @@ export default function AdminUsersSection({
                                 : "bg-blue-50 text-blue-700 border-blue-200"
                             }`}
                           >
-                            {user.businessVerified ? "Проверен" : "Компания"}
+                            {user.businessVerified ? "Проверен" : "Премиум"}
                           </span>
                         ) : (
                           <span className="text-xs text-slate-400">Частник</span>

@@ -104,7 +104,7 @@ export default function BusinessProfileSection({ token, me, onUpdated }) {
       });
 
       onUpdated?.(updated);
-      setSuccess("Бизнес-профиль сохранён");
+      setSuccess("Премиум-профиль сохранён");
     } catch (e) {
       setError(e.message || "Не удалось сохранить");
     } finally {
@@ -162,9 +162,9 @@ export default function BusinessProfileSection({ token, me, onUpdated }) {
           <div>
             <div className="inline-flex items-center gap-2 text-sun-700 font-semibold">
               <Sparkles size={18} />
-              Oriyon Бизнес
+              Oriyon Premium
             </div>
-            <h2 className="text-xl font-bold mt-2">Бизнес-аккаунт</h2>
+            <h2 className="text-xl font-bold mt-2">Премиум-аккаунт</h2>
             <p className="text-sm text-slate-500 mt-1 max-w-2xl">
               Расширенный профиль для агентств, девелоперов и компаний. Больше
               объявлений, бренд-страница и доверие покупателей.
@@ -209,7 +209,7 @@ export default function BusinessProfileSection({ token, me, onUpdated }) {
           <div className="rounded-2xl border border-dashed border-blue-200 bg-blue-50/50 p-4 space-y-4">
             <div>
               <div className="font-semibold text-slate-900">
-                Что даёт бизнес-аккаунт
+                Что даёт премиум-аккаунт
               </div>
               <ul className="mt-3 space-y-2 text-sm text-slate-600">
                 {BUSINESS_BENEFITS.map((item) => (
@@ -221,12 +221,12 @@ export default function BusinessProfileSection({ token, me, onUpdated }) {
               </ul>
               <p className="text-xs text-slate-500 mt-3">
                 Частный аккаунт: до {PRIVATE_LISTING_LIMIT} активных объявлений.
-                Бизнес: до {COMPANY_LISTING_LIMIT}.
+                Премиум: до {COMPANY_LISTING_LIMIT}.
               </p>
             </div>
 
             <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
-              Подключение бизнес-аккаунта выполняет администратор Oriyon.
+              Подключение премиум-аккаунта выполняет администратор Oriyon.
               Напишите в чат — обсудим условия и подключим профиль компании.
             </div>
 
@@ -362,12 +362,12 @@ export default function BusinessProfileSection({ token, me, onUpdated }) {
 
             {me?.businessVerified ? (
               <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700">
-                Компания прошла проверку модератором Oriyon.
+                Премиум-аккаунт прошёл проверку модератором Oriyon.
               </div>
             ) : (
               <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
                 Заполните профиль компании — после проверки модератор выдаст
-                бейдж «Проверенный бизнес».
+                бейдж «Проверенный премиум».
               </div>
             )}
           </div>
@@ -392,7 +392,7 @@ export default function BusinessProfileSection({ token, me, onUpdated }) {
             disabled={saving}
             className="inline-flex items-center justify-center px-5 py-3 rounded-2xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition disabled:opacity-60"
           >
-            {saving ? "Сохранение…" : "Сохранить бизнес-профиль"}
+            {saving ? "Сохранение…" : "Сохранить премиум-профиль"}
           </button>
         )}
       </div>

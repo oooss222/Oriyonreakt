@@ -47,7 +47,7 @@ function formatMemberSince(value) {
 }
 
 function sellerTypeLabel(type) {
-  return type === "company" ? "Компания" : "Частное лицо";
+  return type === "company" ? "Премиум" : "Частное лицо";
 }
 
 function normalizeExternalUrl(value = "") {

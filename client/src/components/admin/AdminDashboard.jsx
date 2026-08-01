@@ -123,7 +123,7 @@ export default function AdminDashboard({
           <p className="text-sm text-slate-500 mt-1">
             {isSuperAdmin
               ? "Полная статистика пользователей, объявлений и финансов."
-              : "Приоритетные задачи, модерация, пользователи и бизнес-аккаунты."}
+              : "Приоритетные задачи, модерация, пользователи и премиум-аккаунты."}
           </p>
         </div>
 
@@ -142,7 +142,7 @@ export default function AdminDashboard({
             <div className="text-sm text-white/70">В очереди на обработку</div>
             <div className="text-3xl font-bold mt-1">{queueTotal}</div>
             <div className="text-xs text-white/60 mt-1">
-              объявления · жалобы · бизнес-верификация
+              объявления · жалобы · верификация премиум
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -170,7 +170,7 @@ export default function AdminDashboard({
                 onClick={() => onGoToSection?.("users", { business: "unverified" })}
                 className="px-3 py-1.5 rounded-full bg-white/15 hover:bg-white/25 text-xs font-semibold"
               >
-                Бизнес: {pendingBusiness}
+                Премиум: {pendingBusiness}
               </button>
             )}
             {queueTotal === 0 && (
@@ -201,9 +201,9 @@ export default function AdminDashboard({
         />
         <PriorityCard
           icon={Building2}
-          title="Бизнес без верификации"
+          title="Премиум без верификации"
           count={pendingBusiness}
-          hint="Компании ждут проверки"
+          hint="Премиум-аккаунты ждут проверки"
           tone="blue"
           onClick={() => onGoToSection?.("users", { business: "unverified" })}
         />
@@ -225,7 +225,7 @@ export default function AdminDashboard({
             hint="Регистрации"
           />
           <StatCard
-            label="Компании"
+            label="Премиум"
             value={business?.totalCompanies || 0}
             tone="blue"
           />
@@ -268,7 +268,7 @@ export default function AdminDashboard({
         <div className="rounded-2xl border bg-white p-4">
           <div className="flex items-center gap-2 text-sm font-semibold text-slate-700 mb-3">
             <BadgeCheck size={16} />
-            Бизнес-аккаунты
+            Премиум-аккаунты
           </div>
           <div className="flex items-end justify-between gap-3">
             <div>

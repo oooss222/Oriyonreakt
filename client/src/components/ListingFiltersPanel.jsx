@@ -557,7 +557,7 @@ export default function ListingFiltersPanel({
       draft.subcategory,
       draft.specs?.Марка || draft.specs?.Производитель,
       draft.location || draft.region,
-      draft.sellerType === "company" ? "Компании" : "",
+      draft.sellerType === "company" ? "Премиум" : "",
     ]
       .filter(Boolean)
       .join(" · ");
@@ -620,8 +620,8 @@ export default function ListingFiltersPanel({
           >
             <Building2 size={16} />
             {draft.sellerType === "company"
-              ? "Только компании"
-              : "Показать объявления компаний"}
+              ? "Только премиум"
+              : "Показать премиум-объявления"}
           </button>
         </div>
       )}
