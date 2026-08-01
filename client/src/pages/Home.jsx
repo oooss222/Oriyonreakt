@@ -7,6 +7,7 @@ import AdSlot from "../components/AdSlot";
 import BusinessPromoBanner from "../components/BusinessPromoBanner";
 import { api } from "../lib/api";
 import { getDefaultCity } from "../lib/recommendationProfile";
+import { CONSENT_EVENT } from "../lib/cookieConsent";
 import { trackListingClick } from "../lib/track";
 import { getListingThumb } from "../lib/media";
 import { formatPrice, formatListingDate } from "../lib/format";
@@ -226,6 +227,13 @@ export default function Home() {
   const [realEstateListings, setRealEstateListings] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState("");
+  const [reloadKey, setReloadKey] = React.useState(0);
+
+  React.useEffect(() => {
+    const handleConsent = () => setReloadKey((value) => value + 1);
+    window.addEventListener(CONSENT_EVENT, handleConsent);
+    return () => window.removeEventListener(CONSENT_EVENT, handleConsent);
+  }, []);
 
   React.useEffect(() => {
     let active = true;
@@ -286,7 +294,7 @@ export default function Home() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [reloadKey]);
 
   const feedPool = React.useMemo(() => {
     const merged = [...forYou, ...listings];

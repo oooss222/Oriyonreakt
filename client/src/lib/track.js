@@ -6,6 +6,7 @@ import {
   readRecommendationProfile,
   writeRecommendationProfile,
 } from "./recommendationProfile";
+import { hasAnalyticsConsent } from "./cookieConsent";
 
 const queue = [];
 let flushTimer = null;
@@ -47,7 +48,7 @@ async function flushEvents() {
 }
 
 export function trackEvent(event) {
-  if (!event?.type) return;
+  if (!event?.type || !hasAnalyticsConsent()) return;
 
   const payload = {
     ...event,

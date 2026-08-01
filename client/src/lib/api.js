@@ -3,6 +3,7 @@ import {
   getRecommendationHeaders,
   readRecommendationProfile,
 } from "./recommendationProfile";
+import { hasAnalyticsConsent } from "./cookieConsent";
 
 const API = (
   import.meta.env.VITE_API_BASE ||
@@ -173,7 +174,7 @@ export const api = {
 
     return request(`/recommendations/home?${q}`, {
       token: token || undefined,
-      headers: getRecommendationHeaders(profile),
+      headers: hasAnalyticsConsent() ? getRecommendationHeaders(profile) : {},
     });
   },
 

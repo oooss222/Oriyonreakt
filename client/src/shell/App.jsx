@@ -5,6 +5,7 @@ import AuthHeader from "../components/auth/AuthHeader";
 import Footer from "../components/Footer";
 import MobileNav from "../components/MobileNav";
 import CompareFloatingBar from "../components/CompareFloatingBar";
+import CookieConsent from "../components/CookieConsent";
 import { connectChatSocket, disconnectChatSocket, getChatSocket } from "../lib/chatSocket";
 import { TOKEN_KEY } from "../lib/auth";
 
@@ -63,6 +64,7 @@ export default function App() {
       )}
       {!isAuthPage && <MobileNav />}
       {!isAuthPage && <CompareFloatingBar />}
+      {!isAuthPage && <CookieConsent />}
     </div>
   );
 }
