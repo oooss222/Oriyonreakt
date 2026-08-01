@@ -550,6 +550,13 @@ export const api = {
       body: { verified },
     }),
 
+  adminSetBusinessAccount: (token, userId, data) =>
+    request(`/admin/users/${userId}/business-account`, {
+      method: "PUT",
+      token,
+      body: data,
+    }),
+
   adminListings: (token, params = {}) => {
     const qs = new URLSearchParams();
 

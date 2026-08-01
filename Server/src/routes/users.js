@@ -61,9 +61,26 @@ function normalizeTelegram(value = "") {
 
 router.put("/me", auth, async (req, res) => {
   try {
+    const current = await User.findById(req.user.id);
+
+    if (!current) {
+      return res.status(404).json({
+        error: "User not found",
+      });
+    }
+
     const body = req.body || {};
 
-    const updated = await User.updateProfile(req.user.id, {
+    if (
+      body.sellerType !== undefined &&
+      body.sellerType !== current.sellerType
+    ) {
+      return res.status(403).json({
+        error: "Business account can only be assigned by an administrator",
+      });
+    }
+
+    const updateFields = {
       name: body.name !== undefined ? String(body.name).trim() : undefined,
       phone: body.phone !== undefined ? String(body.phone).trim() : undefined,
       whatsapp:
@@ -74,32 +91,38 @@ router.put("/me", auth, async (req, res) => {
         body.telegram !== undefined
           ? normalizeTelegram(body.telegram)
           : undefined,
-      sellerType: body.sellerType || undefined,
-      companyName:
-        body.companyName !== undefined
-          ? String(body.companyName).trim()
-          : undefined,
-      companyDescription:
-        body.companyDescription !== undefined
-          ? String(body.companyDescription).trim()
-          : undefined,
-      companyLogo:
-        body.companyLogo !== undefined
-          ? String(body.companyLogo).trim()
-          : undefined,
-      companyAddress:
-        body.companyAddress !== undefined
-          ? String(body.companyAddress).trim()
-          : undefined,
-      companyWebsite:
-        body.companyWebsite !== undefined
-          ? String(body.companyWebsite).trim()
-          : undefined,
-      companyInstagram:
-        body.companyInstagram !== undefined
-          ? String(body.companyInstagram).trim()
-          : undefined,
-    });
+    };
+
+    if (current.sellerType === "company") {
+      Object.assign(updateFields, {
+        companyName:
+          body.companyName !== undefined
+            ? String(body.companyName).trim()
+            : undefined,
+        companyDescription:
+          body.companyDescription !== undefined
+            ? String(body.companyDescription).trim()
+            : undefined,
+        companyLogo:
+          body.companyLogo !== undefined
+            ? String(body.companyLogo).trim()
+            : undefined,
+        companyAddress:
+          body.companyAddress !== undefined
+            ? String(body.companyAddress).trim()
+            : undefined,
+        companyWebsite:
+          body.companyWebsite !== undefined
+            ? String(body.companyWebsite).trim()
+            : undefined,
+        companyInstagram:
+          body.companyInstagram !== undefined
+            ? String(body.companyInstagram).trim()
+            : undefined,
+      });
+    }
+
+    const updated = await User.updateProfile(req.user.id, updateFields);
 
     if (!updated) {
       return res.status(404).json({

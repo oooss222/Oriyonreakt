@@ -466,6 +466,8 @@ class UserModel {
         company_address = $10,
         company_website = $11,
         company_instagram = $12,
+        business_verified = CASE WHEN $6 = 'company' THEN business_verified ELSE false END,
+        business_verified_at = CASE WHEN $6 = 'company' THEN business_verified_at ELSE NULL END,
         updated_at = now()
       WHERE id = $1
       RETURNING *

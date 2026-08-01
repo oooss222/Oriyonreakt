@@ -1111,6 +1111,102 @@ router.post(
   }
 );
 
+router.put(
+  "/users/:id/business-account",
+  requireRole("admin", "super_admin"),
+  async (req, res) => {
+    try {
+      const target = await User.findById(req.params.id);
+
+      if (!target) {
+        return res.status(404).json({
+          error: "User not found",
+        });
+      }
+
+      const body = req.body || {};
+      const sellerType = body.sellerType;
+
+      if (!["private", "company"].includes(sellerType)) {
+        return res.status(400).json({
+          error: "Invalid sellerType",
+        });
+      }
+
+      if (
+        sellerType === "company" &&
+        !String(body.companyName || target.companyName || target.name || "").trim()
+      ) {
+        return res.status(400).json({
+          error: "Company name is required",
+        });
+      }
+
+      const updated = await User.updateProfile(req.params.id, {
+        sellerType,
+        companyName:
+          body.companyName !== undefined
+            ? String(body.companyName).trim()
+            : undefined,
+        companyDescription:
+          body.companyDescription !== undefined
+            ? String(body.companyDescription).trim()
+            : undefined,
+        companyLogo:
+          body.companyLogo !== undefined
+            ? String(body.companyLogo).trim()
+            : undefined,
+        companyAddress:
+          body.companyAddress !== undefined
+            ? String(body.companyAddress).trim()
+            : undefined,
+        companyWebsite:
+          body.companyWebsite !== undefined
+            ? String(body.companyWebsite).trim()
+            : undefined,
+        companyInstagram:
+          body.companyInstagram !== undefined
+            ? String(body.companyInstagram).trim()
+            : undefined,
+      });
+
+      if (!updated) {
+        return res.status(404).json({
+          error: "User not found",
+        });
+      }
+
+      await audit(
+        req,
+        sellerType === "company"
+          ? "user.business_connect"
+          : "user.business_disconnect",
+        "user",
+        req.params.id,
+        {
+          email: target.email,
+          companyName: updated.companyName,
+        }
+      );
+
+      return res.json(User.sanitize(updated));
+    } catch (e) {
+      if (e?.message === "TOO_MANY_LISTINGS_FOR_PRIVATE") {
+        return res.status(400).json({
+          error: "Too many active listings to switch to private account",
+          activeListings: e.activeListings,
+        });
+      }
+
+      console.error("ADMIN_BUSINESS_ACCOUNT_ERROR:", e?.message);
+
+      return res.status(500).json({
+        error: "Failed to update business account",
+      });
+    }
+  }
+);
+
 router.post(
   "/users/:id/block",
   requireRole("admin", "super_admin"),

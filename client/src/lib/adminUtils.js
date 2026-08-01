@@ -119,6 +119,8 @@ export const AUDIT_ACTION_LABELS = {
   "report.block_owner": "Блокировка продавца по жалобе",
   "user.business_verify": "Верификация бизнеса",
   "user.business_unverify": "Снятие верификации бизнеса",
+  "user.business_connect": "Подключение бизнес-аккаунта",
+  "user.business_disconnect": "Отключение бизнес-аккаунта",
   "settings.update": "Изменение настроек сайта",
   "ad.create": "Создание рекламы",
   "ad.update": "Изменение рекламы",

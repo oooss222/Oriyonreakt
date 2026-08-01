@@ -1,15 +1,17 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import {
   BadgeCheck,
   Building2,
   Globe,
   Instagram,
   MapPin,
+  MessageCircle,
   Sparkles,
   Upload,
-  User,
 } from "lucide-react";
 import { api } from "../lib/api";
+import { openBusinessSupportChat } from "../lib/openBusinessSupportChat";
 import BusinessBadge from "./BusinessBadge";
 import {
   BUSINESS_BENEFITS,
@@ -20,15 +22,18 @@ import {
 } from "../lib/businessAccount";
 
 export default function BusinessProfileSection({ token, me, onUpdated }) {
+  const nav = useNavigate();
   const [stats, setStats] = React.useState(null);
   const [loadingStats, setLoadingStats] = React.useState(true);
   const [saving, setSaving] = React.useState(false);
+  const [contactLoading, setContactLoading] = React.useState(false);
   const [uploadingLogo, setUploadingLogo] = React.useState(false);
   const [error, setError] = React.useState("");
   const [success, setSuccess] = React.useState("");
 
+  const isCompany = isCompanyAccount(me);
+
   const [form, setForm] = React.useState({
-    sellerType: me?.sellerType || "private",
     companyName: me?.companyName || "",
     companyDescription: me?.companyDescription || "",
     companyLogo: me?.companyLogo || "",
@@ -39,7 +44,6 @@ export default function BusinessProfileSection({ token, me, onUpdated }) {
 
   React.useEffect(() => {
     setForm({
-      sellerType: me?.sellerType || "private",
       companyName: me?.companyName || "",
       companyDescription: me?.companyDescription || "",
       companyLogo: me?.companyLogo || "",
@@ -79,17 +83,18 @@ export default function BusinessProfileSection({ token, me, onUpdated }) {
     stats?.remainingListings ?? Math.max(0, listingLimit - activeListings);
 
   const saveBusinessProfile = async () => {
+    if (!isCompany) return;
+
     setError("");
     setSuccess("");
     setSaving(true);
 
     try {
-      if (form.sellerType === "company" && !form.companyName.trim()) {
+      if (!form.companyName.trim()) {
         throw new Error("Укажите название компании");
       }
 
       const updated = await api.updateMe(token, {
-        sellerType: form.sellerType,
         companyName: form.companyName.trim(),
         companyDescription: form.companyDescription.trim(),
         companyLogo: form.companyLogo.trim(),
@@ -104,6 +109,19 @@ export default function BusinessProfileSection({ token, me, onUpdated }) {
       setError(e.message || "Не удалось сохранить");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const contactAdmin = async () => {
+    setError("");
+    setContactLoading(true);
+
+    try {
+      await openBusinessSupportChat({ nav, token });
+    } catch (e) {
+      setError(e.message || "Не удалось открыть чат");
+    } finally {
+      setContactLoading(false);
     }
   };
 
@@ -153,7 +171,7 @@ export default function BusinessProfileSection({ token, me, onUpdated }) {
             </p>
           </div>
 
-          {isCompanyAccount(me) && (
+          {isCompany && (
             <BusinessBadge
               sellerType={me?.sellerType}
               businessVerified={me?.businessVerified}
@@ -187,88 +205,44 @@ export default function BusinessProfileSection({ token, me, onUpdated }) {
           </div>
         </div>
 
-        {!isCompanyAccount({ sellerType: form.sellerType }) && (
-          <div className="rounded-2xl border border-dashed border-blue-200 bg-blue-50/50 p-4">
-            <div className="font-semibold text-slate-900">
-              Что даёт бизнес-аккаунт
+        {!isCompany && (
+          <div className="rounded-2xl border border-dashed border-blue-200 bg-blue-50/50 p-4 space-y-4">
+            <div>
+              <div className="font-semibold text-slate-900">
+                Что даёт бизнес-аккаунт
+              </div>
+              <ul className="mt-3 space-y-2 text-sm text-slate-600">
+                {BUSINESS_BENEFITS.map((item) => (
+                  <li key={item} className="flex items-start gap-2">
+                    <BadgeCheck className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+              <p className="text-xs text-slate-500 mt-3">
+                Частный аккаунт: до {PRIVATE_LISTING_LIMIT} активных объявлений.
+                Бизнес: до {COMPANY_LISTING_LIMIT}.
+              </p>
             </div>
-            <ul className="mt-3 space-y-2 text-sm text-slate-600">
-              {BUSINESS_BENEFITS.map((item) => (
-                <li key={item} className="flex items-start gap-2">
-                  <BadgeCheck className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
-                  {item}
-                </li>
-              ))}
-            </ul>
-            <p className="text-xs text-slate-500 mt-3">
-              Частный аккаунт: до {PRIVATE_LISTING_LIMIT} активных объявлений.
-              Бизнес: до {COMPANY_LISTING_LIMIT}.
-            </p>
+
+            <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+              Подключение бизнес-аккаунта выполняет администратор Oriyon.
+              Напишите в чат — обсудим условия и подключим профиль компании.
+            </div>
+
+            <button
+              type="button"
+              onClick={contactAdmin}
+              disabled={contactLoading}
+              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-blue-600 px-5 py-3 font-semibold text-white hover:bg-blue-700 transition disabled:opacity-60"
+            >
+              <MessageCircle size={18} />
+              {contactLoading ? "Открываем чат…" : "Написать администратору"}
+            </button>
           </div>
         )}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <button
-            type="button"
-            onClick={() =>
-              setForm((current) => ({
-                ...current,
-                sellerType: "private",
-              }))
-            }
-            className={`rounded-2xl border p-4 text-left transition ${
-              form.sellerType === "private"
-                ? "border-sun bg-sun text-white shadow-sm"
-                : "bg-white hover:border-slate-300"
-            }`}
-          >
-            <div className="inline-flex items-center gap-2 font-semibold">
-              <User size={18} />
-              Частное лицо
-            </div>
-            <div
-              className={`text-sm mt-2 ${
-                form.sellerType === "private"
-                  ? "text-white/80"
-                  : "text-slate-500"
-              }`}
-            >
-              До {PRIVATE_LISTING_LIMIT} объявлений
-            </div>
-          </button>
-
-          <button
-            type="button"
-            onClick={() =>
-              setForm((current) => ({
-                ...current,
-                sellerType: "company",
-                companyName: current.companyName || me?.name || "",
-              }))
-            }
-            className={`rounded-2xl border p-4 text-left transition ${
-              form.sellerType === "company"
-                ? "border-blue-600 bg-blue-600 text-white"
-                : "bg-white hover:border-blue-200"
-            }`}
-          >
-            <div className="inline-flex items-center gap-2 font-semibold">
-              <Building2 size={18} />
-              Компания
-            </div>
-            <div
-              className={`text-sm mt-2 ${
-                form.sellerType === "company"
-                  ? "text-white/80"
-                  : "text-slate-500"
-              }`}
-            >
-              До {COMPANY_LISTING_LIMIT} объявлений + бренд-страница
-            </div>
-          </button>
-        </div>
-
-        {form.sellerType === "company" && (
+        {isCompany && (
           <div className="space-y-4 pt-2">
             <div className="flex flex-col sm:flex-row gap-4">
               <div className="w-24 h-24 rounded-2xl border bg-slate-50 overflow-hidden grid place-items-center shrink-0">
@@ -411,14 +385,16 @@ export default function BusinessProfileSection({ token, me, onUpdated }) {
           </div>
         )}
 
-        <button
-          type="button"
-          onClick={saveBusinessProfile}
-          disabled={saving}
-          className="inline-flex items-center justify-center px-5 py-3 rounded-2xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition disabled:opacity-60"
-        >
-          {saving ? "Сохранение…" : "Сохранить бизнес-профиль"}
-        </button>
+        {isCompany && (
+          <button
+            type="button"
+            onClick={saveBusinessProfile}
+            disabled={saving}
+            className="inline-flex items-center justify-center px-5 py-3 rounded-2xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition disabled:opacity-60"
+          >
+            {saving ? "Сохранение…" : "Сохранить бизнес-профиль"}
+          </button>
+        )}
       </div>
     </div>
   );

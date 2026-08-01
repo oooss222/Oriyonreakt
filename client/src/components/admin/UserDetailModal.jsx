@@ -131,6 +131,57 @@ export default function UserDetailModal({
     }
   };
 
+  const toggleBusinessAccount = async () => {
+    if (!user || readOnly) return;
+
+    if (user.sellerType === "company") {
+      const ok = confirm(
+        `Отключить бизнес-аккаунт у «${user.companyName || user.name}»? Пользователь станет частным лицом.`
+      );
+      if (!ok) return;
+
+      try {
+        setActionLoading(true);
+        const updated = await api.adminSetBusinessAccount(token, getId(user), {
+          sellerType: "private",
+        });
+        setDetail((prev) => ({ ...prev, user: { ...prev.user, ...updated } }));
+        onUserUpdated?.(updated);
+      } catch (e) {
+        alert(e.message || "Не удалось отключить бизнес-аккаунт");
+      } finally {
+        setActionLoading(false);
+      }
+      return;
+    }
+
+    const companyName = prompt(
+      "Название компании для бизнес-аккаунта:",
+      user.companyName || user.name || ""
+    );
+
+    if (companyName === null) return;
+
+    if (!String(companyName).trim()) {
+      alert("Укажите название компании");
+      return;
+    }
+
+    try {
+      setActionLoading(true);
+      const updated = await api.adminSetBusinessAccount(token, getId(user), {
+        sellerType: "company",
+        companyName: String(companyName).trim(),
+      });
+      setDetail((prev) => ({ ...prev, user: { ...prev.user, ...updated } }));
+      onUserUpdated?.(updated);
+    } catch (e) {
+      alert(e.message || "Не удалось подключить бизнес-аккаунт");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const adjustWallet = async (sign) => {
     if (!isSuperAdmin || !user) return;
 
@@ -307,6 +358,24 @@ export default function UserDetailModal({
                       {user.businessVerified
                         ? "Снять верификацию"
                         : "Верифицировать бизнес"}
+                    </button>
+                  )}
+
+                  {!readOnly && (
+                    <button
+                      type="button"
+                      disabled={actionLoading}
+                      onClick={toggleBusinessAccount}
+                      className={`inline-flex items-center gap-1 px-3 py-2 rounded-xl border text-sm disabled:opacity-40 ${
+                        user.sellerType === "company"
+                          ? "hover:bg-red-50 text-red-700"
+                          : "hover:bg-blue-50 text-blue-700"
+                      }`}
+                    >
+                      <Building2 size={16} />
+                      {user.sellerType === "company"
+                        ? "Отключить бизнес-аккаунт"
+                        : "Подключить бизнес-аккаунт"}
                     </button>
                   )}
                 </div>

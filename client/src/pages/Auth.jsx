@@ -2,7 +2,6 @@ import React from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { api } from "../lib/api";
 import { TOKEN_KEY, USER_KEY } from "../lib/auth";
-import { BUSINESS_BENEFITS } from "../lib/businessAccount";
 import AuthTrustPanel from "../components/auth/AuthTrustPanel";
 import {
   Mail,
@@ -14,7 +13,6 @@ import {
   AlertTriangle,
   Keyboard,
   Loader2,
-  Building2,
 } from "lucide-react";
 
 const Field = ({ label, hint, icon: Icon, right, children }) => (
@@ -84,12 +82,6 @@ function PasswordToggle({ visible, onToggle, label }) {
   );
 }
 
-function accountTypeClass(active) {
-  return active
-    ? "border-sun bg-sun text-white shadow-sm"
-    : "border-slate-200 bg-white text-slate-700 hover:border-sun/40";
-}
-
 function getAuthSubtitle(returnTo) {
   const path = String(returnTo || "").toLowerCase();
 
@@ -128,8 +120,6 @@ export default function Auth() {
     password: "",
     confirm: "",
     agree: false,
-    sellerType: "private",
-    companyName: "",
   });
 
   const [showPassLogin, setShowPassLogin] = React.useState(false);
@@ -235,16 +225,10 @@ export default function Auth() {
         throw new Error("Подтвердите согласие с политикой сайта");
       }
 
-      if (reg.sellerType === "company" && !reg.companyName.trim()) {
-        throw new Error("Укажите название компании");
-      }
-
       const { token, user } = await api.register({
         name: reg.name.trim(),
         email: reg.email.trim(),
         password: reg.password,
-        sellerType: reg.sellerType,
-        companyName: reg.companyName.trim(),
       });
 
       localStorage.setItem(TOKEN_KEY, token);
@@ -407,72 +391,6 @@ export default function Auth() {
                       withIcon
                     />
                   </Field>
-
-                  <div className="space-y-3">
-                    <div className="text-sm font-medium text-slate-700">Тип аккаунта</div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setReg((value) => ({ ...value, sellerType: "private" }))
-                        }
-                        className={`rounded-xl border px-4 py-3 text-left transition ${accountTypeClass(
-                          reg.sellerType === "private"
-                        )}`}
-                      >
-                        <div className="font-semibold inline-flex items-center gap-2">
-                          <UserIcon size={16} />
-                          Частное лицо
-                        </div>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setReg((value) => ({
-                            ...value,
-                            sellerType: "company",
-                            companyName: value.companyName || value.name,
-                          }))
-                        }
-                        className={`rounded-xl border px-4 py-3 text-left transition ${accountTypeClass(
-                          reg.sellerType === "company"
-                        )}`}
-                      >
-                        <div className="font-semibold inline-flex items-center gap-2">
-                          <Building2 size={16} />
-                          Компания
-                        </div>
-                      </button>
-                    </div>
-
-                    {reg.sellerType === "company" && (
-                      <>
-                        <Field label="Название компании" icon={Building2}>
-                          <Input
-                            placeholder="Oriyon Estate"
-                            value={reg.companyName}
-                            onChange={(e) =>
-                              setReg((value) => ({
-                                ...value,
-                                companyName: e.target.value,
-                              }))
-                            }
-                            withIcon
-                          />
-                        </Field>
-                        <ul className="grid gap-2 sm:grid-cols-3">
-                          {BUSINESS_BENEFITS.slice(0, 3).map((item) => (
-                            <li
-                              key={item}
-                              className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600"
-                            >
-                              {item}
-                            </li>
-                          ))}
-                        </ul>
-                      </>
-                    )}
-                  </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <Field

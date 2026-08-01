@@ -39,31 +39,18 @@ router.post("/register", async (req, res) => {
       });
     }
 
-    let {
-      email,
-      password,
-      name,
-      phone,
-      sellerType,
-      companyName,
-    } = req.body || {};
+    let { email, password, name, phone } = req.body || {};
 
     email = String(email || "").trim().toLowerCase();
     password = String(password || "");
     name = String(name || "").trim();
     phone = String(phone || "").trim();
-    sellerType = sellerType || "private";
-    companyName = String(companyName || "").trim();
+    const sellerType = "private";
+    const companyName = "";
 
     if (!email || !password || !name) {
       return res.status(400).json({
         error: "name, email, password required",
-      });
-    }
-
-    if (sellerType === "company" && !companyName) {
-      return res.status(400).json({
-        error: "companyName required for business account",
       });
     }
 
@@ -76,12 +63,6 @@ router.post("/register", async (req, res) => {
     if (password.length < 6) {
       return res.status(400).json({
         error: "Password must be at least 6 chars",
-      });
-    }
-
-    if (!["private", "company"].includes(sellerType)) {
-      return res.status(400).json({
-        error: "Invalid sellerType",
       });
     }
 
