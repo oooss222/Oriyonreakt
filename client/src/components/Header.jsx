@@ -212,8 +212,9 @@ export default function Header() {
   );
 
   return (
-    <header className="sticky top-0 z-50 bg-ink-700 text-white border-b border-white/5 shadow-soft">
-      <div className="container mx-auto px-3 sm:px-4 lg:px-6">
+    <>
+      <header className="sticky top-0 z-50 bg-ink-700 text-white border-b border-white/5 shadow-soft">
+        <div className="container mx-auto px-3 sm:px-4 lg:px-6">
         <div
           className={`hidden lg:flex items-center gap-2 sm:gap-3 transition-all duration-300 ${
             scrolled ? "h-14" : "h-16 lg:h-[72px]"
@@ -341,8 +342,9 @@ export default function Header() {
           </div>
         </div>
       </div>
+      </header>
 
       {isBrowsePage && <CategoryStrip compact={compactCategories} />}
-    </header>
+    </>
   );
 }
