@@ -9,8 +9,8 @@ import { getListingThumb } from "../lib/media";
 import { formatPrice } from "../lib/format";
 import { enrichRealEstateListing } from "../lib/realEstate";
 import {
-  getPromotionCardAccent,
   getPromotionCardClass,
+  getPromotionMediaClass,
 } from "../lib/promotionStyles";
 import { MapPin, Maximize2 } from "lucide-react";
 
@@ -47,11 +47,6 @@ export default function RealEstateListingCard({
         { vip: listing.vip, top: listing.top }
       )} ${isHorizontal ? "flex-row p-2.5 gap-3" : "flex-col p-1.5"}`}
     >
-      <span
-        className={getPromotionCardAccent({ vip: listing.vip, top: listing.top })}
-        aria-hidden="true"
-      />
-
       <div
         className={`relative overflow-hidden shrink-0 ${
           isHorizontal ? "w-40 h-32 rounded-xl sm:w-44" : "w-full"
@@ -61,7 +56,7 @@ export default function RealEstateListingCard({
           src={img}
           alt={listing.title || "Недвижимость"}
           loading="lazy"
-          className={`object-cover bg-slate-100 transition-transform duration-500 group-hover:scale-105 ${
+          className={`object-cover bg-slate-100 transition-transform duration-500 group-hover:scale-105 ${getPromotionMediaClass({ vip: listing.vip })} ${
             isHorizontal ? "w-full h-full" : "w-full h-40 sm:h-44"
           }`}
         />

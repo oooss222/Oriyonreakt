@@ -14,8 +14,8 @@ import { PromotionBadgeGroup } from "../PromotionBadge";
 import { getListingThumb } from "../../lib/media";
 import { formatPrice, formatListingDate, formatViewCount } from "../../lib/format";
 import {
-  getPromotionCardAccent,
   getPromotionCardClass,
+  getPromotionMediaClass,
 } from "../../lib/promotionStyles";
 import { getId } from "./profileUtils";
 
@@ -93,11 +93,6 @@ export default React.memo(function ProfileListingCard({
         selected ? "ring-2 ring-sun border-sun" : "border-slate-200",
       ].join(" ")}
     >
-      <span
-        className={getPromotionCardAccent({ vip: ad.vip, top: ad.top })}
-        aria-hidden="true"
-      />
-
       {selectable && canManage && (
         <label className="absolute top-2 right-2 z-20 cursor-pointer rounded-lg border bg-white/95 p-1.5 shadow-sm">
           <input
@@ -121,6 +116,7 @@ export default React.memo(function ProfileListingCard({
             className={[
               "w-full bg-slate-100 object-cover transition-transform duration-500 group-hover:scale-[1.03]",
               compact ? "h-36" : "h-40 sm:h-44",
+              getPromotionMediaClass({ vip: ad.vip }),
             ].join(" ")}
             loading="lazy"
           />

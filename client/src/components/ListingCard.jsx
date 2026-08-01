@@ -6,8 +6,8 @@ import BusinessBadge from "./BusinessBadge";
 import { getListingThumb } from "../lib/media";
 import { formatPrice } from "../lib/format";
 import {
-  getPromotionCardAccent,
   getPromotionCardClass,
+  getPromotionMediaClass,
 } from "../lib/promotionStyles";
 
 export default function ListingCard({ item, onFav }) {
@@ -36,18 +36,11 @@ export default function ListingCard({ item, onFav }) {
         top: item?.top,
       })}`}
     >
-      <span
-        className={getPromotionCardAccent({
-          vip: item?.vip,
-          top: item?.top,
-        })}
-        aria-hidden="true"
-      />
       <div className="relative overflow-hidden">
         <img
           src={getListingThumb(item)}
           alt={item.title}
-          className="w-full h-32 object-cover bg-mist transition-transform duration-500 group-hover:scale-105"
+          className={`w-full h-32 object-cover bg-mist transition-transform duration-500 group-hover:scale-105 ${getPromotionMediaClass({ vip: item?.vip })}`}
           onError={(e) => {
             e.currentTarget.src = "/img/placeholder.jpg";
           }}

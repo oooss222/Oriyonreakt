@@ -12,8 +12,8 @@ import { CATS } from "../data/listingCategories";
 import { getListingThumb } from "../lib/media";
 import { formatPrice } from "../lib/format";
 import {
-  getPromotionCardAccent,
   getPromotionCardClass,
+  getPromotionMediaClass,
 } from "../lib/promotionStyles";
 import { Search, FolderOpen, MapPin } from "lucide-react";
 
@@ -281,16 +281,12 @@ export default function Category() {
                     { vip: ad.vip, top: ad.top }
                   )}`}
                 >
-                  <span
-                    className={getPromotionCardAccent({ vip: ad.vip, top: ad.top })}
-                    aria-hidden="true"
-                  />
                   <div className="relative">
                     <img
                       src={imgUrl}
                       alt={ad.title || "Фото"}
                       loading="lazy"
-                      className="w-full h-28 object-cover rounded-xl bg-slate-100"
+                      className={`w-full h-28 object-cover rounded-xl bg-slate-100 ${getPromotionMediaClass({ vip: ad.vip })}`}
                     />
 
                     <ListingCardOverlays

@@ -153,101 +153,91 @@
     @apply font-display font-extrabold text-lagoon-700;
   }
 
-  @keyframes promotion-shimmer {
+  @keyframes top-entry-pulse {
     0% {
-      transform: translateX(-120%) skewX(-12deg);
+      box-shadow: 0 0 0 0 rgb(14 124 123 / 0.28);
+    }
+    40% {
+      box-shadow: 0 0 0 4px rgb(14 124 123 / 0.16);
     }
     100% {
-      transform: translateX(220%) skewX(-12deg);
-    }
-  }
-
-  @keyframes promotion-glow {
-    0%,
-    100% {
-      opacity: 0.55;
-    }
-    50% {
-      opacity: 1;
+      box-shadow: 0 4px 16px rgb(14 124 123 / 0.12);
     }
   }
 
   .promotion-badge {
     position: relative;
-    overflow: hidden;
     isolation: isolate;
-    border: 1px solid rgb(255 255 255 / 0.35);
-    text-shadow: 0 1px 1px rgb(0 0 0 / 0.18);
-  }
-
-  .promotion-badge::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(
-      105deg,
-      transparent 30%,
-      rgb(255 255 255 / 0.5) 50%,
-      transparent 70%
-    );
-    transform: translateX(-130%) skewX(-14deg);
-    animation: promotion-shimmer 3.2s ease-in-out infinite;
-    pointer-events: none;
   }
 
   .promotion-badge-vip {
-    background: linear-gradient(135deg, #fde68a 0%, #f59e0b 38%, #ea580c 100%);
-    box-shadow:
-      0 2px 10px rgb(234 88 12 / 0.45),
-      0 0 0 1px rgb(251 191 36 / 0.35),
-      inset 0 1px 0 rgb(255 255 255 / 0.45);
+    background: linear-gradient(135deg, #fde68a 0%, #eab308 45%, #ca8a04 100%);
+    border: 1px solid rgb(255 255 255 / 0.45);
+    box-shadow: 0 2px 8px rgb(202 138 4 / 0.35);
   }
 
   .promotion-badge-top {
-    background: linear-gradient(135deg, #5eead4 0%, #14b8a6 42%, #0e7490 100%);
-    box-shadow:
-      0 2px 10px rgb(14 116 144 / 0.4),
-      0 0 0 1px rgb(45 212 191 / 0.35),
-      inset 0 1px 0 rgb(255 255 255 / 0.4);
+    background: linear-gradient(135deg, #2563eb 0%, #0e7c7b 100%);
+    border: 1px solid rgb(255 255 255 / 0.35);
+    box-shadow: 0 2px 8px rgb(14 124 123 / 0.3);
   }
 
   .promotion-card {
-    border-width: 2px;
+    position: relative;
     transition:
       box-shadow 0.25s ease,
       transform 0.25s ease;
   }
 
+  .promotion-card-vip {
+    padding: 0.625rem !important;
+    border: 1.5px solid #c9a227 !important;
+    background: #fff;
+    box-shadow: 0 6px 20px rgb(201 162 39 / 0.2);
+    z-index: 1;
+  }
+
   .promotion-card-vip:hover {
-    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgb(201 162 39 / 0.26);
+    transform: translateY(-1px);
+  }
+
+  .promotion-card-top {
+    padding: 0.5rem !important;
+    border: 1.5px solid #0e7c7b !important;
+    background: #f0f7ff !important;
+    box-shadow: 0 4px 14px rgb(14 124 123 / 0.1);
+    animation: top-entry-pulse 2s ease-out 1;
   }
 
   .promotion-card-top:hover {
-    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgb(14 124 123 / 0.16);
+    transform: translateY(-1px);
   }
 
-  .promotion-card-accent {
-    pointer-events: none;
-    position: absolute;
-    inset-inline: 0;
-    top: 0;
-    height: 4px;
-    z-index: 20;
-    border-radius: inherit;
+  .promotion-card-media {
+    height: 9rem !important;
   }
 
-  .promotion-card-accent-vip {
-    background: linear-gradient(90deg, #fbbf24, #f97316, #fde68a, #f97316, #fbbf24);
-    background-size: 220% 100%;
-    animation: horizon-shine 4s linear infinite;
-    box-shadow: 0 2px 12px rgb(251 191 36 / 0.55);
+  @media (min-width: 640px) {
+    .promotion-card-vip {
+      padding: 0.6875rem;
+    }
+
+    .promotion-card-media {
+      height: 9.5rem !important;
+    }
   }
 
-  .promotion-card-accent-top {
-    background: linear-gradient(90deg, #5eead4, #0e7c7b, #99f6e4, #0e7c7b, #5eead4);
-    background-size: 220% 100%;
-    animation: horizon-shine 4s linear infinite;
-    box-shadow: 0 2px 12px rgb(14 124 123 / 0.45);
+  @media (prefers-reduced-motion: reduce) {
+    .promotion-card-top {
+      animation: none;
+    }
+
+    .promotion-card-vip:hover,
+    .promotion-card-top:hover {
+      transform: none;
+    }
   }
 
   .promotion-panel-vip {

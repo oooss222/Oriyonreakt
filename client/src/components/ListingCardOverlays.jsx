@@ -20,7 +20,7 @@ export default function ListingCardOverlays({
         vip={vip}
         top={top}
         size="sm"
-        className="absolute left-2.5 top-2.5 z-10 drop-shadow-md"
+        className="absolute left-2 top-2 z-10 max-w-[calc(100%-4.5rem)]"
       />
 
       {viewed && (
