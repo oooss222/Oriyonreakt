@@ -3,12 +3,16 @@ import { useNavigate } from "react-router-dom";
 import { Search, MapPin, ChevronDown, ChevronUp, SlidersHorizontal } from "lucide-react";
 import RealEstateMoreFiltersModal from "./RealEstateMoreFiltersModal";
 import RealEstateCitySelect from "./RealEstateCitySelect";
+import RealEstateGuestsPicker from "./realestate/RealEstateGuestsPicker";
 import {
   DEAL_TYPES,
   ROOM_OPTIONS,
   SUBCATEGORY_META,
+  DAILY_HOUSING_TYPES,
   getPricePresetsForDeal,
   realEstateSubcategoryUsesRooms,
+  isDailyDeal,
+  countNights,
 } from "../data/realEstate";
 import { buildRealEstateListingUrl } from "../lib/realEstate";
 import { formatPriceInput, getPriceDigits } from "../data/specOptions";
@@ -26,6 +30,22 @@ function formatHeroPriceSummary(from, to, currency = "с.") {
   if (fromLabel) return `от ${fromLabel} ${currency}`;
   if (toLabel) return `до ${toLabel} ${currency}`;
   return "";
+}
+
+function formatShortDate(value = "") {
+  if (!value) return "";
+  try {
+    return new Date(`${value}T12:00:00`).toLocaleDateString("ru-RU", {
+      day: "numeric",
+      month: "short",
+    });
+  } catch {
+    return value;
+  }
+}
+
+function todayIso() {
+  return new Date().toISOString().slice(0, 10);
 }
 
 function pluralAds(count) {
@@ -64,7 +84,7 @@ function HeroSelect({ label, value, onChange, children, className = "", icon: Ic
   );
 }
 
-function HeroPriceFilter({ priceFrom, priceTo, priceCurrency, onChange, dealType = "Купить" }) {
+function HeroPriceFilter({ priceFrom, priceTo, priceCurrency, onChange, dealType = "Купить", label = "Цена" }) {
   const [open, setOpen] = React.useState(false);
   const rootRef = React.useRef(null);
   const summary = formatHeroPriceSummary(priceFrom, priceTo, priceCurrency);
@@ -93,7 +113,7 @@ function HeroPriceFilter({ priceFrom, priceTo, priceCurrency, onChange, dealType
 
   return (
     <div ref={rootRef} className="relative block min-w-0">
-      <span className={FIELD_LABEL}>Цена</span>
+      <span className={FIELD_LABEL}>{label}</span>
 
       <button
         type="button"
@@ -199,6 +219,9 @@ export default function RealEstateSearchHero({
   initialRooms = "",
   initialPriceFrom = "",
   initialPriceTo = "",
+  initialCheckIn = "",
+  initialCheckOut = "",
+  initialGuests = "",
   totalCount = 0,
   onCityChange,
   onSearch,
@@ -210,6 +233,9 @@ export default function RealEstateSearchHero({
   const [rooms, setRooms] = React.useState(initialRooms);
   const [priceFrom, setPriceFrom] = React.useState(initialPriceFrom);
   const [priceTo, setPriceTo] = React.useState(initialPriceTo);
+  const [checkIn, setCheckIn] = React.useState(initialCheckIn);
+  const [checkOut, setCheckOut] = React.useState(initialCheckOut);
+  const [guests, setGuests] = React.useState(initialGuests);
   const [priceCurrency, setPriceCurrency] = React.useState("с.");
   const [moreOpen, setMoreOpen] = React.useState(false);
 
@@ -219,6 +245,9 @@ export default function RealEstateSearchHero({
   React.useEffect(() => setRooms(initialRooms), [initialRooms]);
   React.useEffect(() => setPriceFrom(initialPriceFrom), [initialPriceFrom]);
   React.useEffect(() => setPriceTo(initialPriceTo), [initialPriceTo]);
+  React.useEffect(() => setCheckIn(initialCheckIn), [initialCheckIn]);
+  React.useEffect(() => setCheckOut(initialCheckOut), [initialCheckOut]);
+  React.useEffect(() => setGuests(initialGuests), [initialGuests]);
 
   const handleCityChange = (nextCity) => {
     setCity(nextCity);
@@ -235,24 +264,51 @@ export default function RealEstateSearchHero({
       rooms,
       priceFrom: getPriceDigits(priceFrom),
       priceTo: getPriceDigits(priceTo),
+      checkIn,
+      checkOut,
+      guests,
     });
 
-    onSearch?.({ dealType, subcategory, city, rooms, priceFrom, priceTo });
+    onSearch?.({
+      dealType,
+      subcategory,
+      city,
+      rooms,
+      priceFrom,
+      priceTo,
+      checkIn,
+      checkOut,
+      guests,
+    });
     nav(url);
   };
 
-  const dealLabel =
-    DEAL_TYPES.find((item) => item.value === dealType)?.label?.toLowerCase() || "купить";
+  const isDaily = isDailyDeal(dealType);
+  const nights = countNights(checkIn, checkOut);
+
+  const dealLabel = isDaily
+    ? "Посуточная аренда"
+    : DEAL_TYPES.find((item) => item.value === dealType)?.label?.toLowerCase() || "купить";
+
   const submitLabel =
     totalCount > 0
       ? `Показать ${totalCount.toLocaleString("ru-RU")} ${pluralAds(totalCount)}`
-      : "Показать объявления";
+      : isDaily
+        ? "Показать"
+        : "Показать объявления";
 
   const hasActiveFilters = Boolean(
-    subcategory || rooms || priceFrom || priceTo || dealType !== "Купить"
+    subcategory ||
+      rooms ||
+      priceFrom ||
+      priceTo ||
+      checkIn ||
+      checkOut ||
+      guests ||
+      dealType !== "Купить"
   );
 
-  const showRooms = realEstateSubcategoryUsesRooms(subcategory);
+  const showRooms = !isDaily && realEstateSubcategoryUsesRooms(subcategory);
 
   return (
     <>
@@ -276,11 +332,14 @@ export default function RealEstateSearchHero({
               Oriyon · Недвижимость
             </p>
             <h1 className="font-display text-3xl md:text-[2.35rem] font-extrabold leading-tight">
-              {dealLabel.charAt(0).toUpperCase() + dealLabel.slice(1)} в {city || "Таджикистане"}
+              {isDaily
+                ? `${dealLabel} в ${city || "Таджикистане"}`
+                : `${dealLabel.charAt(0).toUpperCase() + dealLabel.slice(1)} в ${city || "Таджикистане"}`}
             </h1>
             {totalCount > 0 && (
               <p className="mt-2 text-sm text-white/70">
-                {totalCount.toLocaleString("ru-RU")} активных объявлений · квартиры, дома, участки
+                {totalCount.toLocaleString("ru-RU")} активных объявлений
+                {isDaily ? " · квартиры и дома на сутки" : " · квартиры, дома, участки"}
               </p>
             )}
           </div>
@@ -315,70 +374,170 @@ export default function RealEstateSearchHero({
           </div>
 
           <form onSubmit={submit} className="space-y-4">
-            <div
-              className={`grid grid-cols-1 gap-3 sm:grid-cols-2 ${
-                showRooms ? "lg:grid-cols-4" : "lg:grid-cols-3"
-              }`}
-            >
-              <label className="block min-w-0">
-                <span className={FIELD_LABEL}>Город</span>
-                <div className="relative">
-                  <MapPin
-                    size={15}
-                    className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 z-10"
-                  />
-                  <RealEstateCitySelect
-                    value={city}
-                    onChange={(e) => handleCityChange(e.target.value)}
-                    className={`${FIELD_CONTROL} pl-9 pr-9`}
-                  />
-                  <ChevronDown
-                    size={15}
-                    className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"
-                  />
+            {isDaily ? (
+              <>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                  <label className="block min-w-0">
+                    <span className={FIELD_LABEL}>Куда хотите поехать?</span>
+                    <div className="relative">
+                      <MapPin
+                        size={15}
+                        className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 z-10"
+                      />
+                      <RealEstateCitySelect
+                        value={city}
+                        onChange={(e) => handleCityChange(e.target.value)}
+                        className={`${FIELD_CONTROL} pl-9 pr-9`}
+                      />
+                      <ChevronDown
+                        size={15}
+                        className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"
+                      />
+                    </div>
+                  </label>
+
+                  <label className="block min-w-0">
+                    <span className={FIELD_LABEL}>Заезд</span>
+                    <input
+                      type="date"
+                      value={checkIn}
+                      min={todayIso()}
+                      onChange={(e) => {
+                        const next = e.target.value;
+                        setCheckIn(next);
+                        if (checkOut && next && checkOut <= next) {
+                          setCheckOut("");
+                        }
+                      }}
+                      className={`${FIELD_CONTROL} px-3`}
+                    />
+                  </label>
+
+                  <label className="block min-w-0">
+                    <span className={FIELD_LABEL}>Выезд</span>
+                    <input
+                      type="date"
+                      value={checkOut}
+                      min={checkIn || todayIso()}
+                      onChange={(e) => setCheckOut(e.target.value)}
+                      className={`${FIELD_CONTROL} px-3`}
+                    />
+                  </label>
+
+                  <RealEstateGuestsPicker value={guests} onChange={setGuests} />
                 </div>
-              </label>
 
-              <HeroSelect
-                label="Тип"
-                value={subcategory}
-                onChange={(e) => setSubcategory(e.target.value)}
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  <HeroSelect
+                    label="Тип жилья"
+                    value={subcategory}
+                    onChange={(e) => setSubcategory(e.target.value)}
+                  >
+                    <option value="">Все типы</option>
+                    {DAILY_HOUSING_TYPES.map((item) => (
+                      <option key={item.value} value={item.value}>
+                        {item.label}
+                      </option>
+                    ))}
+                  </HeroSelect>
+
+                  <HeroPriceFilter
+                    dealType={dealType}
+                    label="Цена за сутки"
+                    priceFrom={priceFrom}
+                    priceTo={priceTo}
+                    priceCurrency={priceCurrency}
+                    onChange={({
+                      priceFrom: nextFrom,
+                      priceTo: nextTo,
+                      priceCurrency: nextCurrency,
+                    }) => {
+                      setPriceFrom(nextFrom);
+                      setPriceTo(nextTo);
+                      setPriceCurrency(nextCurrency);
+                    }}
+                  />
+
+                  {nights > 0 && (
+                    <div className="flex items-end">
+                      <div className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 flex items-center text-sm text-slate-600">
+                        {formatShortDate(checkIn)} – {formatShortDate(checkOut)} · {nights}{" "}
+                        {nights === 1 ? "ночь" : nights < 5 ? "ночи" : "ночей"}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </>
+            ) : (
+              <div
+                className={`grid grid-cols-1 gap-3 sm:grid-cols-2 ${
+                  showRooms ? "lg:grid-cols-4" : "lg:grid-cols-3"
+                }`}
               >
-                <option value="">Все типы</option>
-                {Object.keys(SUBCATEGORY_META).map((item) => (
-                  <option key={item} value={item}>
-                    {item}
-                  </option>
-                ))}
-              </HeroSelect>
+                <label className="block min-w-0">
+                  <span className={FIELD_LABEL}>Город</span>
+                  <div className="relative">
+                    <MapPin
+                      size={15}
+                      className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 z-10"
+                    />
+                    <RealEstateCitySelect
+                      value={city}
+                      onChange={(e) => handleCityChange(e.target.value)}
+                      className={`${FIELD_CONTROL} pl-9 pr-9`}
+                    />
+                    <ChevronDown
+                      size={15}
+                      className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"
+                    />
+                  </div>
+                </label>
 
-              {showRooms && (
                 <HeroSelect
-                  label="Комнаты"
-                  value={rooms}
-                  onChange={(e) => setRooms(e.target.value)}
+                  label="Тип"
+                  value={subcategory}
+                  onChange={(e) => setSubcategory(e.target.value)}
                 >
-                  <option value="">Любое</option>
-                  {ROOM_OPTIONS.map((item) => (
+                  <option value="">Все типы</option>
+                  {Object.keys(SUBCATEGORY_META).map((item) => (
                     <option key={item} value={item}>
                       {item}
                     </option>
                   ))}
                 </HeroSelect>
-              )}
 
-              <HeroPriceFilter
-                dealType={dealType}
-                priceFrom={priceFrom}
-                priceTo={priceTo}
-                priceCurrency={priceCurrency}
-                onChange={({ priceFrom: nextFrom, priceTo: nextTo, priceCurrency: nextCurrency }) => {
-                  setPriceFrom(nextFrom);
-                  setPriceTo(nextTo);
-                  setPriceCurrency(nextCurrency);
-                }}
-              />
-            </div>
+                {showRooms && (
+                  <HeroSelect
+                    label="Комнаты"
+                    value={rooms}
+                    onChange={(e) => setRooms(e.target.value)}
+                  >
+                    <option value="">Любое</option>
+                    {ROOM_OPTIONS.map((item) => (
+                      <option key={item} value={item}>
+                        {item}
+                      </option>
+                    ))}
+                  </HeroSelect>
+                )}
+
+                <HeroPriceFilter
+                  dealType={dealType}
+                  priceFrom={priceFrom}
+                  priceTo={priceTo}
+                  priceCurrency={priceCurrency}
+                  onChange={({
+                    priceFrom: nextFrom,
+                    priceTo: nextTo,
+                    priceCurrency: nextCurrency,
+                  }) => {
+                    setPriceFrom(nextFrom);
+                    setPriceTo(nextTo);
+                    setPriceCurrency(nextCurrency);
+                  }}
+                />
+              </div>
+            )}
 
             <div className="flex flex-col gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:items-stretch">
               <button
@@ -413,6 +572,9 @@ export default function RealEstateSearchHero({
         city={city}
         subcategory={subcategory}
         rooms={rooms}
+        guests={guests}
+        checkIn={checkIn}
+        checkOut={checkOut}
         priceFrom={priceFrom}
         priceTo={priceTo}
         onNavigate={(url) => nav(url)}

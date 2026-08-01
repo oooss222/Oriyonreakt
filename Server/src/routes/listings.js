@@ -84,6 +84,7 @@ function listingQueryFromReq(query) {
     floorNotLast,
     pricePerSqmFrom,
     pricePerSqmTo,
+    guestsMin,
   } = query;
 
   const normalizedSellerType = String(sellerType || "").trim();
@@ -112,6 +113,7 @@ function listingQueryFromReq(query) {
       floorNotLast === "1" || floorNotLast === "true" ? true : undefined,
     pricePerSqmFrom: pricePerSqmFrom || undefined,
     pricePerSqmTo: pricePerSqmTo || undefined,
+    guestsMin: guestsMin || undefined,
   };
 }
 

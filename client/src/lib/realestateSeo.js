@@ -112,6 +112,9 @@ export function buildRealEstateListingUrl({
   rooms = "",
   priceFrom = "",
   priceTo = "",
+  checkIn = "",
+  checkOut = "",
+  guests = "",
   specs = {},
   sort = "",
   areaFrom = "",
@@ -131,6 +134,9 @@ export function buildRealEstateListingUrl({
     priceFrom ||
     priceTo ||
     sort ||
+    checkIn ||
+    checkOut ||
+    guests ||
     areaFrom ||
     areaTo ||
     floorFrom ||
@@ -163,6 +169,9 @@ export function buildRealEstateListingUrl({
   if (city) params.set("location", city);
   if (priceFrom) params.set("priceFrom", priceFrom);
   if (priceTo) params.set("priceTo", priceTo);
+  if (checkIn) params.set("checkIn", checkIn);
+  if (checkOut) params.set("checkOut", checkOut);
+  if (guests) params.set("guests", guests);
   if (sort) params.set("sort", sort);
   if (areaFrom) params.set("areaFrom", areaFrom);
   if (areaTo) params.set("areaTo", areaTo);
@@ -191,10 +200,18 @@ export function buildRealEstatePageTitle(draft = {}) {
   const deal = draft.specs?.["Тип сделки"] || "";
   const rooms = draft.specs?.["Комнат"] || "";
   const district = draft.specs?.["Район"] || "";
+  const guests = draft.guests || "";
 
   const parts = [];
 
-  if (subcategory) {
+  if (deal === "Посуточно") {
+    parts.push("Посуточная аренда");
+    if (subcategory) {
+      parts.push(subcategory.toLowerCase());
+    } else {
+      parts.push("жилья");
+    }
+  } else if (subcategory) {
     parts.push(subcategory);
   } else {
     parts.push("Недвижимость");
@@ -204,7 +221,11 @@ export function buildRealEstatePageTitle(draft = {}) {
     parts.push(`${rooms}-комн.`);
   }
 
-  if (deal) {
+  if (guests && deal === "Посуточно") {
+    parts.push(`на ${guests} гост${guests === "1" ? "я" : "ей"}`);
+  }
+
+  if (deal && deal !== "Посуточно") {
     parts.push(deal.toLowerCase());
   }
 

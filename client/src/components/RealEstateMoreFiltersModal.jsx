@@ -5,17 +5,21 @@ import { api } from "../lib/api";
 import {
   REAL_ESTATE_CAT,
   REAL_ESTATE_PRICE_PER_SQM_PRESETS,
+  DAILY_HOUSING_TYPES,
+  DAILY_AMENITY_OPTIONS,
   getPricePresetsForDeal,
   getDistrictsForCity,
   POPULAR_DUSHANBE_DISTRICTS,
   realEstateSubcategoryUsesFloor,
   realEstateSubcategoryUsesRooms,
+  isDailyDeal,
 } from "../data/realEstate";
 import { getRealEstateFilterGrid, REAL_ESTATE_SORT } from "../data/realEstateFilters";
 import { formatPriceInput, getPriceDigits } from "../data/specOptions";
 import { buildRealEstateListingUrl } from "../lib/realEstate";
 import RealEstatePricePerSqmCalculator from "./RealEstatePricePerSqmCalculator";
 import RealEstateCitySelect from "./RealEstateCitySelect";
+import RealEstateGuestsPicker from "./realestate/RealEstateGuestsPicker";
 
 const AREA_PRESETS = ["20", "30", "40", "50", "60", "70", "80", "100", "120", "150"];
 
@@ -26,6 +30,9 @@ function buildDraft({
   city = "",
   subcategory = "",
   rooms = "",
+  guests = "",
+  checkIn = "",
+  checkOut = "",
   priceFrom = "",
   priceTo = "",
   extra = {},
@@ -38,6 +45,9 @@ function buildDraft({
   return {
     location: city,
     subcategory,
+    guests,
+    checkIn,
+    checkOut,
     priceFrom: getPriceDigits(priceFrom),
     priceTo: getPriceDigits(priceTo),
     priceCurrency: extra.priceCurrency || "с.",
@@ -74,6 +84,7 @@ function buildCountQuery(draft) {
   if (draft.sellerType) params.sellerType = draft.sellerType;
   if (draft.pricePerSqmFrom) params.pricePerSqmFrom = draft.pricePerSqmFrom;
   if (draft.pricePerSqmTo) params.pricePerSqmTo = draft.pricePerSqmTo;
+  if (draft.guests) params.guestsMin = draft.guests;
 
   const specEntries = Object.entries(draft.specs || {}).filter(
     ([name, value]) => String(name).trim() && String(value).trim()
@@ -212,6 +223,9 @@ export default function RealEstateMoreFiltersModal({
   city = "",
   subcategory = "",
   rooms = "",
+  guests = "",
+  checkIn = "",
+  checkOut = "",
   priceFrom = "",
   priceTo = "",
   pricePerSqmFrom = "",
@@ -224,6 +238,9 @@ export default function RealEstateMoreFiltersModal({
       city,
       subcategory,
       rooms,
+      guests,
+      checkIn,
+      checkOut,
       priceFrom,
       priceTo,
       extra: { pricePerSqmFrom, pricePerSqmTo },
@@ -242,6 +259,7 @@ export default function RealEstateMoreFiltersModal({
   const showRooms = realEstateSubcategoryUsesRooms(effectiveSubcategory);
   const showFloor = realEstateSubcategoryUsesFloor(effectiveSubcategory);
   const isRentDeal = dealType === "Снять" || dealType === "Посуточно";
+  const isDaily = isDailyDeal(dealType);
   const activeCity = draft.location || city || "Душанбе";
 
   const specField = (key) =>
@@ -284,12 +302,15 @@ export default function RealEstateMoreFiltersModal({
         city,
         subcategory,
         rooms,
+        guests,
+        checkIn,
+        checkOut,
         priceFrom,
         priceTo,
         extra: { pricePerSqmFrom, pricePerSqmTo },
       })
     );
-  }, [open, dealType, city, subcategory, rooms, priceFrom, priceTo, pricePerSqmFrom, pricePerSqmTo]);
+  }, [open, dealType, city, subcategory, rooms, guests, checkIn, checkOut, priceFrom, priceTo, pricePerSqmFrom, pricePerSqmTo]);
 
   React.useEffect(() => {
     if (!open) return undefined;
@@ -377,6 +398,9 @@ export default function RealEstateMoreFiltersModal({
       subcategory: draft.subcategory || subcategory,
       city: draft.location || city,
       rooms,
+      guests: draft.guests,
+      checkIn: draft.checkIn,
+      checkOut: draft.checkOut,
       priceFrom: draft.priceFrom,
       priceTo: draft.priceTo,
       specs: draft.specs,
@@ -423,6 +447,94 @@ export default function RealEstateMoreFiltersModal({
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto px-4 py-2">
+          {isDaily && (
+            <FilterSection title="Поездка">
+              <FilterRow label="Заезд / выезд">
+                <div className="grid grid-cols-2 gap-2">
+                  <input
+                    type="date"
+                    value={draft.checkIn || ""}
+                    onChange={(e) =>
+                      setDraft((current) => ({
+                        ...current,
+                        checkIn: e.target.value,
+                        checkOut:
+                          current.checkOut &&
+                          e.target.value &&
+                          current.checkOut <= e.target.value
+                            ? ""
+                            : current.checkOut,
+                      }))
+                    }
+                    className="mobile-control"
+                  />
+                  <input
+                    type="date"
+                    value={draft.checkOut || ""}
+                    min={draft.checkIn || undefined}
+                    onChange={(e) =>
+                      setDraft((current) => ({
+                        ...current,
+                        checkOut: e.target.value,
+                      }))
+                    }
+                    className="mobile-control"
+                  />
+                </div>
+              </FilterRow>
+
+              <FilterRow label="Гости">
+                <RealEstateGuestsPicker
+                  compact
+                  value={draft.guests || ""}
+                  onChange={(value) =>
+                    setDraft((current) => ({ ...current, guests: value }))
+                  }
+                />
+              </FilterRow>
+
+              <FilterRow label="Тип жилья">
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setDraft((current) => ({ ...current, subcategory: "" }))
+                    }
+                    className={`h-10 px-3 rounded-full border text-sm font-medium transition ${
+                      !(draft.subcategory || subcategory)
+                        ? "border-lagoon bg-lagoon-50 text-lagoon-800"
+                        : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                    }`}
+                  >
+                    Любой
+                  </button>
+                  {DAILY_HOUSING_TYPES.map((item) => {
+                    const active = (draft.subcategory || subcategory) === item.value;
+                    return (
+                      <button
+                        key={item.value}
+                        type="button"
+                        onClick={() =>
+                          setDraft((current) => ({
+                            ...current,
+                            subcategory: active ? "" : item.value,
+                          }))
+                        }
+                        className={`h-10 px-3 rounded-full border text-sm font-medium transition ${
+                          active
+                            ? "border-lagoon bg-lagoon-50 text-lagoon-800"
+                            : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                        }`}
+                      >
+                        {item.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </FilterRow>
+            </FilterSection>
+          )}
+
           <FilterSection title="Местоположение">
             <FilterRow label="Город">
               <RealEstateCitySelect
@@ -480,7 +592,7 @@ export default function RealEstateMoreFiltersModal({
             )}
           </FilterSection>
 
-          <FilterSection title="Цена, сомони">
+          <FilterSection title={isDaily ? "Цена за сутки, сомони" : "Цена, сомони"}>
             <FilterRow label="Диапазон">
               <div className="grid grid-cols-2 gap-2">
                 <input
@@ -592,7 +704,7 @@ export default function RealEstateMoreFiltersModal({
               />
             </FilterRow>
 
-            {showFloor && (
+            {showFloor && !isDaily && (
               <>
                 <FilterRow label="Этаж">
                   <div className="grid grid-cols-2 gap-2">
@@ -670,7 +782,17 @@ export default function RealEstateMoreFiltersModal({
               </FilterRow>
             )}
 
-            {houseTypeOptions.length > 0 && (
+            {isDaily && (
+              <FilterRow label="Удобства">
+                <PillGroup
+                  value={draft.specs?.["Удобства"] || ""}
+                  options={DAILY_AMENITY_OPTIONS}
+                  onChange={(value) => setSpec("Удобства", value)}
+                />
+              </FilterRow>
+            )}
+
+            {houseTypeOptions.length > 0 && !isDaily && (
               <FilterRow label="Тип дома">
                 <PillGroup
                   value={draft.specs?.["Тип дома"] || ""}

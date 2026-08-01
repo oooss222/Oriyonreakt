@@ -36,6 +36,7 @@ export function formatPricePerSqm(price, areaRaw) {
 export function buildRealEstateSummary(specs = [], subcategory = "") {
   const deal = getSpecValue(specs, "Тип сделки");
   const rooms = getSpecValue(specs, "Комнат");
+  const guests = getSpecValue(specs, "Гостей");
   const area =
     getSpecValue(specs, "Площадь общая") ||
     getSpecValue(specs, "Площадь дома") ||
@@ -47,24 +48,30 @@ export function buildRealEstateSummary(specs = [], subcategory = "") {
 
   const parts = [];
 
-  if (rooms) parts.push(`${rooms} комн.`);
-  if (area) parts.push(area.includes("м") || area.includes("сот") ? area : `${area} м²`);
-  if (floor) {
-    parts.push(
-      floorsTotal ? `${floor}/${floorsTotal} эт.` : `${floor} эт.`
-    );
+  if (deal === "Посуточно") {
+    if (guests) parts.push(`${guests} гост.`);
+    if (rooms) parts.push(`${rooms} комн.`);
+    if (area) parts.push(area.includes("м") || area.includes("сот") ? area : `${area} м²`);
+  } else {
+    if (rooms) parts.push(`${rooms} комн.`);
+    if (area) parts.push(area.includes("м") || area.includes("сот") ? area : `${area} м²`);
+    if (floor) {
+      parts.push(
+        floorsTotal ? `${floor}/${floorsTotal} эт.` : `${floor} эт.`
+      );
+    }
+    if (deal) parts.unshift(deal);
   }
 
   if (!parts.length && subcategory) {
     parts.push(subcategory);
   }
 
-  if (deal) parts.unshift(deal);
-
   return {
     line: parts.join(" · "),
     deal,
     rooms,
+    guests,
     area,
     floor,
     floorsTotal,
@@ -94,6 +101,7 @@ export function enrichRealEstateListing(item) {
           ? String(item.reFloorsTotal)
           : summary.floorsTotal,
       rooms: item.reRooms || summary.rooms,
+      guests: getSpecValue(item.specs, "Гостей") || summary.guests,
       deal: item.reDealType || summary.deal,
       pricePerSqm,
     },

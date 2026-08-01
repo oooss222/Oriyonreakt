@@ -17,6 +17,7 @@ import { MapPin, Maximize2 } from "lucide-react";
 export default function RealEstateListingCard({
   item,
   variant = "grid",
+  nights = 0,
   onFav,
 }) {
   const nav = useNavigate();
@@ -25,6 +26,20 @@ export default function RealEstateListingCard({
   const img = getListingThumb(listing);
   const summary = listing.realEstateSummary || {};
   const isHorizontal = variant === "horizontal";
+  const isDaily = summary.deal === "Посуточно";
+  const nightlyPrice = Number(String(listing.price || "").replace(/[^\d]/g, ""));
+  const totalStayPrice =
+    isDaily && nights > 0 && nightlyPrice
+      ? nightlyPrice * nights
+      : null;
+  const housingLabel =
+    listing.subcategory === "Дома и коттеджи"
+      ? "Дом"
+      : listing.subcategory === "Комнаты"
+        ? "Комната"
+        : listing.subcategory === "Квартиры" || listing.subcategory === "Новостройки"
+          ? "Квартира"
+          : listing.subcategory || "Жильё";
 
   const openAd = () => {
     if (!id) return;
@@ -78,8 +93,21 @@ export default function RealEstateListingCard({
 
       <div className={`min-w-0 flex-1 flex flex-col ${isHorizontal ? "py-0.5" : "p-2"}`}>
         <div className="flex items-start justify-between gap-2">
-          <div className="font-display font-extrabold text-lg text-lagoon-700 leading-tight">
-            {formatPrice(listing.price)}
+          <div>
+            <div className="font-display font-extrabold text-lg text-lagoon-700 leading-tight">
+              {formatPrice(listing.price)}
+              {isDaily && (
+                <span className="ml-1 text-sm font-semibold text-slate-500">
+                  / сут.
+                </span>
+              )}
+            </div>
+            {totalStayPrice && (
+              <div className="text-xs font-medium text-slate-500 mt-0.5">
+                {totalStayPrice.toLocaleString("ru-RU")} с. за {nights}{" "}
+                {nights === 1 ? "ночь" : nights < 5 ? "ночи" : "ночей"}
+              </div>
+            )}
           </div>
           {summary.deal && isHorizontal && (
             <span className="shrink-0 inline-flex px-2 py-0.5 rounded-lg bg-slate-100 text-slate-600 text-[10px] font-bold uppercase">
@@ -88,16 +116,25 @@ export default function RealEstateListingCard({
           )}
         </div>
 
-        {summary.pricePerSqm && (
+        {summary.pricePerSqm && !isDaily && (
           <div className="text-xs text-slate-500 font-medium">
             {summary.pricePerSqm}
           </div>
         )}
 
-        {summary.line && (
-          <div className="mt-1 text-sm font-semibold text-slate-800 line-clamp-1">
-            {summary.line}
+        {isDaily ? (
+          <div className="mt-2 flex flex-wrap items-center gap-2 text-xs font-medium text-slate-600">
+            <span className="rounded-md bg-slate-100 px-2 py-1">{housingLabel}</span>
+            {summary.guests && <span>{summary.guests} гост.</span>}
+            {summary.rooms && <span>{summary.rooms} комн.</span>}
+            {summary.area && <span>{summary.area}</span>}
           </div>
+        ) : (
+          summary.line && (
+            <div className="mt-1 text-sm font-semibold text-slate-800 line-clamp-1">
+              {summary.line}
+            </div>
+          )
         )}
 
         <div className="mt-2" onClick={(e) => e.stopPropagation()}>

@@ -15,7 +15,9 @@ import RealEstateSearchHero from "../components/RealEstateSearchHero";
 import RealEstateListingCard from "../components/RealEstateListingCard";
 import RealEstateMoreFiltersModal from "../components/RealEstateMoreFiltersModal";
 import RealEstateDistrictBar from "../components/realestate/RealEstateDistrictBar";
+import RealEstateDailyFilterBar from "../components/realestate/RealEstateDailyFilterBar";
 import SaveSearchButton from "../components/SaveSearchButton";
+import { isDailyDeal, countNights } from "../data/realEstate";
 import { buildFeedWithAds } from "../lib/adFeed";
 import {
   buildRealEstateListingUrl,
@@ -72,6 +74,9 @@ function buildListingParams(draft, urlCat = "") {
   if (draft.sellerType) next.sellerType = draft.sellerType;
   if (draft.pricePerSqmFrom) next.pricePerSqmFrom = draft.pricePerSqmFrom;
   if (draft.pricePerSqmTo) next.pricePerSqmTo = draft.pricePerSqmTo;
+  if (draft.checkIn) next.checkIn = draft.checkIn;
+  if (draft.checkOut) next.checkOut = draft.checkOut;
+  if (draft.guests) next.guests = draft.guests;
 
   const specEntries = Object.entries(draft.specs || {}).filter(
     ([name, value]) => String(name).trim() && String(value).trim()
@@ -103,18 +108,27 @@ function searchParamsToDraft(params) {
     sellerType: params.get("sellerType") || "",
     pricePerSqmFrom: params.get("pricePerSqmFrom") || "",
     pricePerSqmTo: params.get("pricePerSqmTo") || "",
+    checkIn: params.get("checkIn") || "",
+    checkOut: params.get("checkOut") || "",
+    guests: params.get("guests") || "",
     specs: parseSpecsParam(params.get("specs")),
   };
 }
 
 function buildListingQueryFromSearchParams(params, { limit = LISTING_PAGE_SIZE, offset = 0 } = {}) {
   const draft = searchParamsToDraft(params);
-  return {
+  const query = {
     ...buildListingParams(draft, draft.cat),
     sort: draft.sort || "new",
     limit,
     offset,
   };
+
+  if (draft.guests) {
+    query.guestsMin = draft.guests;
+  }
+
+  return query;
 }
 
 function buildListingQueryFromDraft(
@@ -122,12 +136,18 @@ function buildListingQueryFromDraft(
   urlCat = "",
   { limit = LISTING_PAGE_SIZE, offset = 0 } = {}
 ) {
-  return {
+  const query = {
     ...buildListingParams(draft, urlCat),
     sort: draft.sort || "new",
     limit,
     offset,
   };
+
+  if (draft.guests) {
+    query.guestsMin = draft.guests;
+  }
+
+  return query;
 }
 
 function draftsMatch(appliedDraft, nextDraft, urlCat = "") {
@@ -334,6 +354,9 @@ export default function Listing() {
 
   const effectiveSubcategory = appliedDraft.subcategory || subcategory;
   const effectiveLocation = appliedDraft.location || location;
+  const effectiveDeal = appliedDraft.specs?.["Тип сделки"] || "";
+  const isDailyListing = isRealEstate && isDailyDeal(effectiveDeal);
+  const stayNights = countNights(appliedDraft.checkIn, appliedDraft.checkOut);
 
   const pageTitle = React.useMemo(() => {
     if (isRealEstate) {
@@ -449,6 +472,9 @@ export default function Listing() {
             sellerType: payload.sellerType,
             pricePerSqmFrom: payload.pricePerSqmFrom,
             pricePerSqmTo: payload.pricePerSqmTo,
+            checkIn: payload.checkIn,
+            checkOut: payload.checkOut,
+            guests: payload.guests,
           })
         );
       } else {
@@ -512,6 +538,9 @@ export default function Listing() {
     appliedDraft.sellerType ||
     appliedDraft.pricePerSqmFrom ||
     appliedDraft.pricePerSqmTo ||
+    appliedDraft.checkIn ||
+    appliedDraft.checkOut ||
+    appliedDraft.guests ||
     Object.keys(activeSpecs).length > 0;
 
   const activeFilterCount =
@@ -525,6 +554,8 @@ export default function Listing() {
     Number(Boolean(appliedDraft.floorNotFirst || appliedDraft.floorNotLast)) +
     Number(Boolean(appliedDraft.sellerType)) +
     Number(Boolean(appliedDraft.pricePerSqmFrom || appliedDraft.pricePerSqmTo)) +
+    Number(Boolean(appliedDraft.checkIn || appliedDraft.checkOut)) +
+    Number(Boolean(appliedDraft.guests)) +
     Object.keys(activeSpecs).length;
 
   const showSubcategoryChips =
@@ -596,6 +627,37 @@ export default function Listing() {
           initialRooms={draft.specs?.["Комнат"] || ""}
           initialPriceFrom={draft.priceFrom || ""}
           initialPriceTo={draft.priceTo || ""}
+          initialCheckIn={draft.checkIn || ""}
+          initialCheckOut={draft.checkOut || ""}
+          initialGuests={draft.guests || ""}
+          totalCount={total}
+        />
+      )}
+
+      {isDailyListing && (
+        <RealEstateDailyFilterBar
+          subcategory={effectiveSubcategory}
+          priceFrom={appliedDraft.priceFrom}
+          priceTo={appliedDraft.priceTo}
+          guests={appliedDraft.guests}
+          premiumOnly={appliedDraft.sellerType === "company"}
+          activeFilterCount={activeFilterCount}
+          onOpenFilters={() => setReMoreFiltersOpen(true)}
+          onSubcategoryChange={(value) =>
+            applyFilters({ ...appliedDraft, subcategory: value })
+          }
+          onPricePreset={({ from, to }) =>
+            applyFilters({ ...appliedDraft, priceFrom: from, priceTo: to })
+          }
+          onGuestsChange={(value) =>
+            applyFilters({ ...appliedDraft, guests: value })
+          }
+          onPremiumToggle={(active) =>
+            applyFilters({
+              ...appliedDraft,
+              sellerType: active ? "company" : "",
+            })
+          }
         />
       )}
 
@@ -635,6 +697,38 @@ export default function Listing() {
                 </span>
               )}
             </p>
+
+            {isDailyListing &&
+              (appliedDraft.checkIn ||
+                appliedDraft.checkOut ||
+                appliedDraft.guests) && (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {effectiveLocation && (
+                    <span className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">
+                      {effectiveLocation}
+                    </span>
+                  )}
+                  {appliedDraft.checkIn && appliedDraft.checkOut && (
+                    <span className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">
+                      {new Date(`${appliedDraft.checkIn}T12:00:00`).toLocaleDateString("ru-RU", {
+                        day: "numeric",
+                        month: "short",
+                      })}{" "}
+                      –{" "}
+                      {new Date(`${appliedDraft.checkOut}T12:00:00`).toLocaleDateString("ru-RU", {
+                        day: "numeric",
+                        month: "short",
+                      })}
+                      {stayNights > 0 && ` · ${stayNights} ${stayNights === 1 ? "ночь" : stayNights < 5 ? "ночи" : "ночей"}`}
+                    </span>
+                  )}
+                  {appliedDraft.guests && (
+                    <span className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">
+                      {appliedDraft.guests === "1" ? "1 гость" : `${appliedDraft.guests} гостей`}
+                    </span>
+                  )}
+                </div>
+              )}
           </div>
 
           <div className="flex items-center gap-2">
@@ -824,7 +918,13 @@ export default function Listing() {
             const id = ad._id || ad.id;
 
             if (isRealEstate) {
-              return <RealEstateListingCard key={id} item={ad} />;
+              return (
+                <RealEstateListingCard
+                  key={id}
+                  item={ad}
+                  nights={isDailyListing ? stayNights : 0}
+                />
+              );
             }
 
             const imgUrl = getListingThumb(ad);
@@ -920,6 +1020,9 @@ export default function Listing() {
           city={appliedDraft.location || "Душанбе"}
           subcategory={appliedDraft.subcategory || ""}
           rooms={appliedDraft.specs?.["Комнат"] || ""}
+          guests={appliedDraft.guests || ""}
+          checkIn={appliedDraft.checkIn || ""}
+          checkOut={appliedDraft.checkOut || ""}
           priceFrom={appliedDraft.priceFrom || ""}
           priceTo={appliedDraft.priceTo || ""}
           pricePerSqmFrom={appliedDraft.pricePerSqmFrom || ""}

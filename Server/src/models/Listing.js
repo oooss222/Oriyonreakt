@@ -67,6 +67,7 @@ function buildListingFilters({
   floorNotLast,
   pricePerSqmFrom,
   pricePerSqmTo,
+  guestsMin,
 } = {}) {
   const conditions = [];
   const values = [];
@@ -224,7 +225,42 @@ function buildListingFilters({
     conditions.push(`re_price_per_sqm <= $${values.length}`);
   }
 
+  const minGuests = parseGuestCapacity(guestsMin);
+  if (minGuests !== null) {
+    values.push(minGuests);
+    conditions.push(`
+      (
+        NOT EXISTS (
+          SELECT 1
+          FROM jsonb_array_elements(specs) AS guest_spec
+          WHERE guest_spec->>'name' = 'Гостей'
+            AND NULLIF(TRIM(guest_spec->>'value'), '') IS NOT NULL
+        )
+        OR EXISTS (
+          SELECT 1
+          FROM jsonb_array_elements(specs) AS guest_spec
+          WHERE guest_spec->>'name' = 'Гостей'
+            AND CAST(
+              NULLIF(
+                regexp_replace(guest_spec->>'value', '[^0-9]', '', 'g'),
+                ''
+              ) AS INTEGER
+            ) >= $${values.length}
+        )
+      )
+    `);
+  }
+
   return { conditions, values, priceExpr };
+}
+
+function parseGuestCapacity(value) {
+  const raw = String(value || "").trim();
+  if (!raw) return null;
+
+  const digits = raw.replace(/[^\d]/g, "");
+  const n = Number(digits);
+  return Number.isFinite(n) && n > 0 ? n : null;
 }
 
 class ListingModel {
@@ -335,6 +371,7 @@ class ListingModel {
     floorNotLast,
     pricePerSqmFrom,
     pricePerSqmTo,
+    guestsMin,
     sort = "new",
     limit = 50,
     offset = 0,
@@ -362,6 +399,7 @@ class ListingModel {
       floorNotLast,
       pricePerSqmFrom,
       pricePerSqmTo,
+      guestsMin,
     });
 
     let orderBy = buildListingOrderBy(sort, priceExpr);
@@ -422,6 +460,7 @@ class ListingModel {
     floorNotLast,
     pricePerSqmFrom,
     pricePerSqmTo,
+    guestsMin,
   } = {}) {
     const { conditions, values } = buildListingFilters({
       cat,
@@ -443,6 +482,7 @@ class ListingModel {
       floorNotLast,
       pricePerSqmFrom,
       pricePerSqmTo,
+      guestsMin,
     });
 
     let sql = `

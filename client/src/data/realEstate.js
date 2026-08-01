@@ -8,6 +8,57 @@ export const DEAL_TYPES = [
 
 export const ROOM_OPTIONS = ["1", "2", "3", "4", "5", "5+"];
 
+export const GUEST_OPTIONS = ["1", "2", "3", "4", "5", "6", "7", "8+"];
+
+export const DAILY_HOUSING_TYPES = [
+  { value: "Квартиры", label: "Квартира" },
+  { value: "Дома и коттеджи", label: "Дом" },
+  { value: "Комнаты", label: "Комната" },
+];
+
+export const DAILY_AMENITY_OPTIONS = [
+  "Wi-Fi",
+  "Кондиционер",
+  "Стиральная машина",
+  "Посудомойка",
+  "Парковка",
+  "Балкон",
+];
+
+export function isDailyDeal(dealType = "") {
+  return dealType === "Посуточно";
+}
+
+export function parseGuestCapacity(value = "") {
+  const raw = String(value).trim();
+  if (!raw) return null;
+  if (raw.includes("+")) {
+    const n = Number(raw.replace(/\D/g, ""));
+    return Number.isFinite(n) ? n : null;
+  }
+  const n = Number(raw);
+  return Number.isFinite(n) && n > 0 ? n : null;
+}
+
+export function countNights(checkIn = "", checkOut = "") {
+  if (!checkIn || !checkOut) return 0;
+  const start = new Date(`${checkIn}T12:00:00`);
+  const end = new Date(`${checkOut}T12:00:00`);
+  const diff = (end - start) / (1000 * 60 * 60 * 24);
+  return diff > 0 ? Math.floor(diff) : 0;
+}
+
+export function formatGuestLabel(count = "") {
+  const n = parseGuestCapacity(count);
+  if (!n) return "Гости";
+  const mod10 = n % 10;
+  const mod100 = n % 100;
+  let word = "гостей";
+  if (mod10 === 1 && mod100 !== 11) word = "гость";
+  else if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) word = "гостя";
+  return `${n}${String(count).includes("+") ? "+" : ""} ${word}`;
+}
+
 export const REAL_ESTATE_CITIES = ["Душанбе", "Худжанд"];
 
 export const REAL_ESTATE_PRIMARY_CITIES = REAL_ESTATE_CITIES;
@@ -167,6 +218,7 @@ const BUILD_YEARS = Array.from({ length: 2026 - 1970 + 1 }, (_, i) =>
 
 export const APARTMENT_SPECS = [
   { name: "Тип сделки", type: "select", options: DEAL_TYPES.map((d) => d.value) },
+  { name: "Гостей", type: "select", options: GUEST_OPTIONS, dailyOnly: true },
   { name: "Комнат", type: "select", options: ROOM_OPTIONS },
   { name: "Площадь общая", type: "text", placeholder: "м²" },
   { name: "Площадь жилая", type: "text", placeholder: "м²" },
@@ -181,12 +233,14 @@ export const APARTMENT_SPECS = [
   { name: "Балкон", type: "select", options: ["Есть", "Нет", "Лоджия", "2 балкона"] },
   { name: "Санузел", type: "select", options: ["Раздельный", "Совмещённый", "2 санузла"] },
   { name: "Мебель", type: "select", options: ["С мебелью", "Без мебели", "Частично"] },
+  { name: "Удобства", type: "select", options: DAILY_AMENITY_OPTIONS, dailyOnly: true },
   { name: "Парковка", type: "select", options: ["Есть", "Нет", "Гараж", "Подземная"] },
   { name: "Состояние", type: "select", options: ["Новостройка", "Вторичка"] },
 ];
 
 export const HOUSE_SPECS = [
   { name: "Тип сделки", type: "select", options: DEAL_TYPES.map((d) => d.value) },
+  { name: "Гостей", type: "select", options: GUEST_OPTIONS, dailyOnly: true },
   { name: "Комнат", type: "select", options: ROOM_OPTIONS },
   { name: "Площадь дома", type: "text", placeholder: "м²" },
   { name: "Площадь участка", type: "text", placeholder: "сот." },
@@ -274,6 +328,14 @@ export const QUICK_COLLECTIONS = [
   {
     title: "Участки",
     params: { subcategory: "Участки" },
+  },
+  {
+    title: "Посуточно в Душанбе",
+    params: {
+      subcategory: "Квартиры",
+      specs: { "Тип сделки": "Посуточно" },
+      location: "Душанбе",
+    },
   },
   {
     title: "Коммерция",

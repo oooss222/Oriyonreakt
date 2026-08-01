@@ -81,6 +81,8 @@ export default function RealEstateListingWizard({
 
   const districts = getDistrictsForCity(form.location);
   const photosCount = existingImages.length + previews.length;
+  const dealType = getSpecValue(specs, "Тип сделки");
+  const isDaily = dealType === "Посуточно";
 
   React.useEffect(() => {
     if (form.subcategory !== "Новостройки") return;
@@ -116,6 +118,10 @@ export default function RealEstateListingWizard({
 
       if (needsRooms && !getSpecValue(specs, "Комнат")) {
         return "Укажите количество комнат";
+      }
+
+      if (isDaily && needsRooms && !getSpecValue(specs, "Гостей")) {
+        return "Укажите, сколько гостей может разместиться";
       }
 
       if (needsArea) {
@@ -187,8 +193,11 @@ export default function RealEstateListingWizard({
     onSubmit?.(event);
   };
 
-  const detailFields = specs.filter((row) =>
-    [
+  const detailFields = specs.filter((row) => {
+    if (row.dailyOnly && !isDaily) return false;
+
+    return [
+      "Гостей",
       "Комнат",
       "Площадь общая",
       "Площадь дома",
@@ -200,9 +209,10 @@ export default function RealEstateListingWizard({
       "Год постройки",
       "Ремонт",
       "Мебель",
+      "Удобства",
       "Состояние",
-    ].includes(row.name)
-  );
+    ].includes(row.name);
+  });
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
