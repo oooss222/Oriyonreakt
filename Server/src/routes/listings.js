@@ -82,6 +82,8 @@ function listingQueryFromReq(query) {
     floorTo,
     floorNotFirst,
     floorNotLast,
+    pricePerSqmFrom,
+    pricePerSqmTo,
   } = query;
 
   const normalizedSellerType = String(sellerType || "").trim();
@@ -108,6 +110,8 @@ function listingQueryFromReq(query) {
       floorNotFirst === "1" || floorNotFirst === "true" ? true : undefined,
     floorNotLast:
       floorNotLast === "1" || floorNotLast === "true" ? true : undefined,
+    pricePerSqmFrom: pricePerSqmFrom || undefined,
+    pricePerSqmTo: pricePerSqmTo || undefined,
   };
 }
 

@@ -7,6 +7,7 @@ import { getRealEstateFilterGrid } from "../data/realEstateFilters";
 import { getDistrictsForCity } from "../data/realEstate";
 import { formatPriceInput, getPriceDigits } from "../data/specOptions";
 import { buildRealEstateListingUrl } from "../lib/realEstate";
+import RealEstatePricePerSqmCalculator from "./RealEstatePricePerSqmCalculator";
 
 const AREA_PRESETS = ["20", "30", "40", "50", "60", "70", "80", "100", "120", "150"];
 
@@ -39,6 +40,8 @@ function buildDraft({
     floorNotFirst: Boolean(extra.floorNotFirst),
     floorNotLast: Boolean(extra.floorNotLast),
     sellerType: extra.sellerType || "",
+    pricePerSqmFrom: extra.pricePerSqmFrom || "",
+    pricePerSqmTo: extra.pricePerSqmTo || "",
     specs,
   };
 }
@@ -60,6 +63,8 @@ function buildCountQuery(draft) {
   if (draft.floorNotFirst) params.floorNotFirst = "1";
   if (draft.floorNotLast) params.floorNotLast = "1";
   if (draft.sellerType) params.sellerType = draft.sellerType;
+  if (draft.pricePerSqmFrom) params.pricePerSqmFrom = draft.pricePerSqmFrom;
+  if (draft.pricePerSqmTo) params.pricePerSqmTo = draft.pricePerSqmTo;
 
   const specEntries = Object.entries(draft.specs || {}).filter(
     ([name, value]) => String(name).trim() && String(value).trim()
@@ -155,10 +160,20 @@ export default function RealEstateMoreFiltersModal({
   rooms = "",
   priceFrom = "",
   priceTo = "",
+  pricePerSqmFrom = "",
+  pricePerSqmTo = "",
   onNavigate,
 }) {
   const [draft, setDraft] = React.useState(() =>
-    buildDraft({ dealType, city, subcategory, rooms, priceFrom, priceTo })
+    buildDraft({
+      dealType,
+      city,
+      subcategory,
+      rooms,
+      priceFrom,
+      priceTo,
+      extra: { pricePerSqmFrom, pricePerSqmTo },
+    })
   );
   const [previewTotal, setPreviewTotal] = React.useState(0);
   const [previewLoading, setPreviewLoading] = React.useState(false);
@@ -199,8 +214,18 @@ export default function RealEstateMoreFiltersModal({
   React.useEffect(() => {
     if (!open) return;
 
-    setDraft(buildDraft({ dealType, city, subcategory, rooms, priceFrom, priceTo }));
-  }, [open, dealType, city, subcategory, rooms, priceFrom, priceTo]);
+    setDraft(
+      buildDraft({
+        dealType,
+        city,
+        subcategory,
+        rooms,
+        priceFrom,
+        priceTo,
+        extra: { pricePerSqmFrom, pricePerSqmTo },
+      })
+    );
+  }, [open, dealType, city, subcategory, rooms, priceFrom, priceTo, pricePerSqmFrom, pricePerSqmTo]);
 
   React.useEffect(() => {
     if (!open) return undefined;
@@ -274,6 +299,10 @@ export default function RealEstateMoreFiltersModal({
         rooms,
         priceFrom: "",
         priceTo: "",
+        extra: {
+          pricePerSqmFrom: "",
+          pricePerSqmTo: "",
+        },
       })
     );
   };
@@ -294,6 +323,8 @@ export default function RealEstateMoreFiltersModal({
       floorNotFirst: draft.floorNotFirst,
       floorNotLast: draft.floorNotLast,
       sellerType: draft.sellerType,
+      pricePerSqmFrom: draft.pricePerSqmFrom,
+      pricePerSqmTo: draft.pricePerSqmTo,
     });
 
     if (onNavigate) {
@@ -392,6 +423,20 @@ export default function RealEstateMoreFiltersModal({
               }
               onToChange={(value) =>
                 setDraft((current) => ({ ...current, areaTo: value }))
+              }
+            />
+          </FilterRow>
+
+          <FilterRow label="Цена за м²">
+            <RealEstatePricePerSqmCalculator
+              pricePerSqmFrom={draft.pricePerSqmFrom}
+              pricePerSqmTo={draft.pricePerSqmTo}
+              onChange={({ pricePerSqmFrom, pricePerSqmTo }) =>
+                setDraft((current) => ({
+                  ...current,
+                  pricePerSqmFrom,
+                  pricePerSqmTo,
+                }))
               }
             />
           </FilterRow>

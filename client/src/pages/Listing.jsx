@@ -69,6 +69,8 @@ function buildListingParams(draft, urlCat = "") {
   if (draft.floorNotFirst) next.floorNotFirst = "1";
   if (draft.floorNotLast) next.floorNotLast = "1";
   if (draft.sellerType) next.sellerType = draft.sellerType;
+  if (draft.pricePerSqmFrom) next.pricePerSqmFrom = draft.pricePerSqmFrom;
+  if (draft.pricePerSqmTo) next.pricePerSqmTo = draft.pricePerSqmTo;
 
   const specEntries = Object.entries(draft.specs || {}).filter(
     ([name, value]) => String(name).trim() && String(value).trim()
@@ -98,6 +100,8 @@ function searchParamsToDraft(params) {
     floorNotFirst: params.get("floorNotFirst") === "1",
     floorNotLast: params.get("floorNotLast") === "1",
     sellerType: params.get("sellerType") || "",
+    pricePerSqmFrom: params.get("pricePerSqmFrom") || "",
+    pricePerSqmTo: params.get("pricePerSqmTo") || "",
     specs: parseSpecsParam(params.get("specs")),
   };
 }
@@ -442,6 +446,8 @@ export default function Listing() {
             floorNotFirst: payload.floorNotFirst,
             floorNotLast: payload.floorNotLast,
             sellerType: payload.sellerType,
+            pricePerSqmFrom: payload.pricePerSqmFrom,
+            pricePerSqmTo: payload.pricePerSqmTo,
           })
         );
       } else {
@@ -475,6 +481,8 @@ export default function Listing() {
       floorNotFirst: false,
       floorNotLast: false,
       sellerType: "",
+      pricePerSqmFrom: "",
+      pricePerSqmTo: "",
       specs: {},
     });
     if (cat) {
@@ -501,6 +509,8 @@ export default function Listing() {
     appliedDraft.floorNotFirst ||
     appliedDraft.floorNotLast ||
     appliedDraft.sellerType ||
+    appliedDraft.pricePerSqmFrom ||
+    appliedDraft.pricePerSqmTo ||
     Object.keys(activeSpecs).length > 0;
 
   const activeFilterCount =
@@ -513,6 +523,7 @@ export default function Listing() {
     Number(Boolean(appliedDraft.floorFrom || appliedDraft.floorTo)) +
     Number(Boolean(appliedDraft.floorNotFirst || appliedDraft.floorNotLast)) +
     Number(Boolean(appliedDraft.sellerType)) +
+    Number(Boolean(appliedDraft.pricePerSqmFrom || appliedDraft.pricePerSqmTo)) +
     Object.keys(activeSpecs).length;
 
   const showSubcategoryChips =
@@ -893,6 +904,8 @@ export default function Listing() {
           rooms={appliedDraft.specs?.["Комнат"] || ""}
           priceFrom={appliedDraft.priceFrom || ""}
           priceTo={appliedDraft.priceTo || ""}
+          pricePerSqmFrom={appliedDraft.pricePerSqmFrom || ""}
+          pricePerSqmTo={appliedDraft.pricePerSqmTo || ""}
           onNavigate={(url) => {
             setReMoreFiltersOpen(false);
             nav(url);

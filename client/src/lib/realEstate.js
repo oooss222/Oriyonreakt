@@ -105,6 +105,31 @@ export function formatStoredPricePerSqm(value) {
   return `${Number(value).toLocaleString("ru-RU")} с./м²`;
 }
 
+export function calculatePricePerSqm(totalPrice, areaSqm) {
+  const amount = Number(String(totalPrice || "").replace(/[^\d]/g, ""));
+  const area = Number(String(areaSqm || "").replace(",", "."));
+
+  if (!Number.isFinite(amount) || amount <= 0) return null;
+  if (!Number.isFinite(area) || area <= 0) return null;
+
+  return Math.round(amount / area);
+}
+
+export function calculateTotalPriceFromPerSqm(pricePerSqm, areaSqm) {
+  const perSqm = Number(String(pricePerSqm || "").replace(/[^\d]/g, ""));
+  const area = Number(String(areaSqm || "").replace(",", "."));
+
+  if (!Number.isFinite(perSqm) || perSqm <= 0) return null;
+  if (!Number.isFinite(area) || area <= 0) return null;
+
+  return Math.round(perSqm * area);
+}
+
+export function formatPricePerSqmValue(value) {
+  if (value == null || !Number.isFinite(Number(value))) return null;
+  return `${Number(value).toLocaleString("ru-RU")} с./м²`;
+}
+
 export function buildRealEstateListingUrl(options = {}) {
   return buildSeoListingUrl(options);
 }

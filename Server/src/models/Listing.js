@@ -68,6 +68,8 @@ function buildListingFilters({
   floorTo,
   floorNotFirst,
   floorNotLast,
+  pricePerSqmFrom,
+  pricePerSqmTo,
 } = {}) {
   const conditions = [];
   const values = [];
@@ -212,6 +214,19 @@ function buildListingFilters({
     `);
   }
 
+  const minPricePerSqm = toNumberOrNull(pricePerSqmFrom);
+  const maxPricePerSqm = toNumberOrNull(pricePerSqmTo);
+
+  if (minPricePerSqm !== null) {
+    values.push(minPricePerSqm);
+    conditions.push(`re_price_per_sqm >= $${values.length}`);
+  }
+
+  if (maxPricePerSqm !== null) {
+    values.push(maxPricePerSqm);
+    conditions.push(`re_price_per_sqm <= $${values.length}`);
+  }
+
   return { conditions, values, priceExpr };
 }
 
@@ -321,6 +336,8 @@ class ListingModel {
     floorTo,
     floorNotFirst,
     floorNotLast,
+    pricePerSqmFrom,
+    pricePerSqmTo,
     sort = "new",
     limit = 50,
     offset = 0,
@@ -346,6 +363,8 @@ class ListingModel {
       floorTo,
       floorNotFirst,
       floorNotLast,
+      pricePerSqmFrom,
+      pricePerSqmTo,
     });
 
     let orderBy = buildListingOrderBy(sort, priceExpr);
@@ -404,6 +423,8 @@ class ListingModel {
     floorTo,
     floorNotFirst,
     floorNotLast,
+    pricePerSqmFrom,
+    pricePerSqmTo,
   } = {}) {
     const { conditions, values } = buildListingFilters({
       cat,
@@ -423,6 +444,8 @@ class ListingModel {
       floorTo,
       floorNotFirst,
       floorNotLast,
+      pricePerSqmFrom,
+      pricePerSqmTo,
     });
 
     let sql = `
