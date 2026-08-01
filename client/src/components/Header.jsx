@@ -342,7 +342,17 @@ export default function Header() {
         </div>
       </div>
 
-      {isBrowsePage && <CategoryStrip compact={compactCategories} />}
+      {isBrowsePage && (
+        <div
+          className={`overflow-hidden transition-[max-height,opacity,transform] duration-300 ease-in-out ${
+            scrolled
+              ? "max-h-0 opacity-0 -translate-y-1 pointer-events-none"
+              : "max-h-44 opacity-100 translate-y-0"
+          }`}
+        >
+          <CategoryStrip compact={compactCategories} />
+        </div>
+      )}
     </header>
   );
 }
