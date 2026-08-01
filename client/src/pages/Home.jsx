@@ -11,9 +11,9 @@ import { formatPrice, formatListingDate } from "../lib/format";
 import { sortListingsByPromotion } from "../lib/listingSort";
 import { REAL_ESTATE_CAT } from "../data/realEstate";
 import {
+  getPromotionCardAccent,
   getPromotionCardClass,
 } from "../lib/promotionStyles";
-import { PromotionCardDecor } from "../components/PromotionCardFrame";
 import {
   PlusCircle,
   ShieldCheck,
@@ -58,7 +58,10 @@ function ListingCard({ ad, listings }) {
       )}`}
       aria-label={`Объявление: ${ad.title || "Без названия"}`}
     >
-      <PromotionCardDecor vip={ad.vip} top={ad.top} />
+      <span
+        className={getPromotionCardAccent({ vip: ad.vip, top: ad.top })}
+        aria-hidden="true"
+      />
       <div className="relative overflow-hidden rounded-2xl">
         <img
           src={img}

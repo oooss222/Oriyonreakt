@@ -1,9 +1,9 @@
 import React from "react";
-import { Crown, TrendingUp } from "lucide-react";
+import { Crown, Sparkles } from "lucide-react";
 
 const SIZE_MAP = {
   sm: {
-    wrap: "h-[26px] px-2 text-[10px] gap-1",
+    wrap: "h-6 px-2 text-[10px] gap-1",
     iconWrap: "h-4 w-4",
     icon: 10,
   },
@@ -13,24 +13,9 @@ const SIZE_MAP = {
     icon: 11,
   },
   lg: {
-    wrap: "h-9 px-3.5 text-xs gap-2",
+    wrap: "h-8 px-3 text-xs gap-2",
     iconWrap: "h-5 w-5",
     icon: 13,
-  },
-};
-
-const TYPE_META = {
-  vip: {
-    label: "VIP",
-    Icon: Crown,
-    badgeClass: "promotion-badge-vip",
-    ariaLabel: "VIP объявление",
-  },
-  top: {
-    label: "TOP",
-    Icon: TrendingUp,
-    badgeClass: "promotion-badge-top",
-    ariaLabel: "TOP объявление",
   },
 };
 
@@ -41,31 +26,29 @@ export default function PromotionBadge({
   className = "",
 }) {
   const sizeConfig = SIZE_MAP[size] || SIZE_MAP.md;
-  const meta = TYPE_META[type] || TYPE_META.vip;
-  const Icon = meta.Icon;
+  const isVip = type === "vip";
+  const Icon = isVip ? Crown : Sparkles;
 
   return (
     <span
       className={[
-        "promotion-badge inline-flex items-center rounded-full font-bold uppercase tracking-[0.1em] text-white",
-        meta.badgeClass,
+        "promotion-badge inline-flex items-center rounded-full font-bold uppercase tracking-[0.08em] text-white",
+        isVip ? "promotion-badge-vip" : "promotion-badge-top",
         sizeConfig.wrap,
         className,
       ].join(" ")}
-      aria-label={meta.ariaLabel}
-      title={meta.ariaLabel}
     >
       {showIcon && (
         <span
           className={[
-            "inline-flex shrink-0 items-center justify-center rounded-full bg-black/10 ring-1 ring-white/35",
+            "inline-flex shrink-0 items-center justify-center rounded-full bg-white/20 ring-1 ring-white/30",
             sizeConfig.iconWrap,
           ].join(" ")}
         >
-          <Icon size={sizeConfig.icon} className="drop-shadow-sm" strokeWidth={2.75} />
+          <Icon size={sizeConfig.icon} className="drop-shadow-sm" strokeWidth={2.5} />
         </span>
       )}
-      <span className="leading-none">{meta.label}</span>
+      <span className="leading-none">{isVip ? "VIP" : "TOP"}</span>
     </span>
   );
 }
@@ -74,27 +57,14 @@ export function PromotionBadgeGroup({
   vip = false,
   top = false,
   size = "md",
-  layout = "auto",
   className = "",
 }) {
   if (!vip && !top) {
     return null;
   }
 
-  const flow =
-    layout === "stack"
-      ? "flex-col"
-      : layout === "row"
-        ? "flex-row flex-wrap"
-        : size === "sm"
-          ? "flex-row flex-wrap"
-          : "flex-col";
-
   return (
-    <div
-      className={[`flex items-start gap-1`, flow, className].join(" ")}
-      aria-label={[vip && "VIP", top && "TOP"].filter(Boolean).join(", ")}
-    >
+    <div className={`flex flex-col items-start gap-1 ${className}`}>
       {vip && <PromotionBadge type="vip" size={size} />}
       {top && <PromotionBadge type="top" size={size} />}
     </div>

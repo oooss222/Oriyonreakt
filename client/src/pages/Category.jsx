@@ -12,9 +12,9 @@ import { CATS } from "../data/listingCategories";
 import { getListingThumb } from "../lib/media";
 import { formatPrice } from "../lib/format";
 import {
+  getPromotionCardAccent,
   getPromotionCardClass,
 } from "../lib/promotionStyles";
-import { PromotionCardDecor } from "../components/PromotionCardFrame";
 import { Search, FolderOpen, MapPin } from "lucide-react";
 
 const PREVIEW_LIMIT = 6;
@@ -281,7 +281,10 @@ export default function Category() {
                     { vip: ad.vip, top: ad.top }
                   )}`}
                 >
-                  <PromotionCardDecor vip={ad.vip} top={ad.top} />
+                  <span
+                    className={getPromotionCardAccent({ vip: ad.vip, top: ad.top })}
+                    aria-hidden="true"
+                  />
                   <div className="relative">
                     <img
                       src={imgUrl}

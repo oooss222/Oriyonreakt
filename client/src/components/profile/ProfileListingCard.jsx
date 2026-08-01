@@ -14,10 +14,9 @@ import { PromotionBadgeGroup } from "../PromotionBadge";
 import { getListingThumb } from "../../lib/media";
 import { formatPrice, formatListingDate, formatViewCount } from "../../lib/format";
 import {
+  getPromotionCardAccent,
   getPromotionCardClass,
-  getPromotionTier,
 } from "../../lib/promotionStyles";
-import { PromotionCardDecor } from "../PromotionCardFrame";
 import { getId } from "./profileUtils";
 
 const STATUS_MAP = {
@@ -85,7 +84,6 @@ export default React.memo(function ProfileListingCard({
   const more = Math.max(0, (ad.images?.length || 0) - 1);
   const status = ad.status || "pending";
   const statusInfo = STATUS_MAP[status] || STATUS_MAP.pending;
-  const isPromoted = Boolean(getPromotionTier({ vip: ad.vip, top: ad.top }));
 
   return (
     <article
@@ -95,7 +93,10 @@ export default React.memo(function ProfileListingCard({
         selected ? "ring-2 ring-sun border-sun" : "border-slate-200",
       ].join(" ")}
     >
-      <PromotionCardDecor vip={ad.vip} top={ad.top} />
+      <span
+        className={getPromotionCardAccent({ vip: ad.vip, top: ad.top })}
+        aria-hidden="true"
+      />
 
       {selectable && canManage && (
         <label className="absolute top-2 right-2 z-20 cursor-pointer rounded-lg border bg-white/95 p-1.5 shadow-sm">
@@ -124,26 +125,13 @@ export default React.memo(function ProfileListingCard({
             loading="lazy"
           />
 
-          {isPromoted && (
-            <div
-              className="pointer-events-none absolute inset-x-0 top-0 z-[1] h-16 bg-gradient-to-b from-black/40 via-black/10 to-transparent"
-              aria-hidden="true"
-            />
-          )}
-
-          <div className="absolute inset-x-0 top-0 z-10 flex items-start justify-between gap-2 p-2.5">
+          <div className="absolute inset-x-0 top-0 flex flex-wrap items-start gap-1.5 p-2.5">
             <span
-              className={`inline-flex shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold shadow-sm ${statusInfo.className}`}
+              className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold shadow-sm ${statusInfo.className}`}
             >
               {statusInfo.label}
             </span>
-            <PromotionBadgeGroup
-              vip={ad.vip}
-              top={ad.top}
-              size="sm"
-              layout="row"
-              className="justify-end"
-            />
+            <PromotionBadgeGroup vip={ad.vip} top={ad.top} size="sm" />
           </div>
 
           {more > 0 && (

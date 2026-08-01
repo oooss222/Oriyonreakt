@@ -8,8 +8,10 @@ import BusinessBadge from "./BusinessBadge";
 import { getListingThumb } from "../lib/media";
 import { formatPrice } from "../lib/format";
 import { enrichRealEstateListing } from "../lib/realEstate";
-import { getPromotionCardClass, getPromotionTier } from "../lib/promotionStyles";
-import { PromotionCardDecor } from "../components/PromotionCardFrame";
+import {
+  getPromotionCardAccent,
+  getPromotionCardClass,
+} from "../lib/promotionStyles";
 import { MapPin, Maximize2 } from "lucide-react";
 
 export default function RealEstateListingCard({
@@ -30,8 +32,6 @@ export default function RealEstateListingCard({
     nav(`/ad/${id}`);
   };
 
-  const isPromoted = Boolean(getPromotionTier({ vip: listing.vip, top: listing.top }));
-
   return (
     <article
       role="link"
@@ -43,11 +43,14 @@ export default function RealEstateListingCard({
           openAd();
         }
       }}
-      className={`group relative flex cursor-pointer overflow-hidden rounded-2xl border bg-white transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-sun/40 ${getPromotionCardClass(
+      className={`group relative flex cursor-pointer overflow-hidden rounded-2xl border bg-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-sun/40 ${getPromotionCardClass(
         { vip: listing.vip, top: listing.top }
-      )} ${isPromoted ? "" : "hover:-translate-y-0.5 hover:shadow-lg"} ${isHorizontal ? "flex-row p-2.5 gap-3" : "flex-col p-1.5"}`}
+      )} ${isHorizontal ? "flex-row p-2.5 gap-3" : "flex-col p-1.5"}`}
     >
-      <PromotionCardDecor vip={listing.vip} top={listing.top} />
+      <span
+        className={getPromotionCardAccent({ vip: listing.vip, top: listing.top })}
+        aria-hidden="true"
+      />
 
       <div
         className={`relative overflow-hidden shrink-0 ${
@@ -71,8 +74,8 @@ export default function RealEstateListingCard({
           morePhotos={Math.max(0, (listing.images?.length || 0) - 1)}
         />
 
-        {summary.deal && isHorizontal && (
-          <span className="absolute left-2 bottom-2 z-10 inline-flex rounded-lg bg-black/65 px-2 py-0.5 text-[10px] font-semibold text-white">
+        {summary.deal && (
+          <span className="absolute left-2 bottom-2 z-10 inline-flex px-2 py-0.5 rounded-lg bg-black/65 text-white text-[10px] font-semibold">
             {summary.deal}
           </span>
         )}
@@ -83,8 +86,8 @@ export default function RealEstateListingCard({
           <div className="font-display font-extrabold text-lg text-lagoon-700 leading-tight">
             {formatPrice(listing.price)}
           </div>
-          {summary.deal && (
-            <span className="shrink-0 inline-flex rounded-lg bg-slate-100 px-2 py-0.5 text-[10px] font-bold uppercase text-slate-600">
+          {summary.deal && isHorizontal && (
+            <span className="shrink-0 inline-flex px-2 py-0.5 rounded-lg bg-slate-100 text-slate-600 text-[10px] font-bold uppercase">
               {summary.deal}
             </span>
           )}

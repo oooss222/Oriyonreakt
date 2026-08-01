@@ -29,9 +29,9 @@ import { getListingThumb } from "../lib/media";
 import { formatPrice, formatListingDate } from "../lib/format";
 import { sortListingsByMode } from "../lib/listingSort";
 import {
+  getPromotionCardAccent,
   getPromotionCardClass,
 } from "../lib/promotionStyles";
-import { PromotionCardDecor } from "../components/PromotionCardFrame";
 import { CATS, parseSpecsParam } from "../data/listingCategories";
 import { REAL_ESTATE_CAT } from "../data/realEstate";
 import {
@@ -803,7 +803,10 @@ export default function Listing() {
                 style={{ animationDelay: `${idx * 40}ms` }}
                 aria-label={`Объявление: ${ad.title || "Без названия"}`}
               >
-                <PromotionCardDecor vip={ad.vip} top={ad.top} />
+                <span
+                  className={getPromotionCardAccent({ vip: ad.vip, top: ad.top })}
+                  aria-hidden="true"
+                />
                 <div className="relative">
                   <img
                     src={imgUrl}

@@ -6,9 +6,9 @@ import BusinessBadge from "./BusinessBadge";
 import { getListingThumb } from "../lib/media";
 import { formatPrice } from "../lib/format";
 import {
+  getPromotionCardAccent,
   getPromotionCardClass,
 } from "../lib/promotionStyles";
-import { PromotionCardDecor } from "../components/PromotionCardFrame";
 
 export default function ListingCard({ item, onFav }) {
   const nav = useNavigate();
@@ -36,7 +36,13 @@ export default function ListingCard({ item, onFav }) {
         top: item?.top,
       })}`}
     >
-      <PromotionCardDecor vip={item?.vip} top={item?.top} />
+      <span
+        className={getPromotionCardAccent({
+          vip: item?.vip,
+          top: item?.top,
+        })}
+        aria-hidden="true"
+      />
       <div className="relative overflow-hidden">
         <img
           src={getListingThumb(item)}
