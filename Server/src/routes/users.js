@@ -119,6 +119,24 @@ router.put("/me", auth, async (req, res) => {
           body.companyInstagram !== undefined
             ? String(body.companyInstagram).trim()
             : undefined,
+        listingAutoBumpEnabled:
+          body.listingAutoBumpEnabled !== undefined
+            ? Boolean(body.listingAutoBumpEnabled)
+            : undefined,
+        listingAutoBumpIntervalHours:
+          body.listingAutoBumpIntervalHours !== undefined
+            ? Number(body.listingAutoBumpIntervalHours)
+            : undefined,
+      });
+    }
+
+    if (
+      current.sellerType !== "company" &&
+      (body.listingAutoBumpEnabled !== undefined ||
+        body.listingAutoBumpIntervalHours !== undefined)
+    ) {
+      return res.status(403).json({
+        error: "Auto bump is available for premium accounts only",
       });
     }
 
@@ -175,6 +193,47 @@ router.get("/me/business", auth, async (req, res) => {
 
     return res.status(500).json({
       error: "Failed to load business stats",
+    });
+  }
+});
+
+router.post("/me/business/bump-all", auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({
+        error: "User not found",
+      });
+    }
+
+    if (user.sellerType !== "company") {
+      return res.status(403).json({
+        error: "Bulk listing refresh is available for premium accounts only",
+      });
+    }
+
+    const Listing = require("../models/Listing");
+    const updatedCount = await Listing.bumpAllApprovedForOwner(req.user.id);
+
+    await require("../db").query(
+      `
+      UPDATE users
+      SET listing_auto_bump_last_at = now(), updated_at = now()
+      WHERE id = $1
+      `,
+      [req.user.id]
+    );
+
+    return res.json({
+      updatedCount,
+      refreshedAt: new Date().toISOString(),
+    });
+  } catch (e) {
+    console.error("USER_BUSINESS_BUMP_ALL_ERROR:", e?.message);
+
+    return res.status(500).json({
+      error: "Failed to refresh listings",
     });
   }
 });

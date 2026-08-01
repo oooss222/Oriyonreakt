@@ -1,29 +1,44 @@
-const PRIVATE_LISTING_LIMIT = 10;
-const COMPANY_LISTING_LIMIT = 100;
-
 const ACTIVE_LISTING_STATUSES = ["approved", "pending"];
 
-function getListingLimit(user = {}) {
-  if (user.sellerType === "company") {
-    return COMPANY_LISTING_LIMIT;
-  }
+function getListingLimit() {
+  return null;
+}
 
-  return PRIVATE_LISTING_LIMIT;
+function hasListingLimit() {
+  return false;
 }
 
 function isCompanyAccount(user = {}) {
   return user.sellerType === "company";
 }
 
-function canSwitchToPrivate(user = {}, activeListings = 0) {
-  return activeListings <= PRIVATE_LISTING_LIMIT;
+function canSwitchToPrivate() {
+  return true;
+}
+
+const MIN_AUTO_BUMP_INTERVAL_HOURS = 1;
+const MAX_AUTO_BUMP_INTERVAL_HOURS = 720;
+
+function normalizeAutoBumpIntervalHours(value) {
+  const hours = Math.round(Number(value));
+
+  if (!Number.isFinite(hours)) {
+    return 24;
+  }
+
+  return Math.min(
+    MAX_AUTO_BUMP_INTERVAL_HOURS,
+    Math.max(MIN_AUTO_BUMP_INTERVAL_HOURS, hours)
+  );
 }
 
 module.exports = {
-  PRIVATE_LISTING_LIMIT,
-  COMPANY_LISTING_LIMIT,
   ACTIVE_LISTING_STATUSES,
   getListingLimit,
+  hasListingLimit,
   isCompanyAccount,
   canSwitchToPrivate,
+  MIN_AUTO_BUMP_INTERVAL_HOURS,
+  MAX_AUTO_BUMP_INTERVAL_HOURS,
+  normalizeAutoBumpIntervalHours,
 };

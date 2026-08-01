@@ -1,6 +1,7 @@
 const { query } = require("../db");
 const SiteSettings = require("../models/SiteSettings");
 const SavedSearch = require("../models/SavedSearch");
+const { runPremiumListingAutoBump } = require("./premiumListingAutoBump");
 const {
   isMailConfigured,
   sendListingExpiryEmail,
@@ -140,11 +141,12 @@ async function runListingMaintenance() {
   const archived = await archiveExpiredListings();
   const nudges = await sendExpiryNudges();
   const alerts = await processSavedSearchAlerts();
+  const autoBump = await runPremiumListingAutoBump();
 
-  if (archived || nudges || alerts) {
+  if (archived || nudges || alerts || autoBump.usersProcessed) {
     console.log(
       "LISTING_MAINTENANCE:",
-      JSON.stringify({ archived, nudges, alerts })
+      JSON.stringify({ archived, nudges, alerts, autoBump })
     );
   }
 }

@@ -1452,6 +1452,23 @@ class ListingModel {
 
     return result.rows.map(mapListing);
   }
+
+  static async bumpAllApprovedForOwner(ownerId) {
+    const result = await query(
+      `
+      UPDATE listings
+      SET
+        bumped_at = now(),
+        updated_at = now()
+      WHERE owner = $1
+        AND status = 'approved'
+      RETURNING id
+      `,
+      [ownerId]
+    );
+
+    return result.rows.length;
+  }
 }
 
 module.exports = ListingModel;

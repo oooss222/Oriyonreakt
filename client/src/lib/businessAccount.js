@@ -1,16 +1,16 @@
-export const PRIVATE_LISTING_LIMIT = 10;
-export const COMPANY_LISTING_LIMIT = 100;
+export const MIN_AUTO_BUMP_INTERVAL_HOURS = 1;
+export const MAX_AUTO_BUMP_INTERVAL_HOURS = 720;
 
 export const BUSINESS_BENEFITS = [
-  "До 100 активных объявлений",
-  "Бренд-страница с логотипом и описанием",
-  "Бейдж «Премиум» на объявлениях",
-  "Верификация премиум-аккаунта модератором",
-  "Приоритетное доверие покупателей",
+  "Логотип компании на странице и в объявлениях",
+  "Instagram и адреса магазинов в профиле",
+  "Бренд-страница с описанием компании",
+  "Автообновление дат всех объявлений по расписанию",
+  "Бейдж «Премиум» и верификация модератором",
 ];
 
-export function getListingLimit(user) {
-  return user?.sellerType === "company" ? COMPANY_LISTING_LIMIT : PRIVATE_LISTING_LIMIT;
+export function getListingLimit() {
+  return null;
 }
 
 export function isCompanyAccount(user) {
@@ -27,4 +27,40 @@ export function getDisplayName(user) {
     return user.companyName;
   }
   return user.name || "Продавец";
+}
+
+export function parseCompanyAddresses(value = "") {
+  return String(value || "")
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+}
+
+export function normalizeAutoBumpIntervalHours(value, fallback = 24) {
+  const hours = Math.round(Number(value));
+
+  if (!Number.isFinite(hours)) {
+    return fallback;
+  }
+
+  return Math.min(
+    MAX_AUTO_BUMP_INTERVAL_HOURS,
+    Math.max(MIN_AUTO_BUMP_INTERVAL_HOURS, hours)
+  );
+}
+
+export function formatAutoBumpInterval(hours) {
+  const value = Number(hours);
+
+  if (!Number.isFinite(value) || value <= 0) return "Не задано";
+
+  if (value === 1) return "Каждый час";
+
+  if (value % 24 === 0) {
+    const days = value / 24;
+    if (days === 1) return "Раз в сутки";
+    return `Раз в ${days} дн.`;
+  }
+
+  return `Каждые ${value} ч.`;
 }

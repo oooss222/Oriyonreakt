@@ -3,10 +3,12 @@ import { useNavigate } from "react-router-dom";
 import {
   BadgeCheck,
   Building2,
+  Clock3,
   Globe,
   Instagram,
   MapPin,
   MessageCircle,
+  RefreshCw,
   Sparkles,
   Upload,
 } from "lucide-react";
@@ -15,17 +17,31 @@ import { openBusinessSupportChat } from "../lib/openBusinessSupportChat";
 import BusinessBadge from "./BusinessBadge";
 import {
   BUSINESS_BENEFITS,
-  COMPANY_LISTING_LIMIT,
-  PRIVATE_LISTING_LIMIT,
-  getListingLimit,
+  formatAutoBumpInterval,
   isCompanyAccount,
+  MAX_AUTO_BUMP_INTERVAL_HOURS,
+  MIN_AUTO_BUMP_INTERVAL_HOURS,
+  normalizeAutoBumpIntervalHours,
 } from "../lib/businessAccount";
+
+function formatDateTime(value) {
+  if (!value || Number.isNaN(Date.parse(value))) return "ещё не выполнялось";
+
+  return new Date(value).toLocaleString("ru-RU", {
+    day: "numeric",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
 
 export default function BusinessProfileSection({ token, me, onUpdated }) {
   const nav = useNavigate();
   const [stats, setStats] = React.useState(null);
   const [loadingStats, setLoadingStats] = React.useState(true);
   const [saving, setSaving] = React.useState(false);
+  const [savingAutoBump, setSavingAutoBump] = React.useState(false);
+  const [bumpingAll, setBumpingAll] = React.useState(false);
   const [contactLoading, setContactLoading] = React.useState(false);
   const [uploadingLogo, setUploadingLogo] = React.useState(false);
   const [error, setError] = React.useState("");
@@ -42,6 +58,11 @@ export default function BusinessProfileSection({ token, me, onUpdated }) {
     companyInstagram: me?.companyInstagram || "",
   });
 
+  const [autoBumpForm, setAutoBumpForm] = React.useState({
+    enabled: Boolean(me?.listingAutoBumpEnabled),
+    intervalHours: Number(me?.listingAutoBumpIntervalHours || 24),
+  });
+
   React.useEffect(() => {
     setForm({
       companyName: me?.companyName || "",
@@ -51,36 +72,30 @@ export default function BusinessProfileSection({ token, me, onUpdated }) {
       companyWebsite: me?.companyWebsite || "",
       companyInstagram: me?.companyInstagram || "",
     });
+    setAutoBumpForm({
+      enabled: Boolean(me?.listingAutoBumpEnabled),
+      intervalHours: Number(me?.listingAutoBumpIntervalHours || 24),
+    });
   }, [me]);
 
-  React.useEffect(() => {
+  const reloadStats = React.useCallback(() => {
     if (!token) return;
-
-    let alive = true;
 
     setLoadingStats(true);
 
     api
       .businessStats(token)
-      .then((data) => {
-        if (alive) setStats(data);
-      })
-      .catch(() => {
-        if (alive) setStats(null);
-      })
-      .finally(() => {
-        if (alive) setLoadingStats(false);
-      });
+      .then((data) => setStats(data))
+      .catch(() => setStats(null))
+      .finally(() => setLoadingStats(false));
+  }, [token]);
 
-    return () => {
-      alive = false;
-    };
-  }, [token, me?.sellerType]);
+  React.useEffect(() => {
+    reloadStats();
+  }, [reloadStats, me?.sellerType]);
 
-  const listingLimit = stats?.listingLimit ?? getListingLimit(me);
   const activeListings = stats?.activeListings ?? 0;
-  const remainingListings =
-    stats?.remainingListings ?? Math.max(0, listingLimit - activeListings);
+  const totalViews = stats?.totalViews ?? 0;
 
   const saveBusinessProfile = async () => {
     if (!isCompany) return;
@@ -109,6 +124,59 @@ export default function BusinessProfileSection({ token, me, onUpdated }) {
       setError(e.message || "Не удалось сохранить");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const saveAutoBumpSettings = async () => {
+    if (!isCompany) return;
+
+    setError("");
+    setSuccess("");
+    setSavingAutoBump(true);
+
+    try {
+      const intervalHours = normalizeAutoBumpIntervalHours(
+        autoBumpForm.intervalHours
+      );
+
+      const updated = await api.updateMe(token, {
+        listingAutoBumpEnabled: autoBumpForm.enabled,
+        listingAutoBumpIntervalHours: intervalHours,
+      });
+
+      onUpdated?.(updated);
+      reloadStats();
+      setSuccess(
+        autoBumpForm.enabled
+          ? `Автообновление включено: ${formatAutoBumpInterval(autoBumpForm.intervalHours)}`
+          : "Автообновление отключено"
+      );
+    } catch (e) {
+      setError(e.message || "Не удалось сохранить настройки обновления");
+    } finally {
+      setSavingAutoBump(false);
+    }
+  };
+
+  const bumpAllListingsNow = async () => {
+    if (!isCompany) return;
+
+    setError("");
+    setSuccess("");
+    setBumpingAll(true);
+
+    try {
+      const result = await api.bumpAllListings(token);
+      reloadStats();
+      setSuccess(
+        result?.updatedCount
+          ? `Обновлено объявлений: ${result.updatedCount}`
+          : "Нет активных объявлений для обновления"
+      );
+    } catch (e) {
+      setError(e.message || "Не удалось обновить объявления");
+    } finally {
+      setBumpingAll(false);
     }
   };
 
@@ -166,8 +234,8 @@ export default function BusinessProfileSection({ token, me, onUpdated }) {
             </div>
             <h2 className="text-xl font-bold mt-2">Премиум-аккаунт</h2>
             <p className="text-sm text-slate-500 mt-1 max-w-2xl">
-              Расширенный профиль для агентств, девелоперов и компаний. Больше
-              объявлений, бренд-страница и доверие покупателей.
+              Бренд-профиль компании, контакты магазина и автообновление дат
+              объявлений в каталоге.
             </p>
           </div>
 
@@ -182,7 +250,7 @@ export default function BusinessProfileSection({ token, me, onUpdated }) {
       </div>
 
       <div className="p-5 space-y-5">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div className="rounded-2xl border bg-slate-50 p-4">
             <div className="text-xs text-slate-500">Активные объявления</div>
             <div className="text-2xl font-bold mt-1">
@@ -191,16 +259,9 @@ export default function BusinessProfileSection({ token, me, onUpdated }) {
           </div>
 
           <div className="rounded-2xl border bg-blue-50 p-4">
-            <div className="text-xs text-blue-700">Лимит</div>
+            <div className="text-xs text-blue-700">Просмотры объявлений</div>
             <div className="text-2xl font-bold text-blue-700 mt-1">
-              {listingLimit}
-            </div>
-          </div>
-
-          <div className="rounded-2xl border bg-emerald-50 p-4">
-            <div className="text-xs text-emerald-700">Осталось слотов</div>
-            <div className="text-2xl font-bold text-emerald-700 mt-1">
-              {loadingStats ? "…" : remainingListings}
+              {loadingStats ? "…" : totalViews.toLocaleString("ru-RU")}
             </div>
           </div>
         </div>
@@ -219,10 +280,6 @@ export default function BusinessProfileSection({ token, me, onUpdated }) {
                   </li>
                 ))}
               </ul>
-              <p className="text-xs text-slate-500 mt-3">
-                Частный аккаунт: до {PRIVATE_LISTING_LIMIT} активных объявлений.
-                Премиум: до {COMPANY_LISTING_LIMIT}.
-              </p>
             </div>
 
             <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
@@ -305,13 +362,13 @@ export default function BusinessProfileSection({ token, me, onUpdated }) {
             </label>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <label className="block">
+              <label className="block md:col-span-2">
                 <div className="text-sm font-medium mb-2 inline-flex items-center gap-1">
                   <MapPin size={15} />
-                  Адрес офиса
+                  Адреса магазинов
                 </div>
-                <input
-                  className="h-12 rounded-2xl border px-4 w-full outline-none focus:ring-2 focus:ring-blue-300"
+                <textarea
+                  className="min-h-[96px] rounded-2xl border px-4 py-3 w-full outline-none focus:ring-2 focus:ring-blue-300"
                   value={form.companyAddress}
                   onChange={(e) =>
                     setForm((current) => ({
@@ -319,8 +376,11 @@ export default function BusinessProfileSection({ token, me, onUpdated }) {
                       companyAddress: e.target.value,
                     }))
                   }
-                  placeholder="ул. Рудаки 95, Душанбе"
+                  placeholder={"ул. Рудаки 95, Душанбе\nпр. Рудаки 44, Душанбе"}
                 />
+                <p className="text-xs text-slate-500 mt-1">
+                  Один адрес на строку — все будут показаны на странице компании.
+                </p>
               </label>
 
               <label className="block">
@@ -341,7 +401,7 @@ export default function BusinessProfileSection({ token, me, onUpdated }) {
                 />
               </label>
 
-              <label className="block md:col-span-2">
+              <label className="block">
                 <div className="text-sm font-medium mb-2 inline-flex items-center gap-1">
                   <Instagram size={15} />
                   Instagram
@@ -358,6 +418,93 @@ export default function BusinessProfileSection({ token, me, onUpdated }) {
                   placeholder="@oriyon_estate"
                 />
               </label>
+            </div>
+
+            <div className="rounded-2xl border border-blue-100 bg-blue-50/40 p-4 space-y-4">
+              <div>
+                <div className="font-semibold text-slate-900 inline-flex items-center gap-2">
+                  <RefreshCw size={18} className="text-blue-600" />
+                  Автообновление дат объявлений
+                </div>
+                <p className="text-sm text-slate-600 mt-1">
+                  Все активные объявления поднимутся в каталоге — дата
+                  обновления изменится автоматически по выбранному расписанию.
+                </p>
+              </div>
+
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  className="mt-1"
+                  checked={autoBumpForm.enabled}
+                  onChange={(e) =>
+                    setAutoBumpForm((current) => ({
+                      ...current,
+                      enabled: e.target.checked,
+                    }))
+                  }
+                />
+                <span className="text-sm text-slate-700">
+                  Включить автообновление для всех моих объявлений
+                </span>
+              </label>
+
+              <label className="block">
+                <div className="text-sm font-medium mb-2 inline-flex items-center gap-1">
+                  <Clock3 size={15} />
+                  Период обновления (в часах)
+                </div>
+                <input
+                  type="number"
+                  min={MIN_AUTO_BUMP_INTERVAL_HOURS}
+                  max={MAX_AUTO_BUMP_INTERVAL_HOURS}
+                  step={1}
+                  className="h-12 rounded-2xl border px-4 w-full outline-none focus:ring-2 focus:ring-blue-300 bg-white"
+                  value={autoBumpForm.intervalHours}
+                  disabled={!autoBumpForm.enabled}
+                  onChange={(e) =>
+                    setAutoBumpForm((current) => ({
+                      ...current,
+                      intervalHours: e.target.value,
+                    }))
+                  }
+                />
+                <p className="text-xs text-slate-500 mt-1">
+                  Укажите свой интервал: от {MIN_AUTO_BUMP_INTERVAL_HOURS} часа до{" "}
+                  {MAX_AUTO_BUMP_INTERVAL_HOURS} ч. (30 дней). Например, 1 — каждый
+                  час, 24 — раз в сутки.
+                </p>
+              </label>
+
+              <p className="text-xs text-slate-500">
+                Последнее обновление:{" "}
+                {formatDateTime(
+                  stats?.listingAutoBumpLastAt || me?.listingAutoBumpLastAt
+                )}
+                {autoBumpForm.enabled &&
+                  ` · расписание: ${formatAutoBumpInterval(autoBumpForm.intervalHours)}`}
+              </p>
+
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={saveAutoBumpSettings}
+                  disabled={savingAutoBump}
+                  className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition disabled:opacity-60"
+                >
+                  {savingAutoBump ? "Сохранение…" : "Сохранить расписание"}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={bumpAllListingsNow}
+                  disabled={bumpingAll}
+                  className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border bg-white text-sm font-semibold text-slate-700 hover:bg-slate-50 transition disabled:opacity-60"
+                >
+                  <RefreshCw size={16} />
+                  {bumpingAll ? "Обновляем…" : "Обновить все сейчас"}
+                </button>
+              </div>
             </div>
 
             {me?.businessVerified ? (

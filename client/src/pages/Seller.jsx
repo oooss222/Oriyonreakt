@@ -19,7 +19,7 @@ import { StarRating } from "../components/SellerReviewsPanel";
 import SellerReviewsPanel from "../components/SellerReviewsPanel";
 import BusinessBadge from "../components/BusinessBadge";
 import { usePageMeta } from "../lib/usePageMeta";
-import { getDisplayName } from "../lib/businessAccount";
+import { getDisplayName, parseCompanyAddresses } from "../lib/businessAccount";
 import { api } from "../lib/api";
 import { goToAuth } from "../lib/auth";
 
@@ -137,6 +137,7 @@ export default function Seller() {
 
   const sellerName = getDisplayName(seller);
   const memberSince = formatMemberSince(seller?.createdAt);
+  const companyAddresses = parseCompanyAddresses(seller?.companyAddress);
   const isOwner = Boolean(
     currentUserId && seller?.id && String(currentUserId) === String(seller.id)
   );
@@ -287,16 +288,19 @@ export default function Seller() {
         )}
 
         {seller.sellerType === "company" &&
-          (seller.companyAddress ||
+          (companyAddresses.length > 0 ||
             seller.companyWebsite ||
             seller.companyInstagram) && (
             <div className="flex flex-wrap gap-3 text-sm">
-              {seller.companyAddress && (
-                <span className="inline-flex items-center gap-1.5 text-slate-600">
+              {companyAddresses.map((address) => (
+                <span
+                  key={address}
+                  className="inline-flex items-center gap-1.5 text-slate-600"
+                >
                   <MapPin className="w-4 h-4 text-slate-400" />
-                  {seller.companyAddress}
+                  {address}
                 </span>
-              )}
+              ))}
               {seller.companyWebsite && (
                 <a
                   href={normalizeExternalUrl(seller.companyWebsite)}

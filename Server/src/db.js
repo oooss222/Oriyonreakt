@@ -150,6 +150,15 @@ async function initDb() {
       ADD COLUMN IF NOT EXISTS business_verified_at TIMESTAMPTZ;
 
     ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS listing_auto_bump_enabled BOOLEAN NOT NULL DEFAULT false;
+
+    ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS listing_auto_bump_interval_hours INTEGER NOT NULL DEFAULT 24;
+
+    ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS listing_auto_bump_last_at TIMESTAMPTZ;
+
+    ALTER TABLE users
       ADD COLUMN IF NOT EXISTS trust_level TEXT NOT NULL DEFAULT 'new';
 
     ALTER TABLE users
@@ -814,6 +823,11 @@ function mapUser(row) {
     companyInstagram: row.company_instagram || "",
     businessVerified: Boolean(row.business_verified),
     businessVerifiedAt: row.business_verified_at || null,
+    listingAutoBumpEnabled: Boolean(row.listing_auto_bump_enabled),
+    listingAutoBumpIntervalHours: Number(
+      row.listing_auto_bump_interval_hours || 24
+    ),
+    listingAutoBumpLastAt: row.listing_auto_bump_last_at || null,
 
     role: row.role || "user",
     isBlocked: Boolean(row.is_blocked),

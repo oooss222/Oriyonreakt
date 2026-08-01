@@ -4,6 +4,7 @@ const {
   getListingLimit,
   canSwitchToPrivate,
   ACTIVE_LISTING_STATUSES,
+  normalizeAutoBumpIntervalHours,
 } = require("../lib/businessAccount");
 
 function normalizeWebsite(value = "") {
@@ -304,7 +305,9 @@ class UserModel {
       companyInstagram: user.companyInstagram || "",
       businessVerified: Boolean(user.businessVerified),
       businessVerifiedAt: user.businessVerifiedAt || null,
-      listingLimit: getListingLimit(user),
+      listingAutoBumpEnabled: Boolean(user.listingAutoBumpEnabled),
+      listingAutoBumpIntervalHours: Number(user.listingAutoBumpIntervalHours || 24),
+      listingAutoBumpLastAt: user.listingAutoBumpLastAt || null,
       role: user.role || "user",
       isBlocked: Boolean(user.isBlocked),
       emailVerified: user.emailVerified,
@@ -361,11 +364,12 @@ class UserModel {
 
     return {
       sellerType: user.sellerType,
-      listingLimit: getListingLimit(user),
       activeListings,
-      remainingListings: Math.max(0, getListingLimit(user) - activeListings),
       totalViews: Number(viewsResult.rows[0]?.views || 0),
       businessVerified: Boolean(user.businessVerified),
+      listingAutoBumpEnabled: Boolean(user.listingAutoBumpEnabled),
+      listingAutoBumpIntervalHours: Number(user.listingAutoBumpIntervalHours || 24),
+      listingAutoBumpLastAt: user.listingAutoBumpLastAt || null,
       byStatus,
     };
   }
@@ -378,17 +382,8 @@ class UserModel {
     }
 
     const activeListings = await this.countActiveListings(userId);
-    const limit = getListingLimit(user);
 
-    if (activeListings >= limit) {
-      const err = new Error("LISTING_LIMIT_REACHED");
-      err.limit = limit;
-      err.activeListings = activeListings;
-      err.sellerType = user.sellerType;
-      throw err;
-    }
-
-    return { user, activeListings, limit };
+    return { user, activeListings, limit: getListingLimit(user) };
   }
 
   static async updateProfile(id, fields = {}) {
@@ -404,11 +399,9 @@ class UserModel {
     }
 
     if (nextSellerType === "private" && current.sellerType === "company") {
-      const activeListings = await this.countActiveListings(id);
-
-      if (!canSwitchToPrivate(current, activeListings)) {
+      if (!canSwitchToPrivate(current)) {
         const err = new Error("TOO_MANY_LISTINGS_FOR_PRIVATE");
-        err.activeListings = activeListings;
+        err.activeListings = await this.countActiveListings(id);
         throw err;
       }
     }
@@ -447,6 +440,26 @@ class UserModel {
         ? normalizeInstagram(fields.companyInstagram)
         : current.companyInstagram;
 
+    const nextAutoBumpEnabled =
+      fields.listingAutoBumpEnabled !== undefined
+        ? Boolean(fields.listingAutoBumpEnabled)
+        : Boolean(current.listingAutoBumpEnabled);
+    const nextAutoBumpIntervalHours =
+      fields.listingAutoBumpIntervalHours !== undefined
+        ? normalizeAutoBumpIntervalHours(fields.listingAutoBumpIntervalHours)
+        : normalizeAutoBumpIntervalHours(current.listingAutoBumpIntervalHours);
+    const autoBumpSettingsChanged =
+      fields.listingAutoBumpEnabled !== undefined ||
+      fields.listingAutoBumpIntervalHours !== undefined;
+    const shouldResetAutoBumpTimer =
+      autoBumpSettingsChanged &&
+      nextSellerType === "company" &&
+      nextAutoBumpEnabled &&
+      (!current.listingAutoBumpEnabled ||
+        (fields.listingAutoBumpIntervalHours !== undefined &&
+          nextAutoBumpIntervalHours !==
+            normalizeAutoBumpIntervalHours(current.listingAutoBumpIntervalHours)));
+
     if (nextSellerType === "company" && !companyName && !name) {
       throw new Error("COMPANY_NAME_REQUIRED");
     }
@@ -466,6 +479,19 @@ class UserModel {
         company_address = $10,
         company_website = $11,
         company_instagram = $12,
+        listing_auto_bump_enabled = CASE
+          WHEN $6 = 'company' THEN $13
+          ELSE false
+        END,
+        listing_auto_bump_interval_hours = CASE
+          WHEN $6 = 'company' THEN $14
+          ELSE 24
+        END,
+        listing_auto_bump_last_at = CASE
+          WHEN $6 = 'company' AND $15 THEN now()
+          WHEN $6 = 'company' THEN listing_auto_bump_last_at
+          ELSE NULL
+        END,
         business_verified = CASE WHEN $6 = 'company' THEN business_verified ELSE false END,
         business_verified_at = CASE WHEN $6 = 'company' THEN business_verified_at ELSE NULL END,
         updated_at = now()
@@ -485,6 +511,9 @@ class UserModel {
         nextSellerType === "company" ? companyAddress : "",
         nextSellerType === "company" ? companyWebsite : "",
         nextSellerType === "company" ? companyInstagram : "",
+        nextAutoBumpEnabled,
+        nextAutoBumpIntervalHours,
+        shouldResetAutoBumpTimer,
       ]
     );
 

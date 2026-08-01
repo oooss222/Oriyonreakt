@@ -106,6 +106,12 @@ export const api = {
       token,
     }),
 
+  bumpAllListings: (token) =>
+    request("/users/me/business/bump-all", {
+      method: "POST",
+      token,
+    }),
+
   getVerification: (token) =>
     request("/auth/verification", {
       token,
