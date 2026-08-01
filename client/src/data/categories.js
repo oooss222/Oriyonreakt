@@ -7,3 +7,8 @@ export {
   getListSpecFilters,
   parseSpecsParam,
 } from "./listingCategories";
+
+export {
+  LEGACY_SUBCATEGORY_REDIRECTS,
+  resolveLegacyCategoryFilters,
+} from "./categoryConsolidation";

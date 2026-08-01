@@ -589,7 +589,42 @@ async function initDb() {
   `);
 
   await backfillRealEstateMeta();
+  await migrateServiceCategories();
   await seedRealEstateDevelopments();
+}
+
+async function migrateServiceCategories() {
+  const migrations = [
+    {
+      fromCat: "transport",
+      fromSub: "Услуги для авто",
+      toCat: "services",
+      toSub: "Ремонт авто",
+    },
+    {
+      fromCat: "phones",
+      fromSub: "Ремонт и сервис телефонов",
+      toCat: "services",
+      toSub: "Ремонт телефонов и планшетов",
+    },
+    {
+      fromCat: "services",
+      fromSub: "Ремонт техники",
+      toCat: "services",
+      toSub: "Ремонт компьютеров и бытовой техники",
+    },
+  ];
+
+  for (const item of migrations) {
+    await query(
+      `
+      UPDATE listings
+      SET cat = $3, subcategory = $4
+      WHERE cat = $1 AND TRIM(subcategory) = $2
+      `,
+      [item.fromCat, item.fromSub, item.toCat, item.toSub]
+    );
+  }
 }
 
 async function seedRealEstateDevelopments() {

@@ -57,9 +57,22 @@ const TIRES_SPECS = [
   { name: "Состояние", type: "select", options: COMMON_SPEC_OPTIONS.condition },
 ];
 
-const AUTO_SERVICE_SPECS = [
+const AUTO_REPAIR_SERVICE_SPECS = [
   { name: "Тип услуги", type: "select", options: COMMON_SPEC_OPTIONS.autoServiceType },
-  { name: "Состояние", type: "select", options: COMMON_SPEC_OPTIONS.condition },
+  { name: "Формат", type: "select", options: COMMON_SPEC_OPTIONS.serviceFormat },
+  { name: "Опыт", type: "select", options: COMMON_SPEC_OPTIONS.serviceExperience },
+];
+
+const PHONE_REPAIR_SERVICE_SPECS = [
+  { name: "Тип услуги", type: "select", options: COMMON_SPEC_OPTIONS.phoneRepairType },
+  { name: "Формат", type: "select", options: COMMON_SPEC_OPTIONS.serviceFormat },
+  { name: "Опыт", type: "select", options: COMMON_SPEC_OPTIONS.serviceExperience },
+];
+
+const TECH_REPAIR_SERVICE_SPECS = [
+  { name: "Тип техники", type: "select", options: COMMON_SPEC_OPTIONS.techRepairType },
+  { name: "Формат", type: "select", options: COMMON_SPEC_OPTIONS.serviceFormat },
+  { name: "Опыт", type: "select", options: COMMON_SPEC_OPTIONS.serviceExperience },
 ];
 
 const SERVICE_SPECS = [
@@ -84,11 +97,10 @@ export const CATS = {
     title: "Авто",
     shortTitle: "Авто",
     img: "/img/car.png",
-    desc: "Авто, запчасти, техника",
+    desc: "Авто и запчасти",
     subs: [
       "Легковые авто",
       "Запчасти",
-      "Услуги для авто",
       "Грузовики и автобусы",
       "Мототранспорт",
       "Сельхозтехника",
@@ -101,7 +113,6 @@ export const CATS = {
     subSpecTemplates: {
       "Легковые авто": CAR_SPECS,
       "Запчасти": PARTS_SPECS,
-      "Услуги для авто": AUTO_SERVICE_SPECS,
       "Шины и диски": TIRES_SPECS,
     },
   },
@@ -129,12 +140,11 @@ export const CATS = {
     title: "Телефоны",
     shortTitle: "Телефоны",
     img: "/img/phone.png",
-    desc: "Смартфоны и аксессуары",
+    desc: "Смартфоны, планшеты и аксессуары",
     subs: [
       "Мобильные телефоны",
       "Планшеты",
       "Мобильные аксессуары",
-      "Ремонт и сервис телефонов",
     ],
     specTemplate: [
       { name: "Производитель", type: "select", options: PHONE_BRANDS },
@@ -209,12 +219,19 @@ export const CATS = {
       "Бухгалтерия и финансы",
       "Клининг и уборка",
       "Перевозки и грузчики",
-      "Ремонт техники",
+      "Ремонт авто",
+      "Ремонт телефонов и планшетов",
+      "Ремонт компьютеров и бытовой техники",
       "Фото и видео",
       "Организация мероприятий",
       "Другое",
     ],
     specTemplate: SERVICE_SPECS,
+    subSpecTemplates: {
+      "Ремонт авто": AUTO_REPAIR_SERVICE_SPECS,
+      "Ремонт телефонов и планшетов": PHONE_REPAIR_SERVICE_SPECS,
+      "Ремонт компьютеров и бытовой техники": TECH_REPAIR_SERVICE_SPECS,
+    },
   },
   repair: {
     title: "Ремонт",

@@ -33,6 +33,7 @@ import {
   getPromotionMediaClass,
 } from "../lib/promotionStyles";
 import { CATS, parseSpecsParam } from "../data/listingCategories";
+import { resolveLegacyCategoryFilters } from "../data/categoryConsolidation";
 import { REAL_ESTATE_CAT } from "../data/realEstate";
 import {
   Search,
@@ -159,6 +160,23 @@ export default function Listing() {
   const search =
     searchParams.get("search") || searchParams.get("q") || "";
   const paramsKey = searchParams.toString();
+
+  React.useEffect(() => {
+    const legacy = resolveLegacyCategoryFilters(
+      searchParams.get("cat") || "",
+      searchParams.get("subcategory") || ""
+    );
+    if (!legacy) return;
+
+    const next = new URLSearchParams(searchParams);
+    next.set("cat", legacy.cat);
+    if (legacy.subcategory) {
+      next.set("subcategory", legacy.subcategory);
+    } else {
+      next.delete("subcategory");
+    }
+    setSearchParams(next, { replace: true });
+  }, [paramsKey, searchParams, setSearchParams]);
 
   const appliedDraft = React.useMemo(() => {
     const fromQuery = searchParamsToDraft(searchParams);
