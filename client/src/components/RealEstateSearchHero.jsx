@@ -3,13 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { Search, MapPin, ChevronDown, ChevronUp, SlidersHorizontal } from "lucide-react";
 import RealEstateMoreFiltersModal from "./RealEstateMoreFiltersModal";
 import RealEstateCitySelect from "./RealEstateCitySelect";
-import RealEstateGuestsPicker from "./realestate/RealEstateGuestsPicker";
-import RealEstateDateRangePicker from "./realestate/RealEstateDateRangePicker";
+import RealEstateDailySearchBar from "./realestate/RealEstateDailySearchBar";
 import {
   DEAL_TYPES,
   ROOM_OPTIONS,
   SUBCATEGORY_META,
-  DAILY_HOUSING_TYPES,
   getPricePresetsForDeal,
   realEstateSubcategoryUsesRooms,
   isDailyDeal,
@@ -328,11 +326,15 @@ export default function RealEstateSearchHero({
           </div>
         )}
 
-        <div className="relative rounded-2xl bg-white p-4 md:p-5 text-slate-900 shadow-xl ring-1 ring-slate-900/5 overflow-visible">
+        <div className="relative overflow-visible">
           <div
             role="tablist"
             aria-label="Тип сделки"
-            className="mb-4 inline-flex w-full gap-1 rounded-xl border border-slate-200/80 bg-slate-100/80 p-1 sm:w-auto"
+            className={`mb-4 inline-flex w-full gap-1 rounded-xl p-1 sm:w-auto ${
+              isDaily
+                ? "border border-white/15 bg-white/10"
+                : "border border-slate-200/80 bg-slate-100/80"
+            }`}
           >
             {DEAL_TYPES.map((item) => {
               const active = dealType === item.value;
@@ -347,7 +349,9 @@ export default function RealEstateSearchHero({
                   className={`min-h-[42px] flex-1 rounded-lg px-4 py-2.5 text-sm font-semibold transition sm:flex-none sm:min-w-[6.5rem] ${
                     active
                       ? "bg-sun text-white shadow-sm"
-                      : "text-slate-600 hover:bg-white hover:text-slate-900"
+                      : isDaily
+                        ? "text-white/75 hover:bg-white/10 hover:text-white"
+                        : "text-slate-600 hover:bg-white hover:text-slate-900"
                   }`}
                 >
                   {item.label}
@@ -356,86 +360,25 @@ export default function RealEstateSearchHero({
             })}
           </div>
 
-          <form onSubmit={submit} className="space-y-4">
+          <form onSubmit={submit}>
             {isDaily ? (
-              <>
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4 xl:items-end">
-                  <label className="block min-w-0 xl:col-span-1">
-                    <span className={FIELD_LABEL}>Куда хотите поехать?</span>
-                    <div className="relative">
-                      <MapPin
-                        size={15}
-                        className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 z-10"
-                      />
-                      <RealEstateCitySelect
-                        value={city}
-                        onChange={(e) => handleCityChange(e.target.value)}
-                        className={`${FIELD_CONTROL} pl-9 pr-9`}
-                      />
-                      <ChevronDown
-                        size={15}
-                        className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"
-                      />
-                    </div>
-                  </label>
-
-                  <div className="min-w-0 xl:col-span-1">
-                    <RealEstateDateRangePicker
-                      checkIn={checkIn}
-                      checkOut={checkOut}
-                      onChange={({ checkIn: nextIn, checkOut: nextOut }) => {
-                        setCheckIn(nextIn);
-                        setCheckOut(nextOut);
-                      }}
-                    />
-                  </div>
-
-                  <div className="min-w-0 xl:col-span-1">
-                    <RealEstateGuestsPicker value={guests} onChange={setGuests} />
-                  </div>
-
-                  <button
-                    type="submit"
-                    className="mobile-btn hidden min-h-[44px] bg-sun font-bold text-white shadow-sm hover:bg-sun-600 xl:inline-flex xl:w-full"
-                  >
-                    <Search size={18} />
-                    {submitLabel}
-                  </button>
-                </div>
-
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                  <HeroSelect
-                    label="Тип жилья"
-                    value={subcategory}
-                    onChange={(e) => setSubcategory(e.target.value)}
-                  >
-                    <option value="">Все типы</option>
-                    {DAILY_HOUSING_TYPES.map((item) => (
-                      <option key={item.value} value={item.value}>
-                        {item.label}
-                      </option>
-                    ))}
-                  </HeroSelect>
-
-                  <HeroPriceFilter
-                    dealType={dealType}
-                    label="Цена за сутки"
-                    priceFrom={priceFrom}
-                    priceTo={priceTo}
-                    priceCurrency={priceCurrency}
-                    onChange={({
-                      priceFrom: nextFrom,
-                      priceTo: nextTo,
-                      priceCurrency: nextCurrency,
-                    }) => {
-                      setPriceFrom(nextFrom);
-                      setPriceTo(nextTo);
-                      setPriceCurrency(nextCurrency);
-                    }}
-                  />
-                </div>
-              </>
+              <RealEstateDailySearchBar
+                city={city}
+                onCityChange={handleCityChange}
+                checkIn={checkIn}
+                checkOut={checkOut}
+                onDatesChange={({ checkIn: nextIn, checkOut: nextOut }) => {
+                  setCheckIn(nextIn);
+                  setCheckOut(nextOut);
+                }}
+                guests={guests}
+                onGuestsChange={setGuests}
+                submitLabel={submitLabel}
+                onMoreFilters={() => setMoreOpen(true)}
+                hasMoreFilters={hasActiveFilters}
+              />
             ) : (
+              <div className="space-y-4 rounded-2xl bg-white p-4 text-slate-900 shadow-xl ring-1 ring-slate-900/5 md:p-5">
               <div
                 className={`grid grid-cols-1 gap-3 sm:grid-cols-2 ${
                   showRooms ? "lg:grid-cols-4" : "lg:grid-cols-3"
@@ -504,32 +447,31 @@ export default function RealEstateSearchHero({
                   }}
                 />
               </div>
+
+              <div className="flex flex-col gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:items-stretch">
+                <button
+                  type="submit"
+                  className="mobile-btn min-h-[46px] flex-1 bg-sun font-bold text-white shadow-sm hover:bg-sun-600"
+                >
+                  <Search size={18} />
+                  {submitLabel}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setMoreOpen(true)}
+                  className={`mobile-btn min-h-[46px] border bg-white font-semibold text-slate-700 hover:bg-slate-50 sm:min-w-[10.5rem] ${
+                    hasActiveFilters
+                      ? "border-sun/40 ring-1 ring-sun/15"
+                      : "border-slate-200"
+                  }`}
+                >
+                  <SlidersHorizontal size={18} />
+                  Ещё фильтры
+                </button>
+              </div>
+              </div>
             )}
-
-            <div className="flex flex-col gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:items-stretch xl:border-t-0 xl:pt-0">
-              <button
-                type="submit"
-                className={`mobile-btn min-h-[46px] flex-1 bg-sun font-bold text-white shadow-sm hover:bg-sun-600 ${
-                  isDaily ? "xl:hidden" : ""
-                }`}
-              >
-                <Search size={18} />
-                {submitLabel}
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setMoreOpen(true)}
-                className={`mobile-btn min-h-[46px] border bg-white font-semibold text-slate-700 hover:bg-slate-50 sm:min-w-[10.5rem] ${
-                  hasActiveFilters
-                    ? "border-sun/40 ring-1 ring-sun/15"
-                    : "border-slate-200"
-                }`}
-              >
-                <SlidersHorizontal size={18} />
-                Ещё фильтры
-              </button>
-            </div>
           </form>
         </div>
       </section>

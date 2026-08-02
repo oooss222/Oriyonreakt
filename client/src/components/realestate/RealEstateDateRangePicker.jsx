@@ -202,6 +202,7 @@ export default function RealEstateDateRangePicker({
   checkIn = "",
   checkOut = "",
   onChange,
+  variant = "default",
   showLabel = false,
   label = "Даты проживания",
 }) {
@@ -261,6 +262,8 @@ export default function RealEstateDateRangePicker({
     setOpen(false);
   };
 
+  const isInline = variant === "inline";
+
   const calendar =
     open && panelStyle
       ? createPortal(
@@ -285,6 +288,54 @@ export default function RealEstateDateRangePicker({
           document.body
         )
       : null;
+
+  if (isInline) {
+    return (
+      <>
+        <div ref={wrapperRef} className="flex min-w-0 divide-x divide-slate-200">
+          <button
+            ref={triggerRef}
+            type="button"
+            aria-expanded={open}
+            aria-haspopup="dialog"
+            onClick={() => setOpen((value) => !value)}
+            className={`flex min-w-0 flex-1 flex-col px-4 py-3.5 text-left transition hover:bg-slate-50/80 ${
+              open ? "bg-sun-50/60" : ""
+            }`}
+          >
+            <span className="mb-0.5 text-xs font-medium text-slate-500">Заезд</span>
+            <span
+              className={`truncate text-sm font-semibold ${
+                checkIn ? "text-slate-900" : "text-slate-400"
+              }`}
+            >
+              {checkIn ? formatShortDate(checkIn) : "Выберите"}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            aria-expanded={open}
+            onClick={() => setOpen((value) => !value)}
+            className={`flex min-w-0 flex-1 flex-col px-4 py-3.5 text-left transition hover:bg-slate-50/80 ${
+              open ? "bg-sun-50/60" : ""
+            }`}
+          >
+            <span className="mb-0.5 text-xs font-medium text-slate-500">Выезд</span>
+            <span
+              className={`truncate text-sm font-semibold ${
+                checkOut ? "text-slate-900" : "text-slate-400"
+              }`}
+            >
+              {checkOut ? formatShortDate(checkOut) : "Выберите"}
+            </span>
+          </button>
+        </div>
+
+        {calendar}
+      </>
+    );
+  }
 
   return (
     <>
