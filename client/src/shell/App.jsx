@@ -1,20 +1,16 @@
 import React from "react";
-import { Outlet, useLocation } from "react-router-dom";
+import { Outlet } from "react-router-dom";
 import Header from "../components/Header";
-import AuthHeader from "../components/auth/AuthHeader";
 import Footer from "../components/Footer";
 import MobileNav from "../components/MobileNav";
 import CompareFloatingBar from "../components/CompareFloatingBar";
 import CookieConsent from "../components/CookieConsent";
 import { connectChatSocket, disconnectChatSocket, getChatSocket } from "../lib/chatSocket";
 import { TOKEN_KEY } from "../lib/auth";
+import { useLayoutConfig } from "../lib/useLayoutConfig";
 
 export default function App() {
-  const location = useLocation();
-
-  const isMessagesPage = location.pathname === "/messages";
-  const isAdDetailsPage = location.pathname.startsWith("/ad/");
-  const isAuthPage = location.pathname === "/auth";
+  const layout = useLayoutConfig();
 
   React.useEffect(() => {
     const connect = () => {
@@ -45,26 +41,26 @@ export default function App() {
 
   return (
     <div className="page-shell min-h-screen flex flex-col overflow-x-clip">
-      {isAuthPage ? <AuthHeader /> : <Header />}
+      <Header variant={layout.headerVariant} />
 
       <main
-        className={`flex-1 ${isAdDetailsPage || isAuthPage ? "" : "animate-fade-in-up"} ${
-          isMessagesPage || isAuthPage
-            ? ""
-            : "pb-[calc(4rem+env(safe-area-inset-bottom))] lg:pb-0"
+        className={`flex-1 ${layout.animateMain ? "animate-fade-in-up" : ""} ${
+          layout.mobileBottomPadding
+            ? "pb-[calc(4rem+env(safe-area-inset-bottom))] lg:pb-0"
+            : ""
         }`}
       >
         <Outlet />
       </main>
 
-      {!isMessagesPage && !isAuthPage && (
+      {layout.showFooter && (
         <div className="hidden lg:block">
           <Footer />
         </div>
       )}
-      {!isAuthPage && <MobileNav />}
-      {!isAuthPage && <CompareFloatingBar />}
-      {!isAuthPage && <CookieConsent />}
+      {layout.showMobileNav && <MobileNav />}
+      {layout.showCompareBar && <CompareFloatingBar />}
+      {layout.showCookieConsent && <CookieConsent />}
     </div>
   );
 }

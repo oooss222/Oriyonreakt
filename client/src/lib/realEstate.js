@@ -142,4 +142,4 @@ export function buildRealEstateListingUrl(options = {}) {
   return buildSeoListingUrl(options);
 }
 
-export { buildRealEstateSeoPath, parseRealEstateSeoParams, isRealEstateSeoPath, buildRealEstatePageTitle, buildRealEstateMetaDescription } from "./realestateSeo";
+export { buildRealEstateSeoPath, parseRealEstateSeoParams, isRealEstateSeoPath, buildRealEstatePageTitle, buildRealEstateMetaDescription, buildRealEstateCategoryUrl } from "./realestateSeo";

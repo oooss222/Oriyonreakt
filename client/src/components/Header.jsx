@@ -25,10 +25,11 @@ import {
 import CategoryStrip from "./CategoryStrip";
 import HeaderSearchSuggestions from "./HeaderSearchSuggestions";
 
-export default function Header() {
+export default function Header({ variant = "full" }) {
   const nav = useNavigate();
   const location = useLocation();
   const [sp] = useSearchParams();
+  const isMinimal = variant === "minimal";
 
   const [q, setQ] = React.useState(sp.get("search") || sp.get("q") || "");
   const [catalogTotal, setCatalogTotal] = React.useState(0);
@@ -82,11 +83,12 @@ export default function Header() {
   }, [token, canModerate]);
 
   const isBrowsePage =
-    pathname === "/" ||
+    !isMinimal &&
+    (pathname === "/" ||
     pathname === "/listing" ||
     pathname === "/realestate" ||
     pathname.startsWith("/realestate/") ||
-    pathname.startsWith("/c/");
+    pathname.startsWith("/c/"));
 
   const compactCategories = pathname !== "/";
 
@@ -250,9 +252,32 @@ export default function Header() {
             Добавить объявление
           </Link>
 
-          <div className="flex-1 min-w-0 relative">{searchField(false)}{suggestionList}</div>
+          {!isMinimal && (
+            <div className="flex-1 min-w-0 relative">{searchField(false)}{suggestionList}</div>
+          )}
+
+          {isMinimal && (
+            <div className="flex-1" aria-hidden="true" />
+          )}
 
           <nav className="flex items-center gap-0.5 shrink-0">
+            {isMinimal ? (
+              <>
+                <Link
+                  to="/listing"
+                  className="hidden sm:inline px-3 py-2 rounded-lg text-sm font-medium text-white/80 hover:bg-white/10 hover:text-white transition"
+                >
+                  Каталог
+                </Link>
+                <Link
+                  to="/"
+                  className="px-3 py-2 rounded-lg text-sm font-medium text-white/80 hover:bg-white/10 hover:text-white transition"
+                >
+                  На главную
+                </Link>
+              </>
+            ) : (
+              <>
             <Link
               to="/profile?tab=fav"
               className="p-2.5 rounded-lg hover:bg-white/10 transition"
@@ -324,9 +349,12 @@ export default function Header() {
                 <LogIn size={20} />
               </Link>
             )}
+              </>
+            )}
           </nav>
         </div>
 
+        {!isMinimal ? (
         <div className="lg:hidden pt-2 pb-2.5 relative">
           <div className="flex items-center gap-2">
             <Link to="/" className="shrink-0" aria-label="На главную">
@@ -343,6 +371,31 @@ export default function Header() {
             </div>
           </div>
         </div>
+        ) : (
+          <div className="lg:hidden py-2.5 flex items-center justify-between gap-3">
+            <Link to="/" className="shrink-0" aria-label="На главную">
+              <img
+                src="/oriyon.store.png"
+                alt="Oriyon Store"
+                className="w-9 h-9 object-contain"
+              />
+            </Link>
+            <div className="flex items-center gap-2">
+              <Link
+                to="/listing"
+                className="text-sm font-medium text-white/80 hover:text-white transition"
+              >
+                Каталог
+              </Link>
+              <Link
+                to="/"
+                className="text-sm font-medium text-white/80 hover:text-white transition"
+              >
+                На главную
+              </Link>
+            </div>
+          </div>
+        )}
       </div>
       </header>
 

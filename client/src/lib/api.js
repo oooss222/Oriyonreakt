@@ -4,6 +4,7 @@ import {
   readRecommendationProfile,
 } from "./recommendationProfile";
 import { hasAnalyticsConsent } from "./cookieConsent";
+import { ApiError } from "./apiError";
 
 const API = (
   import.meta.env.VITE_API_BASE ||
@@ -31,19 +32,28 @@ async function request(
     headers.Authorization = `Bearer ${token}`;
   }
 
-  const res = await fetch(
-    `${API}${path}`,
-    {
-      method,
-      headers,
+  let res;
 
-      body: body
-        ? body instanceof FormData
-          ? body
-          : JSON.stringify(body)
-        : undefined,
-    }
-  );
+  try {
+    res = await fetch(
+      `${API}${path}`,
+      {
+        method,
+        headers,
+
+        body: body
+          ? body instanceof FormData
+            ? body
+            : JSON.stringify(body)
+          : undefined,
+      }
+    );
+  } catch (err) {
+    throw new ApiError("Нет соединения с сервером. Проверьте интернет и попробуйте снова.", {
+      kind: "network",
+      cause: err,
+    });
+  }
 
   if (!res.ok) {
     let msg = `HTTP ${res.status}`;
@@ -60,7 +70,11 @@ async function request(
       localStorage.removeItem("auth_token");
     }
 
-    throw new Error(msg);
+    if (res.status === 503 || res.status === 502) {
+      msg = "Сервер временно недоступен. Попробуйте через минуту.";
+    }
+
+    throw new ApiError(msg, { kind: "http", status: res.status });
   }
 
   const text = await res.text();
@@ -135,8 +149,11 @@ export const api = {
     );
   },
 
-  listingStats: (cat) =>
-    request(`/listings/stats?cat=${encodeURIComponent(cat)}`),
+  listingStats: (cat, location = "") => {
+    const params = new URLSearchParams({ cat });
+    if (location) params.set("location", location);
+    return request(`/listings/stats?${params.toString()}`);
+  },
 
   listingCount: (params = {}) => {
     const q = new URLSearchParams(params).toString();

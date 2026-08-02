@@ -57,6 +57,18 @@ const TIRES_SPECS = [
   { name: "Состояние", type: "select", options: COMMON_SPEC_OPTIONS.condition },
 ];
 
+const GENERIC_VEHICLE_SPECS = [
+  { name: "Марка", type: "text" },
+  { name: "Модель", type: "text" },
+  { name: "Год", type: "select", options: COMMON_SPEC_OPTIONS.years },
+  { name: "Состояние", type: "select", options: COMMON_SPEC_OPTIONS.condition },
+];
+
+const AUTO_CHEMICALS_SPECS = [
+  { name: "Тип", type: "select", options: COMMON_SPEC_OPTIONS.autoChemicalType || ["Масло", "Антифриз", "Омыватель", "Другое"] },
+  { name: "Состояние", type: "select", options: COMMON_SPEC_OPTIONS.condition },
+];
+
 const AUTO_REPAIR_SERVICE_SPECS = [
   { name: "Тип услуги", type: "select", options: COMMON_SPEC_OPTIONS.autoServiceType },
   { name: "Формат", type: "select", options: COMMON_SPEC_OPTIONS.serviceFormat },
@@ -114,6 +126,12 @@ export const CATS = {
       "Легковые авто": CAR_SPECS,
       "Запчасти": PARTS_SPECS,
       "Шины и диски": TIRES_SPECS,
+      "Грузовики и автобусы": GENERIC_VEHICLE_SPECS,
+      "Мототранспорт": GENERIC_VEHICLE_SPECS,
+      "Сельхозтехника": GENERIC_VEHICLE_SPECS,
+      "Спецтехника": GENERIC_VEHICLE_SPECS,
+      "Прицепы": GENERIC_VEHICLE_SPECS,
+      "Автохимия и автомасла": AUTO_CHEMICALS_SPECS,
     },
   },
   furniture: {

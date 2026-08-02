@@ -19,11 +19,13 @@ export default function RealEstateDailySearchBar({
   submitLabel = "Показать",
   onMoreFilters,
   hasMoreFilters = false,
+  hideCity = false,
 }) {
   return (
     <div className="space-y-3 text-slate-900">
       <div className="overflow-visible rounded-2xl border border-slate-200/90 bg-white text-slate-900 shadow-sm ring-1 ring-slate-900/5">
         <div className="flex flex-col lg:flex-row lg:items-stretch">
+          {!hideCity && (
           <div className="group relative flex min-w-0 flex-1 flex-col justify-center px-4 py-3.5 transition hover:bg-slate-50/80 lg:max-w-[240px]">
             <span className="mb-0.5 text-xs font-medium text-slate-500">
               Куда хотите поехать?
@@ -40,8 +42,9 @@ export default function RealEstateDailySearchBar({
               />
             </div>
           </div>
+          )}
 
-          <InlineDivider />
+          {!hideCity && <InlineDivider />}
 
           <div className="min-w-0 flex-[1.15] border-t border-slate-200 lg:border-t-0">
             <RealEstateDateRangePicker

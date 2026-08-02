@@ -9,8 +9,31 @@ export default function RealEstateDistrictBar({
   onCityChange,
   totalCount = 0,
   activeDistrict = "",
+  filterContext = {},
 }) {
   const districts = getDistrictsForCity(city);
+
+  const buildDistrictUrl = (district = "") => {
+    const specs = { ...(filterContext.specs || {}) };
+    if (district) {
+      specs["Район"] = district;
+    } else {
+      delete specs["Район"];
+    }
+
+    return buildRealEstateListingUrl({
+      city: filterContext.city || city,
+      dealType: filterContext.dealType || specs["Тип сделки"] || "",
+      subcategory: filterContext.subcategory || "",
+      rooms: filterContext.rooms || specs["Комнат"] || "",
+      guests: filterContext.guests || "",
+      checkIn: filterContext.checkIn || "",
+      checkOut: filterContext.checkOut || "",
+      priceFrom: filterContext.priceFrom || "",
+      priceTo: filterContext.priceTo || "",
+      specs,
+    });
+  };
 
   return (
     <section className="rounded-2xl border bg-white p-4 md:p-5 space-y-4">
@@ -50,7 +73,7 @@ export default function RealEstateDistrictBar({
       {districts.length > 0 && (
         <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide snap-x snap-mandatory">
           <Link
-            to={buildRealEstateListingUrl({ city })}
+            to={buildDistrictUrl("")}
             className={`snap-start shrink-0 px-3.5 py-2 rounded-full text-xs font-semibold border transition ${
               !activeDistrict
                 ? "bg-slate-900 text-white border-slate-900"
@@ -63,10 +86,7 @@ export default function RealEstateDistrictBar({
           {districts.map((district) => (
             <Link
               key={district}
-              to={buildRealEstateListingUrl({
-                city,
-                specs: { Район: district },
-              })}
+              to={buildDistrictUrl(district)}
               className={`snap-start shrink-0 px-3.5 py-2 rounded-full text-xs font-medium border transition ${
                 activeDistrict === district
                   ? "bg-lagoon-50 text-lagoon-800 border-lagoon/30"

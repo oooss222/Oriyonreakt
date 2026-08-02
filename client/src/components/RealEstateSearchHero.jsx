@@ -11,6 +11,7 @@ import {
   getPricePresetsForDeal,
   realEstateSubcategoryUsesRooms,
   isDailyDeal,
+  isSubcategoryCompatibleWithDeal,
 } from "../data/realEstate";
 import { buildRealEstateListingUrl } from "../lib/realEstate";
 import { formatPriceInput, getPriceDigits } from "../data/specOptions";
@@ -195,6 +196,7 @@ function HeroPriceFilter({ priceFrom, priceTo, priceCurrency, onChange, dealType
 
 export default function RealEstateSearchHero({
   compact = false,
+  listingPage = false,
   initialDeal = "Купить",
   initialCity = "Душанбе",
   initialSubcategory = "",
@@ -242,12 +244,45 @@ export default function RealEstateSearchHero({
     onCityChange?.(nextCity);
   };
 
+  const handleDealTypeChange = (nextDeal) => {
+    const nextSubcategory = !isSubcategoryCompatibleWithDeal(subcategory, nextDeal)
+      ? ""
+      : subcategory;
+
+    setDealType(nextDeal);
+    setSubcategory(nextSubcategory);
+
+    if (isDailyDeal(nextDeal)) {
+      setGuests((prev) => prev || initialGuests || "2");
+    }
+
+    if (listingPage) {
+      const url = buildRealEstateListingUrl({
+        dealType: nextDeal,
+        subcategory: nextSubcategory,
+        city,
+        rooms,
+        priceFrom: getPriceDigits(priceFrom),
+        priceTo: getPriceDigits(priceTo),
+        checkIn,
+        checkOut,
+        guests: isDailyDeal(nextDeal) ? guests || initialGuests || "2" : guests,
+      });
+      nav(url);
+    }
+  };
+
   const submit = (e) => {
     e?.preventDefault?.();
 
+    const effectiveSubcategory =
+      isDailyDeal(dealType) && !isSubcategoryCompatibleWithDeal(subcategory, dealType)
+        ? ""
+        : subcategory;
+
     const url = buildRealEstateListingUrl({
       dealType,
-      subcategory,
+      subcategory: effectiveSubcategory,
       city,
       rooms,
       priceFrom: getPriceDigits(priceFrom),
@@ -259,7 +294,7 @@ export default function RealEstateSearchHero({
 
     onSearch?.({
       dealType,
-      subcategory,
+      subcategory: effectiveSubcategory,
       city,
       rooms,
       priceFrom,
@@ -349,7 +384,7 @@ export default function RealEstateSearchHero({
                       type="button"
                       role="tab"
                       aria-selected={active}
-                      onClick={() => setDealType(item.value)}
+                      onClick={() => handleDealTypeChange(item.value)}
                       className={`min-h-[42px] flex-1 rounded-lg px-4 py-2.5 text-sm font-semibold transition sm:flex-none sm:min-w-[6.5rem] ${
                         active
                           ? "bg-sun text-white shadow-sm"
@@ -375,7 +410,8 @@ export default function RealEstateSearchHero({
                   guests={guests}
                   onGuestsChange={setGuests}
                   submitLabel={submitLabel}
-                  onMoreFilters={() => setMoreOpen(true)}
+                  hideCity={listingPage}
+                  onMoreFilters={listingPage ? undefined : () => setMoreOpen(true)}
                   hasMoreFilters={hasActiveFilters}
                 />
               </form>
@@ -396,7 +432,7 @@ export default function RealEstateSearchHero({
                       type="button"
                       role="tab"
                       aria-selected={active}
-                      onClick={() => setDealType(item.value)}
+                      onClick={() => handleDealTypeChange(item.value)}
                       className={`min-h-[42px] flex-1 rounded-lg px-4 py-2.5 text-sm font-semibold transition sm:flex-none sm:min-w-[6.5rem] ${
                         active
                           ? "bg-sun text-white shadow-sm"
@@ -415,6 +451,7 @@ export default function RealEstateSearchHero({
                   showRooms ? "lg:grid-cols-4" : "lg:grid-cols-3"
                 }`}
               >
+                {!listingPage && (
                 <label className="block min-w-0">
                   <span className={FIELD_LABEL}>Город</span>
                   <div className="relative">
@@ -433,6 +470,7 @@ export default function RealEstateSearchHero({
                     />
                   </div>
                 </label>
+                )}
 
                 <HeroSelect
                   label="Тип"
@@ -479,6 +517,7 @@ export default function RealEstateSearchHero({
                 />
               </div>
 
+              {!listingPage && (
               <div className="flex flex-col gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:items-stretch">
                 <button
                   type="submit"
@@ -501,12 +540,14 @@ export default function RealEstateSearchHero({
                   Ещё фильтры
                 </button>
               </div>
+              )}
               </form>
             </div>
           )}
         </div>
       </section>
 
+      {!listingPage && (
       <RealEstateMoreFiltersModal
         open={moreOpen}
         onClose={() => setMoreOpen(false)}
@@ -521,6 +562,7 @@ export default function RealEstateSearchHero({
         priceTo={priceTo}
         onNavigate={(url) => nav(url)}
       />
+      )}
     </>
   );
 }

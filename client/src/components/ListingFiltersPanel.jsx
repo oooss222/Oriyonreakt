@@ -1,4 +1,5 @@
 import React from "react";
+import { createPortal } from "react-dom";
 import {
   ChevronDown,
   ChevronUp,
@@ -71,6 +72,8 @@ function formatPriceSummary(from, to, currency = "с.") {
 function PriceFilterPopover({ draft, setDraft, onApply }) {
   const [open, setOpen] = React.useState(false);
   const rootRef = React.useRef(null);
+  const panelRef = React.useRef(null);
+  const [panelStyle, setPanelStyle] = React.useState(null);
   const draftRef = React.useRef(draft);
   const currency = draft.priceCurrency || "с.";
 
@@ -86,11 +89,44 @@ function PriceFilterPopover({ draft, setDraft, onApply }) {
     [onApply]
   );
 
+  React.useLayoutEffect(() => {
+    if (!open || !rootRef.current) {
+      setPanelStyle(null);
+      return undefined;
+    }
+
+    const update = () => {
+      const rect = rootRef.current.getBoundingClientRect();
+      const panelHeight = panelRef.current?.offsetHeight || 72;
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const openUp = spaceBelow < panelHeight + 16 && rect.top > panelHeight + 16;
+      const width = Math.min(rect.width, window.innerWidth - 32);
+
+      setPanelStyle({
+        top: openUp ? rect.top - panelHeight - 8 : rect.bottom + 8,
+        left: Math.max(16, Math.min(rect.left, window.innerWidth - width - 16)),
+        width,
+      });
+    };
+
+    update();
+    window.addEventListener("resize", update);
+    window.addEventListener("scroll", update, true);
+
+    return () => {
+      window.removeEventListener("resize", update);
+      window.removeEventListener("scroll", update, true);
+    };
+  }, [open]);
+
   React.useEffect(() => {
     if (!open) return undefined;
 
     const handleOutside = (event) => {
-      if (!rootRef.current?.contains(event.target)) {
+      if (
+        !rootRef.current?.contains(event.target) &&
+        !panelRef.current?.contains(event.target)
+      ) {
         closePopover(true);
       }
     };
@@ -103,6 +139,75 @@ function PriceFilterPopover({ draft, setDraft, onApply }) {
   }, [open, closePopover]);
 
   const summary = formatPriceSummary(draft.priceFrom, draft.priceTo, currency);
+
+  const panel =
+    open && panelStyle
+      ? createPortal(
+          <div
+            ref={panelRef}
+            className="fixed z-[300] rounded-xl border border-slate-200 bg-white p-3 shadow-xl"
+            style={{
+              top: panelStyle.top,
+              left: panelStyle.left,
+              width: panelStyle.width,
+            }}
+          >
+            <div className="flex items-stretch gap-2">
+              <div className="flex flex-1 h-11 rounded-lg border border-slate-200 overflow-hidden">
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="от"
+                  value={draft.priceFrom ? formatPriceInput(draft.priceFrom) : ""}
+                  onChange={(e) =>
+                    setDraft((current) => ({
+                      ...current,
+                      priceFrom: getPriceDigits(e.target.value),
+                    }))
+                  }
+                  className="w-1/2 h-full px-3 text-sm outline-none border-r border-slate-200 placeholder:text-slate-400"
+                />
+
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="до"
+                  value={draft.priceTo ? formatPriceInput(draft.priceTo) : ""}
+                  onChange={(e) =>
+                    setDraft((current) => ({
+                      ...current,
+                      priceTo: getPriceDigits(e.target.value),
+                    }))
+                  }
+                  className="w-1/2 h-full px-3 text-sm outline-none placeholder:text-slate-400"
+                />
+              </div>
+
+              <div className="relative shrink-0">
+                <select
+                  value={currency}
+                  onChange={(e) =>
+                    setDraft((current) => ({
+                      ...current,
+                      priceCurrency: e.target.value,
+                    }))
+                  }
+                  className="h-11 min-w-[4.5rem] appearance-none rounded-lg border border-slate-200 bg-white pl-3 pr-8 text-sm outline-none focus:ring-2 focus:ring-lagoon/30"
+                >
+                  <option value="с.">с.</option>
+                  <option value="$">$</option>
+                </select>
+
+                <ChevronDown
+                  size={16}
+                  className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-slate-400"
+                />
+              </div>
+            </div>
+          </div>,
+          document.body
+        )
+      : null;
 
   return (
     <div ref={rootRef} className="relative">
@@ -121,62 +226,7 @@ function PriceFilterPopover({ draft, setDraft, onApply }) {
         )}
       </button>
 
-      {open && (
-        <div className="absolute left-0 right-0 top-[calc(100%+8px)] z-50 rounded-xl border border-slate-200 bg-white p-3 shadow-xl">
-          <div className="flex items-stretch gap-2">
-            <div className="flex flex-1 h-11 rounded-lg border border-slate-200 overflow-hidden">
-              <input
-                type="text"
-                inputMode="numeric"
-                placeholder="от"
-                value={draft.priceFrom ? formatPriceInput(draft.priceFrom) : ""}
-                onChange={(e) =>
-                  setDraft((current) => ({
-                    ...current,
-                    priceFrom: getPriceDigits(e.target.value),
-                  }))
-                }
-                className="w-1/2 h-full px-3 text-sm outline-none border-r border-slate-200 placeholder:text-slate-400"
-              />
-
-              <input
-                type="text"
-                inputMode="numeric"
-                placeholder="до"
-                value={draft.priceTo ? formatPriceInput(draft.priceTo) : ""}
-                onChange={(e) =>
-                  setDraft((current) => ({
-                    ...current,
-                    priceTo: getPriceDigits(e.target.value),
-                  }))
-                }
-                className="w-1/2 h-full px-3 text-sm outline-none placeholder:text-slate-400"
-              />
-            </div>
-
-            <div className="relative shrink-0">
-              <select
-                value={currency}
-                onChange={(e) =>
-                  setDraft((current) => ({
-                    ...current,
-                    priceCurrency: e.target.value,
-                  }))
-                }
-                className="h-11 min-w-[4.5rem] appearance-none rounded-lg border border-slate-200 bg-white pl-3 pr-8 text-sm outline-none focus:ring-2 focus:ring-lagoon/30"
-              >
-                <option value="с.">с.</option>
-                <option value="$">$</option>
-              </select>
-
-              <ChevronDown
-                size={16}
-                className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-slate-400"
-              />
-            </div>
-          </div>
-        </div>
-      )}
+      {panel}
     </div>
   );
 }
@@ -291,7 +341,7 @@ function renderField(
               delete nextSpecs[specKey];
             }
 
-            if (specKey === "Марка") {
+            if (specKey === "Марка" || specKey === "Марка авто") {
               delete nextSpecs.Модель;
             }
 

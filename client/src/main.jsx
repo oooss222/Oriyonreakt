@@ -58,6 +58,11 @@ const router = createBrowserRouter([
       {
         path: "ad/:id",
         element: <AdDetails />,
+        handle: {
+          layout: {
+            animateMain: false,
+          },
+        },
       },
       {
         path: "seller/:id",
@@ -66,6 +71,17 @@ const router = createBrowserRouter([
       {
         path: "auth",
         element: <Auth />,
+        handle: {
+          layout: {
+            showFooter: false,
+            showMobileNav: false,
+            showCompareBar: false,
+            showCookieConsent: false,
+            headerVariant: "minimal",
+            animateMain: false,
+            mobileBottomPadding: false,
+          },
+        },
       },
       {
         path: "c/:slug",

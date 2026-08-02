@@ -59,9 +59,18 @@ export function slugifyRooms(rooms = "") {
 
 export function parseRealEstateSeoParams(params = {}) {
   const city = CITY_SLUGS[params.citySlug] || "";
-  const subcategory = SUBCATEGORY_SLUGS[params.subSlug] || "";
-  const dealType = DEAL_SLUGS[params.dealSlug] || "";
+  let subcategory = SUBCATEGORY_SLUGS[params.subSlug] || "";
+  let dealType = DEAL_SLUGS[params.dealSlug] || "";
   const rooms = ROOM_SLUGS[params.roomsSlug] || "";
+
+  // /realestate/dushanbe/kupit — deal-only path without subcategory
+  if (!subcategory && params.subSlug && DEAL_SLUGS[params.subSlug]) {
+    dealType = DEAL_SLUGS[params.subSlug];
+  }
+
+  if (subcategory === "Новостройки" && !dealType) {
+    dealType = "Купить";
+  }
 
   const draft = {
     cat: REAL_ESTATE_CAT,
@@ -192,6 +201,11 @@ export function buildRealEstateListingUrl({
   }
 
   return `/listing?${params.toString()}`;
+}
+
+export function buildRealEstateCategoryUrl(city = "", subcategory = "") {
+  const dealType = subcategory === "Новостройки" ? "Купить" : "";
+  return buildRealEstateListingUrl({ city, subcategory, dealType });
 }
 
 export function buildRealEstatePageTitle(draft = {}) {

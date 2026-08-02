@@ -1,6 +1,7 @@
 import React from "react";
 import { useSearchParams, useNavigate, useParams, useLocation } from "react-router-dom";
 import { api } from "../lib/api";
+import { getUserFacingErrorMessage } from "../lib/apiError";
 import FavoriteButton from "../components/FavoriteButton";
 import ListingGridSkeleton from "../components/ListingGridSkeleton";
 import EmptyState from "../components/EmptyState";
@@ -288,7 +289,7 @@ export default function Listing() {
         }
       } catch (e) {
         if (active) {
-          setError(e.message || "Не удалось загрузить объявления");
+          setError(getUserFacingErrorMessage(e, "Не удалось загрузить объявления"));
         }
       } finally {
         if (active) {
@@ -563,10 +564,13 @@ export default function Listing() {
 
   const selectSubcategory = React.useCallback(
     (value) => {
+      const dealType = appliedDraft.specs?.["Тип сделки"] || "";
+      const nextSpecs = dealType ? { "Тип сделки": dealType } : {};
+
       applyFilters({
         ...appliedDraft,
         subcategory: value,
-        specs: {},
+        specs: nextSpecs,
         areaFrom: "",
         areaTo: "",
         floorFrom: "",
@@ -621,9 +625,10 @@ export default function Listing() {
       {isRealEstate && (
         <RealEstateSearchHero
           compact
+          listingPage
           initialCity={draft.location || "Душанбе"}
           initialSubcategory={draft.subcategory || ""}
-          initialDeal={draft.specs?.["Тип сделки"] || "Купить"}
+          initialDeal={draft.specs?.["Тип сделки"] || ""}
           initialRooms={draft.specs?.["Комнат"] || ""}
           initialPriceFrom={draft.priceFrom || ""}
           initialPriceTo={draft.priceTo || ""}
@@ -666,6 +671,18 @@ export default function Listing() {
           city={appliedDraft.location || "Душанбе"}
           activeDistrict={appliedDraft.specs?.["Район"] || ""}
           totalCount={total}
+          filterContext={{
+            city: appliedDraft.location || "Душанбе",
+            dealType: appliedDraft.specs?.["Тип сделки"] || "",
+            subcategory: effectiveSubcategory,
+            rooms: appliedDraft.specs?.["Комнат"] || "",
+            guests: appliedDraft.guests || "",
+            checkIn: appliedDraft.checkIn || "",
+            checkOut: appliedDraft.checkOut || "",
+            priceFrom: appliedDraft.priceFrom || "",
+            priceTo: appliedDraft.priceTo || "",
+            specs: appliedDraft.specs || {},
+          }}
           onCityChange={(nextCity) => {
             const nextSpecs = { ...appliedDraft.specs };
             delete nextSpecs["Район"];

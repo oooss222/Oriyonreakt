@@ -24,7 +24,7 @@ import {
   REAL_ESTATE_CAT,
   QUICK_COLLECTIONS,
 } from "../data/realEstate";
-import { buildRealEstateListingUrl } from "../lib/realEstate";
+import { buildRealEstateListingUrl, buildRealEstateCategoryUrl } from "../lib/realEstate";
 
 export default function RealEstate() {
   const [stats, setStats] = React.useState({ total: 0, bySubcategory: {} });
@@ -56,7 +56,7 @@ export default function RealEstate() {
         setLoading(true);
 
         const [statsData, allListings, promoted] = await Promise.all([
-          api.listingStats(REAL_ESTATE_CAT),
+          api.listingStats(REAL_ESTATE_CAT, city),
           api.listings({
             cat: REAL_ESTATE_CAT,
             limit: 24,
@@ -173,7 +173,7 @@ export default function RealEstate() {
             title="Новостройки и ЖК"
             description="Жилые комплексы и проекты от застройщиков"
             actionLabel="Все новостройки"
-            actionTo={buildRealEstateListingUrl({ city, subcategory: "Новостройки" })}
+            actionTo={buildRealEstateCategoryUrl(city, "Новостройки")}
           />
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">

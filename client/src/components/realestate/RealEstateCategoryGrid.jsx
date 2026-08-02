@@ -8,7 +8,7 @@ import {
   Car,
   DoorOpen,
 } from "lucide-react";
-import { buildRealEstateListingUrl } from "../../lib/realEstate";
+import { buildRealEstateCategoryUrl } from "../../lib/realEstate";
 import { SUBCATEGORY_META } from "../../data/realEstate";
 
 const SUB_ICONS = {
@@ -31,7 +31,7 @@ export default function RealEstateCategoryGrid({ city, statsBySubcategory = {} }
         return (
           <Link
             key={name}
-            to={buildRealEstateListingUrl({ subcategory: name, city })}
+            to={buildRealEstateCategoryUrl(city, name)}
             className={`group relative rounded-2xl border p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md ${
               meta.highlight
                 ? "bg-gradient-to-br from-sun-50/80 to-white border-sun/25 hover:border-sun/40"

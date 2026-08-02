@@ -44,7 +44,7 @@ function parseSpecsFilter(value) {
 
 router.get("/stats", async (req, res) => {
   try {
-    const { cat } = req.query;
+    const { cat, location } = req.query;
 
     if (!cat) {
       return res.status(400).json({
@@ -52,7 +52,11 @@ router.get("/stats", async (req, res) => {
       });
     }
 
-    const stats = await Listing.statsByCategory(String(cat).trim());
+    const stats = await Listing.statsByCategory(
+      String(cat).trim(),
+      "approved",
+      location ? String(location).trim() : ""
+    );
 
     return res.json(stats);
   } catch (e) {

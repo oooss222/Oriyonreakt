@@ -29,6 +29,22 @@ export function isDailyDeal(dealType = "") {
   return dealType === "Посуточно";
 }
 
+export function isSubcategoryCompatibleWithDeal(subcategory = "", dealType = "") {
+  if (!subcategory) return true;
+  if (isDailyDeal(dealType)) {
+    return DAILY_HOUSING_TYPES.some((item) => item.value === subcategory);
+  }
+  if (subcategory === "Новостройки") {
+    return dealType === "Купить" || !dealType;
+  }
+  return true;
+}
+
+export function getDefaultDealForSubcategory(subcategory = "") {
+  if (subcategory === "Новостройки") return "Купить";
+  return "";
+}
+
 export function parseGuestCapacity(value = "") {
   const raw = String(value).trim();
   if (!raw) return null;

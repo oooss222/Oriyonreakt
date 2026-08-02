@@ -183,7 +183,10 @@ function buildGenericGrid(catKey, subcategory = "") {
 
 export function getListingFilterGrid(catKey, subcategory = "") {
   if (catKey === "transport") {
-    return TRANSPORT_GRID;
+    if (!subcategory || subcategory === "Легковые авто") {
+      return TRANSPORT_GRID;
+    }
+    return buildGenericGrid(catKey, subcategory);
   }
 
   if (catKey === "phones") {

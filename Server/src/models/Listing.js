@@ -499,24 +499,28 @@ class ListingModel {
     return Number(result.rows[0]?.count || 0);
   }
 
-  static async statsByCategory(cat, status = "approved") {
+  static async statsByCategory(cat, status = "approved", location = "") {
+    const locationFilter = location ? "AND location = $3" : "";
+    const params = location ? [cat, status, location] : [cat, status];
+
     const totalResult = await query(
       `
       SELECT COUNT(*)::int AS count
       FROM listings
-      WHERE cat = $1 AND status = $2
+      WHERE cat = $1 AND status = $2 ${locationFilter}
       `,
-      [cat, status]
+      params
     );
 
     const subResult = await query(
       `
       SELECT subcategory, COUNT(*)::int AS count
       FROM listings
-      WHERE cat = $1 AND status = $2 AND COALESCE(subcategory, '') <> ''
+      WHERE cat = $1 AND status = $2 ${locationFilter}
+        AND COALESCE(subcategory, '') <> ''
       GROUP BY subcategory
       `,
-      [cat, status]
+      params
     );
 
     const bySubcategory = {};
