@@ -1,5 +1,5 @@
 import React from "react";
-import { ChevronDown, ChevronLeft, ChevronRight, CalendarDays } from "lucide-react";
+import { ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 import { countNights } from "../../data/realEstate";
 import {
   WEEKDAYS,
@@ -156,17 +156,13 @@ export default function RealEstateDateRangePicker({
   checkIn = "",
   checkOut = "",
   onChange,
-  splitFields = true,
   compact = false,
-  labelCheckIn = "Заезд",
-  labelCheckOut = "Выезд",
-  labelCombined = "Даты проживания",
+  label = "Заезд — выезд",
 }) {
   const [open, setOpen] = React.useState(false);
   const [viewMonth, setViewMonth] = React.useState(() => getInitialViewMonth(checkIn));
   const rootRef = React.useRef(null);
   const minIso = todayIso();
-  const nights = countNights(checkIn, checkOut);
 
   React.useEffect(() => {
     if (!open) return;
@@ -212,13 +208,7 @@ export default function RealEstateDateRangePicker({
   const openCalendar = () => setOpen(true);
 
   const calendar = open ? (
-    <div
-      className={`absolute z-50 ${
-        splitFields
-          ? "left-0 right-0 top-[calc(100%+8px)] md:left-auto md:right-0 md:w-[min(720px,calc(100vw-2rem))]"
-          : "left-0 right-0 top-[calc(100%+8px)]"
-      }`}
-    >
+    <div className="absolute left-0 right-0 top-[calc(100%+8px)] z-50 md:left-auto md:right-0 md:w-[min(720px,calc(100vw-2rem))]">
       <CalendarPanel
         checkIn={checkIn}
         checkOut={checkOut}
@@ -230,79 +220,48 @@ export default function RealEstateDateRangePicker({
     </div>
   ) : null;
 
-  if (!splitFields) {
-    const summary =
-      checkIn && checkOut
-        ? `${formatShortDate(checkIn)} – ${formatShortDate(checkOut)}`
-        : checkIn
-          ? `${formatShortDate(checkIn)} – выберите выезд`
-          : "Выберите даты";
-
-    return (
-      <div ref={rootRef} className="relative min-w-0">
-        {!compact && <span className={FIELD_LABEL}>{labelCombined}</span>}
-        <button
-          type="button"
-          aria-expanded={open}
-          onClick={openCalendar}
-          className={`${FIELD_CONTROL} flex items-center justify-between gap-3 px-3 text-left ${
-            checkIn ? "text-slate-900" : "text-slate-500"
-          }`}
-        >
-          <span className="inline-flex items-center gap-2 truncate">
-            <CalendarDays size={15} className="shrink-0 text-slate-400" />
-            {summary}
-          </span>
-          <ChevronDown size={15} className="shrink-0 text-slate-400" />
-        </button>
-        {calendar}
-      </div>
-    );
-  }
-
   return (
-    <div ref={rootRef} className="relative col-span-1 sm:col-span-2 lg:col-span-2 min-w-0">
-      <div className="grid grid-cols-2 gap-3">
-        <div className="min-w-0">
-          <span className={FIELD_LABEL}>{labelCheckIn}</span>
-          <button
-            type="button"
-            aria-expanded={open}
-            onClick={openCalendar}
-            className={`${FIELD_CONTROL} flex items-center justify-between gap-2 px-3 text-left ${
-              checkIn ? "text-slate-900" : "text-slate-500"
-            }`}
-          >
-            <span className="truncate">
-              {checkIn ? formatShortDate(checkIn) : "Дата заезда"}
-            </span>
-            <ChevronDown size={15} className="shrink-0 text-slate-400" />
-          </button>
-        </div>
+    <div ref={rootRef} className="relative min-w-0">
+      {!compact && <span className={FIELD_LABEL}>{label}</span>}
 
-        <div className="min-w-0">
-          <span className={FIELD_LABEL}>{labelCheckOut}</span>
-          <button
-            type="button"
-            aria-expanded={open}
-            onClick={openCalendar}
-            className={`${FIELD_CONTROL} flex items-center justify-between gap-2 px-3 text-left ${
-              checkOut ? "text-slate-900" : "text-slate-500"
-            }`}
-          >
-            <span className="truncate">
-              {checkOut ? formatShortDate(checkOut) : "Дата выезда"}
+      <button
+        type="button"
+        aria-expanded={open}
+        onClick={openCalendar}
+        className={`${FIELD_CONTROL} flex h-11 items-stretch overflow-hidden p-0 text-left`}
+      >
+        <span className="flex min-w-0 flex-1 divide-x divide-slate-200">
+          <span className="flex min-w-0 flex-1 flex-col justify-center px-3 py-1">
+            <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-400">
+              Заезд
             </span>
-            <ChevronDown size={15} className="shrink-0 text-slate-400" />
-          </button>
-        </div>
-      </div>
+            <span
+              className={`truncate text-sm font-medium ${
+                checkIn ? "text-slate-900" : "text-slate-400"
+              }`}
+            >
+              {checkIn ? formatShortDate(checkIn) : "Дата"}
+            </span>
+          </span>
 
-      {nights > 0 && !open && (
-        <p className="mt-1.5 text-xs font-medium text-emerald-600">
-          {formatNightsLabel(nights)}
-        </p>
-      )}
+          <span className="flex min-w-0 flex-1 flex-col justify-center px-3 py-1">
+            <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-400">
+              Выезд
+            </span>
+            <span
+              className={`truncate text-sm font-medium ${
+                checkOut ? "text-slate-900" : "text-slate-400"
+              }`}
+            >
+              {checkOut ? formatShortDate(checkOut) : "Дата"}
+            </span>
+          </span>
+        </span>
+
+        <span className="flex w-9 shrink-0 items-center justify-center border-l border-slate-200 text-slate-400">
+          <ChevronDown size={15} />
+        </span>
+      </button>
 
       {calendar}
     </div>
