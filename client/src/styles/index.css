@@ -116,6 +116,43 @@
   .mobile-btn {
     @apply h-11 w-full inline-flex items-center justify-center gap-2 rounded-xl px-4 text-sm font-semibold transition;
   }
+
+  /* --- Oriyon design system (P4) --- */
+  .filter-panel {
+    @apply rounded-2xl border border-ink/10 bg-white shadow-soft;
+  }
+
+  .chip {
+    @apply inline-flex items-center justify-center shrink-0 h-9 px-3.5 rounded-full border border-ink/15 bg-white text-sm font-medium text-ink transition;
+  }
+
+  .chip:hover {
+    @apply border-sun/35 bg-sun-50/40;
+  }
+
+  .chip-active {
+    @apply border-sun bg-sun-50 text-sun-800;
+  }
+
+  .category-hero {
+    @apply rounded-3xl border border-ink/10 bg-white shadow-soft overflow-hidden;
+  }
+
+  .category-hero-banner {
+    @apply relative overflow-hidden bg-gradient-to-br from-ink-800 via-ink-700 to-lagoon-700 text-white;
+  }
+
+  .subcategory-chip {
+    @apply inline-flex items-center px-5 py-2 rounded-full border text-sm font-medium transition;
+  }
+
+  .subcategory-chip-active {
+    @apply bg-ink text-white border-ink;
+  }
+
+  .subcategory-chip-idle {
+    @apply bg-white text-ink border-ink/15 hover:bg-ink hover:text-white;
+  }
 }
 
 @layer utilities {

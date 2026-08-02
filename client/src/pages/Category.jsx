@@ -2,6 +2,7 @@ import React from "react";
 import { useParams, Link, useNavigate, Navigate } from "react-router-dom";
 import EmptyState from "../components/EmptyState";
 import Breadcrumbs from "../components/Breadcrumbs";
+import CategoryHero from "../components/CategoryHero";
 import TransportQuickFilters from "../components/transport/TransportQuickFilters";
 import ListingGridSkeleton from "../components/ListingGridSkeleton";
 import FavoriteButton from "../components/FavoriteButton";
@@ -121,56 +122,24 @@ export default function Category() {
         ]}
       />
 
-      <header className="rounded-3xl border border-slate-200 bg-gradient-to-br from-white to-slate-50 p-4 md:p-6 flex items-center gap-4 shadow-sm">
-        <div className="shrink-0 w-16 h-16 md:w-20 md:h-20 rounded-2xl border bg-slate-50 grid place-items-center overflow-hidden">
-          <img
-            src={cat.img}
-            alt={cat.title}
-            className="w-12 h-12 md:w-14 md:h-14 object-contain"
-          />
-        </div>
+      <CategoryHero cat={cat} slug={slug} total={stats.total} />
 
-        <div className="min-w-0">
-          <div className="inline-flex items-center gap-2 mb-1">
-            <span className="px-2 py-0.5 text-xs rounded-full bg-sun-50 text-sun-700 border border-sun-100">
-              Категория
-            </span>
+      {slug === "transport" && (
+        <AdSlot
+          placement="category_feed"
+          cat={slug}
+          variant="banner"
+          className="overflow-hidden rounded-2xl [&_img]:max-h-40 [&_img]:w-full [&_img]:object-cover"
+        />
+      )}
 
-            <span className="text-xs text-slate-500">
-              Объявлений:{" "}
-              <span className="font-medium text-slate-700">{stats.total}</span>
-            </span>
-          </div>
-
-          <h1 className="text-2xl font-bold leading-tight">{cat.title}</h1>
-
-          <p className="text-slate-600 text-sm mt-1">{cat.desc}</p>
-        </div>
-
-        <div className="ml-auto hidden sm:flex gap-2">
-          <Link
-            to={`/listing?cat=${slug}`}
-            className="inline-flex px-4 py-2 rounded-xl bg-sun text-white hover:bg-sun-600 transition shadow-sm"
-          >
-            Все объявления
-          </Link>
-
-          <Link
-            to="/"
-            className="inline-flex px-4 py-2 rounded-xl border hover:bg-slate-50 transition"
-          >
-            На главную
-          </Link>
-        </div>
-      </header>
-
-      <div className="rounded-2xl border bg-white p-3 md:p-4">
+      <div className="surface-panel p-3 md:p-4">
         <div className="flex flex-col md:flex-row md:items-center gap-3">
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Быстрый поиск по подкатегориям…"
-            className="w-full h-11 rounded-lg border px-3 outline-none focus:ring-2 focus:ring-sun/40"
+            className="input w-full"
           />
 
           <div className="text-xs text-slate-500 md:w-56">
@@ -195,7 +164,7 @@ export default function Category() {
           <div className="flex flex-wrap gap-2">
             <Link
               to={`/listing?cat=${slug}`}
-              className="px-5 py-2 rounded-full bg-slate-900 text-white text-sm font-medium"
+              className="subcategory-chip subcategory-chip-active"
             >
               Все
               {stats.total > 0 && (
@@ -211,10 +180,10 @@ export default function Category() {
                 <Link
                   key={sub}
                   to={`/listing?cat=${slug}&subcategory=${encodeURIComponent(sub)}`}
-                  className={`px-5 py-2 rounded-full border text-sm font-medium transition ${
+                  className={`subcategory-chip ${
                     empty
-                      ? "bg-slate-50 text-slate-400 border-slate-200"
-                      : "bg-white text-slate-800 hover:bg-slate-900 hover:text-white"
+                      ? "border-ink/10 bg-mist text-ink-300"
+                      : "subcategory-chip-idle"
                   }`}
                 >
                   {sub}

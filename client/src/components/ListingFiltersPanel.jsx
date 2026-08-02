@@ -29,7 +29,7 @@ function FilterSelect({
           value={value || ""}
           disabled={disabled}
           onChange={(e) => onChange(e.target.value)}
-          className={`w-full h-12 appearance-none rounded-xl bg-white px-4 pr-10 text-sm outline-none transition shadow-sm border border-white/80 focus:ring-2 focus:ring-lagoon/30 disabled:bg-slate-100 disabled:text-slate-400 ${
+          className={`w-full h-12 appearance-none rounded-xl bg-white px-4 pr-10 text-sm outline-none transition shadow-sm border border-white/80 focus:ring-2 focus:ring-sun/40 disabled:bg-slate-100 disabled:text-slate-400 ${
             value ? "text-slate-900 font-medium" : "text-slate-500"
           }`}
         >
@@ -192,7 +192,7 @@ function PriceFilterPopover({ draft, setDraft, onApply }) {
                       priceCurrency: e.target.value,
                     }))
                   }
-                  className="h-11 min-w-[4.5rem] appearance-none rounded-lg border border-slate-200 bg-white pl-3 pr-8 text-sm outline-none focus:ring-2 focus:ring-lagoon/30"
+                  className="h-11 min-w-[4.5rem] appearance-none rounded-lg border border-slate-200 bg-white pl-3 pr-8 text-sm outline-none focus:ring-2 focus:ring-sun/40"
                 >
                   <option value="с.">с.</option>
                   <option value="$">$</option>
@@ -214,7 +214,7 @@ function PriceFilterPopover({ draft, setDraft, onApply }) {
       <button
         type="button"
         onClick={() => setOpen((value) => !value)}
-        className={`w-full h-12 flex items-center justify-between gap-3 rounded-xl bg-white px-4 text-sm outline-none transition shadow-sm border border-white/80 hover:border-slate-200 focus:ring-2 focus:ring-lagoon/30 ${
+        className={`w-full h-12 flex items-center justify-between gap-3 rounded-xl bg-white px-4 text-sm outline-none transition shadow-sm border border-white/80 hover:border-slate-200 focus:ring-2 focus:ring-sun/40 ${
           summary ? "text-slate-900 font-medium" : "text-slate-500"
         }`}
       >
@@ -476,7 +476,7 @@ function renderField(
           }))
         }
         placeholder="Поиск по названию"
-        className="w-full h-12 rounded-xl bg-white px-4 text-sm outline-none shadow-sm border border-white/80 focus:ring-2 focus:ring-lagoon/30"
+        className="w-full h-12 rounded-xl bg-white px-4 text-sm outline-none shadow-sm border border-white/80 focus:ring-2 focus:ring-sun/40"
       />
     );
   }
@@ -605,8 +605,8 @@ export default function ListingFiltersPanel({
 
   return (
     <div
-      className={`rounded-2xl border border-lagoon/15 bg-gradient-to-br from-lagoon-50/80 to-emerald-50/50 ${
-        compact ? "p-0 border-0 bg-transparent" : "p-4 md:p-5"
+      className={`filter-panel ${
+        compact ? "p-0 border-0 shadow-none bg-transparent" : "p-4 md:p-5"
       }`}
     >
       <div className={`space-y-3 ${compact ? "pb-24" : ""}`}>
@@ -641,7 +641,7 @@ export default function ListingFiltersPanel({
             }
             className={`h-10 px-3 rounded-full border text-sm font-medium transition ${
               !draft.sellerType
-                ? "border-lagoon bg-lagoon-50 text-lagoon-800"
+                ? "border-sun bg-sun-50 text-sun-800"
                 : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
             }`}
           >
@@ -660,7 +660,7 @@ export default function ListingFiltersPanel({
               }
               className={`h-10 px-3 rounded-full border text-sm font-medium transition ${
                 draft.sellerType === option.value
-                  ? "border-lagoon bg-lagoon-50 text-lagoon-800"
+                  ? "border-sun bg-sun-50 text-sun-800"
                   : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
               }`}
             >
@@ -671,7 +671,7 @@ export default function ListingFiltersPanel({
       )}
 
       {moreOpen && grid.more?.length > 0 && (
-        <div className={`mt-3 pt-3 border-t border-lagoon/10 ${moreGridClass}`}>
+        <div className={`mt-3 pt-3 border-t border-ink/10 ${moreGridClass}`}>
           {grid.more.map((field) => (
             <div key={field.id} className="space-y-1">
               {(field.type === "search" || field.type === "sort") && (
@@ -694,7 +694,7 @@ export default function ListingFiltersPanel({
       )}
 
       <div
-        className={`mt-4 pt-4 border-t border-lagoon/10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 ${
+        className={`mt-4 pt-4 border-t border-ink/10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 ${
           compact
             ? "sticky bottom-0 z-10 -mx-0 px-3 py-3 bg-white border-t border-slate-200 shadow-[0_-8px_24px_rgba(0,0,0,0.06)]"
             : ""
@@ -705,7 +705,7 @@ export default function ListingFiltersPanel({
             <button
               type="button"
               onClick={() => setMoreOpen((value) => !value)}
-              className="inline-flex items-center gap-1.5 text-sm font-medium text-lagoon hover:text-lagoon-700 transition"
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-sun hover:text-sun-700 transition"
             >
               {moreOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
               {moreOpen ? "Меньше фильтров" : "Больше фильтров"}
@@ -728,7 +728,7 @@ export default function ListingFiltersPanel({
           <button
             type="button"
             onClick={() => onApply()}
-            className="inline-flex justify-center items-center gap-2 h-11 px-5 rounded-xl bg-lagoon text-white hover:bg-lagoon-700 transition text-sm font-semibold shadow-sm"
+            className="inline-flex justify-center items-center gap-2 h-11 px-5 rounded-xl bg-sun text-white hover:bg-sun-600 transition text-sm font-semibold shadow-sm"
           >
             <Search size={16} />
             {previewLoading

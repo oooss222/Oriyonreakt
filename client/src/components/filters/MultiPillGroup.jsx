@@ -14,11 +14,7 @@ export default function MultiPillGroup({
       <button
         type="button"
         onClick={() => onChange?.("")}
-        className={`h-10 px-3 rounded-full border text-sm font-medium transition ${
-          selected.length === 0
-            ? "border-lagoon bg-lagoon-50 text-lagoon-800"
-            : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
-        }`}
+        className={`chip ${selected.length === 0 ? "chip-active" : ""}`}
       >
         {anyLabel}
       </button>
@@ -31,11 +27,7 @@ export default function MultiPillGroup({
             key={option}
             type="button"
             onClick={() => onChange?.(toggleMultiSpecValue(values, option))}
-            className={`h-10 px-3 rounded-full border text-sm font-medium transition ${
-              active
-                ? "border-lagoon bg-lagoon-50 text-lagoon-800"
-                : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
-            }`}
+            className={`chip ${active ? "chip-active" : ""}`}
           >
             {option}
           </button>

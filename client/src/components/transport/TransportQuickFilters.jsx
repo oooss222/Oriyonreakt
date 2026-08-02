@@ -30,17 +30,13 @@ const TRANSPORT_QUICK_FILTERS = [
 
 export default function TransportQuickFilters() {
   return (
-    <div className="rounded-2xl border bg-white p-3 md:p-4">
-      <div className="text-xs font-semibold uppercase tracking-wide text-slate-400 mb-2">
+    <div className="filter-panel p-3 md:p-4">
+      <div className="text-xs font-semibold uppercase tracking-wide text-ink-400 mb-2">
         Быстрый поиск
       </div>
       <div className="flex flex-wrap gap-2">
         {TRANSPORT_QUICK_FILTERS.map((item) => (
-          <Link
-            key={item.label}
-            to={item.to}
-            className="px-4 py-2 rounded-full border border-slate-200 bg-white text-sm font-medium text-slate-800 hover:bg-slate-900 hover:text-white transition"
-          >
+          <Link key={item.label} to={item.to} className="chip">
             {item.label}
           </Link>
         ))}

@@ -130,7 +130,7 @@ function PillGroup({ value, options, onChange, anyLabel = "Любой" }) {
         onClick={() => onChange("")}
         className={`h-10 px-3 rounded-full border text-sm font-medium transition ${
           !value
-            ? "border-lagoon bg-lagoon-50 text-lagoon-800"
+            ? "border-sun bg-sun-50 text-sun-800"
             : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
         }`}
       >
@@ -144,7 +144,7 @@ function PillGroup({ value, options, onChange, anyLabel = "Любой" }) {
           onClick={() => onChange(option)}
           className={`h-10 px-3 rounded-full border text-sm font-medium transition ${
             value === option
-              ? "border-lagoon bg-lagoon-50 text-lagoon-800"
+              ? "border-sun bg-sun-50 text-sun-800"
               : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
           }`}
         >
@@ -177,7 +177,7 @@ function PresetPills({ presets, onSelect, activeFrom = "", activeTo = "" }) {
             }
             className={`h-9 px-3 rounded-full border text-xs font-medium transition ${
               active
-                ? "border-lagoon bg-lagoon-50 text-lagoon-800"
+                ? "border-sun bg-sun-50 text-sun-800"
                 : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
             }`}
           >
@@ -536,7 +536,7 @@ export default function RealEstateMoreFiltersModal({
                     }
                     className={`h-10 px-3 rounded-full border text-sm font-medium transition ${
                       !(draft.subcategory || subcategory)
-                        ? "border-lagoon bg-lagoon-50 text-lagoon-800"
+                        ? "border-sun bg-sun-50 text-sun-800"
                         : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
                     }`}
                   >
@@ -556,7 +556,7 @@ export default function RealEstateMoreFiltersModal({
                         }
                         className={`h-10 px-3 rounded-full border text-sm font-medium transition ${
                           active
-                            ? "border-lagoon bg-lagoon-50 text-lagoon-800"
+                            ? "border-sun bg-sun-50 text-sun-800"
                             : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
                         }`}
                       >
@@ -722,7 +722,7 @@ export default function RealEstateMoreFiltersModal({
                     }
                     className={`h-10 px-3 rounded-full border text-sm font-medium transition ${
                       !draft.sellerType
-                        ? "border-lagoon bg-lagoon-50 text-lagoon-800"
+                        ? "border-sun bg-sun-50 text-sun-800"
                         : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
                     }`}
                   >
@@ -743,7 +743,7 @@ export default function RealEstateMoreFiltersModal({
                       }
                       className={`h-10 px-3 rounded-full border text-sm font-medium transition ${
                         draft.sellerType === option.value
-                          ? "border-lagoon bg-lagoon-50 text-lagoon-800"
+                          ? "border-sun bg-sun-50 text-sun-800"
                           : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
                       }`}
                     >
@@ -795,7 +795,7 @@ export default function RealEstateMoreFiltersModal({
                       }
                       className={`mobile-btn border ${
                         draft.floorNotFirst
-                          ? "border-lagoon bg-lagoon-50 text-lagoon-800"
+                          ? "border-sun bg-sun-50 text-sun-800"
                           : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
                       }`}
                     >
@@ -811,7 +811,7 @@ export default function RealEstateMoreFiltersModal({
                       }
                       className={`mobile-btn border ${
                         draft.floorNotLast
-                          ? "border-lagoon bg-lagoon-50 text-lagoon-800"
+                          ? "border-sun bg-sun-50 text-sun-800"
                           : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
                       }`}
                     >
@@ -943,7 +943,7 @@ export default function RealEstateMoreFiltersModal({
           <button
             type="button"
             onClick={submit}
-            className="mobile-btn bg-lagoon text-white hover:bg-lagoon-700 font-semibold sm:min-w-[14rem]"
+            className="mobile-btn bg-sun text-white hover:bg-sun-600 font-semibold sm:min-w-[14rem]"
           >
             {previewLoading
               ? "Показать объявления…"

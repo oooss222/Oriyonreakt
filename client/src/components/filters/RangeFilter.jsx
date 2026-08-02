@@ -22,10 +22,8 @@ function PresetRow({ presets = [], activeFrom = "", activeTo = "", onSelect }) {
                 to: preset.to ? String(preset.to) : "",
               })
             }
-            className={`h-9 px-3 rounded-full border text-xs font-medium transition ${
-              active
-                ? "border-lagoon bg-lagoon-50 text-lagoon-800"
-                : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+            className={`h-9 px-3 rounded-full border text-xs font-medium transition chip ${
+              active ? "chip-active" : ""
             }`}
           >
             {preset.label}
