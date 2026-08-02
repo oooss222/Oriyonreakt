@@ -1,5 +1,5 @@
 import React from "react";
-import { Search, SlidersHorizontal } from "lucide-react";
+import { Search, SlidersHorizontal, ChevronDown } from "lucide-react";
 import RealEstateCitySelect from "../RealEstateCitySelect";
 import RealEstateDateRangePicker from "./RealEstateDateRangePicker";
 import RealEstateGuestsPicker from "./RealEstateGuestsPicker";
@@ -21,19 +21,25 @@ export default function RealEstateDailySearchBar({
   hasMoreFilters = false,
 }) {
   return (
-    <div className="space-y-3">
-      <div className="overflow-visible rounded-2xl border border-slate-200/90 bg-white shadow-sm ring-1 ring-slate-900/5">
+    <div className="space-y-3 text-slate-900">
+      <div className="overflow-visible rounded-2xl border border-slate-200/90 bg-white text-slate-900 shadow-sm ring-1 ring-slate-900/5">
         <div className="flex flex-col lg:flex-row lg:items-stretch">
-          <label className="group relative flex min-w-0 flex-1 cursor-pointer flex-col justify-center px-4 py-3.5 transition hover:bg-slate-50/80 lg:max-w-[220px]">
+          <div className="group relative flex min-w-0 flex-1 flex-col justify-center px-4 py-3.5 transition hover:bg-slate-50/80 lg:max-w-[240px]">
             <span className="mb-0.5 text-xs font-medium text-slate-500">
               Куда хотите поехать?
             </span>
-            <RealEstateCitySelect
-              value={city}
-              onChange={(e) => onCityChange?.(e.target.value)}
-              className="w-full cursor-pointer appearance-none border-0 bg-transparent p-0 text-sm font-semibold text-slate-900 outline-none focus:ring-0"
-            />
-          </label>
+            <div className="relative flex min-h-[20px] items-center">
+              <RealEstateCitySelect
+                value={city}
+                onChange={(e) => onCityChange?.(e.target.value)}
+                className="w-full cursor-pointer appearance-none border-0 bg-transparent py-0 pl-0 pr-7 text-sm font-semibold text-slate-900 outline-none focus:ring-0"
+              />
+              <ChevronDown
+                size={16}
+                className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 text-slate-400"
+              />
+            </div>
+          </div>
 
           <InlineDivider />
 

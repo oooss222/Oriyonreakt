@@ -217,7 +217,7 @@ export default function RealEstateSearchHero({
   const [priceTo, setPriceTo] = React.useState(initialPriceTo);
   const [checkIn, setCheckIn] = React.useState(initialCheckIn);
   const [checkOut, setCheckOut] = React.useState(initialCheckOut);
-  const [guests, setGuests] = React.useState(initialGuests);
+  const [guests, setGuests] = React.useState(initialGuests || (isDailyDeal(initialDeal) ? "2" : ""));
   const [priceCurrency, setPriceCurrency] = React.useState("с.");
   const [moreOpen, setMoreOpen] = React.useState(false);
 
@@ -230,6 +230,12 @@ export default function RealEstateSearchHero({
   React.useEffect(() => setCheckIn(initialCheckIn), [initialCheckIn]);
   React.useEffect(() => setCheckOut(initialCheckOut), [initialCheckOut]);
   React.useEffect(() => setGuests(initialGuests), [initialGuests]);
+
+  React.useEffect(() => {
+    if (isDailyDeal(dealType)) {
+      setGuests((prev) => prev || initialGuests || "2");
+    }
+  }, [dealType, initialGuests]);
 
   const handleCityChange = (nextCity) => {
     setCity(nextCity);
@@ -327,58 +333,83 @@ export default function RealEstateSearchHero({
         )}
 
         <div className="relative overflow-visible">
-          <div
-            role="tablist"
-            aria-label="Тип сделки"
-            className={`mb-4 inline-flex w-full gap-1 rounded-xl p-1 sm:w-auto ${
-              isDaily
-                ? "border border-white/15 bg-white/10"
-                : "border border-slate-200/80 bg-slate-100/80"
-            }`}
-          >
-            {DEAL_TYPES.map((item) => {
-              const active = dealType === item.value;
+          {isDaily ? (
+            <>
+              <div
+                role="tablist"
+                aria-label="Тип сделки"
+                className="mb-4 inline-flex w-full gap-1 rounded-xl border border-white/15 bg-white/10 p-1 sm:w-auto"
+              >
+                {DEAL_TYPES.map((item) => {
+                  const active = dealType === item.value;
 
-              return (
-                <button
-                  key={item.value}
-                  type="button"
-                  role="tab"
-                  aria-selected={active}
-                  onClick={() => setDealType(item.value)}
-                  className={`min-h-[42px] flex-1 rounded-lg px-4 py-2.5 text-sm font-semibold transition sm:flex-none sm:min-w-[6.5rem] ${
-                    active
-                      ? "bg-sun text-white shadow-sm"
-                      : isDaily
-                        ? "text-white/75 hover:bg-white/10 hover:text-white"
-                        : "text-slate-600 hover:bg-white hover:text-slate-900"
-                  }`}
-                >
-                  {item.label}
-                </button>
-              );
-            })}
-          </div>
+                  return (
+                    <button
+                      key={item.value}
+                      type="button"
+                      role="tab"
+                      aria-selected={active}
+                      onClick={() => setDealType(item.value)}
+                      className={`min-h-[42px] flex-1 rounded-lg px-4 py-2.5 text-sm font-semibold transition sm:flex-none sm:min-w-[6.5rem] ${
+                        active
+                          ? "bg-sun text-white shadow-sm"
+                          : "text-white/75 hover:bg-white/10 hover:text-white"
+                      }`}
+                    >
+                      {item.label}
+                    </button>
+                  );
+                })}
+              </div>
 
-          <form onSubmit={submit}>
-            {isDaily ? (
-              <RealEstateDailySearchBar
-                city={city}
-                onCityChange={handleCityChange}
-                checkIn={checkIn}
-                checkOut={checkOut}
-                onDatesChange={({ checkIn: nextIn, checkOut: nextOut }) => {
-                  setCheckIn(nextIn);
-                  setCheckOut(nextOut);
-                }}
-                guests={guests}
-                onGuestsChange={setGuests}
-                submitLabel={submitLabel}
-                onMoreFilters={() => setMoreOpen(true)}
-                hasMoreFilters={hasActiveFilters}
-              />
-            ) : (
-              <div className="space-y-4 rounded-2xl bg-white p-4 text-slate-900 shadow-xl ring-1 ring-slate-900/5 md:p-5">
+              <form onSubmit={submit}>
+                <RealEstateDailySearchBar
+                  city={city}
+                  onCityChange={handleCityChange}
+                  checkIn={checkIn}
+                  checkOut={checkOut}
+                  onDatesChange={({ checkIn: nextIn, checkOut: nextOut }) => {
+                    setCheckIn(nextIn);
+                    setCheckOut(nextOut);
+                  }}
+                  guests={guests}
+                  onGuestsChange={setGuests}
+                  submitLabel={submitLabel}
+                  onMoreFilters={() => setMoreOpen(true)}
+                  hasMoreFilters={hasActiveFilters}
+                />
+              </form>
+            </>
+          ) : (
+            <div className="rounded-2xl bg-white p-4 text-slate-900 shadow-xl ring-1 ring-slate-900/5 md:p-5">
+              <div
+                role="tablist"
+                aria-label="Тип сделки"
+                className="mb-4 inline-flex w-full gap-1 rounded-xl border border-slate-200/80 bg-slate-100/80 p-1 sm:w-auto"
+              >
+                {DEAL_TYPES.map((item) => {
+                  const active = dealType === item.value;
+
+                  return (
+                    <button
+                      key={item.value}
+                      type="button"
+                      role="tab"
+                      aria-selected={active}
+                      onClick={() => setDealType(item.value)}
+                      className={`min-h-[42px] flex-1 rounded-lg px-4 py-2.5 text-sm font-semibold transition sm:flex-none sm:min-w-[6.5rem] ${
+                        active
+                          ? "bg-sun text-white shadow-sm"
+                          : "text-slate-600 hover:bg-white hover:text-slate-900"
+                      }`}
+                    >
+                      {item.label}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <form onSubmit={submit} className="space-y-4">
               <div
                 className={`grid grid-cols-1 gap-3 sm:grid-cols-2 ${
                   showRooms ? "lg:grid-cols-4" : "lg:grid-cols-3"
@@ -470,9 +501,9 @@ export default function RealEstateSearchHero({
                   Ещё фильтры
                 </button>
               </div>
-              </div>
-            )}
-          </form>
+              </form>
+            </div>
+          )}
         </div>
       </section>
 
