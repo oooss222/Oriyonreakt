@@ -142,9 +142,9 @@ export default function Category() {
             className="input w-full"
           />
 
-          <div className="text-xs text-slate-500 md:w-56">
+          <div className="text-xs text-ink-400 md:w-56">
             Найдено подкатегорий:{" "}
-            <span className="font-medium text-slate-700">{subs.length}</span>
+            <span className="font-medium text-ink">{subs.length}</span>
           </div>
         </div>
       </div>
@@ -199,7 +199,7 @@ export default function Category() {
 
       <section className="space-y-4">
         <div className="flex items-center justify-between gap-3">
-          <h2 className="text-lg font-semibold">Свежие объявления</h2>
+          <h2 className="section-title text-lg">Свежие объявления</h2>
 
           <Link
             to={`/listing?cat=${slug}`}
@@ -275,7 +275,7 @@ export default function Category() {
                   </div>
 
                   <div className="mt-2 flex-1 flex flex-col gap-1">
-                    <div className="font-semibold text-sm text-slate-900 line-clamp-2 group-hover:text-sun transition">
+                    <div className="font-semibold text-sm text-ink line-clamp-2 group-hover:text-sun transition">
                       {ad.title || "Без названия"}
                     </div>
 
@@ -291,7 +291,7 @@ export default function Category() {
                       />
                     </div>
 
-                    <div className="text-xs text-slate-500 line-clamp-1 flex items-center gap-1">
+                    <div className="text-xs text-ink-400 line-clamp-1 flex items-center gap-1">
                       <MapPin size={13} />
                       {ad.location || ad.city || "Душанбе"}
                     </div>
