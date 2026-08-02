@@ -1,4 +1,5 @@
 import React from "react";
+import { createPortal } from "react-dom";
 import { ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 import { countNights } from "../../data/realEstate";
 import {
@@ -16,8 +17,6 @@ import {
 
 const FIELD_LABEL =
   "mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500";
-const FIELD_CONTROL =
-  "h-11 w-full rounded-xl border border-slate-200/90 bg-white text-sm font-medium text-slate-900 outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100";
 
 function MonthGrid({ year, month, checkIn, checkOut, minIso, onPickDay }) {
   const cells = buildMonthGrid(year, month, minIso);
@@ -28,7 +27,7 @@ function MonthGrid({ year, month, checkIn, checkOut, minIso, onPickDay }) {
         {getMonthLabel(year, month)}
       </div>
 
-      <div className="grid grid-cols-7 gap-y-1 mb-1">
+      <div className="mb-1 grid grid-cols-7 gap-y-1">
         {WEEKDAYS.map((day) => (
           <div
             key={day}
@@ -57,9 +56,9 @@ function MonthGrid({ year, month, checkIn, checkOut, minIso, onPickDay }) {
             <div
               key={cell.iso}
               className={`relative h-10 ${
-                inRange ? "bg-emerald-50" : ""
-              } ${isStart && inRange ? "rounded-l-xl bg-emerald-50" : ""} ${
-                isEnd && inRange ? "rounded-r-xl bg-emerald-50" : ""
+                inRange ? "bg-sun-50" : ""
+              } ${isStart && inRange ? "rounded-l-xl bg-sun-50" : ""} ${
+                isEnd && inRange ? "rounded-r-xl bg-sun-50" : ""
               }`}
             >
               <button
@@ -68,12 +67,12 @@ function MonthGrid({ year, month, checkIn, checkOut, minIso, onPickDay }) {
                 onClick={() => onPickDay(cell.iso)}
                 className={`absolute inset-0 mx-auto flex h-10 w-10 items-center justify-center text-sm font-medium transition disabled:cursor-not-allowed disabled:text-slate-300 ${
                   selected
-                    ? "rounded-xl bg-emerald-500 text-white shadow-sm"
+                    ? "rounded-xl bg-sun text-white shadow-sm"
                     : inSelection
-                      ? "text-emerald-700"
+                      ? "text-sun-800"
                       : cell.disabled
                         ? "text-slate-300"
-                        : "rounded-xl text-slate-800 hover:bg-emerald-50 hover:text-emerald-700"
+                        : "rounded-xl text-slate-800 hover:bg-sun-50 hover:text-sun-800"
                 }`}
               >
                 {cell.day}
@@ -96,12 +95,18 @@ function CalendarPanel({
 }) {
   const rightMonth = addMonths(viewMonth.year, viewMonth.month, 1);
   const minMonth = getInitialViewMonth();
+  const nights = countNights(checkIn, checkOut);
   const canGoPrev =
     viewMonth.year > minMonth.year ||
     (viewMonth.year === minMonth.year && viewMonth.month > minMonth.month);
 
+  const footerHint =
+    checkIn && !checkOut
+      ? "Выберите дату выезда"
+      : formatNightsLabel(nights);
+
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-2xl">
+    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-2xl ring-1 ring-black/5">
       <div className="relative mb-2">
         <button
           type="button"
@@ -122,7 +127,7 @@ function CalendarPanel({
           <ChevronRight size={18} />
         </button>
 
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-8 pt-1">
+        <div className="grid grid-cols-1 gap-6 pt-1 md:grid-cols-2 md:gap-8">
           <MonthGrid
             year={viewMonth.year}
             month={viewMonth.month}
@@ -144,25 +149,69 @@ function CalendarPanel({
 
       <div className="mt-5 flex items-center justify-between gap-3 border-t border-dashed border-slate-200 pt-4 text-sm">
         <span className="font-medium text-slate-600">Длительность проживания</span>
-        <span className="font-semibold text-emerald-600">
-          {formatNightsLabel(countNights(checkIn, checkOut))}
+        <span
+          className={`font-semibold ${
+            checkIn && !checkOut ? "text-slate-500" : "text-sun-700"
+          }`}
+        >
+          {footerHint}
         </span>
       </div>
     </div>
   );
 }
 
+function useCalendarPosition(open, anchorRef) {
+  const [style, setStyle] = React.useState(null);
+
+  React.useLayoutEffect(() => {
+    if (!open || !anchorRef.current) {
+      setStyle(null);
+      return undefined;
+    }
+
+    const update = () => {
+      const rect = anchorRef.current.getBoundingClientRect();
+      const panelWidth = Math.min(720, window.innerWidth - 32);
+      const left = Math.max(
+        16,
+        Math.min(rect.left, window.innerWidth - panelWidth - 16)
+      );
+
+      setStyle({
+        top: rect.bottom + 8,
+        left,
+        width: panelWidth,
+      });
+    };
+
+    update();
+    window.addEventListener("resize", update);
+    window.addEventListener("scroll", update, true);
+
+    return () => {
+      window.removeEventListener("resize", update);
+      window.removeEventListener("scroll", update, true);
+    };
+  }, [open, anchorRef]);
+
+  return style;
+}
+
 export default function RealEstateDateRangePicker({
   checkIn = "",
   checkOut = "",
   onChange,
-  compact = false,
-  label = "Заезд — выезд",
+  showLabel = false,
+  label = "Даты проживания",
 }) {
   const [open, setOpen] = React.useState(false);
   const [viewMonth, setViewMonth] = React.useState(() => getInitialViewMonth(checkIn));
-  const rootRef = React.useRef(null);
+  const wrapperRef = React.useRef(null);
+  const panelRef = React.useRef(null);
+  const triggerRef = React.useRef(null);
   const minIso = todayIso();
+  const panelStyle = useCalendarPosition(open, triggerRef);
 
   React.useEffect(() => {
     if (!open) return;
@@ -173,7 +222,14 @@ export default function RealEstateDateRangePicker({
     if (!open) return undefined;
 
     const handleOutside = (event) => {
-      if (!rootRef.current?.contains(event.target)) setOpen(false);
+      const target = event.target;
+      if (
+        wrapperRef.current?.contains(target) ||
+        panelRef.current?.contains(target)
+      ) {
+        return;
+      }
+      setOpen(false);
     };
 
     const handleEscape = (event) => {
@@ -205,65 +261,86 @@ export default function RealEstateDateRangePicker({
     setOpen(false);
   };
 
-  const openCalendar = () => setOpen(true);
-
-  const calendar = open ? (
-    <div className="absolute left-0 right-0 top-[calc(100%+8px)] z-50 md:left-auto md:right-0 md:w-[min(720px,calc(100vw-2rem))]">
-      <CalendarPanel
-        checkIn={checkIn}
-        checkOut={checkOut}
-        viewMonth={viewMonth}
-        onViewMonthChange={setViewMonth}
-        onPickDay={pickDay}
-        minIso={minIso}
-      />
-    </div>
-  ) : null;
+  const calendar =
+    open && panelStyle
+      ? createPortal(
+          <div
+            ref={panelRef}
+            className="fixed z-[300]"
+            style={{
+              top: panelStyle.top,
+              left: panelStyle.left,
+              width: panelStyle.width,
+            }}
+          >
+            <CalendarPanel
+              checkIn={checkIn}
+              checkOut={checkOut}
+              viewMonth={viewMonth}
+              onViewMonthChange={setViewMonth}
+              onPickDay={pickDay}
+              minIso={minIso}
+            />
+          </div>,
+          document.body
+        )
+      : null;
 
   return (
-    <div ref={rootRef} className="relative min-w-0">
-      {!compact && <span className={FIELD_LABEL}>{label}</span>}
+    <>
+      <div ref={wrapperRef} className="relative min-w-0">
+        {showLabel && <span className={FIELD_LABEL}>{label}</span>}
 
-      <button
-        type="button"
-        aria-expanded={open}
-        onClick={openCalendar}
-        className={`${FIELD_CONTROL} flex h-11 items-stretch overflow-hidden p-0 text-left`}
-      >
-        <span className="flex min-w-0 flex-1 divide-x divide-slate-200">
-          <span className="flex min-w-0 flex-1 flex-col justify-center px-3 py-1">
-            <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-400">
-              Заезд
+        <button
+          ref={triggerRef}
+          type="button"
+          aria-expanded={open}
+          aria-haspopup="dialog"
+          onClick={() => setOpen((value) => !value)}
+          className={`flex h-11 w-full items-stretch overflow-hidden rounded-xl border bg-white p-0 text-left text-sm font-medium outline-none transition ${
+            open
+              ? "border-sun ring-2 ring-sun/20"
+              : "border-slate-200/90 hover:border-slate-300 focus:border-sun/50 focus:ring-2 focus:ring-sun/20"
+          }`}
+        >
+          <span className="flex min-w-0 flex-1 divide-x divide-slate-200">
+            <span className="flex min-w-0 flex-1 flex-col justify-center px-3 py-1">
+              <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-400">
+                Заезд
+              </span>
+              <span
+                className={`truncate text-sm font-medium ${
+                  checkIn ? "text-slate-900" : "text-slate-400"
+                }`}
+              >
+                {checkIn ? formatShortDate(checkIn) : "Дата"}
+              </span>
             </span>
-            <span
-              className={`truncate text-sm font-medium ${
-                checkIn ? "text-slate-900" : "text-slate-400"
-              }`}
-            >
-              {checkIn ? formatShortDate(checkIn) : "Дата"}
+
+            <span className="flex min-w-0 flex-1 flex-col justify-center px-3 py-1">
+              <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-400">
+                Выезд
+              </span>
+              <span
+                className={`truncate text-sm font-medium ${
+                  checkOut ? "text-slate-900" : "text-slate-400"
+                }`}
+              >
+                {checkOut ? formatShortDate(checkOut) : "Дата"}
+              </span>
             </span>
           </span>
 
-          <span className="flex min-w-0 flex-1 flex-col justify-center px-3 py-1">
-            <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-400">
-              Выезд
-            </span>
-            <span
-              className={`truncate text-sm font-medium ${
-                checkOut ? "text-slate-900" : "text-slate-400"
-              }`}
-            >
-              {checkOut ? formatShortDate(checkOut) : "Дата"}
-            </span>
+          <span className="flex w-9 shrink-0 items-center justify-center border-l border-slate-200 text-slate-400">
+            <ChevronDown
+              size={15}
+              className={`transition ${open ? "rotate-180" : ""}`}
+            />
           </span>
-        </span>
-
-        <span className="flex w-9 shrink-0 items-center justify-center border-l border-slate-200 text-slate-400">
-          <ChevronDown size={15} />
-        </span>
-      </button>
+        </button>
+      </div>
 
       {calendar}
-    </div>
+    </>
   );
 }

@@ -452,7 +452,6 @@ export default function RealEstateMoreFiltersModal({
             <FilterSection title="Поездка">
               <FilterRow label="Заезд / выезд">
                 <RealEstateDateRangePicker
-                  compact
                   checkIn={draft.checkIn || ""}
                   checkOut={draft.checkOut || ""}
                   onChange={({ checkIn, checkOut }) =>

@@ -11,7 +11,7 @@ export default function RealEstateGuestsPicker({
   value = "",
   onChange,
   label = "Гости",
-  compact = false,
+  showLabel = true,
 }) {
   const [open, setOpen] = React.useState(false);
   const rootRef = React.useRef(null);
@@ -39,7 +39,7 @@ export default function RealEstateGuestsPicker({
 
   return (
     <div ref={rootRef} className="relative block min-w-0">
-      {!compact && <span className={FIELD_LABEL}>{label}</span>}
+      {showLabel && <span className={FIELD_LABEL}>{label}</span>}
 
       <button
         type="button"
@@ -47,7 +47,11 @@ export default function RealEstateGuestsPicker({
         aria-haspopup="listbox"
         onClick={() => setOpen((state) => !state)}
         className={`${FIELD_CONTROL} flex items-center justify-between gap-3 px-3 text-left ${
-          value ? "text-slate-900" : "text-slate-500"
+          open
+            ? "border-sun ring-2 ring-sun/20"
+            : value
+              ? "text-slate-900"
+              : "text-slate-500"
         }`}
       >
         <span className="inline-flex items-center gap-2 truncate">
@@ -65,7 +69,7 @@ export default function RealEstateGuestsPicker({
         <div
           role="listbox"
           aria-label="Количество гостей"
-          className="absolute left-0 right-0 top-[calc(100%+6px)] z-50 rounded-xl border border-slate-200 bg-white p-2 shadow-xl"
+          className="absolute left-0 right-0 top-[calc(100%+6px)] z-[250] rounded-xl border border-slate-200 bg-white p-2 shadow-xl"
         >
           <button
             type="button"
@@ -75,7 +79,7 @@ export default function RealEstateGuestsPicker({
             }}
             className={`flex w-full items-center rounded-lg px-3 py-2.5 text-sm font-medium transition ${
               !value
-                ? "bg-lagoon-50 text-lagoon-800"
+                ? "bg-sun-50 text-sun-800"
                 : "text-slate-700 hover:bg-slate-50"
             }`}
           >
@@ -91,7 +95,7 @@ export default function RealEstateGuestsPicker({
               }}
               className={`flex w-full items-center rounded-lg px-3 py-2.5 text-sm font-medium transition ${
                 value === option
-                  ? "bg-lagoon-50 text-lagoon-800"
+                  ? "bg-sun-50 text-sun-800"
                   : "text-slate-700 hover:bg-slate-50"
               }`}
             >

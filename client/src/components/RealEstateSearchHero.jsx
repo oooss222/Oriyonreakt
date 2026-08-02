@@ -328,7 +328,7 @@ export default function RealEstateSearchHero({
           </div>
         )}
 
-        <div className="relative rounded-2xl bg-white p-4 md:p-5 text-slate-900 shadow-xl ring-1 ring-slate-900/5">
+        <div className="relative rounded-2xl bg-white p-4 md:p-5 text-slate-900 shadow-xl ring-1 ring-slate-900/5 overflow-visible">
           <div
             role="tablist"
             aria-label="Тип сделки"
@@ -359,8 +359,8 @@ export default function RealEstateSearchHero({
           <form onSubmit={submit} className="space-y-4">
             {isDaily ? (
               <>
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                  <label className="block min-w-0">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4 xl:items-end">
+                  <label className="block min-w-0 xl:col-span-1">
                     <span className={FIELD_LABEL}>Куда хотите поехать?</span>
                     <div className="relative">
                       <MapPin
@@ -379,20 +379,31 @@ export default function RealEstateSearchHero({
                     </div>
                   </label>
 
-                  <RealEstateDateRangePicker
-                    compact
-                    checkIn={checkIn}
-                    checkOut={checkOut}
-                    onChange={({ checkIn: nextIn, checkOut: nextOut }) => {
-                      setCheckIn(nextIn);
-                      setCheckOut(nextOut);
-                    }}
-                  />
+                  <div className="min-w-0 xl:col-span-1">
+                    <RealEstateDateRangePicker
+                      checkIn={checkIn}
+                      checkOut={checkOut}
+                      onChange={({ checkIn: nextIn, checkOut: nextOut }) => {
+                        setCheckIn(nextIn);
+                        setCheckOut(nextOut);
+                      }}
+                    />
+                  </div>
 
-                  <RealEstateGuestsPicker value={guests} onChange={setGuests} />
+                  <div className="min-w-0 xl:col-span-1">
+                    <RealEstateGuestsPicker value={guests} onChange={setGuests} />
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="mobile-btn hidden min-h-[44px] bg-sun font-bold text-white shadow-sm hover:bg-sun-600 xl:inline-flex xl:w-full"
+                  >
+                    <Search size={18} />
+                    {submitLabel}
+                  </button>
                 </div>
 
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <HeroSelect
                     label="Тип жилья"
                     value={subcategory}
@@ -422,7 +433,6 @@ export default function RealEstateSearchHero({
                       setPriceCurrency(nextCurrency);
                     }}
                   />
-
                 </div>
               </>
             ) : (
@@ -496,10 +506,12 @@ export default function RealEstateSearchHero({
               </div>
             )}
 
-            <div className="flex flex-col gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:items-stretch">
+            <div className="flex flex-col gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:items-stretch xl:border-t-0 xl:pt-0">
               <button
                 type="submit"
-                className="mobile-btn min-h-[46px] flex-1 bg-sun font-bold text-white shadow-sm hover:bg-sun-600"
+                className={`mobile-btn min-h-[46px] flex-1 bg-sun font-bold text-white shadow-sm hover:bg-sun-600 ${
+                  isDaily ? "xl:hidden" : ""
+                }`}
               >
                 <Search size={18} />
                 {submitLabel}
