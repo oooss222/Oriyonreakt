@@ -259,4 +259,115 @@ export function buildRealEstateMetaDescription(draft = {}) {
   return `${title} — объявления на Oriyon.store. Цены в сомони, фильтры по району, площади и цене за м².`;
 }
 
+export function buildRealEstateBreadcrumbs(draft = {}) {
+  const city = draft.location || "";
+  const subcategory = draft.subcategory || "";
+  const deal = draft.specs?.["Тип сделки"] || "";
+  const rooms = draft.specs?.["Комнат"] || "";
+  const district = draft.specs?.["Район"] || "";
+
+  const crumbs = [
+    { label: "Главная", to: "/" },
+    { label: "Недвижимость", to: "/realestate" },
+  ];
+
+  if (subcategory === "Новостройки") {
+    crumbs.push({
+      label: "Новостройки",
+      to: buildRealEstateSeoPath({
+        city: city || "Душанбе",
+        subcategory: "Новостройки",
+        dealType: "Купить",
+      }),
+    });
+
+    if (city) {
+      crumbs.push({
+        label: city,
+        to: buildRealEstateSeoPath({
+          city,
+          subcategory: "Новостройки",
+          dealType: "Купить",
+        }),
+      });
+    }
+  } else {
+    if (city) {
+      crumbs.push({
+        label: city,
+        to: buildRealEstateSeoPath({ city }),
+      });
+    }
+
+    if (subcategory) {
+      crumbs.push({
+        label: subcategory,
+        to: buildRealEstateListingUrl({
+          city,
+          subcategory,
+          dealType: deal,
+          specs: deal ? { "Тип сделки": deal } : {},
+        }),
+      });
+    }
+  }
+
+  if (deal && !(subcategory === "Новостройки" && deal === "Купить")) {
+    crumbs.push({
+      label: deal,
+      to: buildRealEstateListingUrl({
+        city,
+        subcategory,
+        dealType: deal,
+        rooms,
+        specs: {
+          ...(deal ? { "Тип сделки": deal } : {}),
+          ...(rooms ? { Комнат: rooms } : {}),
+        },
+      }),
+    });
+  }
+
+  if (rooms) {
+    crumbs.push({
+      label: `${rooms}-комн.`,
+      to: buildRealEstateListingUrl({
+        city,
+        subcategory,
+        dealType: deal,
+        rooms,
+        specs: {
+          ...(deal ? { "Тип сделки": deal } : {}),
+          Комнат: rooms,
+        },
+      }),
+    });
+  }
+
+  if (district) {
+    const districtParts = district.split(",").map((item) => item.trim()).filter(Boolean);
+    districtParts.forEach((part, index) => {
+      const isLast = index === districtParts.length - 1;
+      crumbs.push({
+        label: part,
+        to: isLast
+          ? undefined
+          : buildRealEstateListingUrl({
+              city,
+              subcategory,
+              dealType: deal,
+              rooms,
+              specs: {
+                ...(deal ? { "Тип сделки": deal } : {}),
+                ...(rooms ? { Комнат: rooms } : {}),
+                Район: districtParts.slice(0, index + 1).join(","),
+              },
+            }),
+      });
+    });
+  }
+
+  return crumbs;
+}
+
 export { CITY_SLUGS, SUBCATEGORY_SLUGS, DEAL_SLUGS, ROOM_SLUGS, DEAL_TYPES, ROOM_OPTIONS };

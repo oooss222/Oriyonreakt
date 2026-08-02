@@ -6,7 +6,6 @@ import {
   ArrowRight,
   PlusCircle,
   Scale,
-  Layers,
 } from "lucide-react";
 import { readCompareIds, COMPARE_MAX } from "../lib/compareListings";
 import RealEstateSearchHero from "../components/RealEstateSearchHero";
@@ -14,16 +13,15 @@ import RealEstateListingCard from "../components/RealEstateListingCard";
 import ListingGridSkeleton from "../components/ListingGridSkeleton";
 import AdSlot from "../components/AdSlot";
 import Breadcrumbs from "../components/Breadcrumbs";
+import RealEstateNovostroykiSection from "../components/realestate/RealEstateNovostroykiSection";
+import RealEstateQuickCollections from "../components/realestate/RealEstateQuickCollections";
 import RealEstateSectionHeader from "../components/realestate/RealEstateSectionHeader";
 import RealEstateCategoryGrid from "../components/realestate/RealEstateCategoryGrid";
 import RealEstateDistrictBar from "../components/realestate/RealEstateDistrictBar";
 import { usePageMeta } from "../lib/usePageMeta";
 import { api } from "../lib/api";
 import { sortListingsByPromotion } from "../lib/listingSort";
-import {
-  REAL_ESTATE_CAT,
-  QUICK_COLLECTIONS,
-} from "../data/realEstate";
+import { REAL_ESTATE_CAT } from "../data/realEstate";
 import { buildRealEstateListingUrl, buildRealEstateCategoryUrl } from "../lib/realEstate";
 
 export default function RealEstate() {
@@ -115,6 +113,14 @@ export default function RealEstate() {
         onCityChange={setCity}
       />
 
+      <RealEstateNovostroykiSection
+        city={city}
+        listingCount={stats.bySubcategory?.["Новостройки"] || 0}
+        developments={developments}
+      />
+
+      <RealEstateQuickCollections city={city} className="px-0.5" />
+
       {compareCount > 0 && (
         <Link
           to="/realestate/sravnenie"
@@ -170,8 +176,8 @@ export default function RealEstate() {
         <section>
           <RealEstateSectionHeader
             icon={Building2}
-            title="Новостройки и ЖК"
-            description="Жилые комплексы и проекты от застройщиков"
+            title="Жилые комплексы"
+            description="Карточки застройщиков и проектов"
             actionLabel="Все новостройки"
             actionTo={buildRealEstateCategoryUrl(city, "Новостройки")}
           />
@@ -220,29 +226,6 @@ export default function RealEstate() {
           </div>
         </section>
       )}
-
-      <section>
-        <RealEstateSectionHeader
-          icon={Layers}
-          title="Быстрые подборки"
-          description="Популярные запросы одним кликом"
-        />
-
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
-          {QUICK_COLLECTIONS.map((collection) => (
-            <Link
-              key={collection.title}
-              to={buildRealEstateListingUrl({
-                ...collection.params,
-                city: collection.params.location || city,
-              })}
-              className="rounded-xl border bg-white px-4 py-3 text-sm font-semibold text-slate-800 hover:border-sun/40 hover:bg-sun-50/50 hover:text-sun transition text-center"
-            >
-              {collection.title}
-            </Link>
-          ))}
-        </div>
-      </section>
 
       <section>
         <RealEstateSectionHeader

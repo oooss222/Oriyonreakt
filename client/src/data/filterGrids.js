@@ -14,17 +14,56 @@ const TRANSPORT_GRID = {
     [
       { id: "subcategory", label: "Легковые авто", type: "subcategory" },
       { id: "Марка", label: "Марка", type: "spec", specKey: "Марка", options: CAR_BRANDS },
+      {
+        id: "Модель",
+        label: "Модель",
+        type: "spec-dependent",
+        specKey: "Модель",
+        dependsOn: "Марка",
+        optionsFrom: CAR_MODELS,
+      },
       { id: "price", label: "Цена", type: "price" },
-      { id: "Год", label: "Год", type: "spec", specKey: "Год", options: COMMON_SPEC_OPTIONS.years },
     ],
     [
       {
-        id: "Пробег",
-        label: "Пробег, км",
+        id: "Состояние",
+        label: "Состояние",
         type: "spec",
-        specKey: "Пробег",
-        options: COMMON_SPEC_OPTIONS.mileage,
+        specKey: "Состояние",
+        options: COMMON_SPEC_OPTIONS.condition,
       },
+      {
+        id: "Цвет",
+        label: "Цвет",
+        type: "spec",
+        specKey: "Цвет",
+        options: COMMON_SPEC_OPTIONS.color,
+      },
+      {
+        id: "year-range",
+        label: "Год",
+        type: "year-range",
+        rangeFromKey: "yearFrom",
+        rangeToKey: "yearTo",
+        options: COMMON_SPEC_OPTIONS.years,
+      },
+      {
+        id: "mileage-range",
+        label: "Пробег, км",
+        type: "mileage-range",
+        rangeFromKey: "mileageFrom",
+        rangeToKey: "mileageTo",
+        presets: [
+          { label: "до 50 000", from: "", to: "50000" },
+          { label: "50–100 тыс.", from: "50000", to: "100000" },
+          { label: "100–150 тыс.", from: "100000", to: "150000" },
+          { label: "150–200 тыс.", from: "150000", to: "200000" },
+          { label: "от 200 000", from: "200000", to: "" },
+        ],
+      },
+    ],
+    [
+      { id: "sort", label: "Сортировка", type: "sort" },
       {
         id: "Топливо",
         label: "Тип двигателя",
@@ -33,19 +72,13 @@ const TRANSPORT_GRID = {
         options: COMMON_SPEC_OPTIONS.fuel,
       },
       {
-        id: "Объем",
-        label: "Объем, л",
-        type: "spec",
-        specKey: "Объем",
-        options: COMMON_SPEC_OPTIONS.engineVolume,
-      },
-      {
         id: "КПП",
         label: "Коробка передач",
         type: "spec",
         specKey: "КПП",
         options: COMMON_SPEC_OPTIONS.kpp,
       },
+      { id: "region", label: "Регион", type: "region", options: REGIONS },
     ],
     [
       {
@@ -62,36 +95,17 @@ const TRANSPORT_GRID = {
         specKey: "Привод",
         options: COMMON_SPEC_OPTIONS.drive,
       },
-      { id: "region", label: "Регион", type: "region", options: REGIONS },
+      {
+        id: "Объем",
+        label: "Объем, л",
+        type: "spec",
+        specKey: "Объем",
+        options: COMMON_SPEC_OPTIONS.engineVolume,
+      },
       { id: "location", label: "Город / Район", type: "location", options: LOCATIONS },
     ],
   ],
-  more: [
-    {
-      id: "Модель",
-      label: "Модель",
-      type: "spec-dependent",
-      specKey: "Модель",
-      dependsOn: "Марка",
-      optionsFrom: CAR_MODELS,
-    },
-    {
-      id: "Состояние",
-      label: "Состояние",
-      type: "spec",
-      specKey: "Состояние",
-      options: COMMON_SPEC_OPTIONS.condition,
-    },
-    {
-      id: "Цвет",
-      label: "Цвет",
-      type: "spec",
-      specKey: "Цвет",
-      options: COMMON_SPEC_OPTIONS.color,
-    },
-    { id: "search", label: "Поиск", type: "search" },
-    { id: "sort", label: "Сортировка", type: "sort" },
-  ],
+  more: [{ id: "search", label: "Поиск", type: "search" }],
 };
 
 const PHONES_GRID = {

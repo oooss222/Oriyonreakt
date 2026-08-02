@@ -2,6 +2,7 @@ import React from "react";
 import { useParams, Link, useNavigate, Navigate } from "react-router-dom";
 import EmptyState from "../components/EmptyState";
 import Breadcrumbs from "../components/Breadcrumbs";
+import TransportQuickFilters from "../components/transport/TransportQuickFilters";
 import ListingGridSkeleton from "../components/ListingGridSkeleton";
 import FavoriteButton from "../components/FavoriteButton";
 import ListingCardOverlays from "../components/ListingCardOverlays";
@@ -25,6 +26,10 @@ export default function Category() {
 
   if (slug === "realestate") {
     return <Navigate to="/realestate" replace />;
+  }
+
+  if (slug === "repair") {
+    return <Navigate to="/c/services" replace />;
   }
 
   const cat = CATS[slug];
@@ -174,6 +179,8 @@ export default function Category() {
           </div>
         </div>
       </div>
+
+      {slug === "transport" && <TransportQuickFilters />}
 
       <section>
         {subs.length === 0 ? (

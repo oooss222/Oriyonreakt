@@ -89,6 +89,10 @@ function listingQueryFromReq(query) {
     pricePerSqmFrom,
     pricePerSqmTo,
     guestsMin,
+    yearFrom,
+    yearTo,
+    mileageFrom,
+    mileageTo,
   } = query;
 
   const normalizedSellerType = String(sellerType || "").trim();
@@ -118,6 +122,10 @@ function listingQueryFromReq(query) {
     pricePerSqmFrom: pricePerSqmFrom || undefined,
     pricePerSqmTo: pricePerSqmTo || undefined,
     guestsMin: guestsMin || undefined,
+    yearFrom: yearFrom || undefined,
+    yearTo: yearTo || undefined,
+    mileageFrom: mileageFrom || undefined,
+    mileageTo: mileageTo || undefined,
   };
 }
 

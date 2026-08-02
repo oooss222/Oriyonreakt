@@ -4,6 +4,7 @@ import { Search, MapPin, ChevronDown, ChevronUp, SlidersHorizontal } from "lucid
 import RealEstateMoreFiltersModal from "./RealEstateMoreFiltersModal";
 import RealEstateCitySelect from "./RealEstateCitySelect";
 import RealEstateDailySearchBar from "./realestate/RealEstateDailySearchBar";
+import RealEstateQuickCollections from "./realestate/RealEstateQuickCollections";
 import {
   DEAL_TYPES,
   ROOM_OPTIONS,
@@ -516,6 +517,13 @@ export default function RealEstateSearchHero({
                   }}
                 />
               </div>
+
+              {!listingPage && !isDaily && (
+                <RealEstateQuickCollections
+                  city={city}
+                  className="border-t border-slate-100 pt-3"
+                />
+              )}
 
               {!listingPage && (
               <div className="flex flex-col gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:items-stretch">

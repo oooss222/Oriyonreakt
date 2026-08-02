@@ -14,7 +14,29 @@ export const LEGACY_SUBCATEGORY_REDIRECTS = {
   },
 };
 
+const REPAIR_MATERIALS_SUBS = [
+  "Окна и двери",
+  "Дома, срубы и снаряжения",
+  "Средства индивидуальной защиты",
+  "Ворота и заборы",
+  "Стройматериалы",
+  "Инструменты",
+  "Прочее для ремонта",
+];
+
 export function resolveLegacyCategoryFilters(cat, subcategory) {
-  const key = `${cat}::${String(subcategory || "").trim()}`;
+  const normalizedCat = String(cat || "").trim();
+  const normalizedSub = String(subcategory || "").trim();
+
+  if (normalizedCat === "repair") {
+    return {
+      cat: "services",
+      subcategory: normalizedSub,
+    };
+  }
+
+  const key = `${normalizedCat}::${normalizedSub}`;
   return LEGACY_SUBCATEGORY_REDIRECTS[key] || null;
 }
+
+export { REPAIR_MATERIALS_SUBS };

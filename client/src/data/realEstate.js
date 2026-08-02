@@ -135,25 +135,27 @@ export function getCityCoordinates(city = "") {
   return CITY_COORDINATES[city] || CITY_COORDINATES["Душанбе"];
 }
 
+export const NOVOSTROYKI_META = {
+  icon: "building",
+  desc: "Квартиры от застройщика и жилые комплексы",
+  highlight: true,
+};
+
+/** Основные типы недвижимости (без новостроек — отдельный раздел). */
 export const SUBCATEGORY_META = {
-  Новостройки: {
-    icon: "building",
-    desc: "Квартиры от застройщика",
-    highlight: true,
-  },
   Квартиры: {
     icon: "apartment",
     desc: "Вторичка и первичка",
     highlight: true,
   },
-  Комнаты: {
-    icon: "door",
-    desc: "Комнаты и койко-места",
-  },
   "Дома и коттеджи": {
     icon: "home",
     desc: "Частные дома и дачи",
     highlight: true,
+  },
+  Комнаты: {
+    icon: "door",
+    desc: "Комнаты и койко-места",
   },
   Участки: {
     icon: "land",
@@ -167,6 +169,12 @@ export const SUBCATEGORY_META = {
     icon: "commercial",
     desc: "Офисы, магазины, склады",
   },
+};
+
+/** Все подкатегории, включая новостройки (форма подачи, статистика). */
+export const ALL_RE_SUBCATEGORIES = {
+  Новостройки: NOVOSTROYKI_META,
+  ...SUBCATEGORY_META,
 };
 
 export const REAL_ESTATE_PRICE_PRESETS = [
@@ -332,10 +340,6 @@ export const QUICK_COLLECTIONS = [
       subcategory: "Квартиры",
       specs: { Комнат: "2", "Тип сделки": "Снять" },
     },
-  },
-  {
-    title: "Новостройки",
-    params: { subcategory: "Новостройки", specs: { "Тип сделки": "Купить" } },
   },
   {
     title: "Дома и коттеджи",

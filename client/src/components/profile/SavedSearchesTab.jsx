@@ -16,8 +16,6 @@ export default function SavedSearchesTab() {
       </div>
 
       <SavedSearchesPanel
-        draft={{}}
-        activeCat=""
         onApply={(filters) => {
           navigate(buildListingUrlFromSavedFilters(filters));
         }}

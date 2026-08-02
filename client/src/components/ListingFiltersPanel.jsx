@@ -3,7 +3,6 @@ import { createPortal } from "react-dom";
 import {
   ChevronDown,
   ChevronUp,
-  Heart,
   Search,
   X,
 } from "lucide-react";
@@ -11,7 +10,8 @@ import { CATEGORY_SELECT_OPTIONS } from "../data/listingCategories";
 import { getListingFilterGrid } from "../data/filterGrids";
 import { getDistrictsForCity } from "../data/realEstate";
 import { formatPriceInput, getPriceDigits } from "../data/specOptions";
-import { Building2 } from "lucide-react";
+import RangeFilter from "./filters/RangeFilter";
+import { getSellerFilterOptions } from "../lib/filterConflicts";
 
 function FilterSelect({
   label,
@@ -509,45 +509,29 @@ function renderField(
     );
   }
 
-  if (field.type === "range") {
+  if (field.type === "range" || field.type === "year-range" || field.type === "mileage-range") {
     const fromKey = field.rangeFromKey;
     const toKey = field.rangeToKey;
 
     return (
-      <label className="block">
-        <span className="sr-only">{field.label}</span>
-        <div className="flex h-12 items-stretch overflow-hidden rounded-xl border border-white/80 bg-white shadow-sm">
-          <span className="hidden xl:flex items-center px-3 text-xs font-semibold text-slate-500 shrink-0 border-r">
-            {field.label}
-          </span>
-          <input
-            type="text"
-            inputMode="numeric"
-            placeholder={field.placeholderFrom || "от"}
-            value={draft[fromKey] || ""}
-            onChange={(e) =>
-              setDraft((current) => ({
-                ...current,
-                [fromKey]: e.target.value.replace(/[^\d]/g, ""),
-              }))
-            }
-            className="w-1/2 px-3 text-sm outline-none border-r"
-          />
-          <input
-            type="text"
-            inputMode="numeric"
-            placeholder={field.placeholderTo || "до"}
-            value={draft[toKey] || ""}
-            onChange={(e) =>
-              setDraft((current) => ({
-                ...current,
-                [toKey]: e.target.value.replace(/[^\d]/g, ""),
-              }))
-            }
-            className="w-1/2 px-3 text-sm outline-none"
-          />
-        </div>
-      </label>
+      <div>
+        <div className="mb-1 text-xs font-medium text-slate-500 px-1">{field.label}</div>
+        <RangeFilter
+          from={draft[fromKey] || ""}
+          to={draft[toKey] || ""}
+          onChange={({ from, to }) =>
+            setDraft((current) => ({
+              ...current,
+              [fromKey]: from,
+              [toKey]: to,
+            }))
+          }
+          presets={field.presets || []}
+          selectOptions={field.type === "year-range" ? field.options || [] : []}
+          fromPlaceholder={field.type === "year-range" ? "от" : "от"}
+          toPlaceholder={field.type === "year-range" ? "до" : "до"}
+        />
+      </div>
     );
   }
 
@@ -590,6 +574,7 @@ export default function ListingFiltersPanel({
   hasActiveFilters = false,
   compact = false,
   hideSubcategoryField = false,
+  layout = "default",
 }) {
   const [moreOpen, setMoreOpen] = React.useState(false);
   const grid = React.useMemo(
@@ -597,30 +582,26 @@ export default function ListingFiltersPanel({
     [activeCat, draft.subcategory]
   );
 
-  const showCompanyFilter =
-    activeCat === "realestate" || activeCat === "transport";
+  const sellerOptions =
+    activeCat === "realestate"
+      ? getSellerFilterOptions(
+          draft.specs?.["Тип сделки"] || "",
+          draft.subcategory
+        )
+      : activeCat === "transport"
+        ? [
+            { value: "private", label: "Частный продавец" },
+            { value: "company", label: "Компания" },
+          ]
+        : [];
 
-  const saveSearch = () => {
-    const key = "oriyon_saved_searches";
-    const saved = JSON.parse(localStorage.getItem(key) || "[]");
-    const label = [
-      draft.subcategory,
-      draft.specs?.Марка || draft.specs?.Производитель,
-      draft.location || draft.region,
-      draft.sellerType === "company" ? "Премиум" : "",
-    ]
-      .filter(Boolean)
-      .join(" · ");
-
-    saved.unshift({
-      label: label || "Поиск без названия",
-      params: draft,
-      cat: activeCat,
-      savedAt: Date.now(),
-    });
-
-    localStorage.setItem(key, JSON.stringify(saved.slice(0, 8)));
-  };
+  const isSidebar = layout === "sidebar";
+  const rowGridClass = isSidebar
+    ? "grid grid-cols-1 gap-3"
+    : "grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3";
+  const moreGridClass = isSidebar
+    ? "grid grid-cols-1 gap-3"
+    : "grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3";
 
   return (
     <div
@@ -630,10 +611,7 @@ export default function ListingFiltersPanel({
     >
       <div className={`space-y-3 ${compact ? "pb-24" : ""}`}>
         {grid.rows.map((row, rowIndex) => (
-          <div
-            key={`row-${rowIndex}`}
-            className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3"
-          >
+          <div key={`row-${rowIndex}`} className={rowGridClass}>
             {row.map((field, fieldIndex) => (
               <div key={field?.id || `empty-${rowIndex}-${fieldIndex}`}>
                 {renderField(field, {
@@ -651,33 +629,49 @@ export default function ListingFiltersPanel({
         ))}
       </div>
 
-      {showCompanyFilter && (
-        <div className="mt-3">
+      {sellerOptions.length > 0 && (
+        <div className="mt-3 flex flex-wrap gap-2">
           <button
             type="button"
             onClick={() =>
               commitDraft(setDraft, onApply, (current) => ({
                 ...current,
-                sellerType:
-                  current.sellerType === "company" ? "" : "company",
+                sellerType: "",
               }), draft)
             }
-            className={`h-12 w-full rounded-xl border px-4 text-sm font-semibold transition inline-flex items-center justify-center gap-2 ${
-              draft.sellerType === "company"
-                ? "bg-blue-600 text-white border-blue-600"
-                : "bg-white text-slate-600 border-white/80 shadow-sm hover:border-blue-200"
+            className={`h-10 px-3 rounded-full border text-sm font-medium transition ${
+              !draft.sellerType
+                ? "border-lagoon bg-lagoon-50 text-lagoon-800"
+                : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
             }`}
           >
-            <Building2 size={16} />
-            {draft.sellerType === "company"
-              ? "Только премиум"
-              : "Показать премиум-объявления"}
+            Любой
           </button>
+          {sellerOptions.map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              onClick={() =>
+                commitDraft(setDraft, onApply, (current) => ({
+                  ...current,
+                  sellerType:
+                    current.sellerType === option.value ? "" : option.value,
+                }), draft)
+              }
+              className={`h-10 px-3 rounded-full border text-sm font-medium transition ${
+                draft.sellerType === option.value
+                  ? "border-lagoon bg-lagoon-50 text-lagoon-800"
+                  : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+              }`}
+            >
+              {option.label}
+            </button>
+          ))}
         </div>
       )}
 
       {moreOpen && grid.more?.length > 0 && (
-        <div className="mt-3 pt-3 border-t border-lagoon/10 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+        <div className={`mt-3 pt-3 border-t border-lagoon/10 ${moreGridClass}`}>
           {grid.more.map((field) => (
             <div key={field.id} className="space-y-1">
               {(field.type === "search" || field.type === "sort") && (
@@ -730,16 +724,7 @@ export default function ListingFiltersPanel({
           )}
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
-          <button
-            type="button"
-            onClick={saveSearch}
-            className="inline-flex justify-center items-center gap-2 h-11 px-4 rounded-xl border border-lagoon text-lagoon bg-white hover:bg-lagoon-50 transition text-sm font-medium"
-          >
-            <Heart size={16} />
-            Сохранить поиск
-          </button>
-
+        <div className="flex flex-col sm:flex-row gap-2 sm:items-center sm:ml-auto">
           <button
             type="button"
             onClick={() => onApply()}

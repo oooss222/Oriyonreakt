@@ -47,6 +47,60 @@ function buildListingOrderBy(sort, priceExpr) {
   return `${PROMOTION_ORDER}, COALESCE(bumped_at, created_at) DESC, created_at DESC`;
 }
 
+function parseGuestCapacity(value) {
+  const raw = String(value || "").trim();
+  if (!raw) return null;
+
+  const digits = raw.replace(/[^\d]/g, "");
+  const n = Number(digits);
+  return Number.isFinite(n) && n > 0 ? n : null;
+}
+
+function appendSpecNumericRange(conditions, values, specName, fromValue, toValue) {
+  const min = toNumberOrNull(fromValue);
+  const max = toNumberOrNull(toValue);
+
+  if (min === null && max === null) return;
+
+  values.push(specName);
+  const nameIdx = values.length;
+
+  const parts = [
+    `
+    EXISTS (
+      SELECT 1
+      FROM jsonb_array_elements(specs) AS spec
+      WHERE spec->>'name' = $${nameIdx}
+    `,
+  ];
+
+  if (min !== null) {
+    values.push(min);
+    parts.push(`
+        AND CAST(
+          NULLIF(regexp_replace(spec->>'value', '[^0-9]', '', 'g'), '')
+          AS INTEGER
+        ) >= $${values.length}
+    `);
+  }
+
+  if (max !== null) {
+    values.push(max);
+    parts.push(`
+        AND CAST(
+          NULLIF(regexp_replace(spec->>'value', '[^0-9]', '', 'g'), '')
+          AS INTEGER
+        ) <= $${values.length}
+    `);
+  }
+
+  parts.push(`
+    )
+  `);
+
+  conditions.push(parts.join(""));
+}
+
 function buildListingFilters({
   cat,
   subcategory,
@@ -68,6 +122,10 @@ function buildListingFilters({
   pricePerSqmFrom,
   pricePerSqmTo,
   guestsMin,
+  yearFrom,
+  yearTo,
+  mileageFrom,
+  mileageTo,
 } = {}) {
   const conditions = [];
   const values = [];
@@ -157,12 +215,19 @@ function buildListingFilters({
 
       if (!specName || !specValue) continue;
 
+      const parts = specValue
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean);
+
       values.push(specName);
       const nameIdx = values.length;
-      values.push(specValue);
-      const valueIdx = values.length;
 
-      conditions.push(`
+      if (parts.length <= 1) {
+        values.push(parts[0] || specValue);
+        const valueIdx = values.length;
+
+        conditions.push(`
         EXISTS (
           SELECT 1
           FROM jsonb_array_elements(specs) AS spec
@@ -170,8 +235,24 @@ function buildListingFilters({
             AND spec->>'value' = $${valueIdx}
         )
       `);
+      } else {
+        values.push(parts);
+        const valueIdx = values.length;
+
+        conditions.push(`
+        EXISTS (
+          SELECT 1
+          FROM jsonb_array_elements(specs) AS spec
+          WHERE spec->>'name' = $${nameIdx}
+            AND spec->>'value' = ANY($${valueIdx})
+        )
+      `);
+      }
     }
   }
+
+  appendSpecNumericRange(conditions, values, "Год", yearFrom, yearTo);
+  appendSpecNumericRange(conditions, values, "Пробег", mileageFrom, mileageTo);
 
   const minArea = toNumberOrNull(areaFrom);
   const maxArea = toNumberOrNull(areaTo);
@@ -252,15 +333,6 @@ function buildListingFilters({
   }
 
   return { conditions, values, priceExpr };
-}
-
-function parseGuestCapacity(value) {
-  const raw = String(value || "").trim();
-  if (!raw) return null;
-
-  const digits = raw.replace(/[^\d]/g, "");
-  const n = Number(digits);
-  return Number.isFinite(n) && n > 0 ? n : null;
 }
 
 class ListingModel {
@@ -372,6 +444,10 @@ class ListingModel {
     pricePerSqmFrom,
     pricePerSqmTo,
     guestsMin,
+    yearFrom,
+    yearTo,
+    mileageFrom,
+    mileageTo,
     sort = "new",
     limit = 50,
     offset = 0,
@@ -400,6 +476,10 @@ class ListingModel {
       pricePerSqmFrom,
       pricePerSqmTo,
       guestsMin,
+      yearFrom,
+      yearTo,
+      mileageFrom,
+      mileageTo,
     });
 
     let orderBy = buildListingOrderBy(sort, priceExpr);
@@ -461,6 +541,10 @@ class ListingModel {
     pricePerSqmFrom,
     pricePerSqmTo,
     guestsMin,
+    yearFrom,
+    yearTo,
+    mileageFrom,
+    mileageTo,
   } = {}) {
     const { conditions, values } = buildListingFilters({
       cat,
@@ -483,6 +567,10 @@ class ListingModel {
       pricePerSqmFrom,
       pricePerSqmTo,
       guestsMin,
+      yearFrom,
+      yearTo,
+      mileageFrom,
+      mileageTo,
     });
 
     let sql = `

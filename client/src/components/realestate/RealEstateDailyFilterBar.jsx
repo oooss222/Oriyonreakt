@@ -29,11 +29,9 @@ export default function RealEstateDailyFilterBar({
   priceFrom = "",
   priceTo = "",
   guests = "",
-  premiumOnly = false,
   onSubcategoryChange,
   onPricePreset,
   onGuestsChange,
-  onPremiumToggle,
   onOpenFilters,
   activeFilterCount = 0,
 }) {
@@ -76,9 +74,6 @@ export default function RealEstateDailyFilterBar({
           </Chip>
         ))}
 
-        <Chip active={premiumOnly} onClick={() => onPremiumToggle?.(!premiumOnly)}>
-          Проверенный хозяин
-        </Chip>
       </div>
 
       <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">

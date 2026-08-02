@@ -3,6 +3,7 @@ import {
   REAL_ESTATE_CITIES,
   ROOM_OPTIONS,
   SUBCATEGORY_META,
+  ALL_RE_SUBCATEGORIES,
 } from "./realEstate";
 import { REGIONS } from "./specOptions";
 
@@ -21,7 +22,7 @@ const BUILD_YEARS = Array.from({ length: 2026 - 1970 + 1 }, (_, i) =>
   String(2026 - i)
 );
 
-const SUBCATEGORY_OPTIONS = Object.keys(SUBCATEGORY_META);
+const SUBCATEGORY_OPTIONS = Object.keys(ALL_RE_SUBCATEGORIES);
 
 function subcategoryField() {
   return { id: "subcategory", label: "Тип недвижимости", type: "subcategory" };

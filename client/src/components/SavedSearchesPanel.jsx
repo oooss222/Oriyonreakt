@@ -1,31 +1,16 @@
 import React from "react";
 import { api } from "../lib/api";
 import { TOKEN_KEY } from "../lib/auth";
+import { readLocalSavedSearches } from "../lib/savedSearch";
 
-function buildSearchLabel(draft, activeCat) {
-  return [
-    draft.subcategory,
-    draft.specs?.["Тип сделки"],
-    draft.specs?.["Комнат"] ? `${draft.specs["Комнат"]}-комн.` : "",
-    draft.specs?.["Район"],
-    draft.location || draft.region,
-    draft.search,
-    activeCat === "realestate" ? "Недвижимость" : "",
-  ]
-    .filter(Boolean)
-    .join(" · ");
-}
-
-export default function SavedSearchesPanel({ draft, activeCat, onApply }) {
+export default function SavedSearchesPanel({ onApply }) {
   const token = localStorage.getItem(TOKEN_KEY) || "";
   const [items, setItems] = React.useState([]);
   const [loading, setLoading] = React.useState(false);
-  const [alertsEnabled, setAlertsEnabled] = React.useState(true);
 
   const load = React.useCallback(() => {
     if (!token) {
-      const local = JSON.parse(localStorage.getItem("oriyon_saved_searches") || "[]");
-      setItems(local);
+      setItems(readLocalSavedSearches());
       return;
     }
 
@@ -34,42 +19,13 @@ export default function SavedSearchesPanel({ draft, activeCat, onApply }) {
     api
       .savedSearches(token)
       .then((data) => setItems(Array.isArray(data) ? data : []))
-      .catch(() => {})
+      .catch(() => setItems([]))
       .finally(() => setLoading(false));
   }, [token]);
 
   React.useEffect(() => {
     load();
   }, [load]);
-
-  const saveCurrent = async () => {
-    const label = buildSearchLabel(draft, activeCat) || "Поиск без названия";
-
-    if (token) {
-      const saved = await api.saveSavedSearch(token, {
-        label,
-        cat: activeCat,
-        filters: draft,
-        alertsEnabled,
-      });
-
-      setItems((current) => [saved, ...current.filter((item) => item.id !== saved.id)].slice(0, 8));
-      return;
-    }
-
-    const key = "oriyon_saved_searches";
-    const local = JSON.parse(localStorage.getItem(key) || "[]");
-
-    local.unshift({
-      label,
-      params: draft,
-      cat: activeCat,
-      savedAt: Date.now(),
-    });
-
-    localStorage.setItem(key, JSON.stringify(local.slice(0, 8)));
-    setItems(local.slice(0, 8));
-  };
 
   const toggleAlerts = async (item) => {
     if (!token || !item.id) return;
@@ -91,11 +47,10 @@ export default function SavedSearchesPanel({ draft, activeCat, onApply }) {
     if (token && item.id) {
       await api.deleteSavedSearch(token, item.id);
     } else {
-      const key = "oriyon_saved_searches";
-      const local = JSON.parse(localStorage.getItem(key) || "[]").filter(
+      const local = readLocalSavedSearches().filter(
         (entry) => entry.savedAt !== item.savedAt
       );
-      localStorage.setItem(key, JSON.stringify(local));
+      localStorage.setItem("oriyon_saved_searches", JSON.stringify(local));
     }
 
     load();
@@ -103,36 +58,22 @@ export default function SavedSearchesPanel({ draft, activeCat, onApply }) {
 
   return (
     <div className="rounded-2xl border bg-white p-4 space-y-3">
-      <div className="flex items-center justify-between gap-3">
-        <div>
-          <div className="text-sm font-semibold text-slate-900">Сохранённые поиски</div>
-          <div className="text-xs text-slate-500 mt-1">
-            {token
-              ? "Email-уведомления о новых объявлениях по вашим фильтрам (раз в час)."
-              : "Войдите, чтобы получать email-уведомления."}
-          </div>
+      <div>
+        <div className="text-sm font-semibold text-slate-900">Сохранённые поиски</div>
+        <div className="text-xs text-slate-500 mt-1">
+          {token
+            ? "Сохраняйте фильтры на странице каталога кнопкой «Сохранить». Email-уведомления — раз в час."
+            : "Войдите, чтобы синхронизировать поиски между устройствами и получать email-уведомления."}
         </div>
-
-        <button type="button" className="btn rounded-xl text-sm" onClick={saveCurrent}>
-          Сохранить текущий
-        </button>
       </div>
-
-      {token && (
-        <label className="inline-flex items-center gap-2 text-sm text-slate-600">
-          <input
-            type="checkbox"
-            checked={alertsEnabled}
-            onChange={(e) => setAlertsEnabled(e.target.checked)}
-          />
-          Email-уведомления для нового поиска
-        </label>
-      )}
 
       {loading ? (
         <div className="text-sm text-slate-500">Загрузка...</div>
       ) : items.length === 0 ? (
-        <div className="text-sm text-slate-500">Пока нет сохранённых поисков.</div>
+        <div className="rounded-xl border border-dashed bg-slate-50/80 p-6 text-center text-sm text-slate-500">
+          Пока нет сохранённых поисков. На странице каталога настройте фильтры и нажмите
+          «Сохранить».
+        </div>
       ) : (
         <div className="space-y-2">
           {items.map((item) => (
@@ -142,7 +83,7 @@ export default function SavedSearchesPanel({ draft, activeCat, onApply }) {
             >
               <button
                 type="button"
-                className="text-left flex-1"
+                className="text-left flex-1 min-w-0"
                 onClick={() =>
                   onApply?.({
                     ...(item.filters || item.params || {}),
@@ -150,11 +91,15 @@ export default function SavedSearchesPanel({ draft, activeCat, onApply }) {
                   })
                 }
               >
-                <div className="font-medium text-sm text-slate-900">
+                <div className="font-medium text-sm text-slate-900 truncate">
                   {item.label || "Поиск"}
                 </div>
                 <div className="text-xs text-slate-500 mt-1">
-                  {item.alertsEnabled ? "Уведомления включены" : "Без уведомлений"}
+                  {token
+                    ? item.alertsEnabled
+                      ? "Уведомления включены"
+                      : "Без уведомлений"
+                    : "Только на этом устройстве"}
                 </div>
               </button>
 

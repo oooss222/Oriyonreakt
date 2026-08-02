@@ -13,6 +13,7 @@ import {
 import {
   DEAL_TYPES,
   SUBCATEGORY_META,
+  ALL_RE_SUBCATEGORIES,
   REAL_ESTATE_CITIES,
   getDistrictsForCity,
 } from "../data/realEstate";
@@ -272,7 +273,7 @@ export default function RealEstateListingWizard({
           </div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {Object.entries(SUBCATEGORY_META).map(([name, meta]) => (
+            {Object.entries(ALL_RE_SUBCATEGORIES).map(([name, meta]) => (
               <button
                 key={name}
                 type="button"

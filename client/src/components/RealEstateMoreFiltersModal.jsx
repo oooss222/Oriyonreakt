@@ -17,6 +17,10 @@ import {
 import { getRealEstateFilterGrid, REAL_ESTATE_SORT } from "../data/realEstateFilters";
 import { formatPriceInput, getPriceDigits } from "../data/specOptions";
 import { buildRealEstateListingUrl } from "../lib/realEstate";
+import { getSellerFilterOptions, sanitizeRealEstateDraft } from "../lib/filterConflicts";
+import { toggleMultiSpecValue } from "../lib/specMultiValue";
+import RangeFilter from "./filters/RangeFilter";
+import MultiPillGroup from "./filters/MultiPillGroup";
 import RealEstatePricePerSqmCalculator from "./RealEstatePricePerSqmCalculator";
 import RealEstateCitySelect from "./RealEstateCitySelect";
 import RealEstateGuestsPicker from "./realestate/RealEstateGuestsPicker";
@@ -185,35 +189,21 @@ function PresetPills({ presets, onSelect, activeFrom = "", activeTo = "" }) {
   );
 }
 
-function AreaRangeSelects({ from, to, onFromChange, onToChange }) {
+function AreaRangeSelects(props) {
   return (
-    <div className="grid grid-cols-2 gap-2">
-      <select
-        value={from}
-        onChange={(e) => onFromChange(e.target.value)}
-        className="mobile-control"
-      >
-        <option value="">Любая</option>
-        {AREA_PRESETS.map((item) => (
-          <option key={`from-${item}`} value={item}>
-            от {item} м²
-          </option>
-        ))}
-      </select>
-
-      <select
-        value={to}
-        onChange={(e) => onToChange(e.target.value)}
-        className="mobile-control"
-      >
-        <option value="">Любая</option>
-        {AREA_PRESETS.map((item) => (
-          <option key={`to-${item}`} value={item}>
-            до {item} м²
-          </option>
-        ))}
-      </select>
-    </div>
+    <RangeFilter
+      {...props}
+      from={props.from}
+      to={props.to}
+      onChange={({ from, to }) => {
+        props.onFromChange?.(from);
+        props.onToChange?.(to);
+      }}
+      selectOptions={AREA_PRESETS}
+      fromPlaceholder="от"
+      toPlaceholder="до"
+      suffix=" м²"
+    />
   );
 }
 
@@ -231,6 +221,15 @@ export default function RealEstateMoreFiltersModal({
   priceTo = "",
   pricePerSqmFrom = "",
   pricePerSqmTo = "",
+  areaFrom = "",
+  areaTo = "",
+  floorFrom = "",
+  floorTo = "",
+  floorNotFirst = false,
+  floorNotLast = false,
+  sellerType = "",
+  sort = "new",
+  specs: initialSpecs = {},
   onNavigate,
 }) {
   const [draft, setDraft] = React.useState(() =>
@@ -244,7 +243,19 @@ export default function RealEstateMoreFiltersModal({
       checkOut,
       priceFrom,
       priceTo,
-      extra: { pricePerSqmFrom, pricePerSqmTo },
+      extra: {
+        pricePerSqmFrom,
+        pricePerSqmTo,
+        areaFrom,
+        areaTo,
+        floorFrom,
+        floorTo,
+        floorNotFirst,
+        floorNotLast,
+        sellerType,
+        sort,
+        specs: initialSpecs,
+      },
     })
   );
   const [previewTotal, setPreviewTotal] = React.useState(0);
@@ -261,6 +272,7 @@ export default function RealEstateMoreFiltersModal({
   const showFloor = realEstateSubcategoryUsesFloor(effectiveSubcategory);
   const isRentDeal = dealType === "Снять" || dealType === "Посуточно";
   const isDaily = isDailyDeal(dealType);
+  const sellerOptions = getSellerFilterOptions(dealType, effectiveSubcategory);
   const activeCity = draft.location || city || "Душанбе";
 
   const specField = (key) =>
@@ -294,6 +306,8 @@ export default function RealEstateMoreFiltersModal({
       ? districts.filter((item) => !POPULAR_DUSHANBE_DISTRICTS.includes(item))
       : districts.slice(6);
 
+  const specsSyncKey = JSON.stringify(initialSpecs);
+
   React.useEffect(() => {
     if (!open) return;
 
@@ -308,10 +322,44 @@ export default function RealEstateMoreFiltersModal({
         checkOut,
         priceFrom,
         priceTo,
-        extra: { pricePerSqmFrom, pricePerSqmTo },
+        extra: {
+          pricePerSqmFrom,
+          pricePerSqmTo,
+          areaFrom,
+          areaTo,
+          floorFrom,
+          floorTo,
+          floorNotFirst,
+          floorNotLast,
+          sellerType,
+          sort,
+          specs: initialSpecs,
+        },
       })
     );
-  }, [open, dealType, city, subcategory, rooms, guests, checkIn, checkOut, priceFrom, priceTo, pricePerSqmFrom, pricePerSqmTo]);
+  }, [
+    open,
+    dealType,
+    city,
+    subcategory,
+    rooms,
+    guests,
+    checkIn,
+    checkOut,
+    priceFrom,
+    priceTo,
+    pricePerSqmFrom,
+    pricePerSqmTo,
+    areaFrom,
+    areaTo,
+    floorFrom,
+    floorTo,
+    floorNotFirst,
+    floorNotLast,
+    sellerType,
+    sort,
+    specsSyncKey,
+  ]);
 
   React.useEffect(() => {
     if (!open) return undefined;
@@ -394,27 +442,32 @@ export default function RealEstateMoreFiltersModal({
   };
 
   const submit = () => {
-    const url = buildRealEstateListingUrl({
+    const cleaned = sanitizeRealEstateDraft(draft, {
       dealType,
       subcategory: draft.subcategory || subcategory,
-      city: draft.location || city,
+    });
+
+    const url = buildRealEstateListingUrl({
+      dealType,
+      subcategory: cleaned.subcategory || subcategory,
+      city: cleaned.location || city,
       rooms,
-      guests: draft.guests,
-      checkIn: draft.checkIn,
-      checkOut: draft.checkOut,
-      priceFrom: draft.priceFrom,
-      priceTo: draft.priceTo,
-      specs: draft.specs,
-      areaFrom: draft.areaFrom,
-      areaTo: draft.areaTo,
-      floorFrom: draft.floorFrom,
-      floorTo: draft.floorTo,
-      floorNotFirst: draft.floorNotFirst,
-      floorNotLast: draft.floorNotLast,
-      sellerType: draft.sellerType,
-      pricePerSqmFrom: draft.pricePerSqmFrom,
-      pricePerSqmTo: draft.pricePerSqmTo,
-      sort: draft.sort,
+      guests: cleaned.guests,
+      checkIn: cleaned.checkIn,
+      checkOut: cleaned.checkOut,
+      priceFrom: cleaned.priceFrom,
+      priceTo: cleaned.priceTo,
+      specs: cleaned.specs,
+      areaFrom: cleaned.areaFrom,
+      areaTo: cleaned.areaTo,
+      floorFrom: cleaned.floorFrom,
+      floorTo: cleaned.floorTo,
+      floorNotFirst: cleaned.floorNotFirst,
+      floorNotLast: cleaned.floorNotLast,
+      sellerType: cleaned.sellerType,
+      pricePerSqmFrom: cleaned.pricePerSqmFrom,
+      pricePerSqmTo: cleaned.pricePerSqmTo,
+      sort: cleaned.sort,
     });
 
     if (onNavigate) {
@@ -539,8 +592,8 @@ export default function RealEstateMoreFiltersModal({
               <FilterRow label="Район">
                 <div className="space-y-3">
                   {popularDistricts.length > 0 && (
-                    <PillGroup
-                      value={draft.specs?.["Район"] || ""}
+                    <MultiPillGroup
+                      values={draft.specs?.["Район"] || ""}
                       options={popularDistricts}
                       onChange={(value) => setSpec("Район", value)}
                       anyLabel="Любой"
@@ -548,18 +601,21 @@ export default function RealEstateMoreFiltersModal({
                   )}
                   {otherDistricts.length > 0 && (
                     <select
-                      value={
-                        otherDistricts.includes(draft.specs?.["Район"])
-                          ? draft.specs["Район"]
-                          : ""
-                      }
-                      onChange={(e) => setSpec("Район", e.target.value)}
+                      value=""
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (!value) return;
+                        setSpec(
+                          "Район",
+                          toggleMultiSpecValue(draft.specs?.["Район"], value)
+                        );
+                      }}
                       className="mobile-control"
                     >
                       <option value="">
                         {activeCity === "Душанбе"
-                          ? "Другие районы и микрорайоны"
-                          : "Все районы"}
+                          ? "Добавить район или микрорайон"
+                          : "Добавить район"}
                       </option>
                       {otherDistricts.map((item) => (
                         <option key={item} value={item}>
@@ -656,21 +712,47 @@ export default function RealEstateMoreFiltersModal({
           </FilterSection>
 
           <FilterSection title="Параметры объекта">
-            <FilterRow label="Продавец">
-              <PillGroup
-                anyLabel="Любой"
-                value={
-                  draft.sellerType === "company" ? "Агент/Застройщик" : ""
-                }
-                options={["Агент/Застройщик"]}
-                onChange={(value) =>
-                  setDraft((current) => ({
-                    ...current,
-                    sellerType: value ? "company" : "",
-                  }))
-                }
-              />
-            </FilterRow>
+            {sellerOptions.length > 0 && (
+              <FilterRow label="Продавец">
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setDraft((current) => ({ ...current, sellerType: "" }))
+                    }
+                    className={`h-10 px-3 rounded-full border text-sm font-medium transition ${
+                      !draft.sellerType
+                        ? "border-lagoon bg-lagoon-50 text-lagoon-800"
+                        : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                    }`}
+                  >
+                    Любой
+                  </button>
+                  {sellerOptions.map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() =>
+                        setDraft((current) => ({
+                          ...current,
+                          sellerType:
+                            current.sellerType === option.value
+                              ? ""
+                              : option.value,
+                        }))
+                      }
+                      className={`h-10 px-3 rounded-full border text-sm font-medium transition ${
+                        draft.sellerType === option.value
+                          ? "border-lagoon bg-lagoon-50 text-lagoon-800"
+                          : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                      }`}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </FilterRow>
+            )}
 
             <FilterRow label="Общая площадь">
               <AreaRangeSelects
@@ -688,30 +770,17 @@ export default function RealEstateMoreFiltersModal({
             {showFloor && !isDaily && (
               <>
                 <FilterRow label="Этаж">
-                  <div className="grid grid-cols-2 gap-2">
-                    <input
-                      value={draft.floorFrom}
-                      onChange={(e) =>
-                        setDraft((current) => ({
-                          ...current,
-                          floorFrom: e.target.value.replace(/[^\d]/g, ""),
-                        }))
-                      }
-                      placeholder="от"
-                      className="mobile-control"
-                    />
-                    <input
-                      value={draft.floorTo}
-                      onChange={(e) =>
-                        setDraft((current) => ({
-                          ...current,
-                          floorTo: e.target.value.replace(/[^\d]/g, ""),
-                        }))
-                      }
-                      placeholder="до"
-                      className="mobile-control"
-                    />
-                  </div>
+                  <RangeFilter
+                    from={draft.floorFrom}
+                    to={draft.floorTo}
+                    onChange={({ from, to }) =>
+                      setDraft((current) => ({
+                        ...current,
+                        floorFrom: from,
+                        floorTo: to,
+                      }))
+                    }
+                  />
                 </FilterRow>
 
                 <FilterRow label="Этажность">
@@ -765,8 +834,8 @@ export default function RealEstateMoreFiltersModal({
 
             {isDaily && (
               <FilterRow label="Удобства">
-                <PillGroup
-                  value={draft.specs?.["Удобства"] || ""}
+                <MultiPillGroup
+                  values={draft.specs?.["Удобства"] || ""}
                   options={DAILY_AMENITY_OPTIONS}
                   onChange={(value) => setSpec("Удобства", value)}
                 />
@@ -785,8 +854,8 @@ export default function RealEstateMoreFiltersModal({
 
             {repairOptions.length > 0 && (
               <FilterRow label="Ремонт">
-                <PillGroup
-                  value={draft.specs?.["Ремонт"] || ""}
+                <MultiPillGroup
+                  values={draft.specs?.["Ремонт"] || ""}
                   options={repairOptions}
                   onChange={(value) => setSpec("Ремонт", value)}
                 />
@@ -835,8 +904,8 @@ export default function RealEstateMoreFiltersModal({
 
             {showFloor && (
               <FilterRow label="Высота потолков">
-                <PillGroup
-                  value={draft.specs?.["Высота потолков"] || ""}
+                <MultiPillGroup
+                  values={draft.specs?.["Высота потолков"] || ""}
                   options={CEILING_HEIGHTS}
                   onChange={(value) => setSpec("Высота потолков", value)}
                 />

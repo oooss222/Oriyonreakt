@@ -1,21 +1,15 @@
 import React from "react";
-import { BookmarkPlus, Check } from "lucide-react";
+import { BookmarkPlus, Check, AlertCircle } from "lucide-react";
+import { Link } from "react-router-dom";
 import { api } from "../lib/api";
 import { TOKEN_KEY } from "../lib/auth";
-
-function buildSearchLabel(draft, activeCat) {
-  return [
-    draft.subcategory,
-    draft.specs?.["Тип сделки"],
-    draft.specs?.["Комнат"] ? `${draft.specs["Комнат"]}-комн.` : "",
-    draft.specs?.["Район"],
-    draft.location || draft.region,
-    draft.search,
-    activeCat === "realestate" ? "Недвижимость" : "",
-  ]
-    .filter(Boolean)
-    .join(" · ");
-}
+import {
+  buildSearchLabel,
+  hasMeaningfulSearchFilters,
+  isDuplicateSavedSearch,
+  normalizeSearchFilters,
+  saveSearchLocally,
+} from "../lib/savedSearch";
 
 export default function SaveSearchButton({
   draft,
@@ -25,37 +19,48 @@ export default function SaveSearchButton({
 }) {
   const token = localStorage.getItem(TOKEN_KEY) || "";
   const [saved, setSaved] = React.useState(false);
+  const [duplicate, setDuplicate] = React.useState(false);
   const [saving, setSaving] = React.useState(false);
+
+  const canSave = hasMeaningfulSearchFilters(draft, activeCat);
 
   React.useEffect(() => {
     setSaved(false);
+    setDuplicate(false);
   }, [draft, activeCat]);
 
   const save = async () => {
+    if (!canSave || saving) return;
+
     const label = buildSearchLabel(draft, activeCat) || "Поиск без названия";
+    const filters = normalizeSearchFilters(draft, activeCat);
 
     try {
       setSaving(true);
 
       if (token) {
+        const existing = await api.savedSearches(token).catch(() => []);
+        const list = Array.isArray(existing) ? existing : [];
+
+        if (isDuplicateSavedSearch(list, draft, activeCat)) {
+          setDuplicate(true);
+          window.setTimeout(() => setDuplicate(false), 2500);
+          return;
+        }
+
         await api.saveSavedSearch(token, {
           label,
           cat: activeCat,
-          filters: draft,
+          filters,
           alertsEnabled: true,
         });
       } else {
-        const key = "oriyon_saved_searches";
-        const local = JSON.parse(localStorage.getItem(key) || "[]");
-
-        local.unshift({
-          label,
-          params: draft,
-          cat: activeCat,
-          savedAt: Date.now(),
-        });
-
-        localStorage.setItem(key, JSON.stringify(local.slice(0, 8)));
+        const result = saveSearchLocally(draft, activeCat);
+        if (result.duplicate) {
+          setDuplicate(true);
+          window.setTimeout(() => setDuplicate(false), 2500);
+          return;
+        }
       }
 
       setSaved(true);
@@ -67,19 +72,59 @@ export default function SaveSearchButton({
     }
   };
 
+  const title = !canSave
+    ? "Сначала выберите фильтры"
+    : duplicate
+      ? "Такой поиск уже сохранён — смотрите в профиле"
+      : saved
+        ? "Поиск сохранён в профиле"
+        : undefined;
+
   return (
-    <button
-      type="button"
-      onClick={save}
-      disabled={saving}
-      className={`inline-flex items-center justify-center gap-1.5 rounded-xl border text-sm font-semibold transition disabled:opacity-60 ${
-        saved
-          ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-          : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
-      } ${compact ? "px-3 py-2" : "px-4 py-2.5"} ${className}`}
-    >
-      {saved ? <Check size={16} /> : <BookmarkPlus size={16} />}
-      {saved ? "Сохранено" : compact ? "Сохранить" : "Сохранить поиск"}
-    </button>
+    <div className={`inline-flex flex-col items-stretch gap-1 ${className}`}>
+      <button
+        type="button"
+        onClick={save}
+        disabled={saving || !canSave}
+        title={title}
+        className={`inline-flex items-center justify-center gap-1.5 rounded-xl border text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${
+          saved
+            ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+            : duplicate
+              ? "border-amber-200 bg-amber-50 text-amber-800"
+              : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+        } ${compact ? "px-3 py-2" : "px-4 py-2.5"}`}
+      >
+        {saved ? (
+          <Check size={16} />
+        ) : duplicate ? (
+          <AlertCircle size={16} />
+        ) : (
+          <BookmarkPlus size={16} />
+        )}
+        {saved
+          ? "Сохранено"
+          : duplicate
+            ? "Уже есть"
+            : compact
+              ? "Сохранить"
+              : "Сохранить поиск"}
+      </button>
+
+      {saved && token && (
+        <Link
+          to="/profile?tab=searches"
+          className="text-[11px] text-center text-sun-700 hover:text-sun font-medium"
+        >
+          Открыть в профиле
+        </Link>
+      )}
+
+      {!token && saved && (
+        <span className="text-[11px] text-center text-slate-500">
+          Войдите, чтобы синхронизировать с профилем
+        </span>
+      )}
+    </div>
   );
 }

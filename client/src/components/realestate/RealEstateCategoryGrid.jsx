@@ -23,7 +23,7 @@ const SUB_ICONS = {
 
 export default function RealEstateCategoryGrid({ city, statsBySubcategory = {} }) {
   return (
-    <section className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3">
+    <section className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-6 gap-3">
       {Object.entries(SUBCATEGORY_META).map(([name, meta]) => {
         const Icon = SUB_ICONS[meta.icon] || Building2;
         const count = statsBySubcategory[name] || 0;

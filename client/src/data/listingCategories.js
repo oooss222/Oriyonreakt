@@ -9,6 +9,7 @@ import {
   APPLIANCE_MODELS,
   COMMON_SPEC_OPTIONS,
 } from "./specOptions";
+import { REPAIR_MATERIALS_SUBS } from "./categoryConsolidation";
 
 import {
   REAL_ESTATE_SUB_SPECS,
@@ -92,6 +93,16 @@ const SERVICE_SPECS = [
   { name: "Опыт", type: "select", options: COMMON_SPEC_OPTIONS.serviceExperience },
   { name: "Срок выполнения", type: "text" },
 ];
+
+const REPAIR_MATERIALS_SPECS = [
+  { name: "Тип", type: "select", options: COMMON_SPEC_OPTIONS.repairType },
+  { name: "Материал/Бренд", type: "text" },
+  { name: "Состояние", type: "select", options: COMMON_SPEC_OPTIONS.condition },
+];
+
+const REPAIR_MATERIALS_SUB_TEMPLATES = Object.fromEntries(
+  REPAIR_MATERIALS_SUBS.map((name) => [name, REPAIR_MATERIALS_SPECS])
+);
 
 export const CATS = {
   realestate: {
@@ -230,6 +241,7 @@ export const CATS = {
     desc: "Специалисты, ремонт, обучение и сервис",
     subs: [
       "Ремонт и строительство",
+      ...REPAIR_MATERIALS_SUBS,
       "Красота и здоровье",
       "Образование и репетиторы",
       "IT и digital",
@@ -249,6 +261,7 @@ export const CATS = {
       "Ремонт авто": AUTO_REPAIR_SERVICE_SPECS,
       "Ремонт телефонов и планшетов": PHONE_REPAIR_SERVICE_SPECS,
       "Ремонт компьютеров и бытовой техники": TECH_REPAIR_SERVICE_SPECS,
+      ...REPAIR_MATERIALS_SUB_TEMPLATES,
     },
   },
   repair: {
@@ -256,24 +269,15 @@ export const CATS = {
     shortTitle: "Ремонт",
     img: "/img/repair.png",
     desc: "Материалы и инструменты",
-    subs: [
-      "Окна и двери",
-      "Дома, срубы и снаряжения",
-      "Средства индивидуальной защиты",
-      "Ворота и заборы",
-      "Стройматериалы",
-      "Инструменты",
-      "Прочее для ремонта",
-    ],
-    specTemplate: [
-      { name: "Тип", type: "select", options: COMMON_SPEC_OPTIONS.repairType },
-      { name: "Материал/Бренд", type: "text" },
-      { name: "Состояние", type: "select", options: COMMON_SPEC_OPTIONS.condition },
-    ],
+    hiddenFromHome: true,
+    subs: REPAIR_MATERIALS_SUBS,
+    specTemplate: REPAIR_MATERIALS_SPECS,
   },
 };
 
-export const HOME_CATEGORIES = Object.entries(CATS).map(([slug, cat]) => ({
+export const HOME_CATEGORIES = Object.entries(CATS)
+  .filter(([, cat]) => !cat.hiddenFromHome)
+  .map(([slug, cat]) => ({
   slug,
   title: cat.shortTitle || cat.title,
   img: cat.img,
