@@ -8,22 +8,6 @@ import {
 } from "../../data/realEstate";
 import { formatPriceInput } from "../../data/specOptions";
 
-function Chip({ active, onClick, children }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`shrink-0 h-9 px-3.5 rounded-full border text-sm font-medium transition ${
-        active
-          ? "border-sun bg-sun-50 text-sun-800"
-          : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"
-      }`}
-    >
-      {children}
-    </button>
-  );
-}
-
 export default function RealEstateDailyFilterBar({
   subcategory = "",
   priceFrom = "",
@@ -51,7 +35,7 @@ export default function RealEstateDailyFilterBar({
         <button
           type="button"
           onClick={onOpenFilters}
-          className="shrink-0 inline-flex items-center gap-1.5 h-9 px-3.5 rounded-full border border-slate-200 bg-white text-sm font-semibold text-slate-700 hover:bg-slate-50"
+          className="chip shrink-0 font-semibold"
         >
           <SlidersHorizontal size={15} />
           Фильтры
@@ -63,43 +47,45 @@ export default function RealEstateDailyFilterBar({
         </button>
 
         {DAILY_HOUSING_TYPES.map((item) => (
-          <Chip
+          <button
             key={item.value}
-            active={subcategory === item.value}
+            type="button"
             onClick={() =>
               onSubcategoryChange?.(subcategory === item.value ? "" : item.value)
             }
+            className={`chip ${subcategory === item.value ? "chip-active" : ""}`}
           >
             {item.label}
-          </Chip>
+          </button>
         ))}
-
       </div>
 
       <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-        <span className="shrink-0 text-xs font-semibold uppercase tracking-wide text-slate-400">
-          Цена за сутки
-        </span>
+        <span className="label-caps">Цена за сутки</span>
 
         {pricePresets.map((preset) => (
-          <Chip
+          <button
             key={preset.label}
-            active={activePricePreset?.label === preset.label}
+            type="button"
             onClick={() =>
               onPricePreset?.({
                 from: preset.from ? String(preset.from) : "",
                 to: preset.to ? String(preset.to) : "",
               })
             }
+            className={`chip ${
+              activePricePreset?.label === preset.label ? "chip-active" : ""
+            }`}
           >
             {preset.label.replace("Любая", "").trim() || preset.label}
-          </Chip>
+          </button>
         ))}
 
         {(priceFrom || priceTo) && !activePricePreset && (
-          <Chip
-            active
+          <button
+            type="button"
             onClick={() => onPricePreset?.({ from: "", to: "" })}
+            className="chip chip-active"
           >
             {priceFrom && priceTo
               ? `${formatPriceInput(priceFrom)} – ${formatPriceInput(priceTo)} с.`
@@ -107,27 +93,30 @@ export default function RealEstateDailyFilterBar({
                 ? `от ${formatPriceInput(priceFrom)} с.`
                 : `до ${formatPriceInput(priceTo)} с.`}
             <X size={13} className="ml-1 inline" />
-          </Chip>
+          </button>
         )}
       </div>
 
       <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-        <span className="shrink-0 text-xs font-semibold uppercase tracking-wide text-slate-400">
-          Гости
-        </span>
+        <span className="label-caps">Гости</span>
 
-        <Chip active={!guests} onClick={() => onGuestsChange?.("")}>
+        <button
+          type="button"
+          onClick={() => onGuestsChange?.("")}
+          className={`chip ${!guests ? "chip-active" : ""}`}
+        >
           Любое
-        </Chip>
+        </button>
 
         {GUEST_OPTIONS.map((option) => (
-          <Chip
+          <button
             key={option}
-            active={guests === option}
+            type="button"
             onClick={() => onGuestsChange?.(guests === option ? "" : option)}
+            className={`chip ${guests === option ? "chip-active" : ""}`}
           >
             {formatGuestLabel(option)}
-          </Chip>
+          </button>
         ))}
       </div>
     </div>

@@ -35,11 +35,11 @@ export default function RealEstateCategoryGrid({ city, statsBySubcategory = {} }
             className={`group relative rounded-2xl border p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md ${
               meta.highlight
                 ? "bg-gradient-to-br from-sun-50/80 to-white border-sun/25 hover:border-sun/40"
-                : "bg-white hover:border-slate-300"
+                : "bg-white border-ink/10 hover:border-ink/20"
             }`}
           >
             {count > 0 && (
-              <span className="absolute top-3 right-3 rounded-full bg-slate-900 text-white text-[10px] font-bold px-2 py-0.5 tabular-nums">
+              <span className="absolute top-3 right-3 rounded-full bg-ink text-white text-[10px] font-bold px-2 py-0.5 tabular-nums">
                 {count}
               </span>
             )}
@@ -48,14 +48,14 @@ export default function RealEstateCategoryGrid({ city, statsBySubcategory = {} }
               className={`w-11 h-11 rounded-xl grid place-items-center mb-3 transition-colors ${
                 meta.highlight
                   ? "bg-sun text-white group-hover:bg-sun-600"
-                  : "bg-slate-50 text-sun group-hover:bg-sun-50"
+                  : "bg-mist text-sun group-hover:bg-sun-50"
               }`}
             >
               <Icon size={20} />
             </div>
 
-            <div className="font-semibold text-sm text-slate-900 leading-snug pr-6">{name}</div>
-            <div className="text-xs text-slate-500 mt-1 leading-relaxed line-clamp-2">{meta.desc}</div>
+            <div className="font-semibold text-sm text-ink leading-snug pr-6">{name}</div>
+            <div className="text-xs text-ink-400 mt-1 leading-relaxed line-clamp-2">{meta.desc}</div>
           </Link>
         );
       })}

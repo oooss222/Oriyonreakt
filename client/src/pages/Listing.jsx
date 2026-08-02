@@ -762,10 +762,10 @@ export default function Listing() {
 
             <h1 className="text-2xl font-bold">{pageTitle}</h1>
 
-            <p className="text-sm text-slate-500 mt-1">
+            <p className="text-sm text-ink-400 mt-1">
               Найдено: {loading ? "…" : total.toLocaleString("ru-RU")}
               {!loading && totalPages > 1 && (
-                <span className="text-slate-400">
+                <span className="text-ink-400">
                   {" "}
                   · страница {currentPage} из {totalPages}
                 </span>
@@ -778,12 +778,12 @@ export default function Listing() {
                 appliedDraft.guests) && (
                 <div className="mt-2 flex flex-wrap gap-2">
                   {effectiveLocation && (
-                    <span className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">
+                    <span className="chip chip-active text-xs">
                       {effectiveLocation}
                     </span>
                   )}
                   {appliedDraft.checkIn && appliedDraft.checkOut && (
-                    <span className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">
+                    <span className="chip chip-active text-xs">
                       {new Date(`${appliedDraft.checkIn}T12:00:00`).toLocaleDateString("ru-RU", {
                         day: "numeric",
                         month: "short",
@@ -797,7 +797,7 @@ export default function Listing() {
                     </span>
                   )}
                   {appliedDraft.guests && (
-                    <span className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">
+                    <span className="chip chip-active text-xs">
                       {appliedDraft.guests === "1" ? "1 гость" : `${appliedDraft.guests} гостей`}
                     </span>
                   )}
@@ -811,7 +811,7 @@ export default function Listing() {
                 <button
                   type="button"
                   onClick={() => setReMoreFiltersOpen(true)}
-                  className="mobile-btn border bg-white hover:bg-slate-50"
+                  className="mobile-btn border bg-white hover:bg-mist"
                 >
                   <SlidersHorizontal size={18} />
                   Ещё фильтры
@@ -837,7 +837,7 @@ export default function Listing() {
                 <button
                   type="button"
                   onClick={() => setMobileFiltersOpen(true)}
-                  className="mobile-btn border bg-white hover:bg-slate-50 lg:hidden"
+                  className="mobile-btn border bg-white hover:bg-mist lg:hidden"
                 >
                   <SlidersHorizontal size={18} />
                   Фильтры
@@ -853,7 +853,7 @@ export default function Listing() {
         </div>
 
         {showSubcategoryChips && (
-          <div className="lg:hidden sticky top-0 z-20 -mx-4 px-4 py-2 bg-mist/95 backdrop-blur border-b border-slate-200/80">
+          <div className="lg:hidden sticky top-0 z-20 -mx-4 px-4 py-2 bg-mist/95 backdrop-blur border-b border-ink/10">
             <SubcategoryChips
               subcategories={availableSubcategories}
               activeSubcategory={effectiveSubcategory}
@@ -963,7 +963,7 @@ export default function Listing() {
                 </div>
 
                 <div className="mt-2 flex-1 flex flex-col gap-1">
-                  <div className="font-semibold text-sm text-slate-900 line-clamp-2 group-hover:text-sun transition">
+                  <div className="font-semibold text-sm text-ink line-clamp-2 group-hover:text-sun transition">
                     {ad.title || "Без названия"}
                   </div>
 
@@ -979,12 +979,12 @@ export default function Listing() {
                     />
                   </div>
 
-                  <div className="text-xs text-slate-500 line-clamp-1 flex items-center gap-1">
+                  <div className="text-xs text-ink-400 line-clamp-1 flex items-center gap-1">
                     <MapPin size={13} />
                     {ad.location || ad.city || "Душанбе"}
                   </div>
 
-                  <div className="text-xs text-slate-400">
+                  <div className="text-xs text-ink-300">
                     {formatListingDate(ad)}
                   </div>
                 </div>
@@ -1015,13 +1015,13 @@ export default function Listing() {
           />
 
           <div className="absolute inset-x-0 bottom-0 flex max-h-[92vh] flex-col rounded-t-3xl bg-mist shadow-2xl">
-            <div className="flex shrink-0 items-center justify-between gap-3 border-b border-slate-200/80 px-4 py-3">
+            <div className="flex shrink-0 items-center justify-between gap-3 border-b border-ink/10 px-4 py-3">
               <h2 className="text-lg font-semibold">Фильтры</h2>
 
               <button
                 type="button"
                 onClick={() => setMobileFiltersOpen(false)}
-                className="p-2 rounded-xl border bg-white hover:bg-slate-50"
+                className="p-2 rounded-xl border bg-white hover:bg-mist"
                 aria-label="Закрыть"
               >
                 <X size={18} />

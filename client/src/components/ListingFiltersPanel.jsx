@@ -639,11 +639,7 @@ export default function ListingFiltersPanel({
                 sellerType: "",
               }), draft)
             }
-            className={`h-10 px-3 rounded-full border text-sm font-medium transition ${
-              !draft.sellerType
-                ? "border-sun bg-sun-50 text-sun-800"
-                : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
-            }`}
+            className={`chip ${!draft.sellerType ? "chip-active" : ""}`}
           >
             Любой
           </button>
@@ -658,10 +654,8 @@ export default function ListingFiltersPanel({
                     current.sellerType === option.value ? "" : option.value,
                 }), draft)
               }
-              className={`h-10 px-3 rounded-full border text-sm font-medium transition ${
-                draft.sellerType === option.value
-                  ? "border-sun bg-sun-50 text-sun-800"
-                  : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+              className={`chip ${
+                draft.sellerType === option.value ? "chip-active" : ""
               }`}
             >
               {option.label}
@@ -675,7 +669,7 @@ export default function ListingFiltersPanel({
           {grid.more.map((field) => (
             <div key={field.id} className="space-y-1">
               {(field.type === "search" || field.type === "sort") && (
-                <div className="text-xs font-medium text-slate-500 px-1">
+                <div className="text-xs font-medium text-ink-400 px-1">
                   {field.label}
                 </div>
               )}

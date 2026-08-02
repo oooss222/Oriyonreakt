@@ -118,7 +118,8 @@
   }
 
   /* --- Oriyon design system (P4) --- */
-  .filter-panel {
+  .filter-panel,
+  .panel {
     @apply rounded-2xl border border-ink/10 bg-white shadow-soft;
   }
 
@@ -134,12 +135,48 @@
     @apply border-sun bg-sun-50 text-sun-800;
   }
 
+  .hero-dark {
+    @apply relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-ink-900 via-ink-800 to-ink-700 text-white shadow-lift;
+  }
+
+  .icon-box {
+    @apply grid place-items-center rounded-2xl ring-1;
+  }
+
+  .icon-box-sun {
+    @apply grid place-items-center rounded-2xl ring-1 bg-sun-50 text-sun ring-sun/15;
+  }
+
+  .icon-box-ink {
+    @apply grid place-items-center rounded-2xl ring-1 bg-ink-50 text-ink ring-ink/10;
+  }
+
+  .segmented {
+    @apply inline-flex rounded-xl border border-ink/10 bg-mist p-1 gap-1;
+  }
+
+  .segmented-item {
+    @apply px-4 py-2 rounded-lg text-sm font-semibold text-ink-500 transition hover:text-ink;
+  }
+
+  .segmented-item-active {
+    @apply bg-white text-ink shadow-soft;
+  }
+
+  .label-caps {
+    @apply shrink-0 text-xs font-semibold uppercase tracking-wide text-ink-400;
+  }
+
+  .text-muted {
+    @apply text-ink-400;
+  }
+
   .category-hero {
     @apply rounded-3xl border border-ink/10 bg-white shadow-soft overflow-hidden;
   }
 
   .category-hero-banner {
-    @apply relative overflow-hidden bg-gradient-to-br from-ink-800 via-ink-700 to-lagoon-700 text-white;
+    @apply relative overflow-hidden bg-gradient-to-br from-ink-800 via-ink-700 to-ink-600 text-white;
   }
 
   .subcategory-chip {
@@ -187,7 +224,7 @@
   }
 
   .text-price {
-    @apply font-display font-extrabold text-lagoon-700;
+    @apply font-display font-extrabold text-sun-700;
   }
 
   @keyframes top-entry-pulse {

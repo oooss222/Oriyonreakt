@@ -336,7 +336,7 @@ export default function RealEstateSearchHero({
   return (
     <>
       <section
-        className={`relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-ink-900 via-ink-800 to-lagoon-900 text-white shadow-lift ${
+        className={`hero-dark ${
           compact ? "p-4 md:p-5" : "p-5 md:p-8"
         }`}
       >
@@ -345,7 +345,7 @@ export default function RealEstateSearchHero({
           aria-hidden="true"
         />
         <div
-          className="pointer-events-none absolute -bottom-20 left-1/4 h-48 w-48 rounded-full bg-lagoon/20 blur-3xl"
+          className="pointer-events-none absolute -bottom-20 left-1/4 h-48 w-48 rounded-full bg-sun/10 blur-3xl"
           aria-hidden="true"
         />
 

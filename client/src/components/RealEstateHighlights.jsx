@@ -55,7 +55,7 @@ export default function RealEstateHighlights({ ad }) {
         <div>
           <h2 className="text-lg font-bold text-slate-900">Об объекте</h2>
           {deal && (
-            <span className="inline-flex mt-2 px-3 py-1 rounded-full bg-lagoon-50 text-lagoon-800 text-xs font-bold">
+            <span className="inline-flex mt-2 px-3 py-1 rounded-full chip chip-active text-xs font-bold">
               {deal}
             </span>
           )}

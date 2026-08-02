@@ -72,16 +72,14 @@ export default function RealEstatePricePerSqmCalculator({
         />
       </div>
 
-      <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 space-y-4">
-        <div className="flex items-center gap-2 text-sm font-semibold text-slate-800">
-          <Calculator size={16} className="text-lagoon" />
+      <div className="rounded-xl border border-ink/10 bg-mist p-3 space-y-4">
+        <div className="flex items-center gap-2 text-sm font-semibold text-ink">
+          <Calculator size={16} className="text-sun" />
           Калькулятор цены за м²
         </div>
 
         <div className="space-y-2">
-          <div className="text-xs font-medium uppercase tracking-wide text-slate-500">
-            Цена объекта и площадь
-          </div>
+          <div className="label-caps">Цена объекта и площадь</div>
           <div className="grid grid-cols-2 gap-2">
             <input
               type="text"
@@ -106,8 +104,8 @@ export default function RealEstatePricePerSqmCalculator({
           </div>
 
           {derivedPerSqm ? (
-            <div className="rounded-lg border border-lagoon/20 bg-white px-3 py-2 text-sm text-slate-700">
-              <span className="font-semibold text-lagoon-800">
+            <div className="rounded-lg border border-sun/20 bg-white px-3 py-2 text-sm text-ink">
+              <span className="font-semibold text-sun-800">
                 {formatPricePerSqmValue(derivedPerSqm)}
               </span>
               <div className="mt-2 flex flex-wrap gap-2">
@@ -115,7 +113,7 @@ export default function RealEstatePricePerSqmCalculator({
                   type="button"
                   disabled={disabled}
                   onClick={() => applyDerivedPerSqm("to")}
-                  className="text-xs font-semibold text-lagoon-700 hover:text-lagoon-900 disabled:opacity-60"
+                  className="text-xs font-semibold text-sun-700 hover:text-sun-800 disabled:opacity-60"
                 >
                   Подставить в «до»
                 </button>
@@ -123,7 +121,7 @@ export default function RealEstatePricePerSqmCalculator({
                   type="button"
                   disabled={disabled}
                   onClick={() => applyDerivedPerSqm("from")}
-                  className="text-xs font-semibold text-lagoon-700 hover:text-lagoon-900 disabled:opacity-60"
+                  className="text-xs font-semibold text-sun-700 hover:text-sun-800 disabled:opacity-60"
                 >
                   Подставить в «от»
                 </button>

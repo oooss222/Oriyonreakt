@@ -70,7 +70,7 @@ function CompareMobileCard({ item }) {
     <article className="rounded-2xl border bg-white p-4 space-y-3">
       <div>
         <div className="font-semibold text-slate-900 leading-snug">{item.title}</div>
-        <div className="text-lg font-extrabold text-lagoon-700 mt-1">
+        <div className="text-price text-lg mt-1">
           {formatPrice(item.price)}
         </div>
       </div>

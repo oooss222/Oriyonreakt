@@ -3,22 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { QUICK_COLLECTIONS } from "../../data/realEstate";
 import { buildRealEstateListingUrl } from "../../lib/realEstate";
 
-function Chip({ active, onClick, children }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`shrink-0 h-9 px-3.5 rounded-full border text-sm font-medium transition ${
-        active
-          ? "border-sun bg-sun-50 text-sun-800"
-          : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"
-      }`}
-    >
-      {children}
-    </button>
-  );
-}
-
 export default function RealEstateQuickCollections({
   city = "Душанбе",
   activeParams = null,
@@ -55,17 +39,16 @@ export default function RealEstateQuickCollections({
   return (
     <div className={className}>
       <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-        <span className="shrink-0 text-xs font-semibold uppercase tracking-wide text-slate-400">
-          Подборки
-        </span>
+        <span className="label-caps">Подборки</span>
         {QUICK_COLLECTIONS.map((collection) => (
-          <Chip
+          <button
             key={collection.title}
-            active={isActive(collection)}
+            type="button"
             onClick={() => open(collection)}
+            className={`chip ${isActive(collection) ? "chip-active" : ""}`}
           >
             {collection.title}
-          </Chip>
+          </button>
         ))}
       </div>
     </div>

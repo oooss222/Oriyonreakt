@@ -94,7 +94,7 @@ export default function RealEstateListingCard({
       <div className={`min-w-0 flex-1 flex flex-col ${isHorizontal ? "py-0.5" : "p-2"}`}>
         <div className="flex items-start justify-between gap-2">
           <div>
-            <div className="font-display font-extrabold text-lg text-lagoon-700 leading-tight">
+            <div className="text-price text-lg leading-tight">
               {formatPrice(listing.price)}
               {isDaily && (
                 <span className="ml-1 text-sm font-semibold text-slate-500">

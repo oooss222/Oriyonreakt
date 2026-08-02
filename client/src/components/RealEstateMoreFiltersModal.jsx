@@ -128,11 +128,7 @@ function PillGroup({ value, options, onChange, anyLabel = "Любой" }) {
       <button
         type="button"
         onClick={() => onChange("")}
-        className={`h-10 px-3 rounded-full border text-sm font-medium transition ${
-          !value
-            ? "border-sun bg-sun-50 text-sun-800"
-            : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
-        }`}
+        className={`chip ${!value ? "chip-active" : ""}`}
       >
         {anyLabel}
       </button>
@@ -142,11 +138,7 @@ function PillGroup({ value, options, onChange, anyLabel = "Любой" }) {
           key={option}
           type="button"
           onClick={() => onChange(option)}
-          className={`h-10 px-3 rounded-full border text-sm font-medium transition ${
-            value === option
-              ? "border-sun bg-sun-50 text-sun-800"
-              : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
-          }`}
+          className={`chip ${value === option ? "chip-active" : ""}`}
         >
           {option}
         </button>
@@ -175,11 +167,7 @@ function PresetPills({ presets, onSelect, activeFrom = "", activeTo = "" }) {
                 to: preset.to ? String(preset.to) : "",
               })
             }
-            className={`h-9 px-3 rounded-full border text-xs font-medium transition ${
-              active
-                ? "border-sun bg-sun-50 text-sun-800"
-                : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
-            }`}
+            className={`chip ${active ? "chip-active" : ""}`}
           >
             {preset.label}
           </button>
@@ -534,10 +522,8 @@ export default function RealEstateMoreFiltersModal({
                     onClick={() =>
                       setDraft((current) => ({ ...current, subcategory: "" }))
                     }
-                    className={`h-10 px-3 rounded-full border text-sm font-medium transition ${
-                      !(draft.subcategory || subcategory)
-                        ? "border-sun bg-sun-50 text-sun-800"
-                        : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                    className={`chip ${
+                      !(draft.subcategory || subcategory) ? "chip-active" : ""
                     }`}
                   >
                     Любой
@@ -554,11 +540,7 @@ export default function RealEstateMoreFiltersModal({
                             subcategory: active ? "" : item.value,
                           }))
                         }
-                        className={`h-10 px-3 rounded-full border text-sm font-medium transition ${
-                          active
-                            ? "border-sun bg-sun-50 text-sun-800"
-                            : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
-                        }`}
+                        className={`chip ${active ? "chip-active" : ""}`}
                       >
                         {item.label}
                       </button>
@@ -720,11 +702,7 @@ export default function RealEstateMoreFiltersModal({
                     onClick={() =>
                       setDraft((current) => ({ ...current, sellerType: "" }))
                     }
-                    className={`h-10 px-3 rounded-full border text-sm font-medium transition ${
-                      !draft.sellerType
-                        ? "border-sun bg-sun-50 text-sun-800"
-                        : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
-                    }`}
+                    className={`chip ${!draft.sellerType ? "chip-active" : ""}`}
                   >
                     Любой
                   </button>
@@ -741,10 +719,8 @@ export default function RealEstateMoreFiltersModal({
                               : option.value,
                         }))
                       }
-                      className={`h-10 px-3 rounded-full border text-sm font-medium transition ${
-                        draft.sellerType === option.value
-                          ? "border-sun bg-sun-50 text-sun-800"
-                          : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                      className={`chip ${
+                        draft.sellerType === option.value ? "chip-active" : ""
                       }`}
                     >
                       {option.label}
@@ -794,9 +770,7 @@ export default function RealEstateMoreFiltersModal({
                         }))
                       }
                       className={`mobile-btn border ${
-                        draft.floorNotFirst
-                          ? "border-sun bg-sun-50 text-sun-800"
-                          : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                        draft.floorNotFirst ? "chip-active" : ""
                       }`}
                     >
                       Не первый
@@ -810,9 +784,7 @@ export default function RealEstateMoreFiltersModal({
                         }))
                       }
                       className={`mobile-btn border ${
-                        draft.floorNotLast
-                          ? "border-sun bg-sun-50 text-sun-800"
-                          : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                        draft.floorNotLast ? "chip-active" : ""
                       }`}
                     >
                       Не последний

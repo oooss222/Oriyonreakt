@@ -110,7 +110,7 @@ function ListingCard({ ad, listings }) {
 function RealEstateSection({ items }) {
   if (!items?.length) {
     return (
-      <section className="rounded-3xl border bg-gradient-to-br from-ink-800 to-lagoon-800 text-white p-6 md:p-8">
+      <section className="hero-dark p-6 md:p-8">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <div className="inline-flex items-center gap-2 text-xs font-semibold text-sun-100 bg-white/10 rounded-full px-3 py-1 mb-3">
@@ -138,8 +138,8 @@ function RealEstateSection({ items }) {
     <section className="space-y-4">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <div className="w-10 h-10 rounded-2xl bg-lagoon-50 grid place-items-center ring-1 ring-lagoon/15">
-            <Building2 className="text-lagoon" size={20} />
+          <div className="w-10 h-10 icon-box-sun shrink-0">
+            <Building2 size={20} />
           </div>
           <div>
             <h2 className="section-title">Недвижимость</h2>
@@ -425,8 +425,8 @@ export default function Home() {
 
         <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="surface-panel p-5">
-            <div className="w-11 h-11 rounded-2xl bg-lagoon-50 grid place-items-center mb-3 ring-1 ring-lagoon/15">
-              <ShieldCheck className="text-lagoon" />
+            <div className="w-11 h-11 icon-box-sun mb-3">
+              <ShieldCheck />
             </div>
 
             <h3 className="font-display font-bold text-lg text-ink">Модерация объявлений</h3>
@@ -437,8 +437,8 @@ export default function Home() {
           </div>
 
           <div className="surface-panel p-5">
-            <div className="w-11 h-11 rounded-2xl bg-sun-50 grid place-items-center mb-3 ring-1 ring-sun/15">
-              <BadgeCheck className="text-sun" />
+            <div className="w-11 h-11 icon-box-sun mb-3">
+              <BadgeCheck />
             </div>
 
             <h3 className="font-display font-bold text-lg text-ink">Личный кабинет</h3>
@@ -449,8 +449,8 @@ export default function Home() {
           </div>
 
           <div className="surface-panel p-5">
-            <div className="w-11 h-11 rounded-2xl bg-ink-50 grid place-items-center mb-3 ring-1 ring-ink/10">
-              <Sparkles className="text-ink" />
+            <div className="w-11 h-11 icon-box-ink mb-3">
+              <Sparkles />
             </div>
 
             <h3 className="font-display font-bold text-lg text-ink">Продвижение</h3>
