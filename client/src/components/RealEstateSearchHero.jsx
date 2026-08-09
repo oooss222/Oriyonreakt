@@ -370,11 +370,11 @@ export default function RealEstateSearchHero({
 
         <div className="relative overflow-visible">
           {isDaily ? (
-            <>
+            <div className="rounded-2xl bg-white/95 p-4 text-slate-900 shadow-xl ring-1 ring-slate-900/5 md:p-5">
               <div
                 role="tablist"
                 aria-label="Тип сделки"
-                className="mb-4 inline-flex w-full gap-1 rounded-xl border border-white/15 bg-white/10 p-1 sm:w-auto"
+                className="mb-4 inline-flex w-full gap-1 rounded-xl border border-slate-200/80 bg-slate-100/80 p-1 sm:w-auto"
               >
                 {DEAL_TYPES.map((item) => {
                   const active = dealType === item.value;
@@ -389,7 +389,7 @@ export default function RealEstateSearchHero({
                       className={`min-h-[42px] flex-1 rounded-lg px-4 py-2.5 text-sm font-semibold transition sm:flex-none sm:min-w-[6.5rem] ${
                         active
                           ? "bg-sun text-white shadow-sm"
-                          : "text-white/75 hover:bg-white/10 hover:text-white"
+                          : "text-slate-600 hover:bg-white hover:text-slate-900"
                       }`}
                     >
                       {item.label}
@@ -416,7 +416,7 @@ export default function RealEstateSearchHero({
                   hasMoreFilters={hasActiveFilters}
                 />
               </form>
-            </>
+            </div>
           ) : (
             <div className="rounded-2xl bg-white p-4 text-slate-900 shadow-xl ring-1 ring-slate-900/5 md:p-5">
               <div
