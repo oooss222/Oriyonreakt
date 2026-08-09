@@ -202,6 +202,9 @@ export default function Header({ variant = "full" }) {
     />
   );
 
+  const navIconClass =
+    "relative grid place-items-center w-10 h-10 rounded-xl text-white/85 hover:bg-white/10 hover:text-white transition";
+
   const searchField = (compact = false) => (
     <div
       className={`relative flex items-center w-full rounded-xl bg-ink-600 overflow-visible ring-1 ring-white/10 focus-within:ring-sun/70 transition ${
@@ -246,21 +249,23 @@ export default function Header({ variant = "full" }) {
       <header className="sticky top-0 z-50 bg-ink-700 text-white border-b border-white/5 shadow-soft">
         <div className="container mx-auto px-3 sm:px-4 lg:px-6">
         <div
-          className={`hidden lg:flex items-center gap-2 sm:gap-3 transition-all duration-300 ${
+          className={`hidden lg:flex items-center gap-3 xl:gap-4 transition-all duration-300 ${
             scrolled ? "h-14" : "h-16 lg:h-[72px]"
           }`}
         >
-          <Link to="/" className="flex items-center gap-2 group shrink-0 min-w-0">
-            <img
-              src="/oriyon.store.png"
-              alt="Oriyon Store"
-              className={`object-contain transition-all duration-300 group-hover:scale-105 ${
-                scrolled ? "w-10 h-10" : "w-12 h-12 lg:w-14 lg:h-14"
-              }`}
-            />
+          <Link to="/" className="flex items-center gap-2.5 group shrink-0 min-w-0">
+            <span className="grid place-items-center rounded-xl bg-white/5 ring-1 ring-white/10 p-1">
+              <img
+                src="/oriyon.store.png"
+                alt="Oriyon Store"
+                className={`object-contain transition-all duration-300 group-hover:scale-105 ${
+                  scrolled ? "w-8 h-8" : "w-10 h-10"
+                }`}
+              />
+            </span>
 
             <span
-              className={`brand-wordmark transition-all duration-300 truncate ${
+              className={`brand-wordmark transition-all duration-300 truncate hidden xl:block ${
                 scrolled ? "text-base" : "text-lg"
               }`}
             >
@@ -272,21 +277,25 @@ export default function Header({ variant = "full" }) {
 
           <Link
             to="/add"
-            className="inline-flex items-center gap-1.5 shrink-0 px-3 py-2 rounded-xl border border-sun/50 text-sun text-sm font-semibold hover:bg-sun/10 transition"
+            className="inline-flex items-center gap-1.5 shrink-0 h-10 px-3 xl:px-3.5 rounded-xl border border-sun/50 text-sun text-sm font-semibold hover:bg-sun/10 transition"
+            title="Добавить объявление"
           >
             <PlusCircle size={17} />
-            Добавить объявление
+            <span className="hidden xl:inline">Добавить объявление</span>
+            <span className="hidden lg:inline xl:hidden">Добавить</span>
           </Link>
 
           {!isMinimal && (
-            <div className="flex-1 min-w-0 relative">{searchField(false)}{suggestionList}</div>
+            <div className="flex-1 min-w-0 max-w-md xl:max-w-xl relative mx-1">
+              {searchField(false)}
+            </div>
           )}
 
           {isMinimal && (
             <div className="flex-1" aria-hidden="true" />
           )}
 
-          <nav className="flex items-center gap-0.5 shrink-0">
+          <nav className="flex items-center gap-0.5 shrink-0 rounded-2xl border border-white/10 bg-white/[0.04] p-0.5">
             {isMinimal ? (
               <>
                 <Link
@@ -307,20 +316,20 @@ export default function Header({ variant = "full" }) {
               <>
             <Link
               to="/profile?tab=fav"
-              className="p-2.5 rounded-lg hover:bg-white/10 transition"
+              className={navIconClass}
               title="Избранное"
             >
-              <Heart size={20} />
+              <Heart size={19} />
             </Link>
 
             <Link
               to="/messages"
-              className="relative p-2.5 rounded-lg hover:bg-white/10 transition"
+              className={navIconClass}
               title="Сообщения"
             >
-              <MessageCircle size={20} />
+              <MessageCircle size={19} />
               {badgeCount > 0 && (
-                <span className="absolute top-1 right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">
+                <span className="absolute top-0.5 right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">
                   {badgeCount > 99 ? "99+" : badgeCount}
                 </span>
               )}
@@ -328,26 +337,16 @@ export default function Header({ variant = "full" }) {
 
             <Link
               to={comparePath}
-              className="relative hidden md:inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-white/85 hover:bg-white/10 hover:text-white transition"
-              title="Сравнение"
+              className={navIconClass}
+              title={
+                compareCount > 0
+                  ? `Сравнение · ${compareCount} объявлений`
+                  : "Сравнение"
+              }
             >
-              <Scale size={18} className="text-sun" />
-              <span>Сравнение</span>
+              <Scale size={19} className="text-sun" />
               {compareCount > 0 && (
-                <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-sun text-white text-[10px] font-bold inline-flex items-center justify-center">
-                  {compareCount > 99 ? "99+" : compareCount}
-                </span>
-              )}
-            </Link>
-
-            <Link
-              to={comparePath}
-              className="relative md:hidden p-2.5 rounded-lg hover:bg-white/10 transition"
-              title="Сравнение"
-            >
-              <Scale size={20} />
-              {compareCount > 0 && (
-                <span className="absolute top-1 right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-sun text-white text-[10px] font-bold flex items-center justify-center">
+                <span className="absolute top-0.5 right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-sun text-white text-[10px] font-bold flex items-center justify-center">
                   {compareCount > 99 ? "99+" : compareCount}
                 </span>
               )}
@@ -356,12 +355,12 @@ export default function Header({ variant = "full" }) {
             {canModerate && (
               <Link
                 to="/admin?section=moderation"
-                className="relative p-2.5 rounded-lg hover:bg-white/10 transition"
+                className={navIconClass}
                 title="Модерация"
               >
-                <ClipboardCheck size={20} />
+                <ClipboardCheck size={19} />
                 {moderationCount > 0 && (
-                  <span className="absolute top-1 right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-amber-500 text-white text-[10px] font-bold flex items-center justify-center">
+                  <span className="absolute top-0.5 right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-amber-500 text-white text-[10px] font-bold flex items-center justify-center">
                     {moderationCount > 99 ? "99+" : moderationCount}
                   </span>
                 )}
@@ -372,27 +371,27 @@ export default function Header({ variant = "full" }) {
               <>
                 <Link
                   to="/profile?tab=wallet"
-                  className="p-2.5 rounded-lg hover:bg-white/10 transition"
+                  className={`${navIconClass} hidden xl:grid`}
                   title="Кошелёк"
                 >
-                  <Wallet size={20} />
+                  <Wallet size={19} />
                 </Link>
 
                 <Link
                   to="/profile?tab=profile"
-                  className="p-2.5 rounded-lg hover:bg-white/10 transition"
+                  className={navIconClass}
                   title={user?.name || "Профиль"}
                 >
-                  <User size={20} />
+                  <User size={19} />
                 </Link>
               </>
             ) : (
               <Link
                 to="/auth"
-                className="p-2.5 rounded-lg hover:bg-white/10 transition"
+                className={navIconClass}
                 title="Войти"
               >
-                <LogIn size={20} />
+                <LogIn size={19} />
               </Link>
             )}
               </>
@@ -404,17 +403,31 @@ export default function Header({ variant = "full" }) {
         <div className="lg:hidden pt-2 pb-2.5 relative">
           <div className="flex items-center gap-2">
             <Link to="/" className="shrink-0" aria-label="На главную">
-              <img
-                src="/oriyon.store.png"
-                alt="Oriyon Store"
-                className="w-9 h-9 object-contain"
-              />
+              <span className="grid place-items-center rounded-xl bg-white/5 ring-1 ring-white/10 p-1">
+                <img
+                  src="/oriyon.store.png"
+                  alt="Oriyon Store"
+                  className="w-8 h-8 object-contain"
+                />
+              </span>
             </Link>
 
             <div className="flex-1 min-w-0 relative">
               {searchField(true)}
-              {suggestionList}
             </div>
+
+            <Link
+              to={comparePath}
+              className={`${navIconClass} shrink-0`}
+              title="Сравнение"
+            >
+              <Scale size={19} className="text-sun" />
+              {compareCount > 0 && (
+                <span className="absolute top-0.5 right-0.5 min-w-[16px] h-[16px] px-0.5 rounded-full bg-sun text-white text-[9px] font-bold flex items-center justify-center">
+                  {compareCount > 99 ? "99+" : compareCount}
+                </span>
+              )}
+            </Link>
           </div>
         </div>
         ) : (
