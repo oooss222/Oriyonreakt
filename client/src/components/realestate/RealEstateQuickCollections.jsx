@@ -38,7 +38,7 @@ export default function RealEstateQuickCollections({
 
   return (
     <div className={className}>
-      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide scroll-fade-x">
         <span className="label-caps">Подборки</span>
         {QUICK_COLLECTIONS.map((collection) => (
           <button

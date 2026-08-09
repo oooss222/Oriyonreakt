@@ -328,7 +328,21 @@ export default function Header({ variant = "full" }) {
 
             <Link
               to={comparePath}
-              className="relative p-2.5 rounded-lg hover:bg-white/10 transition"
+              className="relative hidden md:inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-white/85 hover:bg-white/10 hover:text-white transition"
+              title="Сравнение"
+            >
+              <Scale size={18} className="text-sun" />
+              <span>Сравнение</span>
+              {compareCount > 0 && (
+                <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-sun text-white text-[10px] font-bold inline-flex items-center justify-center">
+                  {compareCount > 99 ? "99+" : compareCount}
+                </span>
+              )}
+            </Link>
+
+            <Link
+              to={comparePath}
+              className="relative md:hidden p-2.5 rounded-lg hover:bg-white/10 transition"
               title="Сравнение"
             >
               <Scale size={20} />

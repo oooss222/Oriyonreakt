@@ -69,7 +69,7 @@ export default function RealEstateDistrictBar({
       </div>
 
       {districts.length > 0 && (
-        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide snap-x snap-mandatory">
+        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide scroll-fade-x snap-x snap-mandatory">
           <Link
             to={buildDistrictUrl("")}
             className={`chip snap-start ${!activeDistrict ? "chip-active" : ""}`}

@@ -521,7 +521,7 @@ export default function RealEstateSearchHero({
               {!listingPage && !isDaily && (
                 <RealEstateQuickCollections
                   city={city}
-                  className="border-t border-slate-100 pt-3"
+                  className="border-t border-slate-100 pt-3 scroll-fade-x"
                 />
               )}
 

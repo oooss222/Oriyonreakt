@@ -43,27 +43,6 @@ export default function RealEstateNovostroykiSection({
           <ArrowRight size={16} />
         </Link>
       </div>
-
-      {developments.length > 0 && (
-        <div className="mt-4 flex gap-2 overflow-x-auto pb-1 scrollbar-none">
-          {developments.slice(0, 6).map((item) => (
-            <Link
-              key={item.id}
-              to={`/realestate/zhk/${item.slug}`}
-              className="shrink-0 min-w-[9rem] max-w-[11rem] rounded-xl border bg-white p-3 hover:border-sun/40 hover:shadow-sm transition"
-            >
-              <div className="font-semibold text-sm text-slate-900 line-clamp-2">
-                {item.name}
-              </div>
-              {item.district && (
-                <div className="text-xs text-slate-500 mt-1 line-clamp-1">
-                  {item.district}
-                </div>
-              )}
-            </Link>
-          ))}
-        </div>
-      )}
     </section>
   );
 }

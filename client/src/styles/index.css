@@ -321,6 +321,27 @@
   .promotion-panel-top {
     background: linear-gradient(145deg, rgb(236 254 255) 0%, rgb(240 253 250) 45%, #fff 100%);
   }
+
+  .scrollbar-hide,
+  .scrollbar-none {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar,
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+
+  .scroll-fade-x {
+    mask-image: linear-gradient(
+      to right,
+      transparent,
+      #000 12px,
+      #000 calc(100% - 12px),
+      transparent
+    );
+  }
 }
 
 .shadow-soft {

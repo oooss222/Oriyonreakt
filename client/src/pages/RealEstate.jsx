@@ -14,7 +14,6 @@ import ListingGridSkeleton from "../components/ListingGridSkeleton";
 import AdSlot from "../components/AdSlot";
 import Breadcrumbs from "../components/Breadcrumbs";
 import RealEstateNovostroykiSection from "../components/realestate/RealEstateNovostroykiSection";
-import RealEstateQuickCollections from "../components/realestate/RealEstateQuickCollections";
 import RealEstateSectionHeader from "../components/realestate/RealEstateSectionHeader";
 import RealEstateCategoryGrid from "../components/realestate/RealEstateCategoryGrid";
 import RealEstateDistrictBar from "../components/realestate/RealEstateDistrictBar";
@@ -32,6 +31,7 @@ export default function RealEstate() {
   const [city, setCity] = React.useState("Душанбе");
   const [developments, setDevelopments] = React.useState([]);
   const [compareCount, setCompareCount] = React.useState(() => readCompareIds().length);
+  const [fallbackListings, setFallbackListings] = React.useState([]);
 
   React.useEffect(() => {
     const sync = () => setCompareCount(readCompareIds().length);
@@ -71,14 +71,30 @@ export default function RealEstate() {
 
         if (!active) return;
 
+        const listingRows = Array.isArray(allListings) ? allListings : [];
+
         setStats(statsData || { total: 0, bySubcategory: {} });
-        setListings(Array.isArray(allListings) ? allListings : []);
+        setListings(listingRows);
         setPremium(sortListingsByPromotion(Array.isArray(promoted) ? promoted : []));
+
+        if (listingRows.length === 0) {
+          const wider = await api.listings({
+            cat: REAL_ESTATE_CAT,
+            limit: 8,
+            sort: "new",
+          });
+          if (active) {
+            setFallbackListings(Array.isArray(wider) ? wider : []);
+          }
+        } else if (active) {
+          setFallbackListings([]);
+        }
       } catch {
         if (active) {
           setStats({ total: 0, bySubcategory: {} });
           setListings([]);
           setPremium([]);
+          setFallbackListings([]);
         }
       } finally {
         if (active) setLoading(false);
@@ -119,20 +135,41 @@ export default function RealEstate() {
         developments={developments}
       />
 
-      <RealEstateQuickCollections city={city} className="px-0.5" />
-
-      {compareCount > 0 && (
-        <Link
-          to="/realestate/sravnenie"
-          className="flex items-center justify-between gap-3 rounded-2xl border border-slate-900/10 bg-slate-900 px-4 py-3.5 text-white hover:bg-slate-800 transition shadow-sm"
-        >
-          <span className="inline-flex items-center gap-2 text-sm font-semibold">
-            <Scale size={18} className="text-sun" />
-            Сравнение объектов · {compareCount}/{COMPARE_MAX}
+      <Link
+        to="/realestate/sravnenie"
+        className={`flex items-center justify-between gap-3 rounded-2xl border px-4 py-3.5 transition shadow-sm ${
+          compareCount > 0
+            ? "border-slate-900/10 bg-slate-900 text-white hover:bg-slate-800"
+            : "border-slate-200 bg-white text-slate-900 hover:border-sun/30 hover:bg-sun-50/30"
+        }`}
+      >
+        <span className="inline-flex items-center gap-3 min-w-0">
+          <span
+            className={`grid place-items-center w-10 h-10 rounded-xl shrink-0 ${
+              compareCount > 0 ? "bg-white/10 text-sun" : "bg-sun-50 text-sun"
+            }`}
+          >
+            <Scale size={20} />
           </span>
-          <ArrowRight size={18} className="text-white/70" />
-        </Link>
-      )}
+          <span className="min-w-0">
+            <span className="block text-sm font-semibold">
+              Сравнение объектов
+              {compareCount > 0 ? ` · ${compareCount}/${COMPARE_MAX}` : ""}
+            </span>
+            <span
+              className={`block text-xs mt-0.5 truncate ${
+                compareCount > 0 ? "text-white/60" : "text-slate-500"
+              }`}
+            >
+              До {COMPARE_MAX} объявлений Oriyon и других площадок
+            </span>
+          </span>
+        </span>
+        <ArrowRight
+          size={18}
+          className={compareCount > 0 ? "text-white/70 shrink-0" : "text-slate-400 shrink-0"}
+        />
+      </Link>
 
       <div className="space-y-3">
         <RealEstateSectionHeader
@@ -237,7 +274,7 @@ export default function RealEstate() {
 
         {loading && <ListingGridSkeleton count={8} />}
 
-        {!loading && listings.length === 0 && (
+        {!loading && listings.length === 0 && fallbackListings.length === 0 && (
           <div className="rounded-2xl border border-dashed bg-slate-50/50 p-10 text-center">
             <Building2 className="mx-auto text-slate-300 mb-3" size={40} />
             <div className="font-semibold text-slate-800">
@@ -254,6 +291,19 @@ export default function RealEstate() {
               <PlusCircle size={18} />
               Подать объявление
             </Link>
+          </div>
+        )}
+
+        {!loading && listings.length === 0 && fallbackListings.length > 0 && (
+          <div className="space-y-4">
+            <p className="text-sm text-slate-500">
+              В {city} пока нет объявлений — показываем свежие из других городов.
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+              {fallbackListings.map((item) => (
+                <RealEstateListingCard key={item.id || item._id} item={item} />
+              ))}
+            </div>
           </div>
         )}
 
