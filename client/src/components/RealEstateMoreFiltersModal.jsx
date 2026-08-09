@@ -824,7 +824,7 @@ export default function RealEstateMoreFiltersModal({
               </FilterRow>
             )}
 
-            {repairOptions.length > 0 && (
+            {repairOptions.length > 0 && !isDaily && (
               <FilterRow label="Ремонт">
                 <MultiPillGroup
                   values={draft.specs?.["Ремонт"] || ""}
@@ -874,7 +874,7 @@ export default function RealEstateMoreFiltersModal({
               </FilterRow>
             )}
 
-            {showFloor && (
+            {showFloor && !isDaily && (
               <FilterRow label="Высота потолков">
                 <MultiPillGroup
                   values={draft.specs?.["Высота потолков"] || ""}
