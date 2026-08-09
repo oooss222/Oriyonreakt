@@ -730,6 +730,7 @@ export default function RealEstateMoreFiltersModal({
               </FilterRow>
             )}
 
+            {!isDaily && (
             <FilterRow label="Общая площадь">
               <AreaRangeSelects
                 from={draft.areaFrom}
@@ -742,6 +743,7 @@ export default function RealEstateMoreFiltersModal({
                 }
               />
             </FilterRow>
+            )}
 
             {showFloor && !isDaily && (
               <>
