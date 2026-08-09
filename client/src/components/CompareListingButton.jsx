@@ -6,28 +6,45 @@ import {
   toggleCompareId,
   isInCompare,
   COMPARE_MAX,
+  isCompareSupported,
 } from "../lib/compareListings";
+import { getComparePath } from "../lib/compareConfig";
 
-export default function CompareListingButton({ listingId, className = "" }) {
-  const [active, setActive] = React.useState(() => isInCompare(listingId));
-  const [count, setCount] = React.useState(() => readCompareIds().length);
+export default function CompareListingButton({
+  listingId,
+  cat = "realestate",
+  className = "",
+  compact = false,
+}) {
+  const supported = isCompareSupported(cat);
+  const [active, setActive] = React.useState(() =>
+    supported ? isInCompare(listingId, cat) : false
+  );
+  const [count, setCount] = React.useState(() =>
+    supported ? readCompareIds(cat).length : 0
+  );
 
   React.useEffect(() => {
+    if (!supported) return undefined;
+
     const sync = () => {
-      setActive(isInCompare(listingId));
-      setCount(readCompareIds().length);
+      setActive(isInCompare(listingId, cat));
+      setCount(readCompareIds(cat).length);
     };
 
     sync();
     window.addEventListener("oriyon:compare-change", sync);
     return () => window.removeEventListener("oriyon:compare-change", sync);
-  }, [listingId]);
+  }, [listingId, cat, supported]);
+
+  if (!supported || !listingId) return null;
+
+  const comparePath = getComparePath(cat);
 
   const toggle = (event) => {
     event.preventDefault();
     event.stopPropagation();
-    if (!listingId) return;
-    toggleCompareId(listingId);
+    toggleCompareId(listingId, cat);
   };
 
   return (
@@ -35,19 +52,21 @@ export default function CompareListingButton({ listingId, className = "" }) {
       <button
         type="button"
         onClick={toggle}
-        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition ${
+        className={`inline-flex items-center gap-1.5 rounded-xl border font-semibold transition ${
+          compact ? "px-2 py-1 text-[10px]" : "px-3 py-1.5 text-xs"
+        } ${
           active
             ? "bg-slate-900 text-white border-slate-900"
             : "bg-white hover:bg-slate-50"
         }`}
       >
-        <Scale size={14} />
+        <Scale size={compact ? 12 : 14} />
         {active ? "В сравнении" : "Сравнить"}
       </button>
 
-      {count > 0 && (
+      {count > 0 && !compact && (
         <Link
-          to="/realestate/sravnenie"
+          to={comparePath}
           onClick={(e) => e.stopPropagation()}
           className="text-xs font-semibold text-sun hover:text-sun-600"
         >

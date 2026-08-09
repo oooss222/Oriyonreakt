@@ -169,6 +169,12 @@ export const api = {
   listingById: (id) =>
     request(`/listings/${id}`),
 
+  compareImport: (body) =>
+    request("/compare/import", {
+      method: "POST",
+      body,
+    }),
+
   developments: (city = "") =>
     request(`/developments${city ? `?city=${encodeURIComponent(city)}` : ""}`),
 

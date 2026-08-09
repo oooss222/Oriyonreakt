@@ -17,7 +17,9 @@ import {
   getPromotionCardClass,
   getPromotionMediaClass,
 } from "../lib/promotionStyles";
-import { Search, FolderOpen, MapPin } from "lucide-react";
+import { Search, FolderOpen, MapPin, Scale, ArrowRight } from "lucide-react";
+import { readCompareIds, COMPARE_MAX, isCompareSupported } from "../lib/compareListings";
+import { getComparePath } from "../lib/compareConfig";
 
 const PREVIEW_LIMIT = 6;
 
@@ -39,6 +41,17 @@ export default function Category() {
   const [stats, setStats] = React.useState({ total: 0, bySubcategory: {} });
   const [preview, setPreview] = React.useState([]);
   const [loadingPreview, setLoadingPreview] = React.useState(true);
+  const [compareCount, setCompareCount] = React.useState(() =>
+    isCompareSupported(slug) ? readCompareIds(slug).length : 0
+  );
+
+  React.useEffect(() => {
+    if (!isCompareSupported(slug)) return undefined;
+
+    const sync = () => setCompareCount(readCompareIds(slug).length);
+    window.addEventListener("oriyon:compare-change", sync);
+    return () => window.removeEventListener("oriyon:compare-change", sync);
+  }, [slug]);
 
   const subs = React.useMemo(() => {
     if (!cat) return [];
@@ -123,6 +136,19 @@ export default function Category() {
       />
 
       <CategoryHero cat={cat} slug={slug} total={stats.total} />
+
+      {isCompareSupported(slug) && compareCount > 0 && (
+        <Link
+          to={getComparePath(slug)}
+          className="flex items-center justify-between gap-3 rounded-2xl border border-slate-900/10 bg-slate-900 px-4 py-3.5 text-white hover:bg-slate-800 transition shadow-sm"
+        >
+          <span className="inline-flex items-center gap-2 text-sm font-semibold">
+            <Scale size={18} className="text-sun" />
+            Сравнение · {compareCount}/{COMPARE_MAX}
+          </span>
+          <ArrowRight size={18} className="text-white/70" />
+        </Link>
+      )}
 
       {slug === "transport" && (
         <AdSlot

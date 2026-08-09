@@ -1,6 +1,6 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { createBrowserRouter, RouterProvider, useParams } from "react-router-dom";
 
 import App from "./shell/App.jsx";
 import Messages from "./pages/Messages.jsx";
@@ -17,9 +17,15 @@ import Seller from "./pages/Seller.jsx";
 import Admin from "./pages/Admin.jsx";
 import RealEstate from "./pages/RealEstate.jsx";
 import RealEstateCompare from "./pages/RealEstateCompare.jsx";
+import ListingCompare from "./pages/ListingCompare.jsx";
 import RealEstateDevelopment from "./pages/RealEstateDevelopment.jsx";
 
 import "./styles/index.css";
+
+function CategoryCompareRoute() {
+  const { slug } = useParams();
+  return <ListingCompare cat={slug} />;
+}
 
 function NotFound() {
   return (
@@ -86,6 +92,10 @@ const router = createBrowserRouter([
       {
         path: "c/:slug",
         element: <Category />,
+      },
+      {
+        path: "c/:slug/sravnenie",
+        element: <CategoryCompareRoute />,
       },
       {
         path: "realestate",

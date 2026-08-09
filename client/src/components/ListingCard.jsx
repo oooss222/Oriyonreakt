@@ -1,7 +1,9 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import CompareListingButton from "./CompareListingButton";
 import FavoriteButton from "./FavoriteButton";
 import ListingCardOverlays from "./ListingCardOverlays";
+import { isCompareSupported } from "../lib/compareListings";
 import BusinessBadge from "./BusinessBadge";
 import { getListingThumb } from "../lib/media";
 import { formatPrice } from "../lib/format";
@@ -13,6 +15,8 @@ import {
 export default function ListingCard({ item, onFav }) {
   const nav = useNavigate();
   const listingId = item?.id || item?._id;
+  const cat = item?.cat || "";
+  const showCompare = isCompareSupported(cat);
   const morePhotos = Math.max(0, (item?.images?.length || 0) - 1);
 
   const openAd = () => {
@@ -75,12 +79,17 @@ export default function ListingCard({ item, onFav }) {
             {formatPrice(item.price)}
           </strong>
 
-          <FavoriteButton
-            id={listingId}
-            defaultActive={item.isFavorite}
-            onChange={(active) => onFav?.(listingId, active)}
-            compact
-          />
+          <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+            {showCompare && (
+              <CompareListingButton listingId={listingId} cat={cat} compact />
+            )}
+            <FavoriteButton
+              id={listingId}
+              defaultActive={item.isFavorite}
+              onChange={(active) => onFav?.(listingId, active)}
+              compact
+            />
+          </div>
         </div>
       </div>
     </div>

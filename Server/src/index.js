@@ -70,6 +70,8 @@ app.use("/api/upload", require("./routes/upload"));
 
 app.use("/api/listings", require("./routes/listings"));
 
+app.use("/api/compare", require("./routes/compare"));
+
 app.use("/api/events", require("./routes/events"));
 
 app.use("/api/recommendations", require("./routes/recommendations"));

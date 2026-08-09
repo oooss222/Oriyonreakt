@@ -3,6 +3,7 @@ import { useSearchParams, useNavigate, useParams, useLocation } from "react-rout
 import { api } from "../lib/api";
 import { getUserFacingErrorMessage } from "../lib/apiError";
 import FavoriteButton from "../components/FavoriteButton";
+import CompareListingButton from "../components/CompareListingButton";
 import ListingGridSkeleton from "../components/ListingGridSkeleton";
 import EmptyState from "../components/EmptyState";
 import Breadcrumbs from "../components/Breadcrumbs";
@@ -38,6 +39,7 @@ import {
   getPromotionMediaClass,
 } from "../lib/promotionStyles";
 import { CATS, parseSpecsParam } from "../data/listingCategories";
+import { isCompareSupported } from "../lib/compareListings";
 import { resolveLegacyCategoryFilters } from "../data/categoryConsolidation";
 import { REAL_ESTATE_CAT } from "../data/realEstate";
 import { sanitizeRealEstateDraft } from "../lib/filterConflicts";
@@ -972,11 +974,23 @@ export default function Listing() {
                       {formatPrice(ad.price)}
                     </div>
 
-                    <FavoriteButton
-                      id={id}
-                      defaultActive={ad.isFavorite}
-                      compact
-                    />
+                    <div
+                      className="flex items-center gap-1"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {isCompareSupported(ad.cat || activeCat) && (
+                        <CompareListingButton
+                          listingId={id}
+                          cat={ad.cat || activeCat}
+                          compact
+                        />
+                      )}
+                      <FavoriteButton
+                        id={id}
+                        defaultActive={ad.isFavorite}
+                        compact
+                      />
+                    </div>
                   </div>
 
                   <div className="text-xs text-ink-400 line-clamp-1 flex items-center gap-1">

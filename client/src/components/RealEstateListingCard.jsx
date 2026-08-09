@@ -154,7 +154,7 @@ export default function RealEstateListingCard({
 
         <div className="mt-auto pt-2 flex items-center justify-between gap-2">
           <div onClick={(e) => e.stopPropagation()}>
-            <CompareListingButton listingId={id} />
+            <CompareListingButton listingId={id} cat="realestate" />
           </div>
 
           <FavoriteButton

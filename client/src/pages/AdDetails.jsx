@@ -25,12 +25,15 @@ import AdListingHeader from "../components/ad/AdListingHeader";
 import AdStickyAside from "../components/ad/AdStickyAside";
 import AdPurchasePanel from "../components/ad/AdPurchasePanel";
 import RealEstateHighlights from "../components/RealEstateHighlights";
+import CompareListingButton from "../components/CompareListingButton";
+import PriceAdequacyBadge from "../components/PriceAdequacyBadge";
 import Breadcrumbs from "../components/Breadcrumbs";
 import EmptyState from "../components/EmptyState";
 import AdSlot from "../components/AdSlot";
 import { PromotionBadgeGroup } from "../components/PromotionBadge";
 import { CAT_LABELS } from "../data/listingCategories";
 import { enrichRealEstateListing, getSpecValue, isRealEstateListing } from "../lib/realEstate";
+import { isCompareSupported } from "../lib/compareListings";
 import { REPORT_REASONS } from "../data/reportReasons";
 
 const TOKEN_KEY = "auth_token";
@@ -837,10 +840,13 @@ export default function AdDetails() {
 
             {isRealEstateListing(ad) && <RealEstateHighlights ad={ad} />}
 
-            {isRealEstateListing(ad) && (
+            {(isRealEstateListing(ad) || isCompareSupported(ad?.cat)) && (
               <div className="space-y-3">
-                <PriceAdequacyBadge item={ad} />
-                <CompareListingButton listingId={ad.id || ad._id} />
+                {isRealEstateListing(ad) && <PriceAdequacyBadge item={ad} />}
+                <CompareListingButton
+                  listingId={ad.id || ad._id}
+                  cat={isRealEstateListing(ad) ? "realestate" : ad.cat}
+                />
               </div>
             )}
 
