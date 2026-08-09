@@ -2,14 +2,10 @@ import React from "react";
 import { Link, useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import {
   Search,
-  User,
-  Plus,
   Heart,
-  Wallet,
   Scale,
-  LogIn,
   MessageCircle,
-  ClipboardCheck,
+  ArrowRight,
 } from "lucide-react";
 
 import { api } from "../lib/api";
@@ -31,35 +27,47 @@ import {
 import CategoryStrip from "./CategoryStrip";
 import HeaderSearchSuggestions from "./HeaderSearchSuggestions";
 
-function NavIcon({ to, title, children, badge, className = "" }) {
+function TextNavLink({ to, children, badge = 0 }) {
   return (
     <Link
       to={to}
-      title={title}
-      className={`relative grid h-9 w-9 place-items-center rounded-lg text-white/80 transition hover:bg-white/10 hover:text-white ${className}`}
+      className="relative hidden items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm font-medium text-white/75 transition hover:bg-white/8 hover:text-white md:inline-flex"
     >
       {children}
-      {badge}
+      {badge > 0 && (
+        <span className="min-w-[18px] rounded-full bg-sun px-1.5 py-0.5 text-center text-[10px] font-bold text-white">
+          {badge > 99 ? "99+" : badge}
+        </span>
+      )}
     </Link>
   );
 }
 
-function CountBadge({ count, tone = "sun" }) {
-  if (!count) return null;
+function UserAvatar({ user, token }) {
+  const initial = String(user?.name || user?.email || "G")
+    .trim()
+    .charAt(0)
+    .toUpperCase();
 
-  const toneClass =
-    tone === "red"
-      ? "bg-red-500"
-      : tone === "amber"
-        ? "bg-amber-500"
-        : "bg-sun";
+  if (!token) {
+    return (
+      <Link
+        to="/auth"
+        className="inline-flex h-10 items-center rounded-xl px-3.5 text-sm font-semibold text-white/90 ring-1 ring-white/15 transition hover:bg-white/10"
+      >
+        Войти
+      </Link>
+    );
+  }
 
   return (
-    <span
-      className={`absolute -top-0.5 -right-0.5 min-w-[17px] h-[17px] px-1 rounded-full ${toneClass} text-white text-[10px] font-bold flex items-center justify-center ring-2 ring-ink-800`}
+    <Link
+      to="/profile?tab=profile"
+      title={user?.name || "Профиль"}
+      className="grid h-10 w-10 place-items-center rounded-full bg-gradient-to-br from-sun to-sun-600 text-sm font-bold text-white ring-2 ring-white/15 transition hover:ring-sun/50"
     >
-      {count > 99 ? "99+" : count}
-    </span>
+      {initial}
+    </Link>
   );
 }
 
@@ -134,8 +142,6 @@ export default function Header({ variant = "full" }) {
       pathname.startsWith("/realestate/") ||
       pathname.startsWith("/c/"));
 
-  const compactCategories = pathname !== "/" || scrolled;
-
   const loadUnread = React.useCallback(async () => {
     if (!token || onMessagesPage) {
       setUnreadCount(0);
@@ -151,7 +157,7 @@ export default function Header({ variant = "full" }) {
   }, [token, onMessagesPage]);
 
   React.useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 32);
+    const onScroll = () => setScrolled(window.scrollY > 24);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
@@ -199,7 +205,7 @@ export default function Header({ variant = "full" }) {
   }, []);
 
   const listingsCountLabel = React.useMemo(() => {
-    if (!catalogTotal) return "Поиск объявлений";
+    if (!catalogTotal) return "Что ищете?";
     return `Поиск среди ${catalogTotal.toLocaleString("ru-RU")} объявлений`;
   }, [catalogTotal]);
 
@@ -231,16 +237,18 @@ export default function Header({ variant = "full" }) {
     />
   );
 
-  const searchField = (compact = false) => (
-    <div
-      className={`relative w-full ${
-        compact ? "min-w-0" : "max-w-2xl mx-auto"
-      }`}
-    >
-      <div className="flex h-10 items-center overflow-hidden rounded-xl bg-ink-900/70 ring-1 ring-white/10 transition focus-within:ring-2 focus-within:ring-sun/40 lg:h-11">
-        <Search size={17} className="ml-3 shrink-0 text-white/35" />
+  const searchPanel = (compact = false) => (
+    <div className={`relative w-full ${compact ? "min-w-0" : ""}`}>
+      <div
+        className={`flex items-center gap-2 rounded-2xl bg-white shadow-[0_8px_30px_rgb(0_0_0_/_0.12)] ring-1 ring-black/5 transition focus-within:ring-2 focus-within:ring-sun/40 ${
+          compact ? "p-1" : "p-1.5"
+        }`}
+      >
+        <Search size={compact ? 18 : 20} className="ml-2 shrink-0 text-ink-300" />
         <input
-          className="min-w-0 flex-1 bg-transparent px-2.5 text-sm text-white outline-none placeholder:text-white/35"
+          className={`min-w-0 flex-1 bg-transparent text-ink outline-none placeholder:text-ink-300 ${
+            compact ? "h-10 text-sm" : "h-11 text-[15px]"
+          }`}
           value={q}
           onFocus={() => setShowSuggestions(true)}
           onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
@@ -254,157 +262,135 @@ export default function Header({ variant = "full" }) {
         <button
           type="button"
           onClick={go}
-          className="mr-1 inline-flex h-8 shrink-0 items-center rounded-lg bg-sun px-3.5 text-sm font-semibold text-white transition hover:bg-sun-600 lg:h-9 lg:px-4"
+          className={`inline-flex shrink-0 items-center gap-1.5 rounded-xl bg-sun font-semibold text-white transition hover:bg-sun-600 ${
+            compact ? "h-10 px-3.5 text-sm" : "h-11 px-5 text-sm"
+          }`}
         >
           Найти
+          {!compact && <ArrowRight size={16} />}
         </button>
       </div>
       {suggestionList}
     </div>
   );
 
-  const actionIcons = isMinimal ? (
-    <>
-      <Link
-        to={comparePath}
-        className="hidden rounded-lg px-3 py-2 text-sm font-medium text-white/80 transition hover:bg-white/10 hover:text-white sm:inline"
-      >
-        Сравнение{compareCount > 0 ? ` (${compareCount})` : ""}
-      </Link>
-      <Link
-        to="/"
-        className="rounded-lg px-3 py-2 text-sm font-medium text-white/80 transition hover:bg-white/10 hover:text-white"
-      >
-        На главную
-      </Link>
-    </>
-  ) : (
-    <>
-      <NavIcon to="/profile?tab=fav" title="Избранное">
-        <Heart size={18} />
-      </NavIcon>
-
-      <NavIcon to="/messages" title="Сообщения" badge={<CountBadge count={badgeCount} tone="red" />}>
-        <MessageCircle size={18} />
-      </NavIcon>
-
-      <NavIcon
-        to={comparePath}
-        title={compareCount > 0 ? `Сравнение · ${compareCount}` : "Сравнение"}
-        badge={<CountBadge count={compareCount} />}
-      >
-        <Scale size={18} className="text-sun" />
-      </NavIcon>
-
-      {canModerate && (
-        <NavIcon
-          to="/admin?section=moderation"
-          title="Модерация"
-          badge={<CountBadge count={moderationCount} tone="amber" />}
-        >
-          <ClipboardCheck size={18} />
-        </NavIcon>
-      )}
-
-      {token ? (
-        <>
-          <NavIcon to="/profile?tab=wallet" title="Кошелёк" className="hidden xl:grid">
-            <Wallet size={18} />
-          </NavIcon>
-          <NavIcon to="/profile?tab=profile" title={user?.name || "Профиль"}>
-            <User size={18} />
-          </NavIcon>
-        </>
-      ) : (
-        <NavIcon to="/auth" title="Войти">
-          <LogIn size={18} />
-        </NavIcon>
-      )}
-    </>
-  );
-
   return (
-    <>
-      <header className="sticky top-0 z-50 border-b border-white/5 bg-ink-800/95 text-white shadow-[0_8px_30px_rgb(0_0_0_/_0.18)] backdrop-blur-md">
-        <div className="container mx-auto px-3 sm:px-4 lg:px-6">
-          {/* Desktop */}
-          <div
-            className={`hidden lg:grid lg:grid-cols-[auto_minmax(0,1fr)_auto] lg:items-center lg:gap-5 transition-all duration-300 ${
-              scrolled ? "h-[60px]" : "h-[68px]"
-            }`}
-          >
-            <Link to="/" className="group flex min-w-0 items-center gap-2.5 shrink-0">
-              <img
-                src="/oriyon.store.png"
-                alt="Oriyon Store"
-                className={`object-contain transition-transform duration-300 group-hover:scale-105 ${
-                  scrolled ? "h-9 w-9" : "h-10 w-10"
-                }`}
-              />
-              <span
-                className={`brand-wordmark truncate transition-all duration-300 ${
-                  scrolled ? "text-base" : "text-lg"
-                }`}
-              >
-                Oriyon
-                <span className="text-sun">.</span>
-                <span className="text-[0.82em] font-semibold text-white/65">store</span>
-              </span>
-            </Link>
+    <header className="sticky top-0 z-50 bg-[#141312] text-white">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-sun/60 to-transparent" />
 
-            {!isMinimal ? (
-              <div className="min-w-0 px-2">{searchField(false)}</div>
-            ) : (
-              <div aria-hidden="true" />
-            )}
+      <div className="container mx-auto px-3 sm:px-4 lg:px-6">
+        {/* Top bar */}
+        <div className="flex h-14 items-center justify-between gap-3 lg:h-[58px]">
+          <Link to="/" className="group flex shrink-0 items-center gap-2.5 min-w-0">
+            <img
+              src="/oriyon.store.png"
+              alt="Oriyon Store"
+              className="h-9 w-9 object-contain transition group-hover:scale-105 lg:h-10 lg:w-10"
+            />
+            <span className="brand-wordmark hidden truncate text-lg sm:block">
+              Oriyon
+              <span className="text-sun">.</span>
+              <span className="text-[0.82em] font-semibold text-white/55">store</span>
+            </span>
+          </Link>
 
-            <div className="flex shrink-0 items-center gap-2">
-              {!isMinimal && (
-                <Link
-                  to="/add"
-                  className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-sun px-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-sun-600 xl:px-4"
-                  title="Добавить объявление"
-                >
-                  <Plus size={17} strokeWidth={2.5} />
-                  <span className="hidden xl:inline">Добавить</span>
-                </Link>
-              )}
-
-              <div className="flex items-center gap-0.5 rounded-xl bg-white/[0.04] p-0.5 ring-1 ring-white/8">
-                {actionIcons}
-              </div>
-            </div>
-          </div>
-
-          {/* Mobile */}
-          {!isMinimal ? (
-            <div className="flex items-center gap-2 py-2.5 lg:hidden">
-              <Link to="/" className="shrink-0" aria-label="На главную">
-                <img src="/oriyon.store.png" alt="" className="h-9 w-9 object-contain" />
-              </Link>
-              <div className="min-w-0 flex-1">{searchField(true)}</div>
+          {isMinimal ? (
+            <div className="flex items-center gap-2">
               <Link
-                to="/add"
-                className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-sun text-white shadow-sm"
-                title="Добавить объявление"
+                to={comparePath}
+                className="text-sm font-medium text-white/75 hover:text-white"
               >
-                <Plus size={20} strokeWidth={2.5} />
+                Сравнение
+              </Link>
+              <Link to="/" className="text-sm font-medium text-white/75 hover:text-white">
+                На главную
               </Link>
             </div>
           ) : (
-            <div className="flex items-center justify-between gap-3 py-2.5 lg:hidden">
-              <Link to="/" className="shrink-0" aria-label="На главную">
-                <img src="/oriyon.store.png" alt="" className="h-9 w-9 object-contain" />
+            <div className="flex items-center gap-1 sm:gap-2">
+              <div className="hidden md:contents">
+                <TextNavLink to="/profile?tab=fav" badge={0}>
+                  <Heart size={16} />
+                  Избранное
+                </TextNavLink>
+
+                <TextNavLink to="/messages" badge={badgeCount}>
+                  <MessageCircle size={16} />
+                  Сообщения
+                </TextNavLink>
+
+                <TextNavLink to={comparePath} badge={compareCount}>
+                  <Scale size={16} />
+                  Сравнение
+                </TextNavLink>
+
+                {canModerate && (
+                  <Link
+                    to="/admin?section=moderation"
+                    className="relative hidden items-center rounded-lg px-2.5 py-1.5 text-sm font-medium text-amber-300/90 transition hover:bg-white/8 lg:inline-flex"
+                  >
+                    Модерация
+                    {moderationCount > 0 && (
+                      <span className="ml-1.5 rounded-full bg-amber-500 px-1.5 py-0.5 text-[10px] font-bold text-white">
+                        {moderationCount}
+                      </span>
+                    )}
+                  </Link>
+                )}
+
+                <UserAvatar user={user} token={token} />
+              </div>
+
+              <Link
+                to="/add"
+                className="ml-1 inline-flex h-10 items-center rounded-xl bg-sun px-3.5 text-sm font-semibold text-white shadow-[0_4px_14px_rgb(255_106_0_/_0.35)] transition hover:bg-sun-600 sm:px-4"
+              >
+                <span className="hidden sm:inline">Подать объявление</span>
+                <span className="sm:hidden">Подать</span>
               </Link>
-              <div className="flex items-center gap-2">{actionIcons}</div>
             </div>
           )}
         </div>
 
-        {isBrowsePage && (
-          <CategoryStrip compact={compactCategories} dense={scrolled} />
+        {/* Search hero strip */}
+        {!isMinimal && (
+          <div
+            className={`transition-all duration-300 ${
+              scrolled ? "pb-2 pt-0" : "pb-3 pt-0 lg:pb-4"
+            }`}
+          >
+            {searchPanel(false)}
+          </div>
         )}
-      </header>
-    </>
+
+        {/* Mobile compact search when scrolled - hide duplicate, always show search above */}
+      </div>
+
+      {isBrowsePage && <CategoryStrip scrolled={scrolled} />}
+
+      {/* Mobile-only second row for quick icons when not minimal */}
+      {!isMinimal && (
+        <div className="flex items-center justify-between gap-2 border-t border-white/5 px-3 py-2 md:hidden">
+          <div className="flex items-center gap-1">
+            <Link to="/profile?tab=fav" className="rounded-lg p-2 text-white/75 hover:bg-white/8">
+              <Heart size={18} />
+            </Link>
+            <Link to="/messages" className="relative rounded-lg p-2 text-white/75 hover:bg-white/8">
+              <MessageCircle size={18} />
+              {badgeCount > 0 && (
+                <span className="absolute right-0.5 top-0.5 h-2 w-2 rounded-full bg-red-500" />
+              )}
+            </Link>
+            <Link to={comparePath} className="relative rounded-lg p-2 text-white/75 hover:bg-white/8">
+              <Scale size={18} />
+              {compareCount > 0 && (
+                <span className="absolute right-0.5 top-0.5 h-2 w-2 rounded-full bg-sun" />
+              )}
+            </Link>
+          </div>
+          <UserAvatar user={user} token={token} />
+        </div>
+      )}
+    </header>
   );
 }
