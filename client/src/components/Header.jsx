@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams, useLocation } from "react-router-do
 import {
   Search,
   User,
-  PlusCircle,
+  Plus,
   Heart,
   Wallet,
   Scale,
@@ -30,6 +30,38 @@ import {
 } from "../lib/unread";
 import CategoryStrip from "./CategoryStrip";
 import HeaderSearchSuggestions from "./HeaderSearchSuggestions";
+
+function NavIcon({ to, title, children, badge, className = "" }) {
+  return (
+    <Link
+      to={to}
+      title={title}
+      className={`relative grid h-9 w-9 place-items-center rounded-lg text-white/80 transition hover:bg-white/10 hover:text-white ${className}`}
+    >
+      {children}
+      {badge}
+    </Link>
+  );
+}
+
+function CountBadge({ count, tone = "sun" }) {
+  if (!count) return null;
+
+  const toneClass =
+    tone === "red"
+      ? "bg-red-500"
+      : tone === "amber"
+        ? "bg-amber-500"
+        : "bg-sun";
+
+  return (
+    <span
+      className={`absolute -top-0.5 -right-0.5 min-w-[17px] h-[17px] px-1 rounded-full ${toneClass} text-white text-[10px] font-bold flex items-center justify-center ring-2 ring-ink-800`}
+    >
+      {count > 99 ? "99+" : count}
+    </span>
+  );
+}
 
 export default function Header({ variant = "full" }) {
   const nav = useNavigate();
@@ -97,12 +129,12 @@ export default function Header({ variant = "full" }) {
   const isBrowsePage =
     !isMinimal &&
     (pathname === "/" ||
-    pathname === "/listing" ||
-    pathname === "/realestate" ||
-    pathname.startsWith("/realestate/") ||
-    pathname.startsWith("/c/"));
+      pathname === "/listing" ||
+      pathname === "/realestate" ||
+      pathname.startsWith("/realestate/") ||
+      pathname.startsWith("/c/"));
 
-  const compactCategories = pathname !== "/";
+  const compactCategories = pathname !== "/" || scrolled;
 
   const loadUnread = React.useCallback(async () => {
     if (!token || onMessagesPage) {
@@ -119,7 +151,7 @@ export default function Header({ variant = "full" }) {
   }, [token, onMessagesPage]);
 
   React.useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 48);
+    const onScroll = () => setScrolled(window.scrollY > 32);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
@@ -154,16 +186,13 @@ export default function Header({ variant = "full" }) {
     async function loadCount() {
       try {
         const data = await api.listingCount({});
-        if (active) {
-          setCatalogTotal(Number(data?.total || 0));
-        }
+        if (active) setCatalogTotal(Number(data?.total || 0));
       } catch {
         if (active) setCatalogTotal(0);
       }
     }
 
     loadCount();
-
     return () => {
       active = false;
     };
@@ -202,264 +231,180 @@ export default function Header({ variant = "full" }) {
     />
   );
 
-  const navIconClass =
-    "relative grid place-items-center w-10 h-10 rounded-xl text-white/85 hover:bg-white/10 hover:text-white transition";
-
   const searchField = (compact = false) => (
     <div
-      className={`relative flex items-center w-full rounded-xl bg-ink-600 overflow-visible ring-1 ring-white/10 focus-within:ring-sun/70 transition ${
-        compact ? "min-w-0" : ""
+      className={`relative w-full ${
+        compact ? "min-w-0" : "max-w-2xl mx-auto"
       }`}
     >
-      <div className="flex items-center w-full rounded-xl overflow-hidden bg-ink-600">
-      <Search size={18} className="text-ink-300 shrink-0 ml-3" />
-
-      <input
-        className={`flex-1 outline-none bg-transparent text-sm text-white placeholder:text-ink-300 px-2 min-w-0 ${
-          compact ? "h-10" : "h-10 lg:h-11"
-        }`}
-        value={q}
-        onFocus={() => setShowSuggestions(true)}
-        onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
-        onChange={(e) => {
-          setQ(e.target.value);
-          setShowSuggestions(true);
-        }}
-        onKeyDown={(e) => e.key === "Enter" && go()}
-        placeholder={listingsCountLabel}
-      />
-
-      <button
-        type="button"
-        onClick={go}
-        className={`bg-sun hover:bg-sun-600 text-white text-sm font-semibold transition shrink-0 ${
-          compact ? "h-10 px-3.5" : "h-10 lg:h-11 px-4 lg:px-5"
-        }`}
-      >
-        Найти
-      </button>
+      <div className="flex h-10 items-center overflow-hidden rounded-xl bg-ink-900/70 ring-1 ring-white/10 transition focus-within:ring-2 focus-within:ring-sun/40 lg:h-11">
+        <Search size={17} className="ml-3 shrink-0 text-white/35" />
+        <input
+          className="min-w-0 flex-1 bg-transparent px-2.5 text-sm text-white outline-none placeholder:text-white/35"
+          value={q}
+          onFocus={() => setShowSuggestions(true)}
+          onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+          onChange={(e) => {
+            setQ(e.target.value);
+            setShowSuggestions(true);
+          }}
+          onKeyDown={(e) => e.key === "Enter" && go()}
+          placeholder={listingsCountLabel}
+        />
+        <button
+          type="button"
+          onClick={go}
+          className="mr-1 inline-flex h-8 shrink-0 items-center rounded-lg bg-sun px-3.5 text-sm font-semibold text-white transition hover:bg-sun-600 lg:h-9 lg:px-4"
+        >
+          Найти
+        </button>
       </div>
-
       {suggestionList}
     </div>
   );
 
+  const actionIcons = isMinimal ? (
+    <>
+      <Link
+        to={comparePath}
+        className="hidden rounded-lg px-3 py-2 text-sm font-medium text-white/80 transition hover:bg-white/10 hover:text-white sm:inline"
+      >
+        Сравнение{compareCount > 0 ? ` (${compareCount})` : ""}
+      </Link>
+      <Link
+        to="/"
+        className="rounded-lg px-3 py-2 text-sm font-medium text-white/80 transition hover:bg-white/10 hover:text-white"
+      >
+        На главную
+      </Link>
+    </>
+  ) : (
+    <>
+      <NavIcon to="/profile?tab=fav" title="Избранное">
+        <Heart size={18} />
+      </NavIcon>
+
+      <NavIcon to="/messages" title="Сообщения" badge={<CountBadge count={badgeCount} tone="red" />}>
+        <MessageCircle size={18} />
+      </NavIcon>
+
+      <NavIcon
+        to={comparePath}
+        title={compareCount > 0 ? `Сравнение · ${compareCount}` : "Сравнение"}
+        badge={<CountBadge count={compareCount} />}
+      >
+        <Scale size={18} className="text-sun" />
+      </NavIcon>
+
+      {canModerate && (
+        <NavIcon
+          to="/admin?section=moderation"
+          title="Модерация"
+          badge={<CountBadge count={moderationCount} tone="amber" />}
+        >
+          <ClipboardCheck size={18} />
+        </NavIcon>
+      )}
+
+      {token ? (
+        <>
+          <NavIcon to="/profile?tab=wallet" title="Кошелёк" className="hidden xl:grid">
+            <Wallet size={18} />
+          </NavIcon>
+          <NavIcon to="/profile?tab=profile" title={user?.name || "Профиль"}>
+            <User size={18} />
+          </NavIcon>
+        </>
+      ) : (
+        <NavIcon to="/auth" title="Войти">
+          <LogIn size={18} />
+        </NavIcon>
+      )}
+    </>
+  );
+
   return (
     <>
-      <header className="sticky top-0 z-50 bg-ink-700 text-white border-b border-white/5 shadow-soft">
+      <header className="sticky top-0 z-50 border-b border-white/5 bg-ink-800/95 text-white shadow-[0_8px_30px_rgb(0_0_0_/_0.18)] backdrop-blur-md">
         <div className="container mx-auto px-3 sm:px-4 lg:px-6">
-        <div
-          className={`hidden lg:flex items-center gap-3 xl:gap-4 transition-all duration-300 ${
-            scrolled ? "h-14" : "h-16 lg:h-[72px]"
-          }`}
-        >
-          <Link to="/" className="flex items-center gap-2.5 group shrink-0 min-w-0">
-            <span className="grid place-items-center rounded-xl bg-white/5 ring-1 ring-white/10 p-1">
+          {/* Desktop */}
+          <div
+            className={`hidden lg:grid lg:grid-cols-[auto_minmax(0,1fr)_auto] lg:items-center lg:gap-5 transition-all duration-300 ${
+              scrolled ? "h-[60px]" : "h-[68px]"
+            }`}
+          >
+            <Link to="/" className="group flex min-w-0 items-center gap-2.5 shrink-0">
               <img
                 src="/oriyon.store.png"
                 alt="Oriyon Store"
-                className={`object-contain transition-all duration-300 group-hover:scale-105 ${
-                  scrolled ? "w-8 h-8" : "w-10 h-10"
+                className={`object-contain transition-transform duration-300 group-hover:scale-105 ${
+                  scrolled ? "h-9 w-9" : "h-10 w-10"
                 }`}
               />
-            </span>
-
-            <span
-              className={`brand-wordmark transition-all duration-300 truncate hidden xl:block ${
-                scrolled ? "text-base" : "text-lg"
-              }`}
-            >
-              Oriyon
-              <span className="text-sun">.</span>
-              <span className="text-white/70 font-semibold text-[0.85em]">store</span>
-            </span>
-          </Link>
-
-          <Link
-            to="/add"
-            className="inline-flex items-center gap-1.5 shrink-0 h-10 px-3 xl:px-3.5 rounded-xl border border-sun/50 text-sun text-sm font-semibold hover:bg-sun/10 transition"
-            title="Добавить объявление"
-          >
-            <PlusCircle size={17} />
-            <span className="hidden xl:inline">Добавить объявление</span>
-            <span className="hidden lg:inline xl:hidden">Добавить</span>
-          </Link>
-
-          {!isMinimal && (
-            <div className="flex-1 min-w-0 max-w-md xl:max-w-xl relative mx-1">
-              {searchField(false)}
-            </div>
-          )}
-
-          {isMinimal && (
-            <div className="flex-1" aria-hidden="true" />
-          )}
-
-          <nav className="flex items-center gap-0.5 shrink-0 rounded-2xl border border-white/10 bg-white/[0.04] p-0.5">
-            {isMinimal ? (
-              <>
-                <Link
-                  to={comparePath}
-                  className="hidden sm:inline px-3 py-2 rounded-lg text-sm font-medium text-white/80 hover:bg-white/10 hover:text-white transition"
-                >
-                  Сравнение
-                  {compareCount > 0 ? ` (${compareCount})` : ""}
-                </Link>
-                <Link
-                  to="/"
-                  className="px-3 py-2 rounded-lg text-sm font-medium text-white/80 hover:bg-white/10 hover:text-white transition"
-                >
-                  На главную
-                </Link>
-              </>
-            ) : (
-              <>
-            <Link
-              to="/profile?tab=fav"
-              className={navIconClass}
-              title="Избранное"
-            >
-              <Heart size={19} />
-            </Link>
-
-            <Link
-              to="/messages"
-              className={navIconClass}
-              title="Сообщения"
-            >
-              <MessageCircle size={19} />
-              {badgeCount > 0 && (
-                <span className="absolute top-0.5 right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">
-                  {badgeCount > 99 ? "99+" : badgeCount}
-                </span>
-              )}
-            </Link>
-
-            <Link
-              to={comparePath}
-              className={navIconClass}
-              title={
-                compareCount > 0
-                  ? `Сравнение · ${compareCount} объявлений`
-                  : "Сравнение"
-              }
-            >
-              <Scale size={19} className="text-sun" />
-              {compareCount > 0 && (
-                <span className="absolute top-0.5 right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-sun text-white text-[10px] font-bold flex items-center justify-center">
-                  {compareCount > 99 ? "99+" : compareCount}
-                </span>
-              )}
-            </Link>
-
-            {canModerate && (
-              <Link
-                to="/admin?section=moderation"
-                className={navIconClass}
-                title="Модерация"
+              <span
+                className={`brand-wordmark truncate transition-all duration-300 ${
+                  scrolled ? "text-base" : "text-lg"
+                }`}
               >
-                <ClipboardCheck size={19} />
-                {moderationCount > 0 && (
-                  <span className="absolute top-0.5 right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-amber-500 text-white text-[10px] font-bold flex items-center justify-center">
-                    {moderationCount > 99 ? "99+" : moderationCount}
-                  </span>
-                )}
-              </Link>
-            )}
-
-            {token ? (
-              <>
-                <Link
-                  to="/profile?tab=wallet"
-                  className={`${navIconClass} hidden xl:grid`}
-                  title="Кошелёк"
-                >
-                  <Wallet size={19} />
-                </Link>
-
-                <Link
-                  to="/profile?tab=profile"
-                  className={navIconClass}
-                  title={user?.name || "Профиль"}
-                >
-                  <User size={19} />
-                </Link>
-              </>
-            ) : (
-              <Link
-                to="/auth"
-                className={navIconClass}
-                title="Войти"
-              >
-                <LogIn size={19} />
-              </Link>
-            )}
-              </>
-            )}
-          </nav>
-        </div>
-
-        {!isMinimal ? (
-        <div className="lg:hidden pt-2 pb-2.5 relative">
-          <div className="flex items-center gap-2">
-            <Link to="/" className="shrink-0" aria-label="На главную">
-              <span className="grid place-items-center rounded-xl bg-white/5 ring-1 ring-white/10 p-1">
-                <img
-                  src="/oriyon.store.png"
-                  alt="Oriyon Store"
-                  className="w-8 h-8 object-contain"
-                />
+                Oriyon
+                <span className="text-sun">.</span>
+                <span className="text-[0.82em] font-semibold text-white/65">store</span>
               </span>
             </Link>
 
-            <div className="flex-1 min-w-0 relative">
-              {searchField(true)}
-            </div>
+            {!isMinimal ? (
+              <div className="min-w-0 px-2">{searchField(false)}</div>
+            ) : (
+              <div aria-hidden="true" />
+            )}
 
-            <Link
-              to={comparePath}
-              className={`${navIconClass} shrink-0`}
-              title="Сравнение"
-            >
-              <Scale size={19} className="text-sun" />
-              {compareCount > 0 && (
-                <span className="absolute top-0.5 right-0.5 min-w-[16px] h-[16px] px-0.5 rounded-full bg-sun text-white text-[9px] font-bold flex items-center justify-center">
-                  {compareCount > 99 ? "99+" : compareCount}
-                </span>
+            <div className="flex shrink-0 items-center gap-2">
+              {!isMinimal && (
+                <Link
+                  to="/add"
+                  className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-sun px-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-sun-600 xl:px-4"
+                  title="Добавить объявление"
+                >
+                  <Plus size={17} strokeWidth={2.5} />
+                  <span className="hidden xl:inline">Добавить</span>
+                </Link>
               )}
-            </Link>
-          </div>
-        </div>
-        ) : (
-          <div className="lg:hidden py-2.5 flex items-center justify-between gap-3">
-            <Link to="/" className="shrink-0" aria-label="На главную">
-              <img
-                src="/oriyon.store.png"
-                alt="Oriyon Store"
-                className="w-9 h-9 object-contain"
-              />
-            </Link>
-            <div className="flex items-center gap-2">
-              <Link
-                to={comparePath}
-                className="text-sm font-medium text-white/80 hover:text-white transition"
-              >
-                Сравнение
-                {compareCount > 0 ? ` (${compareCount})` : ""}
-              </Link>
-              <Link
-                to="/"
-                className="text-sm font-medium text-white/80 hover:text-white transition"
-              >
-                На главную
-              </Link>
+
+              <div className="flex items-center gap-0.5 rounded-xl bg-white/[0.04] p-0.5 ring-1 ring-white/8">
+                {actionIcons}
+              </div>
             </div>
           </div>
-        )}
-      </div>
-      </header>
 
-      {isBrowsePage && <CategoryStrip compact={compactCategories} />}
+          {/* Mobile */}
+          {!isMinimal ? (
+            <div className="flex items-center gap-2 py-2.5 lg:hidden">
+              <Link to="/" className="shrink-0" aria-label="На главную">
+                <img src="/oriyon.store.png" alt="" className="h-9 w-9 object-contain" />
+              </Link>
+              <div className="min-w-0 flex-1">{searchField(true)}</div>
+              <Link
+                to="/add"
+                className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-sun text-white shadow-sm"
+                title="Добавить объявление"
+              >
+                <Plus size={20} strokeWidth={2.5} />
+              </Link>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between gap-3 py-2.5 lg:hidden">
+              <Link to="/" className="shrink-0" aria-label="На главную">
+                <img src="/oriyon.store.png" alt="" className="h-9 w-9 object-contain" />
+              </Link>
+              <div className="flex items-center gap-2">{actionIcons}</div>
+            </div>
+          )}
+        </div>
+
+        {isBrowsePage && (
+          <CategoryStrip compact={compactCategories} dense={scrolled} />
+        )}
+      </header>
     </>
   );
 }
