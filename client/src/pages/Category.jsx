@@ -8,7 +8,6 @@ import ListingGridSkeleton from "../components/ListingGridSkeleton";
 import FavoriteButton from "../components/FavoriteButton";
 import CompareListingButton from "../components/CompareListingButton";
 import ListingCardOverlays from "../components/ListingCardOverlays";
-import { isCompareSupported } from "../lib/compareListings";
 import AdSlot from "../components/AdSlot";
 import { usePageMeta } from "../lib/usePageMeta";
 import { api } from "../lib/api";
@@ -20,7 +19,11 @@ import {
   getPromotionMediaClass,
 } from "../lib/promotionStyles";
 import { Search, FolderOpen, MapPin, Scale, ArrowRight } from "lucide-react";
-import { readCompareIds, COMPARE_MAX, isCompareSupported } from "../lib/compareListings";
+import {
+  readCompareIds,
+  COMPARE_MAX,
+  isCompareSupported,
+} from "../lib/compareListings";
 import { getComparePath } from "../lib/compareConfig";
 
 const PREVIEW_LIMIT = 6;
