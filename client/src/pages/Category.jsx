@@ -6,7 +6,9 @@ import CategoryHero from "../components/CategoryHero";
 import TransportQuickFilters from "../components/transport/TransportQuickFilters";
 import ListingGridSkeleton from "../components/ListingGridSkeleton";
 import FavoriteButton from "../components/FavoriteButton";
+import CompareListingButton from "../components/CompareListingButton";
 import ListingCardOverlays from "../components/ListingCardOverlays";
+import { isCompareSupported } from "../lib/compareListings";
 import AdSlot from "../components/AdSlot";
 import { usePageMeta } from "../lib/usePageMeta";
 import { api } from "../lib/api";
@@ -310,11 +312,19 @@ export default function Category() {
                         {formatPrice(ad.price)}
                       </div>
 
-                      <FavoriteButton
-                        id={id}
-                        defaultActive={ad.isFavorite}
-                        compact
-                      />
+                      <div
+                        className="flex items-center gap-1"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {isCompareSupported(slug) && (
+                          <CompareListingButton listingId={id} cat={slug} compact />
+                        )}
+                        <FavoriteButton
+                          id={id}
+                          defaultActive={ad.isFavorite}
+                          compact
+                        />
+                      </div>
                     </div>
 
                     <div className="text-xs text-ink-400 line-clamp-1 flex items-center gap-1">
