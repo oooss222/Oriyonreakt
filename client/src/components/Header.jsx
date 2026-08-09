@@ -6,7 +6,7 @@ import {
   PlusCircle,
   Heart,
   Wallet,
-  Grid3X3,
+  Scale,
   LogIn,
   MessageCircle,
   ClipboardCheck,
@@ -17,6 +17,12 @@ import { trackSearch } from "../lib/track";
 import { TOKEN_KEY, USER_KEY } from "../lib/auth";
 import { canAccessModeration } from "../lib/adminUtils";
 import { subscribeModerationQueue } from "../lib/moderationSocket";
+import {
+  getActiveCompareCat,
+  findCompareCatWithItems,
+  readCompareCount,
+} from "../lib/compareListings";
+import { getComparePath } from "../lib/compareConfig";
 import {
   getUnreadTotal,
   subscribeUnreadCount,
@@ -37,6 +43,7 @@ export default function Header({ variant = "full" }) {
   const [unreadCount, setUnreadCount] = React.useState(0);
   const [moderationCount, setModerationCount] = React.useState(0);
   const [scrolled, setScrolled] = React.useState(false);
+  const [compareCount, setCompareCount] = React.useState(0);
 
   const token = localStorage.getItem(TOKEN_KEY) || "";
 
@@ -49,6 +56,11 @@ export default function Header({ variant = "full" }) {
   }, []);
 
   const pathname = location.pathname;
+  const compareCat =
+    findCompareCatWithItems(getActiveCompareCat(pathname)) ||
+    getActiveCompareCat(pathname) ||
+    "realestate";
+  const comparePath = getComparePath(compareCat);
   const onMessagesPage = pathname === "/messages";
   const badgeCount = onMessagesPage ? 0 : unreadCount;
   const canModerate = canAccessModeration(user?.role);
@@ -121,6 +133,20 @@ export default function Header({ variant = "full" }) {
 
   React.useEffect(() => subscribeUnreadCount(setUnreadCount), []);
   React.useEffect(() => subscribeUnreadRefresh(loadUnread), [loadUnread]);
+
+  React.useEffect(() => {
+    const syncCompare = () => {
+      const cat =
+        findCompareCatWithItems(getActiveCompareCat(location.pathname)) ||
+        getActiveCompareCat(location.pathname) ||
+        "realestate";
+      setCompareCount(readCompareCount(cat));
+    };
+
+    syncCompare();
+    window.addEventListener("oriyon:compare-change", syncCompare);
+    return () => window.removeEventListener("oriyon:compare-change", syncCompare);
+  }, [location.pathname]);
 
   React.useEffect(() => {
     let active = true;
@@ -264,10 +290,11 @@ export default function Header({ variant = "full" }) {
             {isMinimal ? (
               <>
                 <Link
-                  to="/listing"
+                  to={comparePath}
                   className="hidden sm:inline px-3 py-2 rounded-lg text-sm font-medium text-white/80 hover:bg-white/10 hover:text-white transition"
                 >
-                  Каталог
+                  Сравнение
+                  {compareCount > 0 ? ` (${compareCount})` : ""}
                 </Link>
                 <Link
                   to="/"
@@ -300,11 +327,16 @@ export default function Header({ variant = "full" }) {
             </Link>
 
             <Link
-              to="/listing"
-              className="p-2.5 rounded-lg hover:bg-white/10 transition"
-              title="Каталог"
+              to={comparePath}
+              className="relative p-2.5 rounded-lg hover:bg-white/10 transition"
+              title="Сравнение"
             >
-              <Grid3X3 size={20} />
+              <Scale size={20} />
+              {compareCount > 0 && (
+                <span className="absolute top-1 right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-sun text-white text-[10px] font-bold flex items-center justify-center">
+                  {compareCount > 99 ? "99+" : compareCount}
+                </span>
+              )}
             </Link>
 
             {canModerate && (
@@ -382,10 +414,11 @@ export default function Header({ variant = "full" }) {
             </Link>
             <div className="flex items-center gap-2">
               <Link
-                to="/listing"
+                to={comparePath}
                 className="text-sm font-medium text-white/80 hover:text-white transition"
               >
-                Каталог
+                Сравнение
+                {compareCount > 0 ? ` (${compareCount})` : ""}
               </Link>
               <Link
                 to="/"
