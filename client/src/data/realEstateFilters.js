@@ -16,6 +16,16 @@ const REAL_ESTATE_SORT = {
   price_per_sqm_desc: "Дороже за м²",
 };
 
+const DAILY_RENT_SORT_EXCLUDE = new Set(["price_per_sqm_asc", "price_per_sqm_desc"]);
+
+export function getRealEstateSortOptions(dealType = "") {
+  if (dealType !== "Посуточно") return REAL_ESTATE_SORT;
+
+  return Object.fromEntries(
+    Object.entries(REAL_ESTATE_SORT).filter(([key]) => !DAILY_RENT_SORT_EXCLUDE.has(key))
+  );
+}
+
 const DEAL_OPTIONS = DEAL_TYPES.map((item) => item.value);
 
 const BUILD_YEARS = Array.from({ length: 2026 - 1970 + 1 }, (_, i) =>

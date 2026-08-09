@@ -14,7 +14,7 @@ import {
   realEstateSubcategoryUsesRooms,
   isDailyDeal,
 } from "../data/realEstate";
-import { getRealEstateFilterGrid, REAL_ESTATE_SORT } from "../data/realEstateFilters";
+import { getRealEstateFilterGrid, getRealEstateSortOptions } from "../data/realEstateFilters";
 import { formatPriceInput, getPriceDigits } from "../data/specOptions";
 import { buildRealEstateListingUrl } from "../lib/realEstate";
 import { getSellerFilterOptions, sanitizeRealEstateDraft } from "../lib/filterConflicts";
@@ -260,6 +260,7 @@ export default function RealEstateMoreFiltersModal({
   const showFloor = realEstateSubcategoryUsesFloor(effectiveSubcategory);
   const isRentDeal = dealType === "Снять" || dealType === "Посуточно";
   const isDaily = isDailyDeal(dealType);
+  const sortOptions = getRealEstateSortOptions(dealType);
   const sellerOptions = getSellerFilterOptions(dealType, effectiveSubcategory);
   const activeCity = draft.location || city || "Душанбе";
 
@@ -888,13 +889,15 @@ export default function RealEstateMoreFiltersModal({
 
             <FilterRow label="Сортировка">
               <select
-                value={draft.sort || "new"}
+                value={
+                  sortOptions[draft.sort] ? draft.sort : "new"
+                }
                 onChange={(e) =>
                   setDraft((current) => ({ ...current, sort: e.target.value }))
                 }
                 className="mobile-control"
               >
-                {Object.entries(REAL_ESTATE_SORT).map(([value, label]) => (
+                {Object.entries(sortOptions).map(([value, label]) => (
                   <option key={value} value={value}>
                     {label}
                   </option>
