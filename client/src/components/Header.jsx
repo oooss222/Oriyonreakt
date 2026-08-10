@@ -2,10 +2,14 @@ import React from "react";
 import { Link, useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import {
   Search,
+  User,
+  PlusCircle,
   Heart,
-  Scale,
+  Wallet,
+  Grid3X3,
+  LogIn,
   MessageCircle,
-  ArrowRight,
+  ClipboardCheck,
 } from "lucide-react";
 
 import { api } from "../lib/api";
@@ -14,62 +18,12 @@ import { TOKEN_KEY, USER_KEY } from "../lib/auth";
 import { canAccessModeration } from "../lib/adminUtils";
 import { subscribeModerationQueue } from "../lib/moderationSocket";
 import {
-  getActiveCompareCat,
-  findCompareCatWithItems,
-  readCompareCount,
-} from "../lib/compareListings";
-import { getComparePath } from "../lib/compareConfig";
-import {
   getUnreadTotal,
   subscribeUnreadCount,
   subscribeUnreadRefresh,
 } from "../lib/unread";
 import CategoryStrip from "./CategoryStrip";
 import HeaderSearchSuggestions from "./HeaderSearchSuggestions";
-
-function TextNavLink({ to, children, badge = 0 }) {
-  return (
-    <Link
-      to={to}
-      className="relative hidden items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm font-medium text-white/75 transition hover:bg-white/8 hover:text-white md:inline-flex"
-    >
-      {children}
-      {badge > 0 && (
-        <span className="min-w-[18px] rounded-full bg-sun px-1.5 py-0.5 text-center text-[10px] font-bold text-white">
-          {badge > 99 ? "99+" : badge}
-        </span>
-      )}
-    </Link>
-  );
-}
-
-function UserAvatar({ user, token }) {
-  const initial = String(user?.name || user?.email || "G")
-    .trim()
-    .charAt(0)
-    .toUpperCase();
-
-  if (!token) {
-    return (
-      <Link
-        to="/auth"
-        className="inline-flex h-10 items-center rounded-xl px-3.5 text-sm font-semibold text-white/90 ring-1 ring-white/15 transition hover:bg-white/10"
-      >
-        Войти
-      </Link>
-    );
-  }
-
-  return (
-    <Link
-      to="/profile?tab=profile"
-      title={user?.name || "Профиль"}
-      className="grid h-10 w-10 place-items-center rounded-full bg-gradient-to-br from-sun to-sun-600 text-sm font-bold text-white ring-2 ring-white/15 transition hover:ring-sun/50"
-    >
-      {initial}
-    </Link>
-  );
-}
 
 export default function Header({ variant = "full" }) {
   const nav = useNavigate();
@@ -83,7 +37,6 @@ export default function Header({ variant = "full" }) {
   const [unreadCount, setUnreadCount] = React.useState(0);
   const [moderationCount, setModerationCount] = React.useState(0);
   const [scrolled, setScrolled] = React.useState(false);
-  const [compareCount, setCompareCount] = React.useState(0);
 
   const token = localStorage.getItem(TOKEN_KEY) || "";
 
@@ -96,11 +49,6 @@ export default function Header({ variant = "full" }) {
   }, []);
 
   const pathname = location.pathname;
-  const compareCat =
-    findCompareCatWithItems(getActiveCompareCat(pathname)) ||
-    getActiveCompareCat(pathname) ||
-    "realestate";
-  const comparePath = getComparePath(compareCat);
   const onMessagesPage = pathname === "/messages";
   const badgeCount = onMessagesPage ? 0 : unreadCount;
   const canModerate = canAccessModeration(user?.role);
@@ -137,10 +85,12 @@ export default function Header({ variant = "full" }) {
   const isBrowsePage =
     !isMinimal &&
     (pathname === "/" ||
-      pathname === "/listing" ||
-      pathname === "/realestate" ||
-      pathname.startsWith("/realestate/") ||
-      pathname.startsWith("/c/"));
+    pathname === "/listing" ||
+    pathname === "/realestate" ||
+    pathname.startsWith("/realestate/") ||
+    pathname.startsWith("/c/"));
+
+  const compactCategories = pathname !== "/";
 
   const loadUnread = React.useCallback(async () => {
     if (!token || onMessagesPage) {
@@ -157,7 +107,7 @@ export default function Header({ variant = "full" }) {
   }, [token, onMessagesPage]);
 
   React.useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 24);
+    const onScroll = () => setScrolled(window.scrollY > 48);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
@@ -173,39 +123,28 @@ export default function Header({ variant = "full" }) {
   React.useEffect(() => subscribeUnreadRefresh(loadUnread), [loadUnread]);
 
   React.useEffect(() => {
-    const syncCompare = () => {
-      const cat =
-        findCompareCatWithItems(getActiveCompareCat(location.pathname)) ||
-        getActiveCompareCat(location.pathname) ||
-        "realestate";
-      setCompareCount(readCompareCount(cat));
-    };
-
-    syncCompare();
-    window.addEventListener("oriyon:compare-change", syncCompare);
-    return () => window.removeEventListener("oriyon:compare-change", syncCompare);
-  }, [location.pathname]);
-
-  React.useEffect(() => {
     let active = true;
 
     async function loadCount() {
       try {
         const data = await api.listingCount({});
-        if (active) setCatalogTotal(Number(data?.total || 0));
+        if (active) {
+          setCatalogTotal(Number(data?.total || 0));
+        }
       } catch {
         if (active) setCatalogTotal(0);
       }
     }
 
     loadCount();
+
     return () => {
       active = false;
     };
   }, []);
 
   const listingsCountLabel = React.useMemo(() => {
-    if (!catalogTotal) return "Что ищете?";
+    if (!catalogTotal) return "Поиск объявлений";
     return `Поиск среди ${catalogTotal.toLocaleString("ru-RU")} объявлений`;
   }, [catalogTotal]);
 
@@ -237,160 +176,230 @@ export default function Header({ variant = "full" }) {
     />
   );
 
-  const searchPanel = (compact = false) => (
-    <div className={`relative w-full ${compact ? "min-w-0" : ""}`}>
-      <div
-        className={`flex items-center gap-2 rounded-2xl bg-white shadow-[0_8px_30px_rgb(0_0_0_/_0.12)] ring-1 ring-black/5 transition focus-within:ring-2 focus-within:ring-sun/40 ${
-          compact ? "p-1" : "p-1.5"
+  const searchField = (compact = false) => (
+    <div
+      className={`relative flex items-center w-full rounded-xl bg-ink-600 overflow-visible ring-1 ring-white/10 focus-within:ring-sun/70 transition ${
+        compact ? "min-w-0" : ""
+      }`}
+    >
+      <div className="flex items-center w-full rounded-xl overflow-hidden bg-ink-600">
+      <Search size={18} className="text-ink-300 shrink-0 ml-3" />
+
+      <input
+        className={`flex-1 outline-none bg-transparent text-sm text-white placeholder:text-ink-300 px-2 min-w-0 ${
+          compact ? "h-10" : "h-10 lg:h-11"
+        }`}
+        value={q}
+        onFocus={() => setShowSuggestions(true)}
+        onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+        onChange={(e) => {
+          setQ(e.target.value);
+          setShowSuggestions(true);
+        }}
+        onKeyDown={(e) => e.key === "Enter" && go()}
+        placeholder={listingsCountLabel}
+      />
+
+      <button
+        type="button"
+        onClick={go}
+        className={`bg-sun hover:bg-sun-600 text-white text-sm font-semibold transition shrink-0 ${
+          compact ? "h-10 px-3.5" : "h-10 lg:h-11 px-4 lg:px-5"
         }`}
       >
-        <Search size={compact ? 18 : 20} className="ml-2 shrink-0 text-ink-300" />
-        <input
-          className={`min-w-0 flex-1 bg-transparent text-ink outline-none placeholder:text-ink-300 ${
-            compact ? "h-10 text-sm" : "h-11 text-[15px]"
-          }`}
-          value={q}
-          onFocus={() => setShowSuggestions(true)}
-          onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
-          onChange={(e) => {
-            setQ(e.target.value);
-            setShowSuggestions(true);
-          }}
-          onKeyDown={(e) => e.key === "Enter" && go()}
-          placeholder={listingsCountLabel}
-        />
-        <button
-          type="button"
-          onClick={go}
-          className={`inline-flex shrink-0 items-center gap-1.5 rounded-xl bg-sun font-semibold text-white transition hover:bg-sun-600 ${
-            compact ? "h-10 px-3.5 text-sm" : "h-11 px-5 text-sm"
-          }`}
-        >
-          Найти
-          {!compact && <ArrowRight size={16} />}
-        </button>
+        Найти
+      </button>
       </div>
+
       {suggestionList}
     </div>
   );
 
   return (
-    <header className="sticky top-0 z-50 bg-[#141312] text-white">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-sun/60 to-transparent" />
-
-      <div className="container mx-auto px-3 sm:px-4 lg:px-6">
-        {/* Top bar */}
-        <div className="flex h-14 items-center justify-between gap-3 lg:h-[58px]">
-          <Link to="/" className="group flex shrink-0 items-center gap-2.5 min-w-0">
+    <>
+      <header className="sticky top-0 z-50 bg-ink-700 text-white border-b border-white/5 shadow-soft">
+        <div className="container mx-auto px-3 sm:px-4 lg:px-6">
+        <div
+          className={`hidden lg:flex items-center gap-2 sm:gap-3 transition-all duration-300 ${
+            scrolled ? "h-14" : "h-16 lg:h-[72px]"
+          }`}
+        >
+          <Link to="/" className="flex items-center gap-2 group shrink-0 min-w-0">
             <img
               src="/oriyon.store.png"
               alt="Oriyon Store"
-              className="h-9 w-9 object-contain transition group-hover:scale-105 lg:h-10 lg:w-10"
+              className={`object-contain transition-all duration-300 group-hover:scale-105 ${
+                scrolled ? "w-10 h-10" : "w-12 h-12 lg:w-14 lg:h-14"
+              }`}
             />
-            <span className="brand-wordmark hidden truncate text-lg sm:block">
+
+            <span
+              className={`brand-wordmark transition-all duration-300 truncate ${
+                scrolled ? "text-base" : "text-lg"
+              }`}
+            >
               Oriyon
               <span className="text-sun">.</span>
-              <span className="text-[0.82em] font-semibold text-white/55">store</span>
+              <span className="text-white/70 font-semibold text-[0.85em]">store</span>
             </span>
           </Link>
 
-          {isMinimal ? (
+          <Link
+            to="/add"
+            className="inline-flex items-center gap-1.5 shrink-0 px-3 py-2 rounded-xl border border-sun/50 text-sun text-sm font-semibold hover:bg-sun/10 transition"
+          >
+            <PlusCircle size={17} />
+            Добавить объявление
+          </Link>
+
+          {!isMinimal && (
+            <div className="flex-1 min-w-0 relative">{searchField(false)}{suggestionList}</div>
+          )}
+
+          {isMinimal && (
+            <div className="flex-1" aria-hidden="true" />
+          )}
+
+          <nav className="flex items-center gap-0.5 shrink-0">
+            {isMinimal ? (
+              <>
+                <Link
+                  to="/listing"
+                  className="hidden sm:inline px-3 py-2 rounded-lg text-sm font-medium text-white/80 hover:bg-white/10 hover:text-white transition"
+                >
+                  Каталог
+                </Link>
+                <Link
+                  to="/"
+                  className="px-3 py-2 rounded-lg text-sm font-medium text-white/80 hover:bg-white/10 hover:text-white transition"
+                >
+                  На главную
+                </Link>
+              </>
+            ) : (
+              <>
+            <Link
+              to="/profile?tab=fav"
+              className="p-2.5 rounded-lg hover:bg-white/10 transition"
+              title="Избранное"
+            >
+              <Heart size={20} />
+            </Link>
+
+            <Link
+              to="/messages"
+              className="relative p-2.5 rounded-lg hover:bg-white/10 transition"
+              title="Сообщения"
+            >
+              <MessageCircle size={20} />
+              {badgeCount > 0 && (
+                <span className="absolute top-1 right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">
+                  {badgeCount > 99 ? "99+" : badgeCount}
+                </span>
+              )}
+            </Link>
+
+            <Link
+              to="/listing"
+              className="p-2.5 rounded-lg hover:bg-white/10 transition"
+              title="Каталог"
+            >
+              <Grid3X3 size={20} />
+            </Link>
+
+            {canModerate && (
+              <Link
+                to="/admin?section=moderation"
+                className="relative p-2.5 rounded-lg hover:bg-white/10 transition"
+                title="Модерация"
+              >
+                <ClipboardCheck size={20} />
+                {moderationCount > 0 && (
+                  <span className="absolute top-1 right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-amber-500 text-white text-[10px] font-bold flex items-center justify-center">
+                    {moderationCount > 99 ? "99+" : moderationCount}
+                  </span>
+                )}
+              </Link>
+            )}
+
+            {token ? (
+              <>
+                <Link
+                  to="/profile?tab=wallet"
+                  className="p-2.5 rounded-lg hover:bg-white/10 transition"
+                  title="Кошелёк"
+                >
+                  <Wallet size={20} />
+                </Link>
+
+                <Link
+                  to="/profile?tab=profile"
+                  className="p-2.5 rounded-lg hover:bg-white/10 transition"
+                  title={user?.name || "Профиль"}
+                >
+                  <User size={20} />
+                </Link>
+              </>
+            ) : (
+              <Link
+                to="/auth"
+                className="p-2.5 rounded-lg hover:bg-white/10 transition"
+                title="Войти"
+              >
+                <LogIn size={20} />
+              </Link>
+            )}
+              </>
+            )}
+          </nav>
+        </div>
+
+        {!isMinimal ? (
+        <div className="lg:hidden pt-2 pb-2.5 relative">
+          <div className="flex items-center gap-2">
+            <Link to="/" className="shrink-0" aria-label="На главную">
+              <img
+                src="/oriyon.store.png"
+                alt="Oriyon Store"
+                className="w-9 h-9 object-contain"
+              />
+            </Link>
+
+            <div className="flex-1 min-w-0 relative">
+              {searchField(true)}
+              {suggestionList}
+            </div>
+          </div>
+        </div>
+        ) : (
+          <div className="lg:hidden py-2.5 flex items-center justify-between gap-3">
+            <Link to="/" className="shrink-0" aria-label="На главную">
+              <img
+                src="/oriyon.store.png"
+                alt="Oriyon Store"
+                className="w-9 h-9 object-contain"
+              />
+            </Link>
             <div className="flex items-center gap-2">
               <Link
-                to={comparePath}
-                className="text-sm font-medium text-white/75 hover:text-white"
+                to="/listing"
+                className="text-sm font-medium text-white/80 hover:text-white transition"
               >
-                Сравнение
+                Каталог
               </Link>
-              <Link to="/" className="text-sm font-medium text-white/75 hover:text-white">
+              <Link
+                to="/"
+                className="text-sm font-medium text-white/80 hover:text-white transition"
+              >
                 На главную
               </Link>
             </div>
-          ) : (
-            <div className="flex items-center gap-1 sm:gap-2">
-              <div className="hidden md:contents">
-                <TextNavLink to="/profile?tab=fav" badge={0}>
-                  <Heart size={16} />
-                  Избранное
-                </TextNavLink>
-
-                <TextNavLink to="/messages" badge={badgeCount}>
-                  <MessageCircle size={16} />
-                  Сообщения
-                </TextNavLink>
-
-                <TextNavLink to={comparePath} badge={compareCount}>
-                  <Scale size={16} />
-                  Сравнение
-                </TextNavLink>
-
-                {canModerate && (
-                  <Link
-                    to="/admin?section=moderation"
-                    className="relative hidden items-center rounded-lg px-2.5 py-1.5 text-sm font-medium text-amber-300/90 transition hover:bg-white/8 lg:inline-flex"
-                  >
-                    Модерация
-                    {moderationCount > 0 && (
-                      <span className="ml-1.5 rounded-full bg-amber-500 px-1.5 py-0.5 text-[10px] font-bold text-white">
-                        {moderationCount}
-                      </span>
-                    )}
-                  </Link>
-                )}
-
-                <UserAvatar user={user} token={token} />
-              </div>
-
-              <Link
-                to="/add"
-                className="ml-1 inline-flex h-10 items-center rounded-xl bg-sun px-3.5 text-sm font-semibold text-white shadow-[0_4px_14px_rgb(255_106_0_/_0.35)] transition hover:bg-sun-600 sm:px-4"
-              >
-                <span className="hidden sm:inline">Подать объявление</span>
-                <span className="sm:hidden">Подать</span>
-              </Link>
-            </div>
-          )}
-        </div>
-
-        {/* Search hero strip */}
-        {!isMinimal && (
-          <div
-            className={`transition-all duration-300 ${
-              scrolled ? "pb-2 pt-0" : "pb-3 pt-0 lg:pb-4"
-            }`}
-          >
-            {searchPanel(false)}
           </div>
         )}
-
-        {/* Mobile compact search when scrolled - hide duplicate, always show search above */}
       </div>
+      </header>
 
-      {isBrowsePage && <CategoryStrip scrolled={scrolled} />}
-
-      {/* Mobile-only second row for quick icons when not minimal */}
-      {!isMinimal && (
-        <div className="flex items-center justify-between gap-2 border-t border-white/5 px-3 py-2 md:hidden">
-          <div className="flex items-center gap-1">
-            <Link to="/profile?tab=fav" className="rounded-lg p-2 text-white/75 hover:bg-white/8">
-              <Heart size={18} />
-            </Link>
-            <Link to="/messages" className="relative rounded-lg p-2 text-white/75 hover:bg-white/8">
-              <MessageCircle size={18} />
-              {badgeCount > 0 && (
-                <span className="absolute right-0.5 top-0.5 h-2 w-2 rounded-full bg-red-500" />
-              )}
-            </Link>
-            <Link to={comparePath} className="relative rounded-lg p-2 text-white/75 hover:bg-white/8">
-              <Scale size={18} />
-              {compareCount > 0 && (
-                <span className="absolute right-0.5 top-0.5 h-2 w-2 rounded-full bg-sun" />
-              )}
-            </Link>
-          </div>
-          <UserAvatar user={user} token={token} />
-        </div>
-      )}
-    </header>
+      {isBrowsePage && <CategoryStrip compact={compactCategories} />}
+    </>
   );
 }
