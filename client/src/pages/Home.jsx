@@ -116,27 +116,7 @@ function ListingCard({ ad, listings }) {
 function RealEstateSection({ items }) {
   if (!items?.length) {
     return (
-      <section className="hero-dark p-6 md:p-8">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
-            <div className="inline-flex items-center gap-2 text-xs font-semibold text-sun-100 bg-white/10 rounded-full px-3 py-1 mb-3">
-              Новая категория
-            </div>
-            <h2 className="text-2xl font-bold">Недвижимость на Oriyon</h2>
-            <p className="text-white/75 mt-2 text-sm max-w-xl">
-              Квартиры, дома, участки и коммерция — с фильтрами, ценой за м² и
-              районами Душанбе.
-            </p>
-          </div>
-          <Link
-            to="/realestate"
-            className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-sun text-white font-bold hover:bg-sun-600 transition shrink-0"
-          >
-            <Building2 size={18} />
-            Смотреть недвижимость
-          </Link>
-        </div>
-      </section>
+      <AdSlot placement="home_top" className="overflow-hidden rounded-3xl" />
     );
   }
 

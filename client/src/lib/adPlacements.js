@@ -1,4 +1,5 @@
 export const AD_PLACEMENTS = [
+  { id: "home_top", label: "Главная — верхний баннер" },
   { id: "home_mid", label: "Главная — между секциями" },
   { id: "listing_top", label: "Каталог — над сеткой" },
   { id: "listing_feed", label: "Каталог — в ленте объявлений" },
