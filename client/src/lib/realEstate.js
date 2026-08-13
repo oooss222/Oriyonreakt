@@ -80,6 +80,63 @@ export function buildRealEstateSummary(specs = [], subcategory = "") {
   };
 }
 
+export function buildRealEstateCardDisplay(listing = {}) {
+  const summary = listing.realEstateSummary || {};
+  const repair = getSpecValue(listing.specs, "Ремонт");
+  const houseType = getSpecValue(listing.specs, "Тип дома");
+
+  const titleParts = [];
+
+  if (summary.rooms) {
+    titleParts.push(`${summary.rooms}-комн.`);
+  }
+
+  if (summary.area) {
+    const areaText = summary.area.includes("м")
+      ? summary.area.replace(/\s*м²?/i, " м²")
+      : `${summary.area} м²`;
+    titleParts.push(areaText);
+  }
+
+  if (repair) {
+    titleParts.push(`ремонт ${repair.toLowerCase()}`);
+  }
+
+  const specParts = [];
+
+  if (summary.rooms) {
+    specParts.push(`${summary.rooms} комн`);
+  }
+
+  if (summary.area) {
+    const areaText = summary.area.includes("м")
+      ? summary.area.replace(/\s*м²?/i, " м²")
+      : `${summary.area} м²`;
+    specParts.push(areaText);
+  }
+
+  if (summary.floor) {
+    specParts.push(
+      summary.floorsTotal
+        ? `${summary.floor}/${summary.floorsTotal} эт`
+        : `${summary.floor} эт`
+    );
+  }
+
+  if (houseType) {
+    specParts.push(houseType.toLowerCase());
+  }
+
+  return {
+    title:
+      titleParts.join(", ") ||
+      listing.title ||
+      summary.line ||
+      "Без названия",
+    specsLine: specParts.join(" · "),
+  };
+}
+
 export function enrichRealEstateListing(item) {
   if (!isRealEstateListing(item)) return item;
 

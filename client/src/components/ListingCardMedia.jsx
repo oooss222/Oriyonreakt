@@ -13,6 +13,7 @@ export default function ListingCardMedia({
   top = false,
   views = 0,
   className = "listing-card__media",
+  photoCount = 0,
 }) {
   const listingId = item?.id || item?._id;
   const images = React.useMemo(() => getListingImages(item), [item]);
@@ -107,6 +108,7 @@ export default function ListingCardMedia({
         vip={vip}
         top={top}
         morePhotos={hasMultiple ? 0 : Math.max(0, images.length - 1)}
+        photoCount={photoCount || (hasMultiple ? images.length : 0)}
         favoriteId={favoriteId}
         isFavorite={isFavorite}
         onFavChange={onFavChange}

@@ -200,6 +200,90 @@
     @apply inline-flex h-11 w-full items-center justify-center rounded-xl bg-ink px-4 text-sm font-semibold text-white transition hover:bg-ink-800;
   }
 
+  .filter-sidebar__apply--sun {
+    @apply bg-sun text-white hover:bg-sun-600;
+  }
+
+  .re-filter-segment {
+    @apply grid grid-cols-3 gap-1 rounded-xl bg-mist p-1;
+  }
+
+  .re-filter-segment__btn {
+    @apply rounded-lg px-2 py-2 text-center text-xs font-semibold text-ink-500 transition;
+  }
+
+  .re-filter-segment__btn--active {
+    @apply bg-ink text-white shadow-sm;
+  }
+
+  .re-filter-segment--2 {
+    @apply grid-cols-2;
+  }
+
+  .re-filter-segment--compact {
+    @apply mb-0;
+  }
+
+  .re-filter-segment--compact .re-filter-segment__btn {
+    @apply py-1.5 text-[11px];
+  }
+
+  .re-filter-district-chip {
+    @apply inline-flex max-w-full items-center gap-1.5 rounded-full border border-ink/10 bg-white px-3 py-1.5 text-sm font-medium text-ink-600 transition hover:border-ink/25;
+  }
+
+  .re-filter-district-chip--active {
+    @apply border-ink bg-ink text-white;
+  }
+
+  .re-filter-district-chip--active span:last-child {
+    @apply text-white/70;
+  }
+
+  .re-filter-room-btn {
+    @apply grid h-11 place-items-center rounded-xl border border-ink/10 bg-white text-sm font-semibold text-ink-600 transition hover:border-ink/25;
+  }
+
+  .re-filter-room-btn--active {
+    @apply border-ink bg-ink text-white;
+  }
+
+  .re-listing-card {
+    @apply flex flex-col overflow-hidden rounded-[1.25rem] border border-ink/10 bg-white shadow-soft transition-all duration-300;
+  }
+
+  .re-listing-card:hover {
+    @apply -translate-y-0.5 border-ink/15 shadow-lift;
+  }
+
+  .re-listing-card__body {
+    @apply flex flex-1 flex-col p-3 pt-2.5;
+  }
+
+  .re-listing-card__district {
+    @apply inline-flex max-w-full self-start rounded-full bg-sky-50 px-2.5 py-1 text-[11px] font-semibold text-sky-700 truncate;
+  }
+
+  .re-listing-card__title {
+    @apply mt-2 text-sm font-bold leading-snug text-ink line-clamp-2 transition-colors group-hover:text-sun-700;
+  }
+
+  .re-listing-card__specs {
+    @apply mt-1 text-[11px] font-medium text-ink-400 line-clamp-1;
+  }
+
+  .re-listing-card__price-row {
+    @apply mt-auto flex items-end justify-between gap-2 pt-2.5;
+  }
+
+  .re-listing-card__price {
+    @apply font-display text-lg font-extrabold leading-none text-sun-600;
+  }
+
+  .re-listing-card__price-per-sqm {
+    @apply shrink-0 text-[11px] font-medium text-ink-400;
+  }
+
   .text-muted {
     @apply text-ink-400;
   }

@@ -1,12 +1,12 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import ListingCardMedia from "./ListingCardMedia";
-import ListingCardFooter from "./ListingCardFooter";
-import { enrichRealEstateListing } from "../lib/realEstate";
+import { enrichRealEstateListing, buildRealEstateCardDisplay } from "../lib/realEstate";
 import { useListingViewed } from "../lib/viewedListings";
 import { getPromotionCardClass } from "../lib/promotionStyles";
 import { MapPin, Maximize2 } from "lucide-react";
 import { formatPrice, formatListingTimeAgo } from "../lib/format";
+import { getListingImages } from "../lib/media";
 
 export default function RealEstateListingCard({
   item,
@@ -18,6 +18,7 @@ export default function RealEstateListingCard({
   const listing = enrichRealEstateListing(item);
   const id = listing.id || listing._id;
   const summary = listing.realEstateSummary || {};
+  const cardCopy = buildRealEstateCardDisplay(listing);
   const viewed = useListingViewed(id);
   const isHorizontal = variant === "horizontal";
   const isDaily = summary.deal === "Посуточно";
@@ -26,17 +27,10 @@ export default function RealEstateListingCard({
     isDaily && nights > 0 && nightlyPrice
       ? nightlyPrice * nights
       : null;
-  const housingLabel =
-    listing.subcategory === "Дома и коттеджи"
-      ? "Дом"
-      : listing.subcategory === "Комнаты"
-        ? "Комната"
-        : listing.subcategory === "Квартиры" || listing.subcategory === "Новостройки"
-          ? "Квартира"
-          : listing.subcategory || "Жильё";
   const locationLabel = summary.district
     ? summary.district
     : listing.location || "Душанбе";
+  const photoCount = getListingImages(listing).length;
 
   const openAd = () => {
     if (!id) return;
@@ -75,6 +69,7 @@ export default function RealEstateListingCard({
           favoriteId={id}
           isFavorite={listing.isFavorite}
           onFavChange={(active) => onFav?.(id, active)}
+          photoCount={photoCount}
         />
 
         <div className="min-w-0 flex-1 flex flex-col py-0.5">
@@ -108,7 +103,7 @@ export default function RealEstateListingCard({
           )}
 
           <h3 className="mt-1 text-sm font-bold text-slate-800 line-clamp-2 group-hover:text-sun transition">
-            {listing.title || summary.line || "Без названия"}
+            {cardCopy.title}
           </h3>
 
           <div className="mt-1.5 text-xs text-slate-500 line-clamp-1 flex items-center gap-1">
@@ -146,7 +141,7 @@ export default function RealEstateListingCard({
           openAd();
         }
       }}
-      className={`listing-card group cursor-pointer focus:outline-none focus:ring-2 focus:ring-sun/40 ${viewed ? "listing-card--viewed" : ""} ${getPromotionCardClass(
+      className={`re-listing-card group cursor-pointer focus:outline-none focus:ring-2 focus:ring-sun/40 ${viewed ? "listing-card--viewed" : ""} ${getPromotionCardClass(
         { vip: listing.vip, top: listing.top }
       )}`}
     >
@@ -158,43 +153,45 @@ export default function RealEstateListingCard({
         favoriteId={id}
         isFavorite={listing.isFavorite}
         onFavChange={(active) => onFav?.(id, active)}
+        photoCount={photoCount}
       />
 
-      <div className="listing-card__body">
-        <div className="flex flex-wrap items-center gap-1.5">
-          <span className="listing-card__location">{locationLabel}</span>
-          {summary.deal && (
-            <span className="listing-card__tag">{summary.deal}</span>
-          )}
-        </div>
+      <div className="re-listing-card__body">
+        <span className="re-listing-card__district">{locationLabel}</span>
 
-        <h3 className="listing-card__title">
-          {listing.title || summary.line || "Без названия"}
-        </h3>
+        <h3 className="re-listing-card__title">{cardCopy.title}</h3>
+
+        {cardCopy.specsLine ? (
+          <p className="re-listing-card__specs">{cardCopy.specsLine}</p>
+        ) : null}
 
         {isDaily ? (
-          <p className="listing-card__details">
-            {[housingLabel, summary.guests && `${summary.guests} гост.`, summary.rooms && `${summary.rooms} комн.`, summary.area]
+          <p className="re-listing-card__specs">
+            {[summary.guests && `${summary.guests} гост.`, summary.rooms && `${summary.rooms} комн.`]
               .filter(Boolean)
               .join(" · ")}
           </p>
-        ) : (
-          summary.line &&
-          summary.line !== listing.title && (
-            <p className="listing-card__details">{summary.line}</p>
-          )
-        )}
+        ) : null}
 
-        {!isDaily && summary.pricePerSqm && (
-          <p className="listing-card__details">{summary.pricePerSqm}</p>
-        )}
+        <div className="re-listing-card__price-row">
+          <strong className="re-listing-card__price">
+            {formatPrice(listing.price, { currency: "с." })}
+            {isDaily ? (
+              <span className="ml-1 text-xs font-semibold text-ink-400">
+                / сут.
+              </span>
+            ) : null}
+          </strong>
+          {!isDaily && summary.pricePerSqm ? (
+            <span className="re-listing-card__price-per-sqm">
+              {summary.pricePerSqm}
+            </span>
+          ) : null}
+        </div>
 
-        <ListingCardFooter
-          item={listing}
-          listingId={id}
-          priceSuffix={isDaily ? "/ сут." : null}
-          priceNote={stayPriceNote || null}
-        />
+        {stayPriceNote ? (
+          <p className="re-listing-card__specs">{stayPriceNote}</p>
+        ) : null}
       </div>
     </article>
   );

@@ -753,6 +753,8 @@ export default function Listing() {
               hasActiveFilters={hasActiveFilters}
               categoryTotal={categoryStats.total || total}
               statsBySubcategory={categoryStats.bySubcategory || {}}
+              activeCat={activeCat}
+              appliedDraft={appliedDraft}
             />
           </aside>
         ) : (
@@ -845,6 +847,7 @@ export default function Listing() {
                   draft={appliedDraft}
                   activeCat={activeCat}
                   compact
+                  className="lg:hidden"
                 />
               </>
             ) : (
