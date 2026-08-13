@@ -66,9 +66,9 @@ export default function SimilarListingsSection({
 
   if (!cat) return null;
 
-  const listingUrl = `/listing?cat=${encodeURIComponent(cat)}${
+  const listingUrl = `/c/${encodeURIComponent(cat)}${
     subcategory
-      ? `&subcategory=${encodeURIComponent(subcategory)}`
+      ? `?subcategory=${encodeURIComponent(subcategory)}`
       : ""
   }`;
 

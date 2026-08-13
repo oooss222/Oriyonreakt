@@ -35,6 +35,10 @@ import { CATS, parseSpecsParam } from "../data/listingCategories";
 import { resolveLegacyCategoryFilters } from "../data/categoryConsolidation";
 import { REAL_ESTATE_CAT } from "../data/realEstate";
 import { sanitizeRealEstateDraft } from "../lib/filterConflicts";
+import {
+  getCategorySlugFromPath,
+  isCategoryBrowsePath,
+} from "../lib/categoryRoutes";
 import Pagination from "../components/Pagination";
 import { LISTING_PAGE_SIZE, getPageFromSearchParams, getTotalPages } from "../lib/pagination";
 import {
@@ -185,7 +189,13 @@ export default function Listing() {
     bySubcategory: {},
   });
 
-  const cat = searchParams.get("cat") || "";
+  const categoryFromPath = React.useMemo(
+    () => getCategorySlugFromPath(locationPath),
+    [locationPath]
+  );
+  const isCategoryBrowse = isCategoryBrowsePath(locationPath);
+
+  const cat = searchParams.get("cat") || categoryFromPath || "";
   const subcategory = searchParams.get("subcategory") || "";
   const search =
     searchParams.get("search") || searchParams.get("q") || "";
@@ -193,24 +203,45 @@ export default function Listing() {
   const currentPage = getPageFromSearchParams(searchParams);
 
   React.useEffect(() => {
+    if (locationPath !== "/listing") return;
+
+    const catParam = searchParams.get("cat");
+    if (!catParam || catParam === REAL_ESTATE_CAT) return;
+
+    const next = new URLSearchParams(searchParams);
+    next.delete("cat");
+    const query = next.toString();
+
+    nav(`/c/${catParam}${query ? `?${query}` : ""}`, { replace: true });
+  }, [locationPath, paramsKey, searchParams, nav]);
+
+  React.useEffect(() => {
     const legacy = resolveLegacyCategoryFilters(
-      searchParams.get("cat") || "",
+      cat || searchParams.get("cat") || "",
       searchParams.get("subcategory") || ""
     );
     if (!legacy) return;
 
     const next = new URLSearchParams(searchParams);
-    next.set("cat", legacy.cat);
+    if (isCategoryBrowse) {
+      next.delete("cat");
+    } else {
+      next.set("cat", legacy.cat);
+    }
     if (legacy.subcategory) {
       next.set("subcategory", legacy.subcategory);
     } else {
       next.delete("subcategory");
     }
     setSearchParams(next, { replace: true });
-  }, [paramsKey, searchParams, setSearchParams]);
+  }, [paramsKey, searchParams, setSearchParams, cat, isCategoryBrowse]);
 
   const appliedDraft = React.useMemo(() => {
     const fromQuery = searchParamsToDraft(searchParams);
+
+    if (categoryFromPath) {
+      fromQuery.cat = categoryFromPath;
+    }
 
     if (!seoDraft) return fromQuery;
 
@@ -223,7 +254,7 @@ export default function Listing() {
         ...(fromQuery.specs || {}),
       },
     };
-  }, [paramsKey, searchParams, seoDraft]);
+  }, [paramsKey, searchParams, seoDraft, categoryFromPath]);
 
   const activeSpecs = appliedDraft.specs;
   const priceFrom = appliedDraft.priceFrom;
@@ -380,7 +411,7 @@ export default function Listing() {
     () => buildFeedWithAds(items, feedAd, FEED_AD_INTERVAL),
     [items, feedAd]
   );
-  const effectiveListingCat = cat || (seoDraft ? REAL_ESTATE_CAT : "");
+  const effectiveListingCat = cat || categoryFromPath || (seoDraft ? REAL_ESTATE_CAT : "");
   const catConfig = effectiveListingCat ? CATS[effectiveListingCat] : null;
   const availableSubcategories = React.useMemo(() => {
     return activeCat ? CATS[activeCat]?.subs || [] : [];
@@ -511,12 +542,16 @@ export default function Listing() {
           })
         );
       } else {
-        setSearchParams(buildListingParams(payload, payload.cat || cat));
+        const urlParams = buildListingParams(payload, effectiveCat);
+        if (isCategoryBrowse) {
+          delete urlParams.cat;
+        }
+        setSearchParams(urlParams);
       }
 
       setMobileFiltersOpen(false);
     },
-    [draft, cat, seoDraft, nav, setSearchParams]
+    [draft, cat, seoDraft, nav, setSearchParams, isCategoryBrowse]
   );
 
   const resetFilters = () => {
@@ -552,7 +587,9 @@ export default function Listing() {
       mileageTo: "",
       specs: {},
     });
-    if (cat) {
+    if (isCategoryBrowse && categoryFromPath) {
+      nav(`/c/${categoryFromPath}`);
+    } else if (cat) {
       setSearchParams({ cat });
     } else {
       setSearchParams({});

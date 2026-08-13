@@ -32,7 +32,7 @@ export default function CategoryHero({ cat, slug, total = 0 }) {
           <p className="text-sm text-white/75 mt-2 max-w-lg">{cat.desc}</p>
 
           <div className="mt-5 flex flex-wrap gap-2">
-            <Link to={`/listing?cat=${slug}`} className="btn btn-primary">
+            <Link to={`/c/${slug}`} className="btn btn-primary">
               Все объявления
             </Link>
             <Link

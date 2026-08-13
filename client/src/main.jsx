@@ -1,13 +1,12 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
-import { createBrowserRouter, RouterProvider, useParams } from "react-router-dom";
+import { createBrowserRouter, RouterProvider, useParams, Navigate } from "react-router-dom";
 
 import App from "./shell/App.jsx";
 import Messages from "./pages/Messages.jsx";
 import Home from "./pages/Home.jsx";
 import Listing from "./pages/Listing.jsx";
 import Auth from "./pages/Auth.jsx";
-import Category from "./pages/Category.jsx";
 import Policy from "./pages/Policy.jsx";
 import AdDetails from "./pages/AdDetails.jsx";
 import Profile from "./pages/Profile.jsx";
@@ -25,6 +24,20 @@ import "./styles/index.css";
 function CategoryCompareRoute() {
   const { slug } = useParams();
   return <ListingCompare cat={slug} />;
+}
+
+function CategoryListingRoute() {
+  const { slug } = useParams();
+
+  if (slug === "realestate") {
+    return <Navigate to="/realestate" replace />;
+  }
+
+  if (slug === "repair") {
+    return <Navigate to="/c/services" replace />;
+  }
+
+  return <Listing />;
 }
 
 function NotFound() {
@@ -91,7 +104,7 @@ const router = createBrowserRouter([
       },
       {
         path: "c/:slug",
-        element: <Category />,
+        element: <CategoryListingRoute />,
       },
       {
         path: "c/:slug/sravnenie",

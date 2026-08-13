@@ -4,27 +4,27 @@ import { Link } from "react-router-dom";
 const TRANSPORT_QUICK_FILTERS = [
   {
     label: "Легковые",
-    to: "/listing?cat=transport&subcategory=Легковые%20авто",
+    to: "/c/transport?subcategory=Легковые%20авто",
   },
   {
     label: "До 50 000 км",
-    to: "/listing?cat=transport&subcategory=Легковые%20авто&mileageTo=50000",
+    to: "/c/transport?subcategory=Легковые%20авто&mileageTo=50000",
   },
   {
     label: "2020+",
-    to: "/listing?cat=transport&subcategory=Легковые%20авто&yearFrom=2020",
+    to: "/c/transport?subcategory=Легковые%20авто&yearFrom=2020",
   },
   {
     label: "Новые",
-    to: '/listing?cat=transport&subcategory=Легковые%20авто&specs={"Состояние":"Новый"}',
+    to: '/c/transport?subcategory=Легковые%20авто&specs={"Состояние":"Новый"}',
   },
   {
     label: "Запчасти",
-    to: "/listing?cat=transport&subcategory=Запчасти",
+    to: "/c/transport?subcategory=Запчасти",
   },
   {
     label: "Грузовики",
-    to: "/listing?cat=transport&subcategory=Грузовики",
+    to: "/c/transport?subcategory=Грузовики",
   },
 ];
 
