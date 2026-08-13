@@ -1,4 +1,6 @@
-import { REAL_ESTATE_CAT, DEAL_TYPES, ROOM_OPTIONS } from "../data/realEstate";
+import { REAL_ESTATE_CAT, DEAL_TYPES, ROOM_OPTIONS, DEFAULT_REAL_ESTATE_BROWSE_PATH } from "../data/realEstate";
+
+export { DEFAULT_REAL_ESTATE_BROWSE_PATH } from "../data/realEstate";
 
 const CITY_SLUGS = {
   dushanbe: "Душанбе",
@@ -99,7 +101,7 @@ export function buildRealEstateSeoPath({
   rooms = "",
 } = {}) {
   const citySlug = slugifyCity(city);
-  if (!citySlug) return "/realestate";
+  if (!citySlug) return DEFAULT_REAL_ESTATE_BROWSE_PATH;
 
   const parts = ["realestate", citySlug];
   const subSlug = slugifySubcategory(subcategory);
@@ -268,7 +270,7 @@ export function buildRealEstateBreadcrumbs(draft = {}) {
 
   const crumbs = [
     { label: "Главная", to: "/" },
-    { label: "Недвижимость", to: "/realestate" },
+    { label: "Недвижимость", to: DEFAULT_REAL_ESTATE_BROWSE_PATH },
   ];
 
   if (subcategory === "Новостройки") {

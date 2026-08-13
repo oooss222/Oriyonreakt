@@ -8,7 +8,7 @@ import { api } from "../lib/api";
 import { getDefaultCity } from "../lib/recommendationProfile";
 import { CONSENT_EVENT } from "../lib/cookieConsent";
 import { sortListingsByPromotion } from "../lib/listingSort";
-import { REAL_ESTATE_CAT } from "../data/realEstate";
+import { REAL_ESTATE_CAT, DEFAULT_REAL_ESTATE_BROWSE_PATH } from "../data/realEstate";
 import {
   PlusCircle,
   ShieldCheck,
@@ -45,7 +45,7 @@ function RealEstateSection({ items }) {
         </div>
 
         <Link
-          to="/realestate"
+          to={DEFAULT_REAL_ESTATE_BROWSE_PATH}
           className="hidden sm:inline-flex items-center gap-1 text-sm font-semibold text-sun-700 hover:text-sun transition"
         >
           Все объявления

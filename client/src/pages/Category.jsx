@@ -1,5 +1,6 @@
 import React from "react";
 import { useParams, Link, useNavigate, Navigate } from "react-router-dom";
+import { DEFAULT_REAL_ESTATE_BROWSE_PATH } from "../lib/realestateSeo";
 import EmptyState from "../components/EmptyState";
 import Breadcrumbs from "../components/Breadcrumbs";
 import CategoryHero from "../components/CategoryHero";
@@ -25,7 +26,7 @@ export default function Category() {
   const nav = useNavigate();
 
   if (slug === "realestate") {
-    return <Navigate to="/realestate" replace />;
+    return <Navigate to={DEFAULT_REAL_ESTATE_BROWSE_PATH} replace />;
   }
 
   if (slug === "repair") {

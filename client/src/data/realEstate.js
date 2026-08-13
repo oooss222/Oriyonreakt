@@ -1,5 +1,8 @@
 export const REAL_ESTATE_CAT = "realestate";
 
+export const DEFAULT_REAL_ESTATE_BROWSE_PATH =
+  "/realestate/dushanbe/kvartiry/kupit";
+
 export const DEAL_TYPES = [
   { value: "Купить", label: "Купить", icon: "buy" },
   { value: "Снять", label: "Снять", icon: "rent" },

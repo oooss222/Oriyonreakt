@@ -14,10 +14,10 @@ import AddListing from "./pages/AddListing.jsx";
 import EditListing from "./pages/EditListing.jsx";
 import Seller from "./pages/Seller.jsx";
 import Admin from "./pages/Admin.jsx";
-import RealEstate from "./pages/RealEstate.jsx";
 import RealEstateCompare from "./pages/RealEstateCompare.jsx";
 import ListingCompare from "./pages/ListingCompare.jsx";
 import RealEstateDevelopment from "./pages/RealEstateDevelopment.jsx";
+import { DEFAULT_REAL_ESTATE_BROWSE_PATH } from "./lib/realestateSeo.js";
 
 import "./styles/index.css";
 
@@ -30,7 +30,7 @@ function CategoryListingRoute() {
   const { slug } = useParams();
 
   if (slug === "realestate") {
-    return <Navigate to="/realestate" replace />;
+    return <Navigate to={DEFAULT_REAL_ESTATE_BROWSE_PATH} replace />;
   }
 
   if (slug === "repair") {
@@ -112,7 +112,7 @@ const router = createBrowserRouter([
       },
       {
         path: "realestate",
-        element: <RealEstate />,
+        element: <Navigate to={DEFAULT_REAL_ESTATE_BROWSE_PATH} replace />,
       },
       {
         path: "realestate/zhk/:slug",

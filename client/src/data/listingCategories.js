@@ -11,9 +11,8 @@ import {
 } from "./specOptions";
 import { REPAIR_MATERIALS_SUBS } from "./categoryConsolidation";
 
-import {
-  REAL_ESTATE_SUB_SPECS,
-} from "./realEstate";
+import { REAL_ESTATE_SUB_SPECS } from "./realEstate";
+import { DEFAULT_REAL_ESTATE_BROWSE_PATH } from "./realEstate";
 
 export const TITLE_MAX = 80;
 export const DESC_MAX = 1000;
@@ -111,7 +110,7 @@ export const CATS = {
     img: "/img/realestate.png",
     desc: "Квартиры, дома, участки и коммерция",
     featured: true,
-    landingPath: "/realestate",
+    landingPath: DEFAULT_REAL_ESTATE_BROWSE_PATH,
     subs: Object.keys(REAL_ESTATE_SUB_SPECS),
     specTemplate: REAL_ESTATE_SUB_SPECS["Квартиры"],
     subSpecTemplates: REAL_ESTATE_SUB_SPECS,

@@ -26,6 +26,7 @@ import {
   buildRealEstatePageTitle,
   buildRealEstateMetaDescription,
   buildRealEstateBreadcrumbs,
+  DEFAULT_REAL_ESTATE_BROWSE_PATH,
 } from "../lib/realestateSeo";
 import { FEED_AD_INTERVAL } from "../lib/adPlacements";
 import { usePageMeta } from "../lib/usePageMeta";
@@ -552,7 +553,7 @@ export default function Listing() {
 
   const resetFilters = () => {
     if (isRealEstate) {
-      nav("/realestate");
+      nav(DEFAULT_REAL_ESTATE_BROWSE_PATH);
       return;
     }
 

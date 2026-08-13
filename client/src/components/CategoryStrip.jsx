@@ -16,7 +16,9 @@ export default function CategoryStrip({ compact = false }) {
         >
           {HOME_CATEGORIES.map((cat) => {
             const active =
-              pathname === cat.landingPath || pathname === `/c/${cat.slug}`;
+              pathname === cat.landingPath ||
+              pathname === `/c/${cat.slug}` ||
+              (cat.slug === "realestate" && pathname.startsWith("/realestate/"));
 
             return (
               <Link
