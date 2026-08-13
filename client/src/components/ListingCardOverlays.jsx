@@ -27,19 +27,23 @@ export default function ListingCardOverlays({
         aria-hidden
       />
 
-      <div className="absolute inset-x-0 top-0 z-10 flex items-start justify-between gap-2 p-2">
+      <div className="absolute left-2 top-2 z-10 max-w-[calc(100%-3.5rem)]">
         <PromotionBadgeGroup vip={vip} top={top} size="sm" />
-        {showFavorite && favoriteId ? (
-          <div className="shrink-0" onClick={(e) => e.stopPropagation()}>
-            <FavoriteButton
-              id={favoriteId}
-              defaultActive={isFavorite}
-              onChange={onFavChange}
-              overlay
-            />
-          </div>
-        ) : null}
       </div>
+
+      {showFavorite && favoriteId ? (
+        <div
+          className="absolute right-2 top-2 z-10 shrink-0"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <FavoriteButton
+            id={favoriteId}
+            defaultActive={isFavorite}
+            onChange={onFavChange}
+            overlay
+          />
+        </div>
+      ) : null}
 
       {(viewCount > 0 || morePhotos > 0) && (
         <div className="absolute inset-x-0 bottom-0 z-10 flex items-center justify-between gap-2 p-2">
