@@ -248,13 +248,6 @@ export default function ListingForm({
     setPreviews([]);
   };
 
-  const addSpecRow = () => {
-    setSpecs((state) => [
-      ...state,
-      { name: "", value: "", type: "text", locked: false },
-    ]);
-  };
-
   const removeSpecRow = (index) => {
     const row = specs[index];
     if (row?.locked) return;
@@ -749,19 +742,9 @@ export default function ListingForm({
           </div>
 
           <div className="rounded-2xl border bg-white p-5 space-y-4">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
-                <ListChecks className="w-5 h-5 text-sun" />
-                <h2 className="text-lg font-semibold">Характеристики</h2>
-              </div>
-              <button
-                type="button"
-                onClick={addSpecRow}
-                className="inline-flex items-center gap-2 rounded-xl border px-3 py-2 hover:bg-slate-50"
-              >
-                <Plus className="w-4 h-4" />
-                Добавить
-              </button>
+            <div className="flex items-center gap-2">
+              <ListChecks className="w-5 h-5 text-sun" />
+              <h2 className="text-lg font-semibold">Характеристики</h2>
             </div>
 
             <div className="space-y-3">

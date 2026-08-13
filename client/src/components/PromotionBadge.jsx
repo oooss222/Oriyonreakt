@@ -1,5 +1,5 @@
 import React from "react";
-import { Crown } from "lucide-react";
+import { Crown, TrendingUp } from "lucide-react";
 
 const SIZE_MAP = {
   sm: {
@@ -19,7 +19,6 @@ const SIZE_MAP = {
 export default function PromotionBadge({
   type = "vip",
   size = "md",
-  showIcon = true,
   className = "",
 }) {
   const sizeConfig = SIZE_MAP[size] || SIZE_MAP.md;
@@ -28,15 +27,27 @@ export default function PromotionBadge({
   return (
     <span
       className={[
-        "promotion-badge inline-flex items-center rounded-md font-bold uppercase tracking-wide text-white shadow-sm",
-        isVip ? "promotion-badge-vip" : "promotion-badge-top",
+        "inline-flex items-center rounded-full font-bold uppercase tracking-wide shadow-sm",
+        isVip
+          ? "bg-gradient-to-r from-[#F7DF6B] to-[#E8C547] text-[#5C4A00] border border-[#D4AF37]/35"
+          : "bg-[#1FA89E] text-white border border-white/20",
         sizeConfig.wrap,
         className,
       ].join(" ")}
       aria-label={isVip ? "VIP объявление" : "TOP объявление"}
     >
-      {isVip && showIcon && (
-        <Crown size={sizeConfig.icon} className="shrink-0" strokeWidth={2.5} />
+      {isVip ? (
+        <Crown
+          size={sizeConfig.icon}
+          className="shrink-0 text-[#5C4A00]"
+          strokeWidth={2.5}
+        />
+      ) : (
+        <TrendingUp
+          size={sizeConfig.icon}
+          className="shrink-0"
+          strokeWidth={2.5}
+        />
       )}
       <span className="leading-none">{isVip ? "VIP" : "TOP"}</span>
     </span>
@@ -54,9 +65,9 @@ export function PromotionBadgeGroup({
   }
 
   return (
-    <div className={`flex flex-wrap items-center gap-1 ${className}`}>
+    <div className={`flex flex-wrap items-center gap-1.5 ${className}`}>
       {vip && <PromotionBadge type="vip" size={size} />}
-      {top && <PromotionBadge type="top" size={size} showIcon={false} />}
+      {top && !vip && <PromotionBadge type="top" size={size} />}
     </div>
   );
 }

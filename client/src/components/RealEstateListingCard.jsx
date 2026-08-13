@@ -1,6 +1,5 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import CompareListingButton from "./CompareListingButton";
 import PriceAdequacyBadge from "./PriceAdequacyBadge";
 import ListingCardOverlays from "./ListingCardOverlays";
 import BusinessBadge from "./BusinessBadge";
@@ -10,6 +9,7 @@ import { enrichRealEstateListing } from "../lib/realEstate";
 import {
   getPromotionCardClass,
   getPromotionMediaClass,
+  getListingLocationClass,
 } from "../lib/promotionStyles";
 import { MapPin, Maximize2 } from "lucide-react";
 
@@ -125,10 +125,7 @@ export default function RealEstateListingCard({
             <span className="truncate">{locationLabel}</span>
           </div>
 
-          <div className="mt-auto pt-2 flex items-center justify-between gap-2">
-            <div onClick={(e) => e.stopPropagation()}>
-              <CompareListingButton listingId={id} cat="realestate" compact />
-            </div>
+          <div className="mt-auto pt-2 flex items-center justify-end gap-2">
             <time className="listing-card__time">{formatListingTimeAgo(listing)}</time>
           </div>
         </div>
@@ -183,7 +180,14 @@ export default function RealEstateListingCard({
 
       <div className="listing-card__body">
         <div className="flex flex-wrap items-center gap-1.5">
-          <span className="listing-card__location">{locationLabel}</span>
+          <span
+            className={getListingLocationClass({
+              vip: listing.vip,
+              top: listing.top,
+            })}
+          >
+            {locationLabel}
+          </span>
           {summary.deal && (
             <span className="inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold uppercase text-slate-600">
               {summary.deal}
@@ -239,10 +243,6 @@ export default function RealEstateListingCard({
             )}
           </div>
           <time className="listing-card__time">{formatListingTimeAgo(listing)}</time>
-        </div>
-
-        <div className="mt-2 flex justify-end" onClick={(e) => e.stopPropagation()}>
-          <CompareListingButton listingId={id} cat="realestate" compact />
         </div>
       </div>
     </article>

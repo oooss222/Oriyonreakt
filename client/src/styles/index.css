@@ -247,6 +247,14 @@
     @apply inline-flex max-w-full items-center rounded-full bg-[#FFF0E6] px-2.5 py-1 text-[11px] font-semibold text-[#8A4B2A] truncate;
   }
 
+  .listing-card__location--vip {
+    @apply bg-[#FFF8E1] text-[#8A6D1D];
+  }
+
+  .listing-card__location--top {
+    @apply bg-[#E6F7F5] text-[#1A6B64];
+  }
+
   .listing-card__title {
     @apply mt-2 text-[15px] font-bold leading-snug text-ink line-clamp-2 transition-colors group-hover:text-sun-700;
   }
@@ -265,31 +273,19 @@
 
   @keyframes top-entry-pulse {
     0% {
-      box-shadow: 0 0 0 0 rgb(14 124 123 / 0.28);
+      box-shadow: 0 0 0 0 rgb(94 207 198 / 0.28);
     }
     40% {
-      box-shadow: 0 0 0 4px rgb(14 124 123 / 0.16);
+      box-shadow: 0 0 0 4px rgb(94 207 198 / 0.16);
     }
     100% {
-      box-shadow: 0 4px 16px rgb(14 124 123 / 0.12);
+      box-shadow: 0 4px 16px rgb(94 207 198 / 0.12);
     }
   }
 
   .promotion-badge {
     position: relative;
     isolation: isolate;
-  }
-
-  .promotion-badge-vip {
-    background: linear-gradient(135deg, #fde68a 0%, #eab308 45%, #ca8a04 100%);
-    border: 1px solid rgb(255 255 255 / 0.45);
-    box-shadow: 0 2px 8px rgb(202 138 4 / 0.35);
-  }
-
-  .promotion-badge-top {
-    background: linear-gradient(135deg, #2563eb 0%, #0e7c7b 100%);
-    border: 1px solid rgb(255 255 255 / 0.35);
-    box-shadow: 0 2px 8px rgb(14 124 123 / 0.3);
   }
 
   .promotion-card {
@@ -300,28 +296,26 @@
   }
 
   .promotion-card-vip {
-    padding: 0.625rem !important;
-    border: 1.5px solid #c9a227 !important;
+    border: 1.5px solid #e5c04d !important;
     background: #fff;
-    box-shadow: 0 6px 20px rgb(201 162 39 / 0.2);
+    box-shadow: 0 4px 16px rgb(229 192 77 / 0.18);
     z-index: 1;
   }
 
   .promotion-card-vip:hover {
-    box-shadow: 0 8px 24px rgb(201 162 39 / 0.26);
+    box-shadow: 0 8px 22px rgb(229 192 77 / 0.24);
     transform: translateY(-1px);
   }
 
   .promotion-card-top {
-    padding: 0.5rem !important;
-    border: 1.5px solid #0e7c7b !important;
-    background: #f0f7ff !important;
-    box-shadow: 0 4px 14px rgb(14 124 123 / 0.1);
+    border: 1.5px solid #5ecfc6 !important;
+    background: #fff !important;
+    box-shadow: 0 4px 14px rgb(94 207 198 / 0.14);
     animation: top-entry-pulse 2s ease-out 1;
   }
 
   .promotion-card-top:hover {
-    box-shadow: 0 6px 18px rgb(14 124 123 / 0.16);
+    box-shadow: 0 6px 18px rgb(94 207 198 / 0.2);
     transform: translateY(-1px);
   }
 

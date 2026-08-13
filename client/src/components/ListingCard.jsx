@@ -1,16 +1,14 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import CompareListingButton from "./CompareListingButton";
-import FavoriteButton from "./FavoriteButton";
 import ListingCardOverlays from "./ListingCardOverlays";
 import BusinessBadge from "./BusinessBadge";
-import { isCompareSupported } from "../lib/compareListings";
 import { getListingThumb } from "../lib/media";
 import { formatPrice, formatListingTimeAgo } from "../lib/format";
 import { trackListingClick } from "../lib/track";
 import {
   getPromotionCardClass,
   getPromotionMediaClass,
+  getListingLocationClass,
 } from "../lib/promotionStyles";
 
 export default function ListingCard({
@@ -23,8 +21,6 @@ export default function ListingCard({
 }) {
   const nav = useNavigate();
   const listingId = item?.id || item?._id;
-  const cat = item?.cat || "";
-  const showCompare = isCompareSupported(cat);
   const morePhotos = Math.max(0, (item?.images?.length || 0) - 1);
   const location = item?.location || item?.city || "Не указано";
 
@@ -91,7 +87,14 @@ export default function ListingCard({
 
       <div className="listing-card__body">
         <div className="flex flex-wrap items-center gap-1.5">
-          <span className="listing-card__location">{location}</span>
+          <span
+            className={getListingLocationClass({
+              vip: item?.vip,
+              top: item?.top,
+            })}
+          >
+            {location}
+          </span>
           <BusinessBadge
             sellerType={item?.ownerSellerType}
             businessVerified={item?.ownerBusinessVerified}
@@ -108,12 +111,6 @@ export default function ListingCard({
             {formatListingTimeAgo(item)}
           </time>
         </div>
-
-        {showCompare && (
-          <div className="mt-2 flex justify-end" onClick={(e) => e.stopPropagation()}>
-            <CompareListingButton listingId={listingId} cat={cat} compact />
-          </div>
-        )}
       </div>
     </article>
   );
