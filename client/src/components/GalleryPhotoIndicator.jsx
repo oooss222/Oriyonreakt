@@ -5,6 +5,7 @@ export default function GalleryPhotoIndicator({
   activeIndex,
   onSelect,
   variant = "default",
+  interaction = "click",
   className = "",
 }) {
   if (total <= 1) {
@@ -30,6 +31,11 @@ export default function GalleryPhotoIndicator({
         {Array.from({ length: total }).map((_, index) => {
           const isActive = index === activeIndex;
 
+          const selectPhoto = (event) => {
+            event.stopPropagation();
+            onSelect?.(index);
+          };
+
           return (
             <button
               key={index}
@@ -37,10 +43,8 @@ export default function GalleryPhotoIndicator({
               role="tab"
               aria-selected={isActive}
               aria-label={`Фото ${index + 1} из ${total}`}
-              onClick={(event) => {
-                event.stopPropagation();
-                onSelect?.(index);
-              }}
+              onClick={interaction === "click" ? selectPhoto : undefined}
+              onMouseEnter={interaction === "hover" ? selectPhoto : undefined}
               className={`group relative min-w-0 flex-1 overflow-hidden rounded-full bg-white/35 backdrop-blur-sm transition-all duration-300 hover:bg-white/50 ${
                 isCompact ? "h-1" : "h-2"
               }`}

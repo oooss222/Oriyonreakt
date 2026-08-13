@@ -1,5 +1,4 @@
 import React from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import ListingCardOverlays from "./ListingCardOverlays";
 import GalleryPhotoIndicator from "./GalleryPhotoIndicator";
 import { getListingImages } from "../lib/media";
@@ -26,18 +25,30 @@ export default function ListingCardMedia({
 
   const hasMultiple = images.length > 1;
 
-  const goPrev = (event) => {
-    event?.stopPropagation();
-    setActiveIndex((current) =>
-      current === 0 ? images.length - 1 : current - 1
+  const setIndexFromPointer = (clientX, element) => {
+    if (!hasMultiple || !element) {
+      return;
+    }
+
+    const rect = element.getBoundingClientRect();
+    const ratio = Math.min(
+      1,
+      Math.max(0, (clientX - rect.left) / rect.width)
     );
+    const index = Math.min(
+      images.length - 1,
+      Math.floor(ratio * images.length)
+    );
+
+    setActiveIndex(index);
   };
 
-  const goNext = (event) => {
-    event?.stopPropagation();
-    setActiveIndex((current) =>
-      current === images.length - 1 ? 0 : current + 1
-    );
+  const onMouseMove = (event) => {
+    setIndexFromPointer(event.clientX, event.currentTarget);
+  };
+
+  const onMouseLeave = () => {
+    setActiveIndex(0);
   };
 
   const onTouchStart = (event) => {
@@ -62,16 +73,20 @@ export default function ListingCardMedia({
 
     event.stopPropagation();
 
-    if (delta < 0) {
-      goNext();
-    } else {
-      goPrev();
-    }
+    setActiveIndex((current) => {
+      if (delta < 0) {
+        return current === images.length - 1 ? 0 : current + 1;
+      }
+
+      return current === 0 ? images.length - 1 : current - 1;
+    });
   };
 
   return (
     <div
       className={className}
+      onMouseMove={hasMultiple ? onMouseMove : undefined}
+      onMouseLeave={hasMultiple ? onMouseLeave : undefined}
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >
@@ -99,32 +114,13 @@ export default function ListingCardMedia({
       />
 
       {hasMultiple ? (
-        <>
-          <button
-            type="button"
-            aria-label="Предыдущее фото"
-            onClick={goPrev}
-            className="absolute left-1.5 top-1/2 z-20 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-ink shadow-sm opacity-0 transition hover:bg-white group-hover:opacity-100"
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </button>
-
-          <button
-            type="button"
-            aria-label="Следующее фото"
-            onClick={goNext}
-            className="absolute right-1.5 top-1/2 z-20 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-ink shadow-sm opacity-0 transition hover:bg-white group-hover:opacity-100"
-          >
-            <ChevronRight className="h-4 w-4" />
-          </button>
-
-          <GalleryPhotoIndicator
-            variant="compact"
-            total={images.length}
-            activeIndex={activeIndex}
-            onSelect={setActiveIndex}
-          />
-        </>
+        <GalleryPhotoIndicator
+          variant="compact"
+          interaction="hover"
+          total={images.length}
+          activeIndex={activeIndex}
+          onSelect={setActiveIndex}
+        />
       ) : null}
     </div>
   );
