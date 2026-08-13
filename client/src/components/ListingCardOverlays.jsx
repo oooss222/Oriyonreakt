@@ -13,6 +13,7 @@ export default function ListingCardOverlays({
   isFavorite = false,
   onFavChange,
   showFavorite = true,
+  compactBottom = false,
 }) {
   const viewCount = Number(views || 0);
 
@@ -46,7 +47,11 @@ export default function ListingCardOverlays({
       ) : null}
 
       {(viewCount > 0 || morePhotos > 0) && (
-        <div className="absolute inset-x-0 bottom-0 z-10 flex items-center justify-between gap-2 p-2">
+        <div
+          className={`absolute inset-x-0 z-10 flex items-center justify-between gap-2 px-2 ${
+            compactBottom ? "bottom-5 pb-0" : "bottom-0 p-2"
+          }`}
+        >
           {viewCount > 0 ? (
             <span className="inline-flex items-center gap-1 rounded-full bg-black/50 px-2 py-0.5 text-[10px] font-semibold text-white backdrop-blur-sm">
               <Eye className="h-3 w-3" />

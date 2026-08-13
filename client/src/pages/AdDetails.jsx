@@ -27,6 +27,7 @@ import AdPurchasePanel from "../components/ad/AdPurchasePanel";
 import RealEstateHighlights from "../components/RealEstateHighlights";
 import PriceAdequacyBadge from "../components/PriceAdequacyBadge";
 import Breadcrumbs from "../components/Breadcrumbs";
+import GalleryPhotoIndicator from "../components/GalleryPhotoIndicator";
 import EmptyState from "../components/EmptyState";
 import AdSlot from "../components/AdSlot";
 import { PromotionBadgeGroup } from "../components/PromotionBadge";
@@ -751,9 +752,11 @@ export default function AdDetails() {
                   />
 
                   {images.length > 1 && (
-                    <div className="absolute bottom-3 right-3 rounded-full bg-black/60 px-2.5 py-1 text-xs font-medium text-white">
-                      {activeImageIndex + 1}/{images.length}
-                    </div>
+                    <GalleryPhotoIndicator
+                      total={images.length}
+                      activeIndex={activeImageIndex}
+                      onSelect={setActiveImageIndex}
+                    />
                   )}
 
                   <button

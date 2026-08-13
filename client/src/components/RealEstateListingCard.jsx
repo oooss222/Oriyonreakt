@@ -1,14 +1,10 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import ListingCardOverlays from "./ListingCardOverlays";
+import ListingCardMedia from "./ListingCardMedia";
 import ListingCardFooter from "./ListingCardFooter";
-import { getListingThumb } from "../lib/media";
 import { enrichRealEstateListing } from "../lib/realEstate";
 import { useListingViewed } from "../lib/viewedListings";
-import {
-  getPromotionCardClass,
-  getPromotionMediaClass,
-} from "../lib/promotionStyles";
+import { getPromotionCardClass } from "../lib/promotionStyles";
 import { MapPin, Maximize2 } from "lucide-react";
 import { formatPrice, formatListingTimeAgo } from "../lib/format";
 
@@ -21,7 +17,6 @@ export default function RealEstateListingCard({
   const nav = useNavigate();
   const listing = enrichRealEstateListing(item);
   const id = listing.id || listing._id;
-  const img = getListingThumb(listing);
   const summary = listing.realEstateSummary || {};
   const viewed = useListingViewed(id);
   const isHorizontal = variant === "horizontal";
@@ -71,27 +66,16 @@ export default function RealEstateListingCard({
           { vip: listing.vip, top: listing.top }
         )} flex-row p-2.5 gap-3`}
       >
-        <div className="relative h-32 w-40 shrink-0 overflow-hidden rounded-xl sm:w-44">
-          <img
-            src={img}
-            alt={listing.title || "Недвижимость"}
-            loading="lazy"
-            className={`h-full w-full object-cover bg-slate-100 transition-transform duration-500 group-hover:scale-105 ${getPromotionMediaClass({ vip: listing.vip })}`}
-            onError={(e) => {
-              e.currentTarget.src = "/img/placeholder.jpg";
-            }}
-          />
-
-          <ListingCardOverlays
-            views={listing.views}
-            vip={listing.vip}
-            top={listing.top}
-            morePhotos={Math.max(0, (listing.images?.length || 0) - 1)}
-            favoriteId={id}
-            isFavorite={listing.isFavorite}
-            onFavChange={(active) => onFav?.(id, active)}
-          />
-        </div>
+        <ListingCardMedia
+          item={listing}
+          className="relative h-32 w-40 shrink-0 overflow-hidden rounded-xl sm:w-44"
+          views={listing.views}
+          vip={listing.vip}
+          top={listing.top}
+          favoriteId={id}
+          isFavorite={listing.isFavorite}
+          onFavChange={(active) => onFav?.(id, active)}
+        />
 
         <div className="min-w-0 flex-1 flex flex-col py-0.5">
           <div className="flex items-start justify-between gap-2">
@@ -166,27 +150,15 @@ export default function RealEstateListingCard({
         { vip: listing.vip, top: listing.top }
       )}`}
     >
-      <div className="listing-card__media">
-        <img
-          src={img}
-          alt={listing.title || "Недвижимость"}
-          loading="lazy"
-          className={`h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03] ${getPromotionMediaClass({ vip: listing.vip })}`}
-          onError={(e) => {
-            e.currentTarget.src = "/img/placeholder.jpg";
-          }}
-        />
-
-        <ListingCardOverlays
-          views={listing.views}
-          vip={listing.vip}
-          top={listing.top}
-          morePhotos={Math.max(0, (listing.images?.length || 0) - 1)}
-          favoriteId={id}
-          isFavorite={listing.isFavorite}
-          onFavChange={(active) => onFav?.(id, active)}
-        />
-      </div>
+      <ListingCardMedia
+        item={listing}
+        views={listing.views}
+        vip={listing.vip}
+        top={listing.top}
+        favoriteId={id}
+        isFavorite={listing.isFavorite}
+        onFavChange={(active) => onFav?.(id, active)}
+      />
 
       <div className="listing-card__body">
         <div className="flex flex-wrap items-center gap-1.5">

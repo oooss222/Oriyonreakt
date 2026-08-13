@@ -1,14 +1,10 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import ListingCardOverlays from "./ListingCardOverlays";
+import ListingCardMedia from "./ListingCardMedia";
 import ListingCardFooter from "./ListingCardFooter";
-import { getListingThumb } from "../lib/media";
 import { trackListingClick } from "../lib/track";
 import { useListingViewed } from "../lib/viewedListings";
-import {
-  getPromotionCardClass,
-  getPromotionMediaClass,
-} from "../lib/promotionStyles";
+import { getPromotionCardClass } from "../lib/promotionStyles";
 
 export default function ListingCard({
   item,
@@ -21,7 +17,6 @@ export default function ListingCard({
   const nav = useNavigate();
   const listingId = item?.id || item?._id;
   const viewed = useListingViewed(listingId);
-  const morePhotos = Math.max(0, (item?.images?.length || 0) - 1);
   const location = item?.location || item?.city || "Не указано";
 
   const openAd = () => {
@@ -60,29 +55,15 @@ export default function ListingCard({
       style={style}
       aria-label={`Объявление: ${item?.title || "Без названия"}`}
     >
-      <div className="listing-card__media">
-        <img
-          src={getListingThumb(item)}
-          alt={item?.title || "Объявление"}
-          loading="lazy"
-          className={`h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03] ${getPromotionMediaClass(
-            { vip: item?.vip }
-          )}`}
-          onError={(e) => {
-            e.currentTarget.src = "/img/placeholder.jpg";
-          }}
-        />
-
-        <ListingCardOverlays
-          views={item?.views}
-          vip={item?.vip}
-          top={item?.top}
-          morePhotos={morePhotos}
-          favoriteId={listingId}
-          isFavorite={item?.isFavorite}
-          onFavChange={(active) => onFav?.(listingId, active)}
-        />
-      </div>
+      <ListingCardMedia
+        item={item}
+        views={item?.views}
+        vip={item?.vip}
+        top={item?.top}
+        favoriteId={listingId}
+        isFavorite={item?.isFavorite}
+        onFavChange={(active) => onFav?.(listingId, active)}
+      />
 
       <div className="listing-card__body">
         <span className="listing-card__location">{location}</span>

@@ -23,24 +23,51 @@ export function resolveMediaUrl(src, { placeholder = PLACEHOLDER, allowEmpty = f
   return `${server}/${clean}`;
 }
 
-export function getListingThumb(ad, options = {}) {
-  const first = ad?.images?.[0];
+function resolveListingImage(entry, options) {
+  if (!entry) return "";
 
-  if (typeof first === "string") {
-    return resolveMediaUrl(first, options);
+  if (typeof entry === "string") {
+    return resolveMediaUrl(entry, options);
   }
 
   return resolveMediaUrl(
-    first?.url ||
-      first?.src ||
-      first?.path ||
-      first?.secure_url ||
-      first?.preview ||
-      ad?.img ||
-      ad?.image ||
+    entry?.url ||
+      entry?.src ||
+      entry?.path ||
+      entry?.secure_url ||
+      entry?.preview ||
       "",
     options
   );
+}
+
+export function getListingThumb(ad, options = {}) {
+  const first = ad?.images?.[0];
+  const fromFirst = resolveListingImage(first, options);
+
+  if (fromFirst) {
+    return fromFirst;
+  }
+
+  return resolveMediaUrl(ad?.img || ad?.image || "", options);
+}
+
+export function getListingImages(ad, options = {}) {
+  const raw = Array.isArray(ad?.images) ? ad.images : [];
+  const urls = raw
+    .map((entry) => resolveListingImage(entry, options))
+    .filter(Boolean);
+
+  if (urls.length) {
+    return urls;
+  }
+
+  const fallback = resolveMediaUrl(ad?.img || ad?.image || "", {
+    ...options,
+    allowEmpty: true,
+  });
+
+  return fallback ? [fallback] : [];
 }
 
 export { PLACEHOLDER };
