@@ -1,12 +1,12 @@
 import React from "react";
 import {
-  parseDailyAmenities,
+  parseMultiSpecValue,
   DAILY_RULE_SPECS,
 } from "../../data/realEstate";
 import { getSpecValue } from "../../lib/realEstate";
 
 export default function RealEstateDailyFeatures({ specs = [], compact = false }) {
-  const amenities = parseDailyAmenities(getSpecValue(specs, "Удобства"));
+  const amenities = parseMultiSpecValue(getSpecValue(specs, "Удобства"));
   const rules = DAILY_RULE_SPECS.map((name) => ({
     name,
     value: getSpecValue(specs, name),

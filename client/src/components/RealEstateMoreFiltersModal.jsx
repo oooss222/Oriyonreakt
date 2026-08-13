@@ -25,6 +25,7 @@ import RealEstateCitySelect from "./RealEstateCitySelect";
 import RealEstateGuestsPicker from "./realestate/RealEstateGuestsPicker";
 import RealEstateDateRangePicker from "./realestate/RealEstateDateRangePicker";
 import DailyRentalFilterFields from "./realestate/DailyRentalFilterFields";
+import RentRentalFilterFields from "./realestate/RentRentalFilterFields";
 
 const AREA_PRESETS = ["20", "30", "40", "50", "60", "70", "80", "100", "120", "150"];
 
@@ -260,6 +261,7 @@ export default function RealEstateMoreFiltersModal({
   const showFloor = realEstateSubcategoryUsesFloor(effectiveSubcategory);
   const isRentDeal = dealType === "Снять" || dealType === "Посуточно";
   const isDaily = isDailyDeal(dealType);
+  const isRent = dealType === "Снять";
   const sortOptions = getRealEstateSortOptions(dealType);
   const sellerOptions = getSellerFilterOptions(dealType, effectiveSubcategory);
   const activeCity = draft.location || city || "Душанбе";
@@ -816,7 +818,23 @@ export default function RealEstateMoreFiltersModal({
               </FilterRow>
             )}
 
-            {houseTypeOptions.length > 0 && !isDaily && (
+            {isRent && (
+              <FilterRow label="Условия аренды">
+                <RentRentalFilterFields
+                  draft={draft}
+                  setSpec={setSpec}
+                  showSellerFilters={sellerOptions.length > 0}
+                  onSellerTypeChange={(value) =>
+                    setDraft((current) => ({
+                      ...current,
+                      sellerType: value,
+                    }))
+                  }
+                />
+              </FilterRow>
+            )}
+
+            {houseTypeOptions.length > 0 && !isDaily && !isRent && (
               <FilterRow label="Тип дома">
                 <PillGroup
                   value={draft.specs?.["Тип дома"] || ""}

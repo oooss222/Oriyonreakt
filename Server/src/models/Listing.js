@@ -56,7 +56,7 @@ function parseGuestCapacity(value) {
   return Number.isFinite(n) && n > 0 ? n : null;
 }
 
-const MULTI_VALUE_AND_SPECS = new Set(["Удобства"]);
+const MULTI_VALUE_AND_SPECS = new Set(["Удобства", "Техника"]);
 
 function appendSpecContainsValue(conditions, values, specName, part) {
   values.push(specName);

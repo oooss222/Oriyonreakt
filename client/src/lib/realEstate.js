@@ -64,6 +64,15 @@ export function buildRealEstateSummary(specs = [], subcategory = "") {
         );
       }
     }
+  } else if (deal === "Снять") {
+    if (rooms) parts.push(`${rooms} комн.`);
+    if (area) parts.push(area.includes("м") || area.includes("сот") ? area : `${area} м²`);
+
+    const furniture = getSpecValue(specs, "Мебель");
+    if (furniture) parts.push(furniture.toLowerCase());
+
+    const utilities = getSpecValue(specs, "Коммунальные");
+    if (utilities) parts.push(utilities.toLowerCase());
   } else {
     if (rooms) parts.push(`${rooms} комн.`);
     if (area) parts.push(area.includes("м") || area.includes("сот") ? area : `${area} м²`);

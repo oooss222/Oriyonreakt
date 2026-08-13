@@ -6,15 +6,18 @@ import {
   POPULAR_DUSHANBE_DISTRICTS,
   getDistrictsForCity,
   isDailyDeal,
+  isRentDeal,
   isSubcategoryCompatibleWithDeal,
   realEstateSubcategoryUsesRooms,
 } from "../data/realEstate";
 import { getRealEstateSubcategories } from "../data/realEstateFilters";
 import { formatPriceInput, getPriceDigits } from "../data/specOptions";
+import { getSellerFilterOptions } from "../lib/filterConflicts";
 import SaveSearchButton from "./SaveSearchButton";
 import RealEstateGuestsPicker from "./realestate/RealEstateGuestsPicker";
 import RealEstateDateRangePicker from "./realestate/RealEstateDateRangePicker";
 import DailyRentalFilterFields from "./realestate/DailyRentalFilterFields";
+import RentRentalFilterFields from "./realestate/RentRentalFilterFields";
 
 const ROOM_OPTIONS = ["1", "2", "3", "4", "5+"];
 
@@ -201,8 +204,10 @@ export default function RealEstateFiltersSidebar({
 }) {
   const dealType = draft.specs?.["Тип сделки"] || "";
   const isDaily = isDailyDeal(dealType);
+  const isRent = isRentDeal(dealType);
   const effectiveSubcategory = draft.subcategory || "";
   const showRooms = realEstateSubcategoryUsesRooms(effectiveSubcategory);
+  const sellerOptions = getSellerFilterOptions(dealType, effectiveSubcategory);
   const activeCity = draft.location || "Душанбе";
   const districts =
     activeCity === "Душанбе"
@@ -238,6 +243,20 @@ export default function RealEstateFiltersSidebar({
     : (previewTotal || categoryTotal || 0).toLocaleString("ru-RU");
 
   const saveDraft = appliedDraft || draft;
+
+  const setSpecValue = (key, value) => {
+    setDraft((current) => {
+      const nextSpecs = { ...current.specs };
+
+      if (value) {
+        nextSpecs[key] = value;
+      } else {
+        delete nextSpecs[key];
+      }
+
+      return { ...current, specs: nextSpecs };
+    });
+  };
 
   const setDistrict = (district) => {
     setDraft((current) => {
@@ -367,22 +386,31 @@ export default function RealEstateFiltersSidebar({
             <FilterBlock title="Удобства и правила">
               <DailyRentalFilterFields
                 draft={draft}
-                setSpec={(key, value) => {
-                  setDraft((current) => {
-                    const nextSpecs = { ...current.specs };
-
-                    if (value) {
-                      nextSpecs[key] = value;
-                    } else {
-                      delete nextSpecs[key];
-                    }
-
-                    return { ...current, specs: nextSpecs };
-                  });
-                }}
+                setSpec={setSpecValue}
               />
             </FilterBlock>
           </>
+        ) : null}
+
+        {isRent ? (
+          <FilterBlock title="Условия аренды">
+            <RentRentalFilterFields
+              draft={draft}
+              setSpec={setSpecValue}
+              showSellerFilters={sellerOptions.length > 0}
+              onSellerTypeChange={(value) =>
+                commitDraft(
+                  setDraft,
+                  onApply,
+                  (current) => ({
+                    ...current,
+                    sellerType: value,
+                  }),
+                  draft
+                )
+              }
+            />
+          </FilterBlock>
         ) : null}
 
         <FilterBlock title="Город и район">
@@ -430,14 +458,14 @@ export default function RealEstateFiltersSidebar({
 
         <FilterBlock title="Цена">
           <div className="space-y-3">
-            {!isDaily ? (
+            {!isDaily && !isRent ? (
               <PriceModeSegment
                 value={localPriceMode}
                 onChange={handlePriceModeChange}
               />
             ) : null}
 
-            {localPriceMode === "sqm" && !isDaily ? (
+            {localPriceMode === "sqm" && !isDaily && !isRent ? (
               <div className="grid grid-cols-2 gap-2">
                 <input
                   type="text"

@@ -85,6 +85,7 @@ export default function RealEstateListingWizard({
   const photosCount = existingImages.length + previews.length;
   const dealType = getSpecValue(specs, "Тип сделки");
   const isDaily = dealType === "Посуточно";
+  const isRent = dealType === "Снять";
 
   React.useEffect(() => {
     if (form.subcategory !== "Новостройки") return;
@@ -197,6 +198,11 @@ export default function RealEstateListingWizard({
 
   const detailFields = specs.filter((row) => {
     if (row.dailyOnly && !isDaily) return false;
+    if (row.rentOnly && !isRent) return false;
+
+    if (["Животные", "Курение"].includes(row.name) && !isDaily && !isRent) {
+      return false;
+    }
 
     return [
       "Гостей",
@@ -212,9 +218,15 @@ export default function RealEstateListingWizard({
       "Ремонт",
       "Мебель",
       "Удобства",
+      "Техника",
+      "Коммунальные",
+      "Интернет",
       "Балкон",
       "Животные",
       "Курение",
+      "Дети",
+      "Срок аренды",
+      "Залог",
       "Состояние",
     ].includes(row.name);
   });

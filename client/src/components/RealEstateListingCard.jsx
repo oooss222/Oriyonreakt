@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import ListingCardMedia from "./ListingCardMedia";
 import { enrichRealEstateListing, buildRealEstateCardDisplay } from "../lib/realEstate";
 import RealEstateDailyFeatures from "./realestate/RealEstateDailyFeatures";
+import RealEstateRentFeatures from "./realestate/RealEstateRentFeatures";
 import { useListingViewed } from "../lib/viewedListings";
 import { getPromotionCardClass } from "../lib/promotionStyles";
 import { MapPin, Maximize2 } from "lucide-react";
@@ -23,6 +24,7 @@ export default function RealEstateListingCard({
   const viewed = useListingViewed(id);
   const isHorizontal = variant === "horizontal";
   const isDaily = summary.deal === "Посуточно";
+  const isRent = summary.deal === "Снять";
   const nightlyPrice = Number(String(listing.price || "").replace(/[^\d]/g, ""));
   const totalStayPrice =
     isDaily && nights > 0 && nightlyPrice
@@ -177,6 +179,10 @@ export default function RealEstateListingCard({
           </>
         ) : null}
 
+        {isRent ? (
+          <RealEstateRentFeatures specs={listing.specs} compact />
+        ) : null}
+
         <div className="re-listing-card__price-row">
           <strong className="re-listing-card__price">
             {formatPrice(listing.price, { currency: "с." })}
@@ -185,8 +191,13 @@ export default function RealEstateListingCard({
                 / сут.
               </span>
             ) : null}
+            {isRent ? (
+              <span className="ml-1 text-xs font-semibold text-ink-400">
+                / мес.
+              </span>
+            ) : null}
           </strong>
-          {!isDaily && summary.pricePerSqm ? (
+          {!isDaily && !isRent && summary.pricePerSqm ? (
             <span className="re-listing-card__price-per-sqm">
               {summary.pricePerSqm}
             </span>
