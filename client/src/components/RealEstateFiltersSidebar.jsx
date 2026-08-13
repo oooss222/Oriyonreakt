@@ -9,6 +9,7 @@ import {
   isRentDeal,
   isSubcategoryCompatibleWithDeal,
   realEstateSubcategoryUsesRooms,
+  realEstateSubcategoryUsesRentApartmentFilters,
 } from "../data/realEstate";
 import { getRealEstateSubcategories } from "../data/realEstateFilters";
 import { formatPriceInput, getPriceDigits } from "../data/specOptions";
@@ -18,6 +19,9 @@ import RealEstateGuestsPicker from "./realestate/RealEstateGuestsPicker";
 import RealEstateDateRangePicker from "./realestate/RealEstateDateRangePicker";
 import DailyRentalFilterFields from "./realestate/DailyRentalFilterFields";
 import RentRentalFilterFields from "./realestate/RentRentalFilterFields";
+import LandFilterFields from "./realestate/LandFilterFields";
+import GarageFilterFields from "./realestate/GarageFilterFields";
+import CommercialFilterFields from "./realestate/CommercialFilterFields";
 
 const ROOM_OPTIONS = ["1", "2", "3", "4", "5+"];
 
@@ -207,6 +211,11 @@ export default function RealEstateFiltersSidebar({
   const isRent = isRentDeal(dealType);
   const effectiveSubcategory = draft.subcategory || "";
   const showRooms = realEstateSubcategoryUsesRooms(effectiveSubcategory);
+  const showRentApartmentFilters =
+    isRent && realEstateSubcategoryUsesRentApartmentFilters(effectiveSubcategory);
+  const isLand = effectiveSubcategory === "Участки";
+  const isGarage = effectiveSubcategory === "Гаражи и парковки";
+  const isCommercial = effectiveSubcategory === "Коммерческая недвижимость";
   const sellerOptions = getSellerFilterOptions(dealType, effectiveSubcategory);
   const activeCity = draft.location || "Душанбе";
   const districts =
@@ -392,7 +401,7 @@ export default function RealEstateFiltersSidebar({
           </>
         ) : null}
 
-        {isRent ? (
+        {showRentApartmentFilters ? (
           <FilterBlock title="Условия аренды">
             <RentRentalFilterFields
               draft={draft}
@@ -409,6 +418,32 @@ export default function RealEstateFiltersSidebar({
                   draft
                 )
               }
+            />
+          </FilterBlock>
+        ) : null}
+
+        {isLand && !isDaily ? (
+          <FilterBlock title="Параметры участка">
+            <LandFilterFields draft={draft} setSpec={setSpecValue} />
+          </FilterBlock>
+        ) : null}
+
+        {isGarage && !isDaily ? (
+          <FilterBlock title={isRent ? "Условия аренды" : "Параметры"}>
+            <GarageFilterFields
+              draft={draft}
+              setSpec={setSpecValue}
+              isRent={isRent}
+            />
+          </FilterBlock>
+        ) : null}
+
+        {isCommercial && !isDaily ? (
+          <FilterBlock title={isRent ? "Условия аренды" : "Параметры"}>
+            <CommercialFilterFields
+              draft={draft}
+              setSpec={setSpecValue}
+              isRent={isRent}
             />
           </FilterBlock>
         ) : null}

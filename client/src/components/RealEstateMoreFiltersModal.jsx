@@ -11,6 +11,7 @@ import {
   POPULAR_DUSHANBE_DISTRICTS,
   realEstateSubcategoryUsesFloor,
   realEstateSubcategoryUsesRooms,
+  realEstateSubcategoryUsesRentApartmentFilters,
   isDailyDeal,
 } from "../data/realEstate";
 import { getRealEstateFilterGrid, getRealEstateSortOptions } from "../data/realEstateFilters";
@@ -26,6 +27,9 @@ import RealEstateGuestsPicker from "./realestate/RealEstateGuestsPicker";
 import RealEstateDateRangePicker from "./realestate/RealEstateDateRangePicker";
 import DailyRentalFilterFields from "./realestate/DailyRentalFilterFields";
 import RentRentalFilterFields from "./realestate/RentRentalFilterFields";
+import LandFilterFields from "./realestate/LandFilterFields";
+import GarageFilterFields from "./realestate/GarageFilterFields";
+import CommercialFilterFields from "./realestate/CommercialFilterFields";
 
 const AREA_PRESETS = ["20", "30", "40", "50", "60", "70", "80", "100", "120", "150"];
 
@@ -259,6 +263,12 @@ export default function RealEstateMoreFiltersModal({
   const effectiveSubcategory = draft.subcategory || subcategory;
   const showRooms = realEstateSubcategoryUsesRooms(effectiveSubcategory);
   const showFloor = realEstateSubcategoryUsesFloor(effectiveSubcategory);
+  const showRentApartmentFilters =
+    dealType === "Снять" &&
+    realEstateSubcategoryUsesRentApartmentFilters(effectiveSubcategory);
+  const isLand = effectiveSubcategory === "Участки";
+  const isGarage = effectiveSubcategory === "Гаражи и парковки";
+  const isCommercial = effectiveSubcategory === "Коммерческая недвижимость";
   const isRentDeal = dealType === "Снять" || dealType === "Посуточно";
   const isDaily = isDailyDeal(dealType);
   const isRent = dealType === "Снять";
@@ -818,7 +828,7 @@ export default function RealEstateMoreFiltersModal({
               </FilterRow>
             )}
 
-            {isRent && (
+            {showRentApartmentFilters && (
               <FilterRow label="Условия аренды">
                 <RentRentalFilterFields
                   draft={draft}
@@ -834,6 +844,32 @@ export default function RealEstateMoreFiltersModal({
               </FilterRow>
             )}
 
+            {isLand && !isDaily && (
+              <FilterRow label="Параметры участка">
+                <LandFilterFields draft={draft} setSpec={setSpec} />
+              </FilterRow>
+            )}
+
+            {isGarage && !isDaily && (
+              <FilterRow label={isRent ? "Условия аренды" : "Параметры"}>
+                <GarageFilterFields
+                  draft={draft}
+                  setSpec={setSpec}
+                  isRent={isRent}
+                />
+              </FilterRow>
+            )}
+
+            {isCommercial && !isDaily && (
+              <FilterRow label={isRent ? "Условия аренды" : "Параметры"}>
+                <CommercialFilterFields
+                  draft={draft}
+                  setSpec={setSpec}
+                  isRent={isRent}
+                />
+              </FilterRow>
+            )}
+
             {houseTypeOptions.length > 0 && !isDaily && !isRent && (
               <FilterRow label="Тип дома">
                 <PillGroup
@@ -844,7 +880,7 @@ export default function RealEstateMoreFiltersModal({
               </FilterRow>
             )}
 
-            {repairOptions.length > 0 && !isDaily && (
+            {repairOptions.length > 0 && !isDaily && !isCommercial && (
               <FilterRow label="Ремонт">
                 <MultiPillGroup
                   values={draft.specs?.["Ремонт"] || ""}
@@ -884,7 +920,7 @@ export default function RealEstateMoreFiltersModal({
               </>
             )}
 
-            {parkingOptions.length > 0 && (
+            {parkingOptions.length > 0 && !isCommercial && (
               <FilterRow label="Парковка">
                 <PillGroup
                   value={draft.specs?.["Парковка"] || ""}

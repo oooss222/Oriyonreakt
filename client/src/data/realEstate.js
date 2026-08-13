@@ -303,6 +303,39 @@ export function getPricePresetsForDeal(dealType = "") {
   return REAL_ESTATE_PRICE_PRESETS;
 }
 
+export const LAND_PURPOSE_OPTIONS = ["ИЖС", "Сельхоз", "Коммерция", "Дачный"];
+
+export const LAND_COMMUNICATIONS_OPTIONS = ["Все", "Частично", "Нет"];
+
+export const LAND_RELIEF_OPTIONS = ["Ровный", "С уклоном", "Холмистый"];
+
+export const GARAGE_TYPE_OPTIONS = ["Гараж", "Машиноместо", "Бокс", "Подземный"];
+
+export const GARAGE_SECURITY_OPTIONS = ["Есть", "Нет"];
+
+export const COMMERCIAL_OBJECT_TYPE_OPTIONS = [
+  "Офис",
+  "Магазин",
+  "Склад",
+  "Кафе",
+  "Помещение свободного назначения",
+];
+
+export const COMMERCIAL_REPAIR_OPTIONS = ["Без отделки", "Офисная", "Под ключ"];
+
+export const COMMERCIAL_PARKING_OPTIONS = ["Есть", "Нет"];
+
+const HOUSING_RENT_FILTER_SUBCATEGORIES = [
+  "Квартиры",
+  "Новостройки",
+  "Комнаты",
+  "Дома и коттеджи",
+];
+
+export function realEstateSubcategoryUsesRentApartmentFilters(subcategory = "") {
+  return HOUSING_RENT_FILTER_SUBCATEGORIES.includes(subcategory);
+}
+
 export function realEstateSubcategoryUsesRooms(subcategory = "") {
   return ["", "Квартиры", "Новостройки", "Комнаты", "Дома и коттеджи"].includes(
     subcategory
@@ -379,25 +412,29 @@ export const HOUSE_SPECS = [
 export const LAND_SPECS = [
   { name: "Тип сделки", type: "select", options: DEAL_TYPES.map((d) => d.value) },
   { name: "Площадь участка", type: "text", placeholder: "сот. или м²" },
-  { name: "Назначение", type: "select", options: ["ИЖС", "Сельхоз", "Коммерция", "Дачный"] },
-  { name: "Коммуникации", type: "select", options: ["Все", "Частично", "Нет"] },
-  { name: "Рельеф", type: "select", options: ["Ровный", "С уклоном", "Холмистый"] },
+  { name: "Назначение", type: "select", options: LAND_PURPOSE_OPTIONS },
+  { name: "Коммуникации", type: "select", options: LAND_COMMUNICATIONS_OPTIONS },
+  { name: "Рельеф", type: "select", options: LAND_RELIEF_OPTIONS },
 ];
 
 export const COMMERCIAL_SPECS = [
   { name: "Тип сделки", type: "select", options: DEAL_TYPES.map((d) => d.value) },
-  { name: "Тип объекта", type: "select", options: ["Офис", "Магазин", "Склад", "Кафе", "Помещение свободного назначения"] },
+  { name: "Тип объекта", type: "select", options: COMMERCIAL_OBJECT_TYPE_OPTIONS },
   { name: "Площадь", type: "text", placeholder: "м²" },
   { name: "Этаж", type: "text" },
-  { name: "Ремонт", type: "select", options: ["Без отделки", "Офисная", "Под ключ"] },
-  { name: "Парковка", type: "select", options: ["Есть", "Нет"] },
+  { name: "Ремонт", type: "select", options: COMMERCIAL_REPAIR_OPTIONS },
+  { name: "Парковка", type: "select", options: COMMERCIAL_PARKING_OPTIONS },
+  { name: "Срок аренды", type: "select", options: RENT_TERM_OPTIONS, rentOnly: true },
+  { name: "Залог", type: "select", options: RENT_DEPOSIT_OPTIONS, rentOnly: true },
 ];
 
 export const GARAGE_SPECS = [
   { name: "Тип сделки", type: "select", options: DEAL_TYPES.map((d) => d.value) },
-  { name: "Тип", type: "select", options: ["Гараж", "Машиноместо", "Бокс", "Подземный"] },
+  { name: "Тип", type: "select", options: GARAGE_TYPE_OPTIONS },
   { name: "Площадь", type: "text", placeholder: "м²" },
-  { name: "Охрана", type: "select", options: ["Есть", "Нет"] },
+  { name: "Охрана", type: "select", options: GARAGE_SECURITY_OPTIONS },
+  { name: "Срок аренды", type: "select", options: RENT_TERM_OPTIONS, rentOnly: true },
+  { name: "Залог", type: "select", options: RENT_DEPOSIT_OPTIONS, rentOnly: true },
 ];
 
 export const ROOM_SPECS = [
