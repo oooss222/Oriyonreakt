@@ -1,5 +1,10 @@
+const crypto = require("crypto");
 const bcrypt = require("bcryptjs");
 const { query, mapUser } = require("../db");
+const {
+  normalizePhone,
+  phoneToSyntheticEmail,
+} = require("../lib/phoneUtils");
 const {
   getListingLimit,
   canSwitchToPrivate,
@@ -90,6 +95,63 @@ class UserModel {
     );
 
     return mapUser(result.rows[0]);
+  }
+
+  static async findByPhone(phone) {
+    const normalized = normalizePhone(phone);
+
+    if (!normalized) {
+      return null;
+    }
+
+    const result = await query(
+      `
+      SELECT *
+      FROM users
+      WHERE phone = $1
+      LIMIT 1
+      `,
+      [normalized]
+    );
+
+    return mapUser(result.rows[0]);
+  }
+
+  static async createFromPhone({ phone, name }) {
+    const normalizedPhone = normalizePhone(phone);
+    const email = phoneToSyntheticEmail(normalizedPhone);
+    const hashedPassword = await bcrypt.hash(
+      crypto.randomBytes(32).toString("hex"),
+      10
+    );
+    const trimmedName = String(name || "").trim() || "Пользователь";
+
+    const result = await query(
+      `
+      INSERT INTO users (
+        email,
+        password,
+        name,
+        phone,
+        seller_type,
+        role,
+        phone_verified,
+        email_verified
+      )
+      VALUES ($1, $2, $3, $4, 'private', 'user', true, true)
+      RETURNING *
+      `,
+      [email, hashedPassword, trimmedName, normalizedPhone]
+    );
+
+    return mapUser(result.rows[0]);
+  }
+
+  static async updatePhoneVerified(userId, verified = true) {
+    await query(
+      `UPDATE users SET phone_verified = $2, updated_at = now() WHERE id = $1`,
+      [userId, Boolean(verified)]
+    );
   }
 
   static async findById(id) {

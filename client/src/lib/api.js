@@ -101,6 +101,18 @@ export const api = {
       body: data,
     }),
 
+  sendPhoneCode: (data) =>
+    request("/auth/phone/send-code", {
+      method: "POST",
+      body: data,
+    }),
+
+  verifyPhoneCode: (data) =>
+    request("/auth/phone/verify", {
+      method: "POST",
+      body: data,
+    }),
+
   me: (token) =>
     request("/users/me", {
       token,

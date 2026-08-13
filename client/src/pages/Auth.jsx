@@ -4,6 +4,11 @@ import { api } from "../lib/api";
 import { TOKEN_KEY, USER_KEY } from "../lib/auth";
 import AuthTrustPanel from "../components/auth/AuthTrustPanel";
 import {
+  formatPhoneLocalDigits,
+  isValidPhoneDigits,
+  phoneDigitsToApi,
+} from "../lib/phoneUtils";
+import {
   Mail,
   Lock,
   User as UserIcon,
@@ -13,6 +18,8 @@ import {
   AlertTriangle,
   Keyboard,
   Loader2,
+  Phone,
+  ArrowLeft,
 } from "lucide-react";
 
 const Field = ({ label, hint, icon: Icon, right, children }) => (
@@ -107,11 +114,23 @@ export default function Auth() {
   }, [nav, returnTo]);
 
   const [tab, setTab] = React.useState(urlTab);
+  const [authMethod, setAuthMethod] = React.useState("phone");
+  const [phoneStep, setPhoneStep] = React.useState("phone");
   const [loading, setLoading] = React.useState(false);
   const [err, setErr] = React.useState("");
   const [ok, setOk] = React.useState("");
 
   const emailRef = React.useRef(null);
+  const phoneRef = React.useRef(null);
+  const codeRef = React.useRef(null);
+
+  const [phoneDigits, setPhoneDigits] = React.useState("");
+  const [phoneCode, setPhoneCode] = React.useState("");
+  const [phoneName, setPhoneName] = React.useState("");
+  const [phoneAgree, setPhoneAgree] = React.useState(false);
+  const [phoneDisplay, setPhoneDisplay] = React.useState("");
+  const [resendSec, setResendSec] = React.useState(0);
+  const [devCodeHint, setDevCodeHint] = React.useState("");
 
   const [login, setLogin] = React.useState({ email: "", password: "" });
   const [reg, setReg] = React.useState({
@@ -149,8 +168,47 @@ export default function Auth() {
   }, []);
 
   React.useEffect(() => {
+    if (authMethod === "phone") {
+      if (phoneStep === "code") {
+        codeRef.current?.focus();
+      } else {
+        phoneRef.current?.focus();
+      }
+      return;
+    }
+
     emailRef.current?.focus();
-  }, [tab]);
+  }, [tab, authMethod, phoneStep]);
+
+  React.useEffect(() => {
+    if (resendSec <= 0) return undefined;
+
+    const timer = window.setInterval(() => {
+      setResendSec((value) => (value > 0 ? value - 1 : 0));
+    }, 1000);
+
+    return () => window.clearInterval(timer);
+  }, [resendSec]);
+
+  const resetPhoneFlow = React.useCallback(() => {
+    setPhoneStep("phone");
+    setPhoneCode("");
+    setPhoneName("");
+    setPhoneAgree(false);
+    setPhoneDisplay("");
+    setResendSec(0);
+    setDevCodeHint("");
+  }, []);
+
+  const switchAuthMethod = React.useCallback(
+    (method) => {
+      setAuthMethod(method);
+      setErr("");
+      setOk("");
+      resetPhoneFlow();
+    },
+    [resetPhoneFlow]
+  );
 
   React.useEffect(() => {
     if (!registrationEnabled && tab === "register") {
@@ -163,13 +221,129 @@ export default function Auth() {
       setTab(nextTab);
       setErr("");
       setOk("");
+      resetPhoneFlow();
 
       const params = new URLSearchParams(searchParams);
       params.set("tab", nextTab);
       setSearchParams(params, { replace: true });
     },
-    [searchParams, setSearchParams]
+    [searchParams, setSearchParams, resetPhoneFlow]
   );
+
+  const persistAuth = React.useCallback(
+    ({ token, user }) => {
+      localStorage.setItem(TOKEN_KEY, token);
+      localStorage.setItem(USER_KEY, JSON.stringify(user));
+      setOk(tab === "login" ? "Вход выполнен! Перенаправляем…" : "Аккаунт создан! Перенаправляем…");
+      window.setTimeout(() => redirectAfterAuth(), 300);
+    },
+    [redirectAfterAuth, tab]
+  );
+
+  const onSendPhoneCode = async (e) => {
+    e.preventDefault();
+    setErr("");
+    setOk("");
+    setDevCodeHint("");
+
+    if (!isValidPhoneDigits(phoneDigits)) {
+      setErr("Введите номер в формате 90 123 45 67");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const data = await api.sendPhoneCode({
+        phone: phoneDigitsToApi(phoneDigits),
+        mode: tab,
+      });
+
+      setPhoneDisplay(data.phoneDisplay || phoneDigitsToApi(phoneDigits));
+      setPhoneStep("code");
+      setResendSec(Number(data.retryAfterSec) || 60);
+
+      if (data.devCode) {
+        setDevCodeHint(`Код для разработки: ${data.devCode}`);
+      }
+
+      setOk(`Код отправлен на ${data.phoneDisplay || phoneDigitsToApi(phoneDigits)}`);
+    } catch (e) {
+      setErr(e.message || "Не удалось отправить код");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const onVerifyPhoneCode = async (e) => {
+    e.preventDefault();
+    setErr("");
+    setOk("");
+
+    if (!/^\d{6}$/.test(phoneCode)) {
+      setErr("Введите 6-значный код из SMS");
+      return;
+    }
+
+    if (tab === "register" && !phoneName.trim()) {
+      setErr("Укажите, как к вам обращаться");
+      return;
+    }
+
+    if (tab === "register" && !phoneAgree) {
+      setErr("Подтвердите согласие с политикой сайта");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const payload = {
+        phone: phoneDigitsToApi(phoneDigits),
+        code: phoneCode,
+        mode: tab,
+      };
+
+      if (tab === "register") {
+        payload.name = phoneName.trim();
+      }
+
+      const { token, user } = await api.verifyPhoneCode(payload);
+      persistAuth({ token, user });
+    } catch (e) {
+      setErr(e.message || "Не удалось подтвердить код");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const onResendPhoneCode = async () => {
+    if (resendSec > 0 || loading) return;
+
+    setErr("");
+    setOk("");
+    setDevCodeHint("");
+    setLoading(true);
+
+    try {
+      const data = await api.sendPhoneCode({
+        phone: phoneDigitsToApi(phoneDigits),
+        mode: tab,
+      });
+
+      setResendSec(Number(data.retryAfterSec) || 60);
+
+      if (data.devCode) {
+        setDevCodeHint(`Код для разработки: ${data.devCode}`);
+      }
+
+      setOk("Новый код отправлен");
+    } catch (e) {
+      setErr(e.message || "Не удалось отправить код");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const onLogin = async (e) => {
     e.preventDefault();
@@ -187,10 +361,7 @@ export default function Auth() {
         password: login.password,
       });
 
-      localStorage.setItem(TOKEN_KEY, token);
-      localStorage.setItem(USER_KEY, JSON.stringify(user));
-      setOk("Вход выполнен! Перенаправляем…");
-      setTimeout(() => redirectAfterAuth(), 300);
+      persistAuth({ token, user });
     } catch (e) {
       setErr(e.message || "Ошибка входа");
     } finally {
@@ -231,10 +402,7 @@ export default function Auth() {
         password: reg.password,
       });
 
-      localStorage.setItem(TOKEN_KEY, token);
-      localStorage.setItem(USER_KEY, JSON.stringify(user));
-      setOk("Аккаунт создан! Перенаправляем…");
-      setTimeout(() => redirectAfterAuth(), 300);
+      persistAuth({ token, user });
     } catch (e) {
       setErr(e.message || "Ошибка регистрации");
     } finally {
@@ -301,8 +469,246 @@ export default function Auth() {
             <div className="p-5 sm:p-6 space-y-4">
               <Alert type="error">{err}</Alert>
               <Alert type="success">{ok}</Alert>
+              {devCodeHint && authMethod === "phone" && (
+                <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+                  {devCodeHint}
+                </div>
+              )}
 
-              {tab === "login" && (
+              {authMethod === "phone" && tab === "login" && (
+                <>
+                  {phoneStep === "phone" ? (
+                    <form onSubmit={onSendPhoneCode} className="space-y-4">
+                      <Field label="Номер телефона" icon={Phone}>
+                        <div className="flex">
+                          <span className="inline-flex h-11 items-center rounded-l-xl border border-r-0 border-ink/15 bg-mist-50 px-3 text-sm font-semibold text-ink-600">
+                            +992
+                          </span>
+                          <Input
+                            ref={phoneRef}
+                            type="tel"
+                            inputMode="numeric"
+                            placeholder="90 123 45 67"
+                            value={formatPhoneLocalDigits(phoneDigits)}
+                            onChange={(e) =>
+                              setPhoneDigits(
+                                e.target.value.replace(/\D/g, "").slice(0, 9)
+                              )
+                            }
+                            autoComplete="tel"
+                            className="rounded-l-none"
+                          />
+                        </div>
+                      </Field>
+
+                      <button
+                        type="submit"
+                        className="btn btn-primary w-full h-11 rounded-xl font-semibold shadow-soft hover:shadow-lift active:scale-[0.98] disabled:opacity-60"
+                        disabled={loading}
+                      >
+                        {loading ? (
+                          <span className="flex items-center justify-center gap-2">
+                            <Loader2 className="animate-spin" size={18} />
+                            Отправляем…
+                          </span>
+                        ) : (
+                          "Получить код"
+                        )}
+                      </button>
+                    </form>
+                  ) : (
+                    <form onSubmit={onVerifyPhoneCode} className="space-y-4">
+                      <button
+                        type="button"
+                        onClick={resetPhoneFlow}
+                        className="inline-flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700"
+                      >
+                        <ArrowLeft size={16} />
+                        Изменить номер
+                      </button>
+
+                      <p className="text-sm text-slate-600">
+                        Код отправлен на{" "}
+                        <span className="font-semibold text-slate-900">
+                          {phoneDisplay || phoneDigitsToApi(phoneDigits)}
+                        </span>
+                      </p>
+
+                      <Field label="Код из SMS" icon={Lock}>
+                        <Input
+                          ref={codeRef}
+                          type="text"
+                          inputMode="numeric"
+                          placeholder="123456"
+                          value={phoneCode}
+                          onChange={(e) =>
+                            setPhoneCode(e.target.value.replace(/\D/g, "").slice(0, 6))
+                          }
+                          autoComplete="one-time-code"
+                          withIcon
+                        />
+                      </Field>
+
+                      <button
+                        type="submit"
+                        className="btn btn-primary w-full h-11 rounded-xl font-semibold shadow-soft hover:shadow-lift active:scale-[0.98] disabled:opacity-60"
+                        disabled={loading}
+                      >
+                        {loading ? (
+                          <span className="flex items-center justify-center gap-2">
+                            <Loader2 className="animate-spin" size={18} />
+                            Проверяем…
+                          </span>
+                        ) : (
+                          "Войти"
+                        )}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={onResendPhoneCode}
+                        disabled={resendSec > 0 || loading}
+                        className="w-full text-sm text-sun font-medium hover:underline disabled:text-slate-400 disabled:no-underline"
+                      >
+                        {resendSec > 0
+                          ? `Отправить код повторно через ${resendSec} сек`
+                          : "Отправить код повторно"}
+                      </button>
+                    </form>
+                  )}
+                </>
+              )}
+
+              {authMethod === "phone" && tab === "register" && registrationEnabled && (
+                <>
+                  {phoneStep === "phone" ? (
+                    <form onSubmit={onSendPhoneCode} className="space-y-4">
+                      <Field label="Номер телефона" icon={Phone}>
+                        <div className="flex">
+                          <span className="inline-flex h-11 items-center rounded-l-xl border border-r-0 border-ink/15 bg-mist-50 px-3 text-sm font-semibold text-ink-600">
+                            +992
+                          </span>
+                          <Input
+                            ref={phoneRef}
+                            type="tel"
+                            inputMode="numeric"
+                            placeholder="90 123 45 67"
+                            value={formatPhoneLocalDigits(phoneDigits)}
+                            onChange={(e) =>
+                              setPhoneDigits(
+                                e.target.value.replace(/\D/g, "").slice(0, 9)
+                              )
+                            }
+                            autoComplete="tel"
+                            className="rounded-l-none"
+                          />
+                        </div>
+                      </Field>
+
+                      <button
+                        type="submit"
+                        className="btn btn-primary w-full h-11 rounded-xl font-semibold shadow-soft hover:shadow-lift active:scale-[0.98] disabled:opacity-60"
+                        disabled={loading}
+                      >
+                        {loading ? (
+                          <span className="flex items-center justify-center gap-2">
+                            <Loader2 className="animate-spin" size={18} />
+                            Отправляем…
+                          </span>
+                        ) : (
+                          "Получить код"
+                        )}
+                      </button>
+                    </form>
+                  ) : (
+                    <form onSubmit={onVerifyPhoneCode} className="space-y-4">
+                      <button
+                        type="button"
+                        onClick={resetPhoneFlow}
+                        className="inline-flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700"
+                      >
+                        <ArrowLeft size={16} />
+                        Изменить номер
+                      </button>
+
+                      <p className="text-sm text-slate-600">
+                        Код отправлен на{" "}
+                        <span className="font-semibold text-slate-900">
+                          {phoneDisplay || phoneDigitsToApi(phoneDigits)}
+                        </span>
+                      </p>
+
+                      <Field label="Код из SMS" icon={Lock}>
+                        <Input
+                          ref={codeRef}
+                          type="text"
+                          inputMode="numeric"
+                          placeholder="123456"
+                          value={phoneCode}
+                          onChange={(e) =>
+                            setPhoneCode(e.target.value.replace(/\D/g, "").slice(0, 6))
+                          }
+                          autoComplete="one-time-code"
+                          withIcon
+                        />
+                      </Field>
+
+                      <Field label="ФИО" icon={UserIcon}>
+                        <Input
+                          placeholder="Как к вам обращаться"
+                          value={phoneName}
+                          onChange={(e) => setPhoneName(e.target.value)}
+                          autoComplete="name"
+                          withIcon
+                        />
+                      </Field>
+
+                      <label className="flex items-start gap-2 text-sm text-slate-700">
+                        <input
+                          type="checkbox"
+                          checked={phoneAgree}
+                          onChange={(e) => setPhoneAgree(e.target.checked)}
+                          className="mt-0.5 rounded border-slate-300 accent-sun"
+                        />
+                        <span>
+                          Я согласен с{" "}
+                          <Link to="/policy" className="text-sun font-medium hover:underline">
+                            политикой сайта
+                          </Link>
+                        </span>
+                      </label>
+
+                      <button
+                        type="submit"
+                        className="btn btn-primary w-full h-11 rounded-xl font-semibold shadow-soft hover:shadow-lift active:scale-[0.98] disabled:opacity-60"
+                        disabled={loading}
+                      >
+                        {loading ? (
+                          <span className="flex items-center justify-center gap-2">
+                            <Loader2 className="animate-spin" size={18} />
+                            Создаём…
+                          </span>
+                        ) : (
+                          "Зарегистрироваться"
+                        )}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={onResendPhoneCode}
+                        disabled={resendSec > 0 || loading}
+                        className="w-full text-sm text-sun font-medium hover:underline disabled:text-slate-400 disabled:no-underline"
+                      >
+                        {resendSec > 0
+                          ? `Отправить код повторно через ${resendSec} сек`
+                          : "Отправить код повторно"}
+                      </button>
+                    </form>
+                  )}
+                </>
+              )}
+
+              {authMethod === "email" && tab === "login" && (
                 <form onSubmit={onLogin} className="space-y-4">
                   <Field label="Email" icon={Mail}>
                     <Input
@@ -365,7 +771,7 @@ export default function Auth() {
                 </form>
               )}
 
-              {tab === "register" && registrationEnabled && (
+              {authMethod === "email" && tab === "register" && registrationEnabled && (
                 <form onSubmit={onRegister} className="space-y-4">
                   <Field label="ФИО" icon={UserIcon}>
                     <Input
@@ -491,6 +897,20 @@ export default function Auth() {
                   </button>
                 </form>
               )}
+            </div>
+
+            <div className="border-t border-ink/10 bg-mist-50 px-5 py-3 text-center">
+              <button
+                type="button"
+                onClick={() =>
+                  switchAuthMethod(authMethod === "phone" ? "email" : "phone")
+                }
+                className="text-sm text-slate-600 hover:text-sun font-medium"
+              >
+                {authMethod === "phone"
+                  ? "Войти или зарегистрироваться по email"
+                  : "Войти или зарегистрироваться по номеру телефона"}
+              </button>
             </div>
           </div>
 

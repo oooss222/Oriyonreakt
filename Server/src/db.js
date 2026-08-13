@@ -164,6 +164,22 @@ async function initDb() {
     ALTER TABLE users
       ADD COLUMN IF NOT EXISTS approved_listings_count INTEGER NOT NULL DEFAULT 0;
 
+    ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS phone_verified BOOLEAN NOT NULL DEFAULT false;
+
+    CREATE TABLE IF NOT EXISTS phone_otps (
+      phone TEXT PRIMARY KEY,
+      code_hash TEXT NOT NULL,
+      attempts INTEGER NOT NULL DEFAULT 0,
+      send_count INTEGER NOT NULL DEFAULT 1,
+      last_sent_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+      expires_at TIMESTAMPTZ NOT NULL
+    );
+
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_users_phone_unique
+      ON users (phone)
+      WHERE phone <> '';
+
     DO $$
     BEGIN
       IF NOT EXISTS (
@@ -836,6 +852,7 @@ function mapUser(row) {
     approvedListingsCount: Number(row.approved_listings_count || 0),
 
     emailVerified: row.email_verified,
+    phoneVerified: Boolean(row.phone_verified),
 
     walletBalance: Number(row.wallet_balance || 0),
 
