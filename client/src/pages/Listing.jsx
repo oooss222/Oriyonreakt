@@ -8,15 +8,14 @@ import EmptyState from "../components/EmptyState";
 import Breadcrumbs from "../components/Breadcrumbs";
 import ListingFiltersPanel from "../components/ListingFiltersPanel";
 import ListingFiltersSidebar from "../components/ListingFiltersSidebar";
+import RealEstateFiltersSidebar from "../components/RealEstateFiltersSidebar";
 import SubcategoryChips from "../components/SubcategoryChips";
 import SimilarListingsSection from "../components/SimilarListingsSection";
 import AdSlot, { AdFeedCard, useAdPlacement } from "../components/AdSlot";
 import RealEstateSearchHero from "../components/RealEstateSearchHero";
 import RealEstateListingCard from "../components/RealEstateListingCard";
 import RealEstateMoreFiltersModal from "../components/RealEstateMoreFiltersModal";
-import RealEstateDistrictBar from "../components/realestate/RealEstateDistrictBar";
 import RealEstateDailyFilterBar from "../components/realestate/RealEstateDailyFilterBar";
-import RealEstateQuickCollections from "../components/realestate/RealEstateQuickCollections";
 import SaveSearchButton from "../components/SaveSearchButton";
 import { isDailyDeal, countNights } from "../data/realEstate";
 import { buildFeedWithAds } from "../lib/adFeed";
@@ -295,6 +294,9 @@ export default function Listing() {
     [appliedDraft, draft, cat]
   );
 
+  const activeCat = draft.cat || cat || categoryFromPath || (seoDraft ? REAL_ESTATE_CAT : "");
+  const isRealEstate = activeCat === REAL_ESTATE_CAT;
+
   React.useEffect(() => {
     let active = true;
 
@@ -348,7 +350,10 @@ export default function Listing() {
       try {
         setPreviewLoading(true);
         const countData = await api.listingCount(
-          buildListingQueryFromDraft(draft, cat)
+          buildListingQueryFromDraft(
+            draft,
+            activeCat || cat || (seoDraft ? REAL_ESTATE_CAT : "")
+          )
         );
 
         if (active) {
@@ -369,13 +374,10 @@ export default function Listing() {
       active = false;
       clearTimeout(timer);
     };
-  }, [draft, total, cat, draftIsDirty]);
-
-  const activeCat = draft.cat || cat || (seoDraft ? REAL_ESTATE_CAT : "");
-  const isRealEstate = activeCat === REAL_ESTATE_CAT;
+  }, [draft, total, activeCat, cat, seoDraft, draftIsDirty]);
 
   React.useEffect(() => {
-    if (!activeCat || isRealEstate) {
+    if (!activeCat) {
       setCategoryStats({ total: 0, bySubcategory: {} });
       return undefined;
     }
@@ -398,7 +400,7 @@ export default function Listing() {
     return () => {
       active = false;
     };
-  }, [activeCat, isRealEstate, appliedDraft.location]);
+  }, [activeCat, appliedDraft.location]);
 
   const feedAd = useAdPlacement("listing_feed", activeCat);
   const feedRows = React.useMemo(
@@ -697,7 +699,7 @@ export default function Listing() {
   return (
     <div className="container mx-auto px-4 py-6">
       {isRealEstate && (
-        <div className="space-y-5 mb-5">
+        <div className="mb-5 space-y-5 lg:hidden">
           <Breadcrumbs items={breadcrumbItems} />
 
           <RealEstateSearchHero
@@ -734,59 +736,25 @@ export default function Listing() {
               }
             />
           )}
-
-          <RealEstateDistrictBar
-            city={appliedDraft.location || "Душанбе"}
-            activeDistrict={appliedDraft.specs?.["Район"] || ""}
-            totalCount={total}
-            filterContext={{
-              city: appliedDraft.location || "Душанбе",
-              dealType: appliedDraft.specs?.["Тип сделки"] || "",
-              subcategory: effectiveSubcategory,
-              rooms: appliedDraft.specs?.["Комнат"] || "",
-              guests: appliedDraft.guests || "",
-              checkIn: appliedDraft.checkIn || "",
-              checkOut: appliedDraft.checkOut || "",
-              priceFrom: appliedDraft.priceFrom || "",
-              priceTo: appliedDraft.priceTo || "",
-              specs: appliedDraft.specs || {},
-            }}
-            onCityChange={(nextCity) => {
-              const nextSpecs = { ...appliedDraft.specs };
-              delete nextSpecs["Район"];
-              applyFilters({
-                ...appliedDraft,
-                location: nextCity,
-                specs: nextSpecs,
-              });
-            }}
-          />
-
-          {!isDailyListing && (
-            <RealEstateQuickCollections
-              city={appliedDraft.location || "Душанбе"}
-              activeParams={{
-                subcategory: effectiveSubcategory,
-                specs: appliedDraft.specs,
-              }}
-              onSelect={(collection) =>
-                applyFilters({
-                  ...appliedDraft,
-                  subcategory: collection.params.subcategory || "",
-                  location: collection.params.location || appliedDraft.location,
-                  specs: {
-                    ...appliedDraft.specs,
-                    ...(collection.params.specs || {}),
-                  },
-                })
-              }
-            />
-          )}
         </div>
       )}
 
-      <div className={!isRealEstate ? "lg:flex lg:items-start lg:gap-6" : ""}>
-        {!isRealEstate && (
+      <div className="lg:flex lg:items-start lg:gap-6">
+        {isRealEstate ? (
+          <aside className="filter-sidebar-anchor hidden lg:block w-[17.5rem] shrink-0">
+            <RealEstateFiltersSidebar
+              draft={draft}
+              setDraft={setDraft}
+              onApply={applyFilters}
+              onReset={resetFilters}
+              previewTotal={draftIsDirty ? previewTotal : total}
+              previewLoading={previewLoading}
+              hasActiveFilters={hasActiveFilters}
+              categoryTotal={categoryStats.total || total}
+              statsBySubcategory={categoryStats.bySubcategory || {}}
+            />
+          </aside>
+        ) : (
           <aside className="filter-sidebar-anchor hidden lg:block w-[17.5rem] shrink-0">
             <ListingFiltersSidebar
               draft={draft}
@@ -805,7 +773,9 @@ export default function Listing() {
         )}
 
         <div className="flex-1 min-w-0 space-y-4">
-          {!isRealEstate ? <Breadcrumbs items={breadcrumbItems} /> : null}
+          <div className={isRealEstate ? "hidden lg:block" : undefined}>
+            <Breadcrumbs items={breadcrumbItems} />
+          </div>
 
           <div className="flex flex-col gap-4 px-1 lg:flex-row lg:items-end lg:justify-between">
             <div className="min-w-0">
@@ -860,7 +830,7 @@ export default function Listing() {
                 <button
                   type="button"
                   onClick={() => setReMoreFiltersOpen(true)}
-                  className="mobile-btn border bg-white hover:bg-mist"
+                  className="mobile-btn border bg-white hover:bg-mist lg:hidden"
                 >
                   <SlidersHorizontal size={18} />
                   Ещё фильтры
@@ -944,7 +914,7 @@ export default function Listing() {
           <div
             className={
               isRealEstate
-                ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3"
+                ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-3"
                 : "grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3"
             }
           >
