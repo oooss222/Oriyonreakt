@@ -282,19 +282,13 @@ export default function Listing() {
 
   const listingQuery = React.useMemo(() => {
     const offset = (currentPage - 1) * LISTING_PAGE_SIZE;
+    const urlCat = categoryFromPath || cat || (seoDraft ? REAL_ESTATE_CAT : "");
 
-    if (seoDraft && !searchParams.get("cat")) {
-      return buildListingQueryFromDraft(appliedDraft, REAL_ESTATE_CAT, {
-        limit: LISTING_PAGE_SIZE,
-        offset,
-      });
-    }
-
-    return buildListingQueryFromSearchParams(searchParams, {
+    return buildListingQueryFromDraft(appliedDraft, urlCat, {
       limit: LISTING_PAGE_SIZE,
       offset,
     });
-  }, [paramsKey, searchParams, seoDraft, appliedDraft, currentPage]);
+  }, [appliedDraft, categoryFromPath, cat, seoDraft, currentPage]);
 
   const draftIsDirty = React.useMemo(
     () => !draftsMatch(appliedDraft, draft, cat),
@@ -793,22 +787,20 @@ export default function Listing() {
 
       <div className={!isRealEstate ? "lg:flex lg:items-start lg:gap-6" : ""}>
         {!isRealEstate && (
-          <aside className="hidden lg:block w-[17.5rem] shrink-0">
-            <div className="sticky top-[4.75rem]">
-              <ListingFiltersSidebar
-                draft={draft}
-                setDraft={setDraft}
-                activeCat={activeCat}
-                availableSubcategories={availableSubcategories}
-                categoryTotal={categoryStats.total || total}
-                statsBySubcategory={categoryStats.bySubcategory || {}}
-                onApply={applyFilters}
-                onReset={resetFilters}
-                previewTotal={draftIsDirty ? previewTotal : total}
-                previewLoading={previewLoading}
-                hasActiveFilters={hasActiveFilters}
-              />
-            </div>
+          <aside className="filter-sidebar-anchor hidden lg:block w-[17.5rem] shrink-0">
+            <ListingFiltersSidebar
+              draft={draft}
+              setDraft={setDraft}
+              activeCat={activeCat}
+              availableSubcategories={availableSubcategories}
+              categoryTotal={categoryStats.total || total}
+              statsBySubcategory={categoryStats.bySubcategory || {}}
+              onApply={applyFilters}
+              onReset={resetFilters}
+              previewTotal={draftIsDirty ? previewTotal : total}
+              previewLoading={previewLoading}
+              hasActiveFilters={hasActiveFilters}
+            />
           </aside>
         )}
 
