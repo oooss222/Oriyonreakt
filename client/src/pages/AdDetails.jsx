@@ -25,7 +25,6 @@ import AdListingHeader from "../components/ad/AdListingHeader";
 import AdStickyAside from "../components/ad/AdStickyAside";
 import AdPurchasePanel from "../components/ad/AdPurchasePanel";
 import RealEstateHighlights from "../components/RealEstateHighlights";
-import CompareListingButton from "../components/CompareListingButton";
 import PriceAdequacyBadge from "../components/PriceAdequacyBadge";
 import Breadcrumbs from "../components/Breadcrumbs";
 import EmptyState from "../components/EmptyState";
@@ -33,7 +32,6 @@ import AdSlot from "../components/AdSlot";
 import { PromotionBadgeGroup } from "../components/PromotionBadge";
 import { CAT_LABELS } from "../data/listingCategories";
 import { enrichRealEstateListing, getSpecValue, isRealEstateListing } from "../lib/realEstate";
-import { isCompareSupported } from "../lib/compareListings";
 import { REPORT_REASONS } from "../data/reportReasons";
 
 const TOKEN_KEY = "auth_token";
@@ -150,6 +148,7 @@ export default function AdDetails() {
     summary: { average: 0, count: 0 },
     items: [],
   });
+  const [sellerRegisteredAt, setSellerRegisteredAt] = React.useState(null);
 
   React.useEffect(() => {
     if (!token) {
@@ -302,6 +301,30 @@ export default function AdDetails() {
         }
       : null,
   });
+
+  React.useEffect(() => {
+    if (!ad?.owner) {
+      setSellerRegisteredAt(null);
+      return undefined;
+    }
+
+    let active = true;
+
+    api
+      .sellerPublic(ad.owner)
+      .then((profile) => {
+        if (active) {
+          setSellerRegisteredAt(profile?.createdAt || null);
+        }
+      })
+      .catch(() => {
+        if (active) setSellerRegisteredAt(null);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [ad?.owner]);
 
   React.useEffect(() => {
     if (!ad?.owner) return;
@@ -619,19 +642,14 @@ export default function AdDetails() {
   ];
 
   return (
-    <div className="pb-10">
+    <div className="min-h-screen bg-mist pb-10">
       <Toast message={toast} onClose={() => setToast("")} />
 
-      <div
-        data-ad-breadcrumbs
-        className="border-b bg-white/80 backdrop-blur-sm sticky top-16 lg:top-[72px] z-30"
-      >
-        <div className="container-x py-3 overflow-x-auto">
-          <Breadcrumbs items={breadcrumbItems} />
-        </div>
+      <div className="container-x py-4">
+        <Breadcrumbs items={breadcrumbItems} />
       </div>
 
-      <div className="container-x py-6">
+      <div className="container-x pb-6">
         {(moderationStatus === "pending" || moderationStatus === "rejected") && (
           <div
             className={`mb-6 rounded-2xl border p-4 ${
@@ -670,12 +688,12 @@ export default function AdDetails() {
           {/* Left column */}
           <div className="xl:flex-[7] min-w-0 space-y-5">
             {/* Gallery */}
-            <section className="rounded-3xl overflow-hidden bg-white border border-slate-200 shadow-sm">
+            <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
               <div className="flex flex-col md:flex-row">
                 {images.length > 1 && (
                   <div
                     ref={desktopThumbsRef}
-                    className="hidden md:flex flex-col gap-2 p-3 w-24 shrink-0 border-r border-slate-100 max-h-[520px] overflow-y-auto scrollbar-hide"
+                    className="hidden md:flex max-h-[520px] w-[88px] shrink-0 flex-col gap-2 overflow-y-auto border-r border-slate-100 p-3 scrollbar-hide"
                   >
                     {images.map((src, index) => (
                       <button
@@ -733,35 +751,37 @@ export default function AdDetails() {
                   />
 
                   {images.length > 1 && (
-                    <div className="absolute bottom-3 left-3 px-2.5 py-1 rounded-full bg-black/60 text-white text-xs font-medium">
-                      {activeImageIndex + 1} / {images.length}
+                    <div className="absolute bottom-3 right-3 rounded-full bg-black/60 px-2.5 py-1 text-xs font-medium text-white">
+                      {activeImageIndex + 1}/{images.length}
                     </div>
                   )}
 
-                  <div className="absolute top-3 right-3 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
-                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-black/60 text-white text-xs">
-                      <ZoomIn className="w-3.5 h-3.5" />
-                      Увеличить
-                    </span>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setLightboxOpen(true)}
+                    className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-black/60 px-2.5 py-1 text-xs text-white transition hover:bg-black/70"
+                  >
+                    <ZoomIn className="h-3.5 w-3.5" />
+                    Увеличить
+                  </button>
 
                   {images.length > 1 && (
                     <>
                       <button
                         type="button"
                         onClick={goPrev}
-                        className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/95 shadow-md flex items-center justify-center hover:bg-white transition md:opacity-0 md:group-hover:opacity-100"
+                        className="absolute left-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/95 shadow-md transition hover:bg-white"
                         aria-label="Предыдущее фото"
                       >
-                        <ChevronLeft className="w-5 h-5" />
+                        <ChevronLeft className="h-5 w-5" />
                       </button>
                       <button
                         type="button"
                         onClick={goNext}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/95 shadow-md flex items-center justify-center hover:bg-white transition md:opacity-0 md:group-hover:opacity-100"
+                        className="absolute right-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/95 shadow-md transition hover:bg-white"
                         aria-label="Следующее фото"
                       >
-                        <ChevronRight className="w-5 h-5" />
+                        <ChevronRight className="h-5 w-5" />
                       </button>
                     </>
                   )}
@@ -800,13 +820,10 @@ export default function AdDetails() {
               )}
             </section>
 
-            <section className="xl:hidden card p-5 rounded-3xl shadow-sm">
+            <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm xl:hidden">
               <AdListingHeader
                 title={ad.title}
                 publicId={publicId}
-                catLabel={catLabel}
-                subcategory={ad.subcategory}
-                listingUrl={listingUrl}
                 location={ad.location || ad.city}
                 published={published}
                 views={ad.views}
@@ -814,13 +831,13 @@ export default function AdDetails() {
             </section>
 
             {!isOwner && (
-              <section className="xl:hidden card p-5 rounded-3xl shadow-md">
+              <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm xl:hidden">
                 <AdPurchasePanel
                   price={price}
                   realEstatePricePerSqm={realEstatePricePerSqm}
                   ad={ad}
                   sellerName={sellerName}
-                  published={published}
+                  sellerRegisteredAt={sellerRegisteredAt}
                   sellerReviews={sellerReviews}
                   canContact={canContact}
                   isInactive={isInactive}
@@ -832,26 +849,16 @@ export default function AdDetails() {
                   onShare={shareAd}
                   copied={copied}
                   onReport={openReport}
-                  compact
-                  secondaryLayout="compact"
                 />
               </section>
             )}
 
             {isRealEstateListing(ad) && <RealEstateHighlights ad={ad} />}
 
-            {(isRealEstateListing(ad) || isCompareSupported(ad?.cat)) && (
-              <div className="space-y-3">
-                {isRealEstateListing(ad) && <PriceAdequacyBadge item={ad} />}
-                <CompareListingButton
-                  listingId={ad.id || ad._id}
-                  cat={isRealEstateListing(ad) ? "realestate" : ad.cat}
-                />
-              </div>
-            )}
+            {isRealEstateListing(ad) && <PriceAdequacyBadge item={ad} />}
 
             {isRealEstateListing(ad) && (
-              <section className="card p-5 md:p-6 rounded-3xl space-y-2">
+              <section className="rounded-3xl border border-slate-200 bg-white p-5 md:p-6 shadow-sm space-y-2">
                 <h2 className="text-lg font-bold text-slate-900">Расположение</h2>
                 <p className="text-slate-700 flex items-start gap-2">
                   <MapPin className="w-4 h-4 text-sun shrink-0 mt-1" />
@@ -872,23 +879,18 @@ export default function AdDetails() {
 
             {/* Specs */}
             {filteredSpecs.length > 0 && (
-              <section className="card p-5 md:p-6 rounded-3xl">
-                <h2 className="text-lg font-bold text-slate-900 mb-4">
+              <section className="rounded-3xl border border-slate-200 bg-white p-5 md:p-6 shadow-sm">
+                <h2 className="mb-4 text-lg font-bold text-slate-900">
                   Характеристики
                 </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-px bg-slate-100 rounded-2xl overflow-hidden border border-slate-100">
+                <div className="divide-y divide-slate-100">
                   {filteredSpecs.map((spec, index) => (
                     <div
                       key={`${spec.name}-${index}`}
-                      className={`flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 bg-white px-4 py-3 text-sm ${
-                        filteredSpecs.length % 2 === 1 &&
-                        index === filteredSpecs.length - 1
-                          ? "sm:col-span-2"
-                          : ""
-                      }`}
+                      className="grid grid-cols-1 gap-1 py-3 text-sm sm:grid-cols-2 sm:gap-4"
                     >
                       <span className="text-slate-500">{spec.name}</span>
-                      <span className="font-semibold text-slate-800 sm:text-right">
+                      <span className="font-semibold text-slate-900 sm:text-right">
                         {String(spec.value)}
                       </span>
                     </div>
@@ -904,10 +906,8 @@ export default function AdDetails() {
             />
 
             {/* Description */}
-            <section className="card p-5 md:p-6 rounded-3xl">
-              <h2 className="text-lg font-bold text-slate-900 mb-4">
-                Описание
-              </h2>
+            <section className="rounded-3xl border border-slate-200 bg-white p-5 md:p-6 shadow-sm">
+              <h2 className="mb-4 text-lg font-bold text-slate-900">Описание</h2>
               <p className="text-slate-700 whitespace-pre-wrap leading-7 text-[15px]">
                 {ad.description || "Описание отсутствует."}
               </p>
@@ -926,27 +926,23 @@ export default function AdDetails() {
               isOwner ? "" : "hidden xl:block"
             }`}
           >
-              <section className="card p-6 rounded-3xl space-y-5 shadow-md">
+              <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
                 <div className="hidden xl:block space-y-5">
                   <AdListingHeader
                     title={ad.title}
                     publicId={publicId}
-                    catLabel={catLabel}
-                    subcategory={ad.subcategory}
-                    listingUrl={listingUrl}
                     location={ad.location || ad.city}
                     published={published}
                     views={ad.views}
                   />
 
                   {!isOwner && (
-                    <div className="border-t border-slate-100 pt-5">
-                      <AdPurchasePanel
+                    <AdPurchasePanel
                       price={price}
                       realEstatePricePerSqm={realEstatePricePerSqm}
                       ad={ad}
                       sellerName={sellerName}
-                      published={published}
+                      sellerRegisteredAt={sellerRegisteredAt}
                       sellerReviews={sellerReviews}
                       canContact={canContact}
                       isInactive={isInactive}
@@ -958,9 +954,7 @@ export default function AdDetails() {
                       onShare={shareAd}
                       copied={copied}
                       onReport={openReport}
-                      secondaryLayout="compact"
                     />
-                    </div>
                   )}
                 </div>
 

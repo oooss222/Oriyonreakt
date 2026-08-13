@@ -15,6 +15,7 @@ export default function CompareListingButton({
   cat = "realestate",
   className = "",
   compact = false,
+  showOpenLink = true,
 }) {
   const supported = isCompareSupported(cat);
   const [active, setActive] = React.useState(() =>
@@ -64,7 +65,7 @@ export default function CompareListingButton({
         {active ? "В сравнении" : "Сравнить"}
       </button>
 
-      {count > 0 && !compact && (
+      {count > 0 && !compact && showOpenLink && (
         <Link
           to={comparePath}
           onClick={(e) => e.stopPropagation()}

@@ -1,8 +1,12 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { Check, Flag, Heart, Share2, ShieldCheck } from "lucide-react";
-import BusinessBadge from "../BusinessBadge";
+import CompareListingButton from "../CompareListingButton";
 import SellerContactButtons from "../SellerContactButtons";
+import { sellerTypeLabel } from "../../lib/businessAccount";
+import { formatRegistrationDate } from "../../lib/format";
+import { isCompareSupported } from "../../lib/compareListings";
+import { isRealEstateListing } from "../../lib/realEstate";
 import { StarRating } from "../SellerReviewsPanel";
 
 function getInitials(name) {
@@ -20,99 +24,12 @@ function getInitials(name) {
     .toUpperCase();
 }
 
-function AdSecondaryActions({
-  isFav,
-  onToggleFav,
-  onShare,
-  copied,
-  onReport,
-  layout = "row",
-}) {
-  if (layout === "compact") {
-    return (
-      <div className="flex items-center justify-between gap-3 pt-3 border-t border-slate-100">
-        <div className="flex items-center gap-1">
-          <button
-            type="button"
-            className={`inline-flex items-center justify-center w-10 h-10 rounded-xl border transition ${
-              isFav
-                ? "bg-red-50 border-red-200 text-red-600"
-                : "border-slate-200 text-slate-600 hover:bg-slate-50"
-            }`}
-            onClick={onToggleFav}
-            aria-label={isFav ? "В избранном" : "В избранное"}
-          >
-            <Heart className={`w-4 h-4 ${isFav ? "fill-current" : ""}`} />
-          </button>
-
-          <button
-            type="button"
-            className="inline-flex items-center justify-center w-10 h-10 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition"
-            onClick={onShare}
-            aria-label="Поделиться"
-          >
-            {copied ? (
-              <Check className="w-4 h-4 text-emerald-600" />
-            ) : (
-              <Share2 className="w-4 h-4" />
-            )}
-          </button>
-        </div>
-
-        <button
-          type="button"
-          className="text-sm text-slate-500 hover:text-red-600 transition inline-flex items-center gap-1"
-          onClick={onReport}
-        >
-          <Flag className="w-3.5 h-3.5" />
-          Пожаловаться
-        </button>
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-2 pt-1">
-      <div className="grid grid-cols-2 gap-2">
-        <button
-          type="button"
-          className={`btn py-2.5 rounded-2xl ${
-            isFav ? "bg-red-50 border-red-200 text-red-600 hover:bg-red-100" : ""
-          }`}
-          onClick={onToggleFav}
-        >
-          <Heart className={`w-4 h-4 ${isFav ? "fill-current" : ""}`} />
-          {isFav ? "В избранном" : "В избранное"}
-        </button>
-
-        <button type="button" className="btn py-2.5 rounded-2xl" onClick={onShare}>
-          {copied ? (
-            <Check className="w-4 h-4 text-emerald-600" />
-          ) : (
-            <Share2 className="w-4 h-4" />
-          )}
-          Поделиться
-        </button>
-      </div>
-
-      <button
-        type="button"
-        className="text-sm text-slate-500 hover:text-red-600 transition inline-flex items-center gap-1 px-1"
-        onClick={onReport}
-      >
-        <Flag className="w-3.5 h-3.5" />
-        Пожаловаться на объявление
-      </button>
-    </div>
-  );
-}
-
 export default function AdPurchasePanel({
   price,
   realEstatePricePerSqm = "",
   ad,
   sellerName,
-  published,
+  sellerRegisteredAt,
   sellerReviews = { summary: { average: 0, count: 0 } },
   canContact,
   isInactive,
@@ -124,45 +41,82 @@ export default function AdPurchasePanel({
   onShare,
   copied,
   onReport,
-  compact = false,
-  showSecondaryActions = true,
-  secondaryLayout = "row",
 }) {
+  const compareCat = isRealEstateListing(ad) ? "realestate" : ad?.cat;
+  const showCompare = isCompareSupported(compareCat);
+  const registeredLabel = formatRegistrationDate(sellerRegisteredAt);
+
   return (
-    <div className="space-y-4">
-      <div>
-        <div className="text-sm text-slate-500 mb-1">Цена</div>
-        <div className="text-3xl font-extrabold text-slate-900 tracking-tight">
-          {price}
-        </div>
-        {realEstatePricePerSqm && (
-          <div className="text-sm font-semibold text-sun-700 mt-1">
-            {realEstatePricePerSqm}
+    <div className="space-y-5">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <div className="text-3xl font-extrabold text-slate-900 tracking-tight">
+            {price}
           </div>
-        )}
+          {realEstatePricePerSqm && (
+            <div className="text-sm font-semibold text-sun-700 mt-1">
+              {realEstatePricePerSqm}
+            </div>
+          )}
+        </div>
+
+        <div className="flex items-center gap-1.5 shrink-0">
+          <button
+            type="button"
+            className={`inline-flex h-10 w-10 items-center justify-center rounded-full border transition ${
+              isFav
+                ? "border-red-200 bg-red-50 text-red-500"
+                : "border-slate-200 bg-white text-slate-500 hover:text-red-500"
+            }`}
+            onClick={onToggleFav}
+            aria-label={isFav ? "В избранном" : "В избранное"}
+          >
+            <Heart className={`h-4 w-4 ${isFav ? "fill-current" : ""}`} />
+          </button>
+
+          {showCompare && (
+            <CompareListingButton
+              listingId={ad.id || ad._id}
+              cat={compareCat}
+              compact
+              showOpenLink={false}
+            />
+          )}
+
+          <button
+            type="button"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 hover:bg-slate-50 transition"
+            onClick={onShare}
+            aria-label="Поделиться"
+          >
+            {copied ? (
+              <Check className="h-4 w-4 text-emerald-600" />
+            ) : (
+              <Share2 className="h-4 w-4" />
+            )}
+          </button>
+        </div>
       </div>
 
-      <div className="border-t border-slate-100 pt-4 space-y-4">
-        <div className="text-sm text-slate-500">Продавец</div>
-
+      <div className="border-t border-slate-100 pt-5 space-y-4">
         <div className="flex items-center gap-3">
           {ad.owner ? (
             <Link
               to={`/seller/${ad.owner}`}
-              className="w-12 h-12 rounded-2xl bg-gradient-to-br from-sun to-lagoon flex items-center justify-center text-white font-bold text-sm shadow-sm shrink-0 hover:opacity-90 transition overflow-hidden"
+              className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-sm font-bold text-white hover:opacity-90 transition overflow-hidden"
             >
               {ad.ownerCompanyLogo ? (
                 <img
                   src={ad.ownerCompanyLogo}
                   alt=""
-                  className="w-full h-full object-cover"
+                  className="h-full w-full object-cover"
                 />
               ) : (
                 getInitials(sellerName)
               )}
             </Link>
           ) : (
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-sun to-lagoon flex items-center justify-center text-white font-bold text-sm shadow-sm shrink-0">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-sm font-bold text-white">
               {getInitials(sellerName)}
             </div>
           )}
@@ -171,27 +125,23 @@ export default function AdPurchasePanel({
             {ad.owner ? (
               <Link
                 to={`/seller/${ad.owner}`}
-                className="font-bold text-slate-900 truncate block hover:text-sun transition"
+                className="block truncate font-bold text-slate-900 hover:text-sun transition"
               >
                 {sellerName}
               </Link>
             ) : (
-              <div className="font-bold text-slate-900 truncate">{sellerName}</div>
+              <div className="truncate font-bold text-slate-900">{sellerName}</div>
             )}
-            <div className="mt-1">
-              <BusinessBadge
-                sellerType={ad.ownerSellerType}
-                businessVerified={ad.ownerBusinessVerified}
-                size="lg"
-              />
+            <div className="text-sm text-slate-500">
+              {sellerTypeLabel(ad.ownerSellerType || "private")}
             </div>
-            {!compact && (
-              <div className="text-xs text-slate-500">
-                {published ? `Объявление ${published.toLowerCase()}` : "На сайте"}
+            {registeredLabel && (
+              <div className="text-xs text-slate-400 mt-0.5">
+                Зарегистрирован {registeredLabel}
               </div>
             )}
             {sellerReviews.summary.count > 0 && (
-              <div className="flex items-center gap-2 mt-1">
+              <div className="mt-1 flex items-center gap-2">
                 <StarRating value={sellerReviews.summary.average} size={14} />
                 <span className="text-xs text-slate-500">
                   {Number(sellerReviews.summary.average).toFixed(1)} (
@@ -202,8 +152,8 @@ export default function AdPurchasePanel({
           </div>
         </div>
 
-        <div className="flex items-start gap-2 text-xs text-emerald-800 bg-emerald-50 border border-emerald-100 rounded-2xl p-3">
-          <ShieldCheck className="w-4 h-4 shrink-0 mt-0.5 text-emerald-600" />
+        <div className="flex items-start gap-2 rounded-2xl border border-emerald-100 bg-emerald-50 px-3 py-2.5 text-xs text-emerald-800">
+          <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
           <span>Встречайтесь лично и проверяйте товар перед оплатой</span>
         </div>
       </div>
@@ -217,7 +167,7 @@ export default function AdPurchasePanel({
           onRevealPhone={onRevealPhone}
           onChat={onChat}
           canContact={canContact}
-          compact={compact}
+          layout="ad"
         />
       ) : isInactive ? (
         <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
@@ -225,16 +175,14 @@ export default function AdPurchasePanel({
         </div>
       ) : null}
 
-      {showSecondaryActions && (
-        <AdSecondaryActions
-          isFav={isFav}
-          onToggleFav={onToggleFav}
-          onShare={onShare}
-          copied={copied}
-          onReport={onReport}
-          layout={secondaryLayout}
-        />
-      )}
+      <button
+        type="button"
+        className="inline-flex items-center gap-1.5 text-sm text-slate-500 transition hover:text-red-600"
+        onClick={onReport}
+      >
+        <Flag className="h-3.5 w-3.5" />
+        Пожаловаться
+      </button>
     </div>
   );
 }

@@ -40,16 +40,14 @@ export default function AdRelatedListings({ ad, listingUrl, catLabel }) {
 
   if (!loading && items.length === 0) return null;
 
-  const heading = ad?.subcategory
-    ? `Похожие: ${ad.subcategory}`
-    : "Похожие объявления";
-
   return (
-    <section className="card p-5 md:p-6 rounded-3xl space-y-4">
+    <section className="rounded-3xl border border-slate-200 bg-white p-5 md:p-6 shadow-sm space-y-4">
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
-          <h2 className="text-lg md:text-xl font-bold text-slate-900">{heading}</h2>
-          <p className="text-sm text-slate-500 mt-0.5 truncate">
+          <h2 className="text-lg md:text-xl font-bold text-slate-900">
+            Похожие объявления
+          </h2>
+          <p className="mt-0.5 truncate text-sm text-slate-500">
             {ad?.subcategory
               ? `${catLabel} · ${ad.subcategory}`
               : `Категория «${catLabel}»`}
@@ -58,21 +56,21 @@ export default function AdRelatedListings({ ad, listingUrl, catLabel }) {
 
         <Link
           to={listingUrl}
-          className="inline-flex items-center gap-1 text-sm font-semibold text-sun hover:text-sun-600 shrink-0"
+          className="inline-flex shrink-0 items-center gap-1 text-sm font-semibold text-sun hover:text-sun-600"
         >
           Все
-          <ArrowRight className="w-4 h-4" />
+          <ArrowRight className="h-4 w-4" />
         </Link>
       </div>
 
       {loading ? (
         <ListingGridSkeleton count={4} columns="grid-cols-2 sm:grid-cols-4" />
       ) : (
-        <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-hide snap-x snap-mandatory -mx-1 px-1">
+        <div className="-mx-1 flex gap-3 overflow-x-auto px-1 pb-1 scrollbar-hide snap-x snap-mandatory">
           {items.map((item) => (
             <div
               key={item._id || item.id}
-              className="snap-start shrink-0 w-[168px] sm:w-[190px]"
+              className="w-[168px] shrink-0 snap-start sm:w-[190px]"
             >
               {isRealEstateListing(item) ? (
                 <RealEstateListingCard item={item} />

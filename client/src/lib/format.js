@@ -27,6 +27,28 @@ export function formatViewCount(count) {
   return Number(count || 0).toLocaleString("ru-RU");
 }
 
+export function formatPublicId(value) {
+  const digits = String(value || "").replace(/\D/g, "");
+
+  if (!digits) {
+    return String(value || "");
+  }
+
+  return digits.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+}
+
+export function formatRegistrationDate(dateStr) {
+  if (!dateStr || Number.isNaN(Date.parse(dateStr))) {
+    return null;
+  }
+
+  return new Date(dateStr).toLocaleDateString("ru-RU", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+}
+
 export function formatViewsLabel(count) {
   return `${formatViewCount(count)} просмотров`;
 }
