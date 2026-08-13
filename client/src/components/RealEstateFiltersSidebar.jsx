@@ -22,6 +22,7 @@ import RentRentalFilterFields from "./realestate/RentRentalFilterFields";
 import LandFilterFields from "./realestate/LandFilterFields";
 import GarageFilterFields from "./realestate/GarageFilterFields";
 import CommercialFilterFields from "./realestate/CommercialFilterFields";
+import RentalQualityFilterFields from "./realestate/RentalQualityFilterFields";
 
 const ROOM_OPTIONS = ["1", "2", "3", "4", "5+"];
 
@@ -444,6 +445,20 @@ export default function RealEstateFiltersSidebar({
               draft={draft}
               setSpec={setSpecValue}
               isRent={isRent}
+            />
+          </FilterBlock>
+        ) : null}
+
+        {isDaily || isRent ? (
+          <FilterBlock title="Дополнительно">
+            <RentalQualityFilterFields
+              draft={draft}
+              onOnlyWithPhotosChange={(value) =>
+                setDraft((current) => ({ ...current, onlyWithPhotos: value }))
+              }
+              onVerifiedOnlyChange={(value) =>
+                setDraft((current) => ({ ...current, verifiedOnly: value }))
+              }
             />
           </FilterBlock>
         ) : null}

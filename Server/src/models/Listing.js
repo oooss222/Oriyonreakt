@@ -195,6 +195,8 @@ function buildListingFilters({
   yearTo,
   mileageFrom,
   mileageTo,
+  onlyWithPhotos,
+  verifiedOnly,
 } = {}) {
   const conditions = [];
   const values = [];
@@ -369,6 +371,22 @@ function buildListingFilters({
     `);
   }
 
+  if (onlyWithPhotos) {
+    conditions.push(`COALESCE(jsonb_array_length(images), 0) > 0`);
+  }
+
+  if (verifiedOnly) {
+    conditions.push(`
+      owner IN (
+        SELECT id
+        FROM users
+        WHERE seller_type = 'company'
+          AND business_verified = true
+          AND is_blocked = false
+      )
+    `);
+  }
+
   return { conditions, values, priceExpr };
 }
 
@@ -485,6 +503,8 @@ class ListingModel {
     yearTo,
     mileageFrom,
     mileageTo,
+    onlyWithPhotos,
+    verifiedOnly,
     sort = "new",
     limit = 50,
     offset = 0,
@@ -517,6 +537,8 @@ class ListingModel {
       yearTo,
       mileageFrom,
       mileageTo,
+      onlyWithPhotos,
+      verifiedOnly,
     });
 
     let orderBy = buildListingOrderBy(sort, priceExpr);
@@ -582,6 +604,8 @@ class ListingModel {
     yearTo,
     mileageFrom,
     mileageTo,
+    onlyWithPhotos,
+    verifiedOnly,
   } = {}) {
     const { conditions, values } = buildListingFilters({
       cat,
@@ -608,6 +632,8 @@ class ListingModel {
       yearTo,
       mileageFrom,
       mileageTo,
+      onlyWithPhotos,
+      verifiedOnly,
     });
 
     let sql = `

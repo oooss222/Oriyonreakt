@@ -30,6 +30,7 @@ import RentRentalFilterFields from "./realestate/RentRentalFilterFields";
 import LandFilterFields from "./realestate/LandFilterFields";
 import GarageFilterFields from "./realestate/GarageFilterFields";
 import CommercialFilterFields from "./realestate/CommercialFilterFields";
+import RentalQualityFilterFields from "./realestate/RentalQualityFilterFields";
 
 const AREA_PRESETS = ["20", "30", "40", "50", "60", "70", "80", "100", "120", "150"];
 
@@ -70,6 +71,8 @@ function buildDraft({
     sellerType: extra.sellerType || "",
     pricePerSqmFrom: extra.pricePerSqmFrom || "",
     pricePerSqmTo: extra.pricePerSqmTo || "",
+    onlyWithPhotos: Boolean(extra.onlyWithPhotos),
+    verifiedOnly: Boolean(extra.verifiedOnly),
     sort: extra.sort || "new",
     specs,
   };
@@ -95,6 +98,8 @@ function buildCountQuery(draft) {
   if (draft.pricePerSqmFrom) params.pricePerSqmFrom = draft.pricePerSqmFrom;
   if (draft.pricePerSqmTo) params.pricePerSqmTo = draft.pricePerSqmTo;
   if (draft.guests) params.guestsMin = draft.guests;
+  if (draft.onlyWithPhotos) params.onlyWithPhotos = "1";
+  if (draft.verifiedOnly) params.verifiedOnly = "1";
 
   const specEntries = Object.entries(draft.specs || {}).filter(
     ([name, value]) => String(name).trim() && String(value).trim()
@@ -221,6 +226,8 @@ export default function RealEstateMoreFiltersModal({
   floorNotFirst = false,
   floorNotLast = false,
   sellerType = "",
+  onlyWithPhotos = false,
+  verifiedOnly = false,
   sort = "new",
   specs: initialSpecs = {},
   onNavigate,
@@ -246,6 +253,8 @@ export default function RealEstateMoreFiltersModal({
         floorNotFirst,
         floorNotLast,
         sellerType,
+        onlyWithPhotos,
+        verifiedOnly,
         sort,
         specs: initialSpecs,
       },
@@ -358,6 +367,8 @@ export default function RealEstateMoreFiltersModal({
     floorNotFirst,
     floorNotLast,
     sellerType,
+    onlyWithPhotos,
+    verifiedOnly,
     sort,
     specsSyncKey,
   ]);
@@ -466,6 +477,8 @@ export default function RealEstateMoreFiltersModal({
       floorNotFirst: cleaned.floorNotFirst,
       floorNotLast: cleaned.floorNotLast,
       sellerType: cleaned.sellerType,
+      onlyWithPhotos: cleaned.onlyWithPhotos,
+      verifiedOnly: cleaned.verifiedOnly,
       pricePerSqmFrom: cleaned.pricePerSqmFrom,
       pricePerSqmTo: cleaned.pricePerSqmTo,
       sort: cleaned.sort,
@@ -866,6 +879,20 @@ export default function RealEstateMoreFiltersModal({
                   draft={draft}
                   setSpec={setSpec}
                   isRent={isRent}
+                />
+              </FilterRow>
+            )}
+
+            {(isDaily || isRent) && (
+              <FilterRow label="Дополнительно">
+                <RentalQualityFilterFields
+                  draft={draft}
+                  onOnlyWithPhotosChange={(value) =>
+                    setDraft((current) => ({ ...current, onlyWithPhotos: value }))
+                  }
+                  onVerifiedOnlyChange={(value) =>
+                    setDraft((current) => ({ ...current, verifiedOnly: value }))
+                  }
                 />
               </FilterRow>
             )}

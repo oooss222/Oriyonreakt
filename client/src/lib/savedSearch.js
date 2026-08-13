@@ -46,6 +46,8 @@ export function normalizeSearchFilters(draft = {}, activeCat = "") {
     yearTo: String(draft.yearTo || "").trim(),
     mileageFrom: String(draft.mileageFrom || "").trim(),
     mileageTo: String(draft.mileageTo || "").trim(),
+    onlyWithPhotos: Boolean(draft.onlyWithPhotos),
+    verifiedOnly: Boolean(draft.verifiedOnly),
     specs: Object.fromEntries(specEntries),
   };
 }
@@ -80,6 +82,8 @@ export function hasMeaningfulSearchFilters(draft = {}, activeCat = "") {
     normalized.yearTo ||
     normalized.mileageFrom ||
     normalized.mileageTo ||
+    normalized.onlyWithPhotos ||
+    normalized.verifiedOnly ||
     Object.keys(normalized.specs).length > 0
   ) {
     return true;

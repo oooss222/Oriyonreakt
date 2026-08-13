@@ -81,6 +81,8 @@ function buildListingParams(draft, urlCat = "") {
   if (draft.yearTo) next.yearTo = draft.yearTo;
   if (draft.mileageFrom) next.mileageFrom = draft.mileageFrom;
   if (draft.mileageTo) next.mileageTo = draft.mileageTo;
+  if (draft.onlyWithPhotos) next.onlyWithPhotos = "1";
+  if (draft.verifiedOnly) next.verifiedOnly = "1";
 
   const specEntries = Object.entries(draft.specs || {}).filter(
     ([name, value]) => String(name).trim() && String(value).trim()
@@ -119,6 +121,8 @@ function searchParamsToDraft(params) {
     yearTo: params.get("yearTo") || "",
     mileageFrom: params.get("mileageFrom") || "",
     mileageTo: params.get("mileageTo") || "",
+    onlyWithPhotos: params.get("onlyWithPhotos") === "1",
+    verifiedOnly: params.get("verifiedOnly") === "1",
     specs: parseSpecsParam(params.get("specs")),
   };
 }
@@ -619,6 +623,8 @@ export default function Listing() {
     appliedDraft.yearTo ||
     appliedDraft.mileageFrom ||
     appliedDraft.mileageTo ||
+    appliedDraft.onlyWithPhotos ||
+    appliedDraft.verifiedOnly ||
     Object.keys(activeSpecs).length > 0;
 
   const activeFilterCount =
@@ -636,6 +642,8 @@ export default function Listing() {
     Number(Boolean(appliedDraft.guests)) +
     Number(Boolean(appliedDraft.yearFrom || appliedDraft.yearTo)) +
     Number(Boolean(appliedDraft.mileageFrom || appliedDraft.mileageTo)) +
+    Number(Boolean(appliedDraft.onlyWithPhotos)) +
+    Number(Boolean(appliedDraft.verifiedOnly)) +
     Object.keys(activeSpecs).length;
 
   const showSubcategoryChips =
@@ -1029,6 +1037,8 @@ export default function Listing() {
           floorNotFirst={appliedDraft.floorNotFirst}
           floorNotLast={appliedDraft.floorNotLast}
           sellerType={appliedDraft.sellerType || ""}
+          onlyWithPhotos={appliedDraft.onlyWithPhotos}
+          verifiedOnly={appliedDraft.verifiedOnly}
           sort={appliedDraft.sort || "new"}
           specs={appliedDraft.specs || {}}
           onNavigate={(url) => {

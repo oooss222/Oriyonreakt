@@ -135,6 +135,8 @@ export function buildRealEstateListingUrl({
   floorNotFirst = false,
   floorNotLast = false,
   sellerType = "",
+  onlyWithPhotos = false,
+  verifiedOnly = false,
   pricePerSqmFrom = "",
   pricePerSqmTo = "",
 } = {}) {
@@ -155,6 +157,8 @@ export function buildRealEstateListingUrl({
     floorNotFirst ||
     floorNotLast ||
     sellerType ||
+    onlyWithPhotos ||
+    verifiedOnly ||
     pricePerSqmFrom ||
     pricePerSqmTo ||
     Object.keys(specs).some(
@@ -191,6 +195,8 @@ export function buildRealEstateListingUrl({
   if (floorNotFirst) params.set("floorNotFirst", "1");
   if (floorNotLast) params.set("floorNotLast", "1");
   if (sellerType) params.set("sellerType", sellerType);
+  if (onlyWithPhotos) params.set("onlyWithPhotos", "1");
+  if (verifiedOnly) params.set("verifiedOnly", "1");
   if (pricePerSqmFrom) params.set("pricePerSqmFrom", pricePerSqmFrom);
   if (pricePerSqmTo) params.set("pricePerSqmTo", pricePerSqmTo);
 

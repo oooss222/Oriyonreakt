@@ -93,6 +93,8 @@ function listingQueryFromReq(query) {
     yearTo,
     mileageFrom,
     mileageTo,
+    onlyWithPhotos,
+    verifiedOnly,
   } = query;
 
   const normalizedSellerType = String(sellerType || "").trim();
@@ -126,6 +128,10 @@ function listingQueryFromReq(query) {
     yearTo: yearTo || undefined,
     mileageFrom: mileageFrom || undefined,
     mileageTo: mileageTo || undefined,
+    onlyWithPhotos:
+      onlyWithPhotos === "1" || onlyWithPhotos === "true" ? true : undefined,
+    verifiedOnly:
+      verifiedOnly === "1" || verifiedOnly === "true" ? true : undefined,
   };
 }
 
