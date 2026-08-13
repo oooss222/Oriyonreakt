@@ -21,6 +21,7 @@ import {
   Smartphone,
   Monitor,
   Building2,
+  Eye,
 } from "lucide-react";
 
 function RealEstateSection({ items }) {
