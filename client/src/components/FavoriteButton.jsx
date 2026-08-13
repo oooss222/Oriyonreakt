@@ -10,6 +10,7 @@ export default function FavoriteButton({
   defaultActive = false,
   onChange,
   compact = false,
+  overlay = false,
   listing = null,
 }) {
   const nav = useNavigate();
@@ -68,13 +69,15 @@ export default function FavoriteButton({
       aria-label={active ? "Убрать из избранного" : "В избранное"}
       title={active ? "Убрать из избранного" : "В избранное"}
       className={`inline-flex items-center justify-center transition group shrink-0 ${
-        compact
-          ? "p-1"
-          : "rounded-full border bg-white/90 backdrop-blur px-2.5 py-2 shadow-sm hover:shadow"
+        overlay
+          ? "h-9 w-9 rounded-full border border-ink/10 bg-white shadow-sm hover:shadow-md"
+          : compact
+            ? "p-1"
+            : "rounded-full border bg-white/90 backdrop-blur px-2.5 py-2 shadow-sm hover:shadow"
       } ${loading ? "opacity-70 cursor-not-allowed" : ""}`}
     >
       <Heart
-        size={18}
+        size={overlay ? 16 : 18}
         className={`transition-colors ${
           active
             ? "text-red-600"

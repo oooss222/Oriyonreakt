@@ -81,6 +81,42 @@ export function formatListingDate(
   return date.toLocaleDateString("ru-RU");
 }
 
+export function formatListingTimeAgo(
+  listing,
+  { emptyLabel = "Новое" } = {}
+) {
+  const date = getListingDisplayDate(listing);
+
+  if (!date) {
+    return emptyLabel;
+  }
+
+  const diffMs = Date.now() - date.getTime();
+
+  if (diffMs < 0) {
+    return emptyLabel;
+  }
+
+  const diffMin = Math.floor(diffMs / 60000);
+  const diffHr = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+
+  if (diffMin < 1) return "только что";
+  if (diffMin < 60) return `${diffMin} мин назад`;
+  if (diffHr < 24) return `${diffHr} ч назад`;
+  if (diffDays === 1) return "вчера";
+  if (diffDays < 7) return `${diffDays} дн. назад`;
+  if (diffDays < 30) {
+    const weeks = Math.floor(diffDays / 7);
+    return `${weeks} нед. назад`;
+  }
+
+  return date.toLocaleDateString("ru-RU", {
+    day: "numeric",
+    month: "short",
+  });
+}
+
 export function isListingDateUpdated(listing) {
   const created = listing?.createdAt ? new Date(listing.createdAt) : null;
   const bumped = listing?.bumpedAt ? new Date(listing.bumpedAt) : null;

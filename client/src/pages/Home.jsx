@@ -1,30 +1,18 @@
 import React from "react";
-import { Link, useNavigate } from "react-router-dom";
-import FavoriteButton from "../components/FavoriteButton";
-import CompareListingButton from "../components/CompareListingButton";
-import ListingCardOverlays from "../components/ListingCardOverlays";
-import { isCompareSupported } from "../lib/compareListings";
+import { Link } from "react-router-dom";
+import ListingCard from "../components/ListingCard";
 import RealEstateListingCard from "../components/RealEstateListingCard";
 import AdSlot from "../components/AdSlot";
 import BusinessPromoBanner from "../components/BusinessPromoBanner";
 import { api } from "../lib/api";
 import { getDefaultCity } from "../lib/recommendationProfile";
 import { CONSENT_EVENT } from "../lib/cookieConsent";
-import { trackListingClick } from "../lib/track";
-import { getListingThumb } from "../lib/media";
-import { formatPrice, formatListingDate } from "../lib/format";
 import { sortListingsByPromotion } from "../lib/listingSort";
 import { REAL_ESTATE_CAT } from "../data/realEstate";
-import {
-  getPromotionCardClass,
-  getPromotionMediaClass,
-} from "../lib/promotionStyles";
 import {
   PlusCircle,
   ShieldCheck,
   Sparkles,
-  MapPin,
-  Clock3,
   ArrowRight,
   TrendingUp,
   BadgeCheck,
@@ -33,85 +21,7 @@ import {
   Smartphone,
   Monitor,
   Building2,
-  Eye,
 } from "lucide-react";
-
-function ListingCard({ ad, listings }) {
-  const nav = useNavigate();
-  const id = ad.id || ad._id;
-  const img = getListingThumb(ad);
-
-  const openAd = () => {
-    if (!id) return;
-    trackListingClick(ad, { source: "home" });
-    sessionStorage.setItem("ad_preview", JSON.stringify(ad));
-    sessionStorage.setItem("ad_list", JSON.stringify(listings));
-    nav(`/ad/${id}`);
-  };
-
-  return (
-    <div
-      role="link"
-      tabIndex={0}
-      onClick={openAd}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          openAd();
-        }
-      }}
-      className={`group card p-1.5 hover:shadow-lift transition-all duration-300 flex flex-col overflow-hidden cursor-pointer focus:outline-none focus:ring-2 focus:ring-sun/50 relative ${getPromotionCardClass(
-        { vip: ad.vip, top: ad.top }
-      )}`}
-      aria-label={`Объявление: ${ad.title || "Без названия"}`}
-    >
-      <div className="relative overflow-hidden rounded-2xl">
-        <img
-          src={img}
-          alt={ad.title || "Объявление"}
-          className={`w-full h-32 object-cover bg-mist transition-transform duration-500 group-hover:scale-105 ${getPromotionMediaClass({ vip: ad.vip })}`}
-          loading="lazy"
-        />
-
-        <ListingCardOverlays
-          listingId={id}
-          views={ad.views}
-          vip={ad.vip}
-          top={ad.top}
-        />
-      </div>
-
-      <div className="p-1.5 flex-1 flex flex-col gap-0.5">
-        <div className="font-semibold text-xs sm:text-sm text-ink line-clamp-2 group-hover:text-sun-700 transition min-h-[32px]">
-          {ad.title || "Без названия"}
-        </div>
-
-        <div className="flex items-center justify-between gap-2">
-          <div className="text-price">
-            {formatPrice(ad.price)}
-          </div>
-
-          <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-            {isCompareSupported(ad.cat) && (
-              <CompareListingButton listingId={id} cat={ad.cat} compact />
-            )}
-            <FavoriteButton id={id} defaultActive={ad.isFavorite} compact />
-          </div>
-        </div>
-
-        <div className="text-xs text-ink-400 line-clamp-1 flex items-center gap-1">
-          <MapPin size={13} />
-          {ad.location || ad.city || "Локация не указана"}
-        </div>
-
-        <div className="text-xs text-ink-300 line-clamp-1 flex items-center gap-1">
-          <Clock3 size={13} />
-          {formatListingDate(ad, { emptyLabel: "Новое объявление" })}
-        </div>
-      </div>
-    </div>
-  );
-}
 
 function RealEstateSection({ items }) {
   if (!items?.length) {
@@ -179,7 +89,12 @@ function HorizontalSection({ title, icon: Icon, items, linkTo = "/listing" }) {
 
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
         {items.map((ad) => (
-          <ListingCard key={ad.id || ad._id} ad={ad} listings={items} />
+          <ListingCard
+            key={ad.id || ad._id}
+            item={ad}
+            listings={items}
+            trackSource="home"
+          />
         ))}
       </div>
     </section>
@@ -192,13 +107,17 @@ function ListingSkeleton() {
       {Array.from({ length: 6 }).map((_, index) => (
         <div
           key={index}
-          className="card p-1.5 animate-pulse"
+          className="listing-card animate-pulse"
         >
-          <div className="h-32 rounded-xl bg-mist-200" />
-          <div className="p-1.5 space-y-2">
+          <div className="listing-card__media bg-mist-200" />
+          <div className="listing-card__body space-y-2">
+            <div className="h-5 bg-mist-200 rounded-full w-1/3" />
             <div className="h-4 bg-mist-200 rounded w-5/6" />
-            <div className="h-4 bg-mist-200 rounded w-1/2" />
-            <div className="h-3 bg-mist-200 rounded w-2/3" />
+            <div className="h-4 bg-mist-200 rounded w-4/6" />
+            <div className="flex justify-between pt-2">
+              <div className="h-5 bg-mist-200 rounded w-1/3" />
+              <div className="h-3 bg-mist-200 rounded w-1/4" />
+            </div>
           </div>
         </div>
       ))}

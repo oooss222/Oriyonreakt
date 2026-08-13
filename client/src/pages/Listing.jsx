@@ -2,13 +2,11 @@ import React from "react";
 import { useSearchParams, useNavigate, useParams, useLocation } from "react-router-dom";
 import { api } from "../lib/api";
 import { getUserFacingErrorMessage } from "../lib/apiError";
-import FavoriteButton from "../components/FavoriteButton";
-import CompareListingButton from "../components/CompareListingButton";
 import ListingGridSkeleton from "../components/ListingGridSkeleton";
+import ListingCard from "../components/ListingCard";
 import EmptyState from "../components/EmptyState";
 import Breadcrumbs from "../components/Breadcrumbs";
 import ListingFiltersPanel from "../components/ListingFiltersPanel";
-import ListingCardOverlays from "../components/ListingCardOverlays";
 import SubcategoryChips from "../components/SubcategoryChips";
 import SimilarListingsSection from "../components/SimilarListingsSection";
 import AdSlot, { AdFeedCard, useAdPlacement } from "../components/AdSlot";
@@ -31,15 +29,8 @@ import {
 } from "../lib/realestateSeo";
 import { FEED_AD_INTERVAL } from "../lib/adPlacements";
 import { usePageMeta } from "../lib/usePageMeta";
-import { getListingThumb } from "../lib/media";
-import { formatPrice, formatListingDate } from "../lib/format";
 import { sortListingsByMode } from "../lib/listingSort";
-import {
-  getPromotionCardClass,
-  getPromotionMediaClass,
-} from "../lib/promotionStyles";
 import { CATS, parseSpecsParam } from "../data/listingCategories";
-import { isCompareSupported } from "../lib/compareListings";
 import { resolveLegacyCategoryFilters } from "../data/categoryConsolidation";
 import { REAL_ESTATE_CAT } from "../data/realEstate";
 import { sanitizeRealEstateDraft } from "../lib/filterConflicts";
@@ -49,7 +40,6 @@ import {
   Search,
   SlidersHorizontal,
   X,
-  MapPin,
   PackageSearch,
 } from "lucide-react";
 
@@ -919,90 +909,14 @@ export default function Listing() {
               );
             }
 
-            const imgUrl = getListingThumb(ad);
-            const more = Math.max(0, (ad.images?.length || 0) - 1);
-
             return (
-              <div
+              <ListingCard
                 key={id}
-                role="link"
-                tabIndex={0}
-                onClick={() => {
-                  if (!id) return;
-                  sessionStorage.setItem("ad_preview", JSON.stringify(ad));
-                  nav(`/ad/${id}`);
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    if (!id) return;
-                    sessionStorage.setItem("ad_preview", JSON.stringify(ad));
-                    nav(`/ad/${id}`);
-                  }
-                }}
-                className={`group relative flex flex-col rounded-2xl border bg-white p-1.5 transition hover:shadow-lg cursor-pointer focus:outline-none focus:ring-2 focus:ring-sun/40 animate-fade-in-up ${getPromotionCardClass(
-                  { vip: ad.vip, top: ad.top }
-                )}`}
+                item={ad}
+                trackSource="listing"
+                className="animate-fade-in-up"
                 style={{ animationDelay: `${idx * 40}ms` }}
-                aria-label={`Объявление: ${ad.title || "Без названия"}`}
-              >
-                <div className="relative">
-                  <img
-                    src={imgUrl}
-                    alt={ad.title || "Фото"}
-                    loading="lazy"
-                    className={`w-full h-32 object-cover rounded-xl bg-slate-100 ${getPromotionMediaClass({ vip: ad.vip })}`}
-                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
-                  />
-
-                  <ListingCardOverlays
-                    listingId={id}
-                    views={ad.views}
-                    vip={ad.vip}
-                    top={ad.top}
-                    morePhotos={more}
-                  />
-                </div>
-
-                <div className="mt-2 flex-1 flex flex-col gap-1">
-                  <div className="font-semibold text-sm text-ink line-clamp-2 group-hover:text-sun transition">
-                    {ad.title || "Без названия"}
-                  </div>
-
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="text-price text-sm">
-                      {formatPrice(ad.price)}
-                    </div>
-
-                    <div
-                      className="flex items-center gap-1"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      {isCompareSupported(ad.cat || activeCat) && (
-                        <CompareListingButton
-                          listingId={id}
-                          cat={ad.cat || activeCat}
-                          compact
-                        />
-                      )}
-                      <FavoriteButton
-                        id={id}
-                        defaultActive={ad.isFavorite}
-                        compact
-                      />
-                    </div>
-                  </div>
-
-                  <div className="text-xs text-ink-400 line-clamp-1 flex items-center gap-1">
-                    <MapPin size={13} />
-                    {ad.location || ad.city || "Душанбе"}
-                  </div>
-
-                  <div className="text-xs text-ink-300">
-                    {formatListingDate(ad)}
-                  </div>
-                </div>
-              </div>
+              />
             );
           })}
           </div>
