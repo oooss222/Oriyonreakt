@@ -14,6 +14,7 @@ import { formatPriceInput, getPriceDigits } from "../data/specOptions";
 import SaveSearchButton from "./SaveSearchButton";
 import RealEstateGuestsPicker from "./realestate/RealEstateGuestsPicker";
 import RealEstateDateRangePicker from "./realestate/RealEstateDateRangePicker";
+import DailyRentalFilterFields from "./realestate/DailyRentalFilterFields";
 
 const ROOM_OPTIONS = ["1", "2", "3", "4", "5+"];
 
@@ -338,29 +339,50 @@ export default function RealEstateFiltersSidebar({
         </FilterBlock>
 
         {isDaily ? (
-          <FilterBlock title="Поездка">
-            <div className="space-y-3">
-              <RealEstateDateRangePicker
-                checkIn={draft.checkIn || ""}
-                checkOut={draft.checkOut || ""}
-                onChange={({ checkIn, checkOut }) =>
-                  setDraft((current) => ({
-                    ...current,
-                    checkIn,
-                    checkOut,
-                  }))
-                }
-              />
+          <>
+            <FilterBlock title="Поездка">
+              <div className="space-y-3">
+                <RealEstateDateRangePicker
+                  checkIn={draft.checkIn || ""}
+                  checkOut={draft.checkOut || ""}
+                  onChange={({ checkIn, checkOut }) =>
+                    setDraft((current) => ({
+                      ...current,
+                      checkIn,
+                      checkOut,
+                    }))
+                  }
+                />
 
-              <RealEstateGuestsPicker
-                compact
-                value={draft.guests || ""}
-                onChange={(value) =>
-                  setDraft((current) => ({ ...current, guests: value }))
-                }
+                <RealEstateGuestsPicker
+                  compact
+                  value={draft.guests || ""}
+                  onChange={(value) =>
+                    setDraft((current) => ({ ...current, guests: value }))
+                  }
+                />
+              </div>
+            </FilterBlock>
+
+            <FilterBlock title="Удобства и правила">
+              <DailyRentalFilterFields
+                draft={draft}
+                setSpec={(key, value) => {
+                  setDraft((current) => {
+                    const nextSpecs = { ...current.specs };
+
+                    if (value) {
+                      nextSpecs[key] = value;
+                    } else {
+                      delete nextSpecs[key];
+                    }
+
+                    return { ...current, specs: nextSpecs };
+                  });
+                }}
               />
-            </div>
-          </FilterBlock>
+            </FilterBlock>
+          </>
         ) : null}
 
         <FilterBlock title="Город и район">
@@ -485,7 +507,7 @@ export default function RealEstateFiltersSidebar({
           </div>
         </FilterBlock>
 
-        {showRooms && !isDaily ? (
+        {showRooms ? (
           <FilterBlock title="Комнат">
             <RoomSquareGroup
               value={draft.specs?.["Комнат"] || ""}

@@ -2,6 +2,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import ListingCardMedia from "./ListingCardMedia";
 import { enrichRealEstateListing, buildRealEstateCardDisplay } from "../lib/realEstate";
+import RealEstateDailyFeatures from "./realestate/RealEstateDailyFeatures";
 import { useListingViewed } from "../lib/viewedListings";
 import { getPromotionCardClass } from "../lib/promotionStyles";
 import { MapPin, Maximize2 } from "lucide-react";
@@ -166,11 +167,14 @@ export default function RealEstateListingCard({
         ) : null}
 
         {isDaily ? (
-          <p className="re-listing-card__specs">
-            {[summary.guests && `${summary.guests} гост.`, summary.rooms && `${summary.rooms} комн.`]
-              .filter(Boolean)
-              .join(" · ")}
-          </p>
+          <>
+            <p className="re-listing-card__specs">
+              {[summary.guests && `${summary.guests} гост.`, summary.rooms && `${summary.rooms} комн.`]
+                .filter(Boolean)
+                .join(" · ")}
+            </p>
+            <RealEstateDailyFeatures specs={listing.specs} compact />
+          </>
         ) : null}
 
         <div className="re-listing-card__price-row">

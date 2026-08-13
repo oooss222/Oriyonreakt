@@ -52,6 +52,18 @@ export function buildRealEstateSummary(specs = [], subcategory = "") {
     if (guests) parts.push(`${guests} гост.`);
     if (rooms) parts.push(`${rooms} комн.`);
     if (area) parts.push(area.includes("м") || area.includes("сот") ? area : `${area} м²`);
+
+    const amenities = getSpecValue(specs, "Удобства");
+    if (amenities) {
+      const amenityList = amenities.split(",").map((item) => item.trim()).filter(Boolean);
+      if (amenityList.length) {
+        parts.push(
+          amenityList.length > 2
+            ? `${amenityList.slice(0, 2).join(", ")} +${amenityList.length - 2}`
+            : amenityList.join(", ")
+        );
+      }
+    }
   } else {
     if (rooms) parts.push(`${rooms} комн.`);
     if (area) parts.push(area.includes("м") || area.includes("сот") ? area : `${area} м²`);

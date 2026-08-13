@@ -6,7 +6,6 @@ import {
   REAL_ESTATE_CAT,
   REAL_ESTATE_PRICE_PER_SQM_PRESETS,
   DAILY_HOUSING_TYPES,
-  DAILY_AMENITY_OPTIONS,
   getPricePresetsForDeal,
   getDistrictsForCity,
   POPULAR_DUSHANBE_DISTRICTS,
@@ -25,6 +24,7 @@ import RealEstatePricePerSqmCalculator from "./RealEstatePricePerSqmCalculator";
 import RealEstateCitySelect from "./RealEstateCitySelect";
 import RealEstateGuestsPicker from "./realestate/RealEstateGuestsPicker";
 import RealEstateDateRangePicker from "./realestate/RealEstateDateRangePicker";
+import DailyRentalFilterFields from "./realestate/DailyRentalFilterFields";
 
 const AREA_PRESETS = ["20", "30", "40", "50", "60", "70", "80", "100", "120", "150"];
 
@@ -808,11 +808,10 @@ export default function RealEstateMoreFiltersModal({
             )}
 
             {isDaily && (
-              <FilterRow label="Удобства">
-                <MultiPillGroup
-                  values={draft.specs?.["Удобства"] || ""}
-                  options={DAILY_AMENITY_OPTIONS}
-                  onChange={(value) => setSpec("Удобства", value)}
+              <FilterRow label="Удобства и правила">
+                <DailyRentalFilterFields
+                  draft={draft}
+                  setSpec={setSpec}
                 />
               </FilterRow>
             )}

@@ -24,12 +24,36 @@ export const DAILY_AMENITY_OPTIONS = [
   "Кондиционер",
   "Стиральная машина",
   "Посудомойка",
+  "Фен",
+  "Утюг",
+  "Телевизор",
+  "Микроволновка",
+  "Чайник",
   "Парковка",
-  "Балкон",
+  "Лифт",
+  "Отопление",
+  "Постельное бельё",
+  "Полотенца",
 ];
+
+export const DAILY_BALCONY_OPTIONS = ["Есть", "Нет", "Лоджия", "2 балкона"];
+
+export const DAILY_PETS_OPTIONS = ["Можно", "Нельзя", "По договорённости"];
+
+export const DAILY_SMOKING_OPTIONS = ["Можно", "Нельзя", "На балконе"];
+
+export const DAILY_RULE_SPECS = ["Балкон", "Животные", "Курение"];
 
 export function isDailyDeal(dealType = "") {
   return dealType === "Посуточно";
+}
+
+export function parseDailyAmenities(value = "") {
+  if (!value) return [];
+  return String(value)
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
 }
 
 export function isSubcategoryCompatibleWithDeal(subcategory = "", dealType = "") {
@@ -260,7 +284,9 @@ export const APARTMENT_SPECS = [
   { name: "Балкон", type: "select", options: ["Есть", "Нет", "Лоджия", "2 балкона"] },
   { name: "Санузел", type: "select", options: ["Раздельный", "Совмещённый", "2 санузла"] },
   { name: "Мебель", type: "select", options: ["С мебелью", "Без мебели", "Частично"] },
-  { name: "Удобства", type: "select", options: DAILY_AMENITY_OPTIONS, dailyOnly: true },
+  { name: "Удобства", type: "multi", options: DAILY_AMENITY_OPTIONS, dailyOnly: true },
+  { name: "Животные", type: "select", options: DAILY_PETS_OPTIONS, dailyOnly: true },
+  { name: "Курение", type: "select", options: DAILY_SMOKING_OPTIONS, dailyOnly: true },
   { name: "Парковка", type: "select", options: ["Есть", "Нет", "Гараж", "Подземная"] },
   { name: "Состояние", type: "select", options: ["Новостройка", "Вторичка"] },
 ];
@@ -276,6 +302,10 @@ export const HOUSE_SPECS = [
   { name: "Коммуникации", type: "select", options: ["Все", "Частично", "Нет"] },
   { name: "Ремонт", type: "select", options: ["Без ремонта", "Косметический", "Евро", "Под ключ"] },
   { name: "Участок", type: "select", options: ["ИЖС", "Садовый", "Дачный"] },
+  { name: "Удобства", type: "multi", options: DAILY_AMENITY_OPTIONS, dailyOnly: true },
+  { name: "Балкон", type: "select", options: ["Есть", "Нет", "Терраса"], dailyOnly: true },
+  { name: "Животные", type: "select", options: DAILY_PETS_OPTIONS, dailyOnly: true },
+  { name: "Курение", type: "select", options: DAILY_SMOKING_OPTIONS, dailyOnly: true },
 ];
 
 export const LAND_SPECS = [
@@ -308,6 +338,9 @@ export const ROOM_SPECS = [
   { name: "Этаж", type: "text" },
   { name: "Мебель", type: "select", options: ["С мебелью", "Без мебели"] },
   { name: "Соседи", type: "select", options: ["Семья", "Студенты", "Любые"] },
+  { name: "Удобства", type: "multi", options: DAILY_AMENITY_OPTIONS, dailyOnly: true },
+  { name: "Животные", type: "select", options: DAILY_PETS_OPTIONS, dailyOnly: true },
+  { name: "Курение", type: "select", options: DAILY_SMOKING_OPTIONS, dailyOnly: true },
 ];
 
 export const REAL_ESTATE_SUB_SPECS = {

@@ -9,6 +9,7 @@ import {
   Home,
 } from "lucide-react";
 import { enrichRealEstateListing, getSpecValue, isRealEstateListing } from "../lib/realEstate";
+import RealEstateDailyFeatures from "./realestate/RealEstateDailyFeatures";
 
 function HighlightTile({ icon: Icon, label, value }) {
   if (!value) return null;
@@ -35,6 +36,7 @@ export default function RealEstateHighlights({ ad }) {
   const houseType = getSpecValue(specs, "Тип дома");
   const year = getSpecValue(specs, "Год постройки");
   const deal = summary.deal;
+  const isDaily = deal === "Посуточно";
 
   const areaLabel = summary.area
     ? summary.area.includes("м") || summary.area.includes("сот")
@@ -87,6 +89,10 @@ export default function RealEstateHighlights({ ad }) {
           value={listing.subcategory}
         />
       </div>
+
+      {isDaily ? (
+        <RealEstateDailyFeatures specs={specs} />
+      ) : null}
     </section>
   );
 }

@@ -56,6 +56,75 @@ function parseGuestCapacity(value) {
   return Number.isFinite(n) && n > 0 ? n : null;
 }
 
+const MULTI_VALUE_AND_SPECS = new Set(["Удобства"]);
+
+function appendSpecContainsValue(conditions, values, specName, part) {
+  values.push(specName);
+  const nameIdx = values.length;
+  values.push(part);
+  const partIdx = values.length;
+
+  conditions.push(`
+    EXISTS (
+      SELECT 1
+      FROM jsonb_array_elements(specs) AS spec
+      WHERE spec->>'name' = $${nameIdx}
+        AND (
+          spec->>'value' = $${partIdx}
+          OR spec->>'value' LIKE $${partIdx} || ',%'
+          OR spec->>'value' LIKE '%,' || $${partIdx} || ',%'
+          OR spec->>'value' LIKE '%,' || $${partIdx}
+        )
+    )
+  `);
+}
+
+function appendSpecMatch(conditions, values, specName, specValue) {
+  const parts = String(specValue || "")
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+
+  if (!parts.length) return;
+
+  if (MULTI_VALUE_AND_SPECS.has(specName)) {
+    parts.forEach((part) => {
+      appendSpecContainsValue(conditions, values, specName, part);
+    });
+    return;
+  }
+
+  values.push(specName);
+  const nameIdx = values.length;
+
+  if (parts.length <= 1) {
+    values.push(parts[0]);
+    const valueIdx = values.length;
+
+    conditions.push(`
+        EXISTS (
+          SELECT 1
+          FROM jsonb_array_elements(specs) AS spec
+          WHERE spec->>'name' = $${nameIdx}
+            AND spec->>'value' = $${valueIdx}
+        )
+      `);
+    return;
+  }
+
+  values.push(parts);
+  const valueIdx = values.length;
+
+  conditions.push(`
+        EXISTS (
+          SELECT 1
+          FROM jsonb_array_elements(specs) AS spec
+          WHERE spec->>'name' = $${nameIdx}
+            AND spec->>'value' = ANY($${valueIdx})
+        )
+      `);
+}
+
 function appendSpecNumericRange(conditions, values, specName, fromValue, toValue) {
   const min = toNumberOrNull(fromValue);
   const max = toNumberOrNull(toValue);
@@ -215,39 +284,7 @@ function buildListingFilters({
 
       if (!specName || !specValue) continue;
 
-      const parts = specValue
-        .split(",")
-        .map((item) => item.trim())
-        .filter(Boolean);
-
-      values.push(specName);
-      const nameIdx = values.length;
-
-      if (parts.length <= 1) {
-        values.push(parts[0] || specValue);
-        const valueIdx = values.length;
-
-        conditions.push(`
-        EXISTS (
-          SELECT 1
-          FROM jsonb_array_elements(specs) AS spec
-          WHERE spec->>'name' = $${nameIdx}
-            AND spec->>'value' = $${valueIdx}
-        )
-      `);
-      } else {
-        values.push(parts);
-        const valueIdx = values.length;
-
-        conditions.push(`
-        EXISTS (
-          SELECT 1
-          FROM jsonb_array_elements(specs) AS spec
-          WHERE spec->>'name' = $${nameIdx}
-            AND spec->>'value' = ANY($${valueIdx})
-        )
-      `);
-      }
+      appendSpecMatch(conditions, values, specName, specValue);
     }
   }
 

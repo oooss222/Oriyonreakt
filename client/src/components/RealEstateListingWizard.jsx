@@ -22,6 +22,7 @@ import { getSpecValue } from "../lib/realEstate";
 import { TITLE_MAX, DESC_MAX } from "../data/listingCategories";
 import { getListingPhotoLimit } from "../lib/listingPhotoLimits";
 import PriceAdequacyBadge from "./PriceAdequacyBadge";
+import MultiPillGroup from "./filters/MultiPillGroup";
 import { api } from "../lib/api";
 
 const STEPS = [
@@ -211,6 +212,9 @@ export default function RealEstateListingWizard({
       "Ремонт",
       "Мебель",
       "Удобства",
+      "Балкон",
+      "Животные",
+      "Курение",
       "Состояние",
     ].includes(row.name);
   });
@@ -374,9 +378,15 @@ export default function RealEstateListingWizard({
 
           <div className="grid md:grid-cols-2 gap-4">
             {detailFields.map((row) => (
-              <label key={row.name} className="block">
+              <label key={row.name} className={`block ${row.type === "multi" ? "md:col-span-2" : ""}`}>
                 <span className="text-sm font-medium mb-1 block">{row.name}</span>
-                {row.type === "select" ? (
+                {row.type === "multi" ? (
+                  <MultiPillGroup
+                    values={row.value || ""}
+                    options={row.options || []}
+                    onChange={(value) => updateSpecByName(setSpecs, row.name, value)}
+                  />
+                ) : row.type === "select" ? (
                   <select
                     value={row.value || ""}
                     onChange={(e) =>
