@@ -7,6 +7,7 @@ import ListingCard from "../components/ListingCard";
 import EmptyState from "../components/EmptyState";
 import Breadcrumbs from "../components/Breadcrumbs";
 import ListingFiltersPanel from "../components/ListingFiltersPanel";
+import ListingFiltersSidebar from "../components/ListingFiltersSidebar";
 import SubcategoryChips from "../components/SubcategoryChips";
 import SimilarListingsSection from "../components/SimilarListingsSection";
 import AdSlot, { AdFeedCard, useAdPlacement } from "../components/AdSlot";
@@ -179,6 +180,10 @@ export default function Listing() {
   const [error, setError] = React.useState("");
   const [mobileFiltersOpen, setMobileFiltersOpen] = React.useState(false);
   const [reMoreFiltersOpen, setReMoreFiltersOpen] = React.useState(false);
+  const [categoryStats, setCategoryStats] = React.useState({
+    total: 0,
+    bySubcategory: {},
+  });
 
   const cat = searchParams.get("cat") || "";
   const subcategory = searchParams.get("subcategory") || "";
@@ -343,6 +348,32 @@ export default function Listing() {
 
   const activeCat = draft.cat || cat || (seoDraft ? REAL_ESTATE_CAT : "");
   const isRealEstate = activeCat === REAL_ESTATE_CAT;
+
+  React.useEffect(() => {
+    if (!activeCat || isRealEstate) {
+      setCategoryStats({ total: 0, bySubcategory: {} });
+      return undefined;
+    }
+
+    let active = true;
+
+    api
+      .listingStats(activeCat, appliedDraft.location || "")
+      .then((data) => {
+        if (active) {
+          setCategoryStats(data || { total: 0, bySubcategory: {} });
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setCategoryStats({ total: 0, bySubcategory: {} });
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [activeCat, isRealEstate, appliedDraft.location]);
 
   const feedAd = useAdPlacement("listing_feed", activeCat);
   const feedRows = React.useMemo(
@@ -633,136 +664,133 @@ export default function Listing() {
   );
 
   return (
-    <div className="container mx-auto px-4 py-6 space-y-5">
-      <Breadcrumbs items={breadcrumbItems} />
-
+    <div className="container mx-auto px-4 py-6">
       {isRealEstate && (
-        <RealEstateSearchHero
-          compact
-          listingPage
-          initialCity={draft.location || "Душанбе"}
-          initialSubcategory={draft.subcategory || ""}
-          initialDeal={draft.specs?.["Тип сделки"] || ""}
-          initialRooms={draft.specs?.["Комнат"] || ""}
-          initialPriceFrom={draft.priceFrom || ""}
-          initialPriceTo={draft.priceTo || ""}
-          initialCheckIn={draft.checkIn || ""}
-          initialCheckOut={draft.checkOut || ""}
-          initialGuests={draft.guests || ""}
-          totalCount={total}
-        />
-      )}
+        <div className="space-y-5 mb-5">
+          <Breadcrumbs items={breadcrumbItems} />
 
-      {isDailyListing && (
-        <RealEstateDailyFilterBar
-          subcategory={effectiveSubcategory}
-          priceFrom={appliedDraft.priceFrom}
-          priceTo={appliedDraft.priceTo}
-          guests={appliedDraft.guests}
-          activeFilterCount={activeFilterCount}
-          onOpenFilters={() => setReMoreFiltersOpen(true)}
-          onSubcategoryChange={(value) =>
-            applyFilters({ ...appliedDraft, subcategory: value })
-          }
-          onPricePreset={({ from, to }) =>
-            applyFilters({ ...appliedDraft, priceFrom: from, priceTo: to })
-          }
-          onGuestsChange={(value) =>
-            applyFilters({ ...appliedDraft, guests: value })
-          }
-        />
-      )}
+          <RealEstateSearchHero
+            compact
+            listingPage
+            initialCity={draft.location || "Душанбе"}
+            initialSubcategory={draft.subcategory || ""}
+            initialDeal={draft.specs?.["Тип сделки"] || ""}
+            initialRooms={draft.specs?.["Комнат"] || ""}
+            initialPriceFrom={draft.priceFrom || ""}
+            initialPriceTo={draft.priceTo || ""}
+            initialCheckIn={draft.checkIn || ""}
+            initialCheckOut={draft.checkOut || ""}
+            initialGuests={draft.guests || ""}
+            totalCount={total}
+          />
 
-      {isRealEstate && (
-        <RealEstateDistrictBar
-          city={appliedDraft.location || "Душанбе"}
-          activeDistrict={appliedDraft.specs?.["Район"] || ""}
-          totalCount={total}
-          filterContext={{
-            city: appliedDraft.location || "Душанбе",
-            dealType: appliedDraft.specs?.["Тип сделки"] || "",
-            subcategory: effectiveSubcategory,
-            rooms: appliedDraft.specs?.["Комнат"] || "",
-            guests: appliedDraft.guests || "",
-            checkIn: appliedDraft.checkIn || "",
-            checkOut: appliedDraft.checkOut || "",
-            priceFrom: appliedDraft.priceFrom || "",
-            priceTo: appliedDraft.priceTo || "",
-            specs: appliedDraft.specs || {},
-          }}
-          onCityChange={(nextCity) => {
-            const nextSpecs = { ...appliedDraft.specs };
-            delete nextSpecs["Район"];
-            applyFilters({
-              ...appliedDraft,
-              location: nextCity,
-              specs: nextSpecs,
-            });
-          }}
-        />
-      )}
+          {isDailyListing && (
+            <RealEstateDailyFilterBar
+              subcategory={effectiveSubcategory}
+              priceFrom={appliedDraft.priceFrom}
+              priceTo={appliedDraft.priceTo}
+              guests={appliedDraft.guests}
+              activeFilterCount={activeFilterCount}
+              onOpenFilters={() => setReMoreFiltersOpen(true)}
+              onSubcategoryChange={(value) =>
+                applyFilters({ ...appliedDraft, subcategory: value })
+              }
+              onPricePreset={({ from, to }) =>
+                applyFilters({ ...appliedDraft, priceFrom: from, priceTo: to })
+              }
+              onGuestsChange={(value) =>
+                applyFilters({ ...appliedDraft, guests: value })
+              }
+            />
+          )}
 
-      {isRealEstate && !isDailyListing && (
-        <RealEstateQuickCollections
-          city={appliedDraft.location || "Душанбе"}
-          activeParams={{
-            subcategory: effectiveSubcategory,
-            specs: appliedDraft.specs,
-          }}
-          onSelect={(collection) =>
-            applyFilters({
-              ...appliedDraft,
-              subcategory: collection.params.subcategory || "",
-              location: collection.params.location || appliedDraft.location,
-              specs: {
-                ...appliedDraft.specs,
-                ...(collection.params.specs || {}),
-              },
-            })
-          }
-        />
+          <RealEstateDistrictBar
+            city={appliedDraft.location || "Душанбе"}
+            activeDistrict={appliedDraft.specs?.["Район"] || ""}
+            totalCount={total}
+            filterContext={{
+              city: appliedDraft.location || "Душанбе",
+              dealType: appliedDraft.specs?.["Тип сделки"] || "",
+              subcategory: effectiveSubcategory,
+              rooms: appliedDraft.specs?.["Комнат"] || "",
+              guests: appliedDraft.guests || "",
+              checkIn: appliedDraft.checkIn || "",
+              checkOut: appliedDraft.checkOut || "",
+              priceFrom: appliedDraft.priceFrom || "",
+              priceTo: appliedDraft.priceTo || "",
+              specs: appliedDraft.specs || {},
+            }}
+            onCityChange={(nextCity) => {
+              const nextSpecs = { ...appliedDraft.specs };
+              delete nextSpecs["Район"];
+              applyFilters({
+                ...appliedDraft,
+                location: nextCity,
+                specs: nextSpecs,
+              });
+            }}
+          />
+
+          {!isDailyListing && (
+            <RealEstateQuickCollections
+              city={appliedDraft.location || "Душанбе"}
+              activeParams={{
+                subcategory: effectiveSubcategory,
+                specs: appliedDraft.specs,
+              }}
+              onSelect={(collection) =>
+                applyFilters({
+                  ...appliedDraft,
+                  subcategory: collection.params.subcategory || "",
+                  location: collection.params.location || appliedDraft.location,
+                  specs: {
+                    ...appliedDraft.specs,
+                    ...(collection.params.specs || {}),
+                  },
+                })
+              }
+            />
+          )}
+        </div>
       )}
 
       <div className={!isRealEstate ? "lg:flex lg:items-start lg:gap-6" : ""}>
         {!isRealEstate && (
-          <aside className="hidden lg:block w-80 shrink-0">
-            <div className="sticky top-[4.75rem] max-h-[calc(100vh-5.75rem)] overflow-y-auto overscroll-contain">
-              <ListingFiltersPanel
+          <aside className="hidden lg:block w-[17.5rem] shrink-0">
+            <div className="sticky top-[4.75rem]">
+              <ListingFiltersSidebar
                 draft={draft}
                 setDraft={setDraft}
                 activeCat={activeCat}
                 availableSubcategories={availableSubcategories}
-                showCategorySelect={!cat}
+                categoryTotal={categoryStats.total || total}
+                statsBySubcategory={categoryStats.bySubcategory || {}}
                 onApply={applyFilters}
                 onReset={resetFilters}
                 previewTotal={draftIsDirty ? previewTotal : total}
                 previewLoading={previewLoading}
                 hasActiveFilters={hasActiveFilters}
-                layout="sidebar"
               />
             </div>
           </aside>
         )}
 
         <div className="flex-1 min-w-0 space-y-4">
-        <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 px-1">
-          <div className="min-w-0">
-            <div className="inline-flex items-center gap-2 text-sm text-sun-700 bg-sun-50 border border-sun-100 rounded-full px-3 py-1 mb-2">
-              <SlidersHorizontal size={16} />
-              {catConfig ? catConfig.title : "Каталог"}
-            </div>
+          {!isRealEstate ? <Breadcrumbs items={breadcrumbItems} /> : null}
 
-            <h1 className="text-2xl font-bold">{pageTitle}</h1>
+          <div className="flex flex-col gap-4 px-1 lg:flex-row lg:items-end lg:justify-between">
+            <div className="min-w-0">
+              <h1 className="text-2xl font-bold text-ink">{pageTitle}</h1>
 
-            <p className="text-sm text-ink-400 mt-1">
-              Найдено: {loading ? "…" : total.toLocaleString("ru-RU")}
-              {!loading && totalPages > 1 && (
-                <span className="text-ink-400">
-                  {" "}
-                  · страница {currentPage} из {totalPages}
-                </span>
-              )}
-            </p>
+              <p className="mt-1 text-sm text-ink-400">
+                {loading ? "…" : total.toLocaleString("ru-RU")} объявлений
+                {!loading && totalPages > 1 && (
+                  <span>
+                    {" "}
+                    · страница {currentPage} из {totalPages}
+                  </span>
+                )}
+              </p>
 
             {isDailyListing &&
               (appliedDraft.checkIn ||
@@ -888,7 +916,7 @@ export default function Listing() {
             className={
               isRealEstate
                 ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3"
-                : "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3"
+                : "grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3"
             }
           >
           {feedRows.map((row, idx) => {

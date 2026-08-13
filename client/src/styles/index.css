@@ -167,6 +167,35 @@
     @apply shrink-0 text-xs font-semibold uppercase tracking-wide text-ink-400;
   }
 
+  .filter-sidebar {
+    @apply flex max-h-[calc(100vh-5.75rem)] flex-col overflow-hidden rounded-2xl border border-ink/10 bg-white shadow-soft;
+  }
+
+  .filter-sidebar__header {
+    @apply flex shrink-0 items-center gap-2 border-b border-ink/10 px-5 py-4;
+  }
+
+  .filter-sidebar__body {
+    @apply min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 pb-2;
+  }
+
+  .filter-sidebar__footer {
+    @apply shrink-0 border-t border-ink/10 bg-white p-4;
+  }
+
+  .filter-sidebar__input,
+  .filter-sidebar__select {
+    @apply h-11 w-full rounded-xl border border-ink/10 bg-white px-3 text-sm outline-none transition focus:border-sun/40 focus:ring-2 focus:ring-sun/20;
+  }
+
+  .filter-sidebar__select {
+    @apply appearance-none pr-9;
+  }
+
+  .filter-sidebar__apply {
+    @apply inline-flex h-11 w-full items-center justify-center rounded-xl bg-ink px-4 text-sm font-semibold text-white transition hover:bg-ink-800;
+  }
+
   .text-muted {
     @apply text-ink-400;
   }
