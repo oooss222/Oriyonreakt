@@ -240,35 +240,47 @@
   }
 
   .listing-card__body {
-    @apply flex flex-1 flex-col p-3.5 pt-3;
+    @apply flex flex-1 flex-col p-3 pt-2.5;
+  }
+
+  .listing-card--viewed .listing-card__media img {
+    @apply saturate-[0.92];
   }
 
   .listing-card__location {
-    @apply inline-flex max-w-full items-center rounded-full bg-[#FFF0E6] px-2.5 py-1 text-[11px] font-semibold text-[#8A4B2A] truncate;
+    @apply inline-flex max-w-full items-center self-start rounded-full bg-mist px-2.5 py-1 text-[11px] font-semibold text-ink-500 truncate;
   }
 
-  .listing-card__location--vip {
-    @apply bg-[#FFF8E1] text-[#8A6D1D];
+  .listing-card__tag {
+    @apply inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold uppercase text-slate-600;
   }
 
-  .listing-card__location--top {
-    @apply bg-[#E6F7F5] text-[#1A6B64];
+  .listing-card__details {
+    @apply mt-1 text-[11px] font-medium text-ink-400 line-clamp-1;
   }
 
   .listing-card__title {
-    @apply mt-2 text-[15px] font-bold leading-snug text-ink line-clamp-2 transition-colors group-hover:text-sun-700;
+    @apply mt-1.5 text-sm font-bold leading-snug text-ink line-clamp-2 transition-colors group-hover:text-sun-700;
   }
 
   .listing-card__footer {
-    @apply mt-auto pt-2.5 flex items-end justify-between gap-2;
+    @apply mt-auto pt-2 flex items-end justify-between gap-2;
+  }
+
+  .listing-card__meta {
+    @apply flex flex-col items-end gap-0.5 shrink-0;
   }
 
   .listing-card__price {
-    @apply font-display text-[17px] font-extrabold leading-none text-sun-600;
+    @apply font-display text-base font-extrabold leading-none text-sun-600;
   }
 
   .listing-card__time {
-    @apply shrink-0 text-[11px] font-medium text-ink-300;
+    @apply shrink-0 text-[10px] font-medium text-ink-300 whitespace-nowrap;
+  }
+
+  .listing-card__viewed {
+    @apply text-[10px] font-medium text-ink-300 whitespace-nowrap;
   }
 
   @keyframes top-entry-pulse {
@@ -317,20 +329,6 @@
   .promotion-card-top:hover {
     box-shadow: 0 6px 18px rgb(94 207 198 / 0.2);
     transform: translateY(-1px);
-  }
-
-  .promotion-card-media {
-    height: 9rem !important;
-  }
-
-  @media (min-width: 640px) {
-    .promotion-card-vip {
-      padding: 0.6875rem;
-    }
-
-    .promotion-card-media {
-      height: 9.5rem !important;
-    }
   }
 
   @media (prefers-reduced-motion: reduce) {

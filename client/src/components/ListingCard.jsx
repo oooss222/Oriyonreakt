@@ -1,14 +1,13 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import ListingCardOverlays from "./ListingCardOverlays";
-import BusinessBadge from "./BusinessBadge";
+import ListingCardFooter from "./ListingCardFooter";
 import { getListingThumb } from "../lib/media";
-import { formatPrice, formatListingTimeAgo } from "../lib/format";
 import { trackListingClick } from "../lib/track";
+import { useListingViewed } from "../lib/viewedListings";
 import {
   getPromotionCardClass,
   getPromotionMediaClass,
-  getListingLocationClass,
 } from "../lib/promotionStyles";
 
 export default function ListingCard({
@@ -21,6 +20,7 @@ export default function ListingCard({
 }) {
   const nav = useNavigate();
   const listingId = item?.id || item?._id;
+  const viewed = useListingViewed(listingId);
   const morePhotos = Math.max(0, (item?.images?.length || 0) - 1);
   const location = item?.location || item?.city || "Не указано";
 
@@ -51,7 +51,7 @@ export default function ListingCard({
           openAd();
         }
       }}
-      className={`listing-card group cursor-pointer focus:outline-none focus:ring-2 focus:ring-sun/40 ${getPromotionCardClass(
+      className={`listing-card group cursor-pointer focus:outline-none focus:ring-2 focus:ring-sun/40 ${viewed ? "listing-card--viewed" : ""} ${getPromotionCardClass(
         {
           vip: item?.vip,
           top: item?.top,
@@ -74,7 +74,6 @@ export default function ListingCard({
         />
 
         <ListingCardOverlays
-          listingId={listingId}
           views={item?.views}
           vip={item?.vip}
           top={item?.top}
@@ -86,31 +85,11 @@ export default function ListingCard({
       </div>
 
       <div className="listing-card__body">
-        <div className="flex flex-wrap items-center gap-1.5">
-          <span
-            className={getListingLocationClass({
-              vip: item?.vip,
-              top: item?.top,
-            })}
-          >
-            {location}
-          </span>
-          <BusinessBadge
-            sellerType={item?.ownerSellerType}
-            businessVerified={item?.ownerBusinessVerified}
-          />
-        </div>
+        <span className="listing-card__location">{location}</span>
 
         <h3 className="listing-card__title">{item?.title || "Без названия"}</h3>
 
-        <div className="listing-card__footer">
-          <strong className="listing-card__price">
-            {formatPrice(item?.price, { currency: "с." })}
-          </strong>
-          <time className="listing-card__time">
-            {formatListingTimeAgo(item)}
-          </time>
-        </div>
+        <ListingCardFooter item={item} listingId={listingId} />
       </div>
     </article>
   );

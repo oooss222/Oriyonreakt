@@ -1,17 +1,16 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import PriceAdequacyBadge from "./PriceAdequacyBadge";
 import ListingCardOverlays from "./ListingCardOverlays";
-import BusinessBadge from "./BusinessBadge";
+import ListingCardFooter from "./ListingCardFooter";
 import { getListingThumb } from "../lib/media";
-import { formatPrice, formatListingTimeAgo } from "../lib/format";
 import { enrichRealEstateListing } from "../lib/realEstate";
+import { useListingViewed } from "../lib/viewedListings";
 import {
   getPromotionCardClass,
   getPromotionMediaClass,
-  getListingLocationClass,
 } from "../lib/promotionStyles";
 import { MapPin, Maximize2 } from "lucide-react";
+import { formatPrice, formatListingTimeAgo } from "../lib/format";
 
 export default function RealEstateListingCard({
   item,
@@ -24,6 +23,7 @@ export default function RealEstateListingCard({
   const id = listing.id || listing._id;
   const img = getListingThumb(listing);
   const summary = listing.realEstateSummary || {};
+  const viewed = useListingViewed(id);
   const isHorizontal = variant === "horizontal";
   const isDaily = summary.deal === "Посуточно";
   const nightlyPrice = Number(String(listing.price || "").replace(/[^\d]/g, ""));
@@ -49,6 +49,12 @@ export default function RealEstateListingCard({
     nav(`/ad/${id}`);
   };
 
+  const stayPriceNote =
+    totalStayPrice &&
+    `${totalStayPrice.toLocaleString("ru-RU")} с. за ${nights} ${
+      nights === 1 ? "ночь" : nights < 5 ? "ночи" : "ночей"
+    }`;
+
   if (isHorizontal) {
     return (
       <article
@@ -71,10 +77,12 @@ export default function RealEstateListingCard({
             alt={listing.title || "Недвижимость"}
             loading="lazy"
             className={`h-full w-full object-cover bg-slate-100 transition-transform duration-500 group-hover:scale-105 ${getPromotionMediaClass({ vip: listing.vip })}`}
+            onError={(e) => {
+              e.currentTarget.src = "/img/placeholder.jpg";
+            }}
           />
 
           <ListingCardOverlays
-            listingId={id}
             views={listing.views}
             vip={listing.vip}
             top={listing.top}
@@ -96,10 +104,9 @@ export default function RealEstateListingCard({
                   </span>
                 )}
               </div>
-              {totalStayPrice && (
+              {stayPriceNote && (
                 <div className="text-xs font-medium text-slate-500 mt-0.5">
-                  {totalStayPrice.toLocaleString("ru-RU")} с. за {nights}{" "}
-                  {nights === 1 ? "ночь" : nights < 5 ? "ночи" : "ночей"}
+                  {stayPriceNote}
                 </div>
               )}
             </div>
@@ -125,8 +132,15 @@ export default function RealEstateListingCard({
             <span className="truncate">{locationLabel}</span>
           </div>
 
-          <div className="mt-auto pt-2 flex items-center justify-end gap-2">
-            <time className="listing-card__time">{formatListingTimeAgo(listing)}</time>
+          <div className="mt-auto pt-2 flex items-end justify-end gap-2">
+            <div className="listing-card__meta">
+              <time className="listing-card__time">
+                {formatListingTimeAgo(listing)}
+              </time>
+              {viewed ? (
+                <span className="listing-card__viewed">Просмотрено</span>
+              ) : null}
+            </div>
           </div>
         </div>
 
@@ -148,7 +162,7 @@ export default function RealEstateListingCard({
           openAd();
         }
       }}
-      className={`listing-card group cursor-pointer focus:outline-none focus:ring-2 focus:ring-sun/40 ${getPromotionCardClass(
+      className={`listing-card group cursor-pointer focus:outline-none focus:ring-2 focus:ring-sun/40 ${viewed ? "listing-card--viewed" : ""} ${getPromotionCardClass(
         { vip: listing.vip, top: listing.top }
       )}`}
     >
@@ -158,10 +172,12 @@ export default function RealEstateListingCard({
           alt={listing.title || "Недвижимость"}
           loading="lazy"
           className={`h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03] ${getPromotionMediaClass({ vip: listing.vip })}`}
+          onError={(e) => {
+            e.currentTarget.src = "/img/placeholder.jpg";
+          }}
         />
 
         <ListingCardOverlays
-          listingId={id}
           views={listing.views}
           vip={listing.vip}
           top={listing.top}
@@ -170,33 +186,14 @@ export default function RealEstateListingCard({
           isFavorite={listing.isFavorite}
           onFavChange={(active) => onFav?.(id, active)}
         />
-
-        {summary.deal && (
-          <span className="absolute bottom-2.5 right-2.5 z-10 inline-flex rounded-full bg-black/60 px-2.5 py-1 text-[10px] font-semibold text-white backdrop-blur-sm">
-            {summary.deal}
-          </span>
-        )}
       </div>
 
       <div className="listing-card__body">
         <div className="flex flex-wrap items-center gap-1.5">
-          <span
-            className={getListingLocationClass({
-              vip: listing.vip,
-              top: listing.top,
-            })}
-          >
-            {locationLabel}
-          </span>
+          <span className="listing-card__location">{locationLabel}</span>
           {summary.deal && (
-            <span className="inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold uppercase text-slate-600">
-              {summary.deal}
-            </span>
+            <span className="listing-card__tag">{summary.deal}</span>
           )}
-          <BusinessBadge
-            sellerType={listing.ownerSellerType}
-            businessVerified={listing.ownerBusinessVerified}
-          />
         </div>
 
         <h3 className="listing-card__title">
@@ -204,46 +201,28 @@ export default function RealEstateListingCard({
         </h3>
 
         {isDaily ? (
-          <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[11px] font-medium text-slate-500">
-            <span className="rounded-md bg-slate-100 px-2 py-0.5">{housingLabel}</span>
-            {summary.guests && <span>{summary.guests} гост.</span>}
-            {summary.rooms && <span>{summary.rooms} комн.</span>}
-            {summary.area && <span>{summary.area}</span>}
-          </div>
+          <p className="listing-card__details">
+            {[housingLabel, summary.guests && `${summary.guests} гост.`, summary.rooms && `${summary.rooms} комн.`, summary.area]
+              .filter(Boolean)
+              .join(" · ")}
+          </p>
         ) : (
           summary.line &&
           summary.line !== listing.title && (
-            <p className="mt-1 text-xs font-medium text-slate-500 line-clamp-1">
-              {summary.line}
-            </p>
+            <p className="listing-card__details">{summary.line}</p>
           )
         )}
 
         {!isDaily && summary.pricePerSqm && (
-          <p className="mt-1 text-xs font-medium text-slate-500">{summary.pricePerSqm}</p>
+          <p className="listing-card__details">{summary.pricePerSqm}</p>
         )}
 
-        <div className="mt-2" onClick={(e) => e.stopPropagation()}>
-          <PriceAdequacyBadge item={listing} compact />
-        </div>
-
-        <div className="listing-card__footer">
-          <div>
-            <strong className="listing-card__price">
-              {formatPrice(listing.price, { currency: "с." })}
-              {isDaily && (
-                <span className="ml-1 text-xs font-semibold text-slate-500">/ сут.</span>
-              )}
-            </strong>
-            {totalStayPrice && (
-              <div className="mt-0.5 text-[11px] font-medium text-slate-500">
-                {totalStayPrice.toLocaleString("ru-RU")} с. за {nights}{" "}
-                {nights === 1 ? "ночь" : nights < 5 ? "ночи" : "ночей"}
-              </div>
-            )}
-          </div>
-          <time className="listing-card__time">{formatListingTimeAgo(listing)}</time>
-        </div>
+        <ListingCardFooter
+          item={listing}
+          listingId={id}
+          priceSuffix={isDaily ? "/ сут." : null}
+          priceNote={stayPriceNote || null}
+        />
       </div>
     </article>
   );
