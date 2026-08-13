@@ -25,6 +25,7 @@ import {
 } from "../data/realEstateFilters";
 import { formatPriceInput, getPriceDigits } from "../data/specOptions";
 import { getSellerFilterOptions } from "../lib/filterConflicts";
+import RangeFilter from "./filters/RangeFilter";
 import MultiPillGroup from "./filters/MultiPillGroup";
 import RealEstateGuestsPicker from "./realestate/RealEstateGuestsPicker";
 import RealEstateDateRangePicker from "./realestate/RealEstateDateRangePicker";
