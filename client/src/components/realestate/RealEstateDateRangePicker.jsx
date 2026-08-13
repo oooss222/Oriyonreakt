@@ -164,25 +164,33 @@ function CalendarPanel({
 function useCalendarPosition(open, anchorRef) {
   const [style, setStyle] = React.useState(null);
 
+  const computeStyle = React.useCallback(() => {
+    if (!anchorRef.current) return null;
+
+    const rect = anchorRef.current.getBoundingClientRect();
+    const panelWidth = Math.min(720, window.innerWidth - 32);
+    const centeredLeft = Math.max(16, (window.innerWidth - panelWidth) / 2);
+    const anchoredLeft = Math.max(
+      16,
+      Math.min(rect.left, window.innerWidth - panelWidth - 16)
+    );
+    const left = rect.width < 320 ? centeredLeft : anchoredLeft;
+
+    return {
+      top: rect.bottom + 8,
+      left,
+      width: panelWidth,
+    };
+  }, [anchorRef]);
+
   React.useLayoutEffect(() => {
-    if (!open || !anchorRef.current) {
+    if (!open) {
       setStyle(null);
       return undefined;
     }
 
     const update = () => {
-      const rect = anchorRef.current.getBoundingClientRect();
-      const panelWidth = Math.min(720, window.innerWidth - 32);
-      const left = Math.max(
-        16,
-        Math.min(rect.left, window.innerWidth - panelWidth - 16)
-      );
-
-      setStyle({
-        top: rect.bottom + 8,
-        left,
-        width: panelWidth,
-      });
+      setStyle(computeStyle());
     };
 
     update();
@@ -193,9 +201,68 @@ function useCalendarPosition(open, anchorRef) {
       window.removeEventListener("resize", update);
       window.removeEventListener("scroll", update, true);
     };
-  }, [open, anchorRef]);
+  }, [open, computeStyle]);
 
   return style;
+}
+
+function DateRangeTrigger({
+  triggerRef,
+  open,
+  checkIn,
+  checkOut,
+  onToggle,
+  className = "",
+}) {
+  return (
+    <button
+      ref={triggerRef}
+      type="button"
+      aria-expanded={open}
+      aria-haspopup="dialog"
+      onClick={onToggle}
+      className={`flex min-h-[52px] w-full items-stretch rounded-xl border bg-white p-0 text-left text-sm outline-none transition ${
+        open
+          ? "border-sun ring-2 ring-sun/20"
+          : "border-slate-200/90 hover:border-slate-300 focus:border-sun/50 focus:ring-2 focus:ring-sun/20"
+      } ${className}`}
+    >
+      <span className="flex min-w-0 flex-1 divide-x divide-slate-200">
+        <span className="flex min-w-0 flex-1 flex-col justify-center px-3 py-2">
+          <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-400">
+            Заезд
+          </span>
+          <span
+            className={`truncate text-sm font-semibold leading-tight ${
+              checkIn ? "text-slate-900" : "text-slate-400"
+            }`}
+          >
+            {checkIn ? formatShortDate(checkIn) : "Дата"}
+          </span>
+        </span>
+
+        <span className="flex min-w-0 flex-1 flex-col justify-center px-3 py-2">
+          <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-400">
+            Выезд
+          </span>
+          <span
+            className={`truncate text-sm font-semibold leading-tight ${
+              checkOut ? "text-slate-900" : "text-slate-400"
+            }`}
+          >
+            {checkOut ? formatShortDate(checkOut) : "Дата"}
+          </span>
+        </span>
+      </span>
+
+      <span className="flex w-10 shrink-0 items-center justify-center border-l border-slate-200 text-slate-400">
+        <ChevronDown
+          size={16}
+          className={`transition ${open ? "rotate-180" : ""}`}
+        />
+      </span>
+    </button>
+  );
 }
 
 export default function RealEstateDateRangePicker({
@@ -212,7 +279,6 @@ export default function RealEstateDateRangePicker({
   const panelRef = React.useRef(null);
   const triggerRef = React.useRef(null);
   const minIso = todayIso();
-  const panelStyle = useCalendarPosition(open, triggerRef);
 
   React.useEffect(() => {
     if (!open) return;
@@ -263,18 +329,24 @@ export default function RealEstateDateRangePicker({
   };
 
   const isInline = variant === "inline";
+  const panelStyle = useCalendarPosition(open, triggerRef);
+  const fallbackPanelStyle = React.useMemo(() => {
+    if (!open) return null;
+    return {
+      top: 0,
+      left: 16,
+      width: Math.min(720, window.innerWidth - 32),
+      visibility: "hidden",
+    };
+  }, [open]);
 
   const calendar =
-    open && panelStyle
+    open
       ? createPortal(
           <div
             ref={panelRef}
             className="fixed z-[300]"
-            style={{
-              top: panelStyle.top,
-              left: panelStyle.left,
-              width: panelStyle.width,
-            }}
+            style={panelStyle || fallbackPanelStyle}
           >
             <CalendarPanel
               checkIn={checkIn}
@@ -303,9 +375,11 @@ export default function RealEstateDateRangePicker({
               open ? "bg-sun-50/60" : ""
             }`}
           >
-            <span className="mb-0.5 text-xs font-medium text-slate-500">Заезд</span>
+            <span className="mb-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-400">
+              Заезд
+            </span>
             <span
-              className={`truncate text-sm font-semibold ${
+              className={`truncate text-sm font-semibold leading-tight ${
                 checkIn ? "text-slate-900" : "text-slate-400"
               }`}
             >
@@ -321,9 +395,11 @@ export default function RealEstateDateRangePicker({
               open ? "bg-sun-50/60" : ""
             }`}
           >
-            <span className="mb-0.5 text-xs font-medium text-slate-500">Выезд</span>
+            <span className="mb-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-400">
+              Выезд
+            </span>
             <span
-              className={`truncate text-sm font-semibold ${
+              className={`truncate text-sm font-semibold leading-tight ${
                 checkOut ? "text-slate-900" : "text-slate-400"
               }`}
             >
@@ -342,53 +418,13 @@ export default function RealEstateDateRangePicker({
       <div ref={wrapperRef} className="relative min-w-0">
         {showLabel && <span className={FIELD_LABEL}>{label}</span>}
 
-        <button
-          ref={triggerRef}
-          type="button"
-          aria-expanded={open}
-          aria-haspopup="dialog"
-          onClick={() => setOpen((value) => !value)}
-          className={`flex h-11 w-full items-stretch overflow-hidden rounded-xl border bg-white p-0 text-left text-sm font-medium outline-none transition ${
-            open
-              ? "border-sun ring-2 ring-sun/20"
-              : "border-slate-200/90 hover:border-slate-300 focus:border-sun/50 focus:ring-2 focus:ring-sun/20"
-          }`}
-        >
-          <span className="flex min-w-0 flex-1 divide-x divide-slate-200">
-            <span className="flex min-w-0 flex-1 flex-col justify-center px-3 py-1">
-              <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-400">
-                Заезд
-              </span>
-              <span
-                className={`truncate text-sm font-medium ${
-                  checkIn ? "text-slate-900" : "text-slate-400"
-                }`}
-              >
-                {checkIn ? formatShortDate(checkIn) : "Дата"}
-              </span>
-            </span>
-
-            <span className="flex min-w-0 flex-1 flex-col justify-center px-3 py-1">
-              <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-400">
-                Выезд
-              </span>
-              <span
-                className={`truncate text-sm font-medium ${
-                  checkOut ? "text-slate-900" : "text-slate-400"
-                }`}
-              >
-                {checkOut ? formatShortDate(checkOut) : "Дата"}
-              </span>
-            </span>
-          </span>
-
-          <span className="flex w-9 shrink-0 items-center justify-center border-l border-slate-200 text-slate-400">
-            <ChevronDown
-              size={15}
-              className={`transition ${open ? "rotate-180" : ""}`}
-            />
-          </span>
-        </button>
+        <DateRangeTrigger
+          triggerRef={triggerRef}
+          open={open}
+          checkIn={checkIn}
+          checkOut={checkOut}
+          onToggle={() => setOpen((value) => !value)}
+        />
       </div>
 
       {calendar}
