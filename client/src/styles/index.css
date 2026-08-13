@@ -205,15 +205,19 @@
   }
 
   .re-filter-segment {
-    @apply grid grid-cols-3 gap-1 rounded-xl bg-mist p-1;
+    @apply grid grid-cols-3 gap-0.5 rounded-xl bg-mist p-0.5;
   }
 
   .re-filter-segment__btn {
-    @apply rounded-lg px-2 py-2 text-center text-xs font-semibold text-ink-500 transition;
+    @apply min-w-0 rounded-lg px-1.5 py-2 text-center text-xs font-semibold leading-tight text-ink-500 transition;
   }
 
   .re-filter-segment__btn--active {
     @apply bg-ink text-white shadow-sm;
+  }
+
+  .re-filter-segment--deal .re-filter-segment__btn {
+    @apply px-1.5 py-2 text-[11px] tracking-tight;
   }
 
   .re-filter-segment--2 {

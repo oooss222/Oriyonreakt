@@ -44,7 +44,7 @@ function FilterBlock({ title, children }) {
 
 function DealSegment({ value, onChange }) {
   return (
-    <div className="re-filter-segment">
+    <div className="re-filter-segment re-filter-segment--deal">
       {DEAL_TYPES.map((item) => {
         const active = value === item.value;
 

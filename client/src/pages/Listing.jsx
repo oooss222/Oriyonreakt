@@ -742,7 +742,7 @@ export default function Listing() {
 
       <div className="lg:flex lg:items-start lg:gap-6">
         {isRealEstate ? (
-          <aside className="filter-sidebar-anchor hidden lg:block w-[17.5rem] shrink-0">
+          <aside className="filter-sidebar-anchor hidden lg:block w-[19rem] shrink-0">
             <RealEstateFiltersSidebar
               draft={draft}
               setDraft={setDraft}
