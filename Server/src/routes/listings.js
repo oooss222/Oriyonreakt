@@ -550,6 +550,13 @@ router.post("/", auth, async (req, res) => {
         });
       }
 
+      if (e?.message === "PHOTO_MIN_NOT_MET") {
+        return res.status(400).json({
+          error: `Minimum ${e.min} images required for this category`,
+          min: e.min,
+        });
+      }
+
       throw e;
     }
 
@@ -610,6 +617,13 @@ router.put("/:id", auth, async (req, res) => {
           return res.status(400).json({
             error: `Maximum ${e.limit} images allowed for this category`,
             limit: e.limit,
+          });
+        }
+
+        if (e?.message === "PHOTO_MIN_NOT_MET") {
+          return res.status(400).json({
+            error: `Minimum ${e.min} images required for this category`,
+            min: e.min,
           });
         }
 

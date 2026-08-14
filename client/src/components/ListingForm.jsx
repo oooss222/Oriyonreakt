@@ -2,7 +2,6 @@ import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { api } from "../lib/api";
 import { goToAuth } from "../lib/auth";
-import { resolveMediaUrl } from "../lib/media";
 import {
   SPEC_DEPENDENCIES,
   LOCATIONS,
@@ -18,7 +17,7 @@ import {
   mergeSpecsWithExisting,
   compactSpecsForSubmit,
 } from "../data/listingCategories";
-import { getListingPhotoLimit } from "../lib/listingPhotoLimits";
+import { getListingPhotoLimit, getListingMinPhotos } from "../lib/listingPhotoLimits";
 import { REAL_ESTATE_CAT } from "../data/realEstate";
 import RealEstateListingWizard, {
   isRealEstateWizardCategory,
@@ -26,19 +25,26 @@ import RealEstateListingWizard, {
 import ListingFormSpecFields, {
   areListingSpecsComplete,
 } from "./listing/ListingFormSpecFields";
+import ListingFormPhotosSection from "./listing/ListingFormPhotosSection";
+import ListingFormPublicationSidebar from "./listing/ListingFormPublicationSidebar";
 import {
-  Plus,
-  X,
-  UploadCloud,
+  validateListingForm,
+  buildPublishHintParts,
+} from "../lib/listingFormValidation";
+import {
+  clearListingDraft,
+  formatDraftSavedAt,
+  loadListingDraft,
+  saveListingDraft,
+} from "../lib/listingFormDraft";
+import { buildTransportSuggestedTitle } from "../lib/listingFormTitles";
+import {
   Info,
   Sparkles,
-  Image as ImageIcon,
   ListChecks,
-  Tag,
   MapPin,
-  CheckCircle2,
-  RotateCcw,
   Pencil,
+  FileText,
 } from "lucide-react";
 
 export default function ListingForm({
@@ -76,6 +82,8 @@ export default function ListingForm({
   const [saving, setSaving] = React.useState(false);
   const [isDragOver, setIsDragOver] = React.useState(false);
   const [geo, setGeo] = React.useState(null);
+  const [draftPrompt, setDraftPrompt] = React.useState(null);
+  const draftSaveTimerRef = React.useRef(null);
 
   const applyCategorySpecs = React.useCallback(
     (catKey, subcategory, existingSpecs = []) => {
@@ -139,8 +147,43 @@ export default function ListingForm({
 
   React.useEffect(() => {
     if (isEdit) return;
+
+    const draft = loadListingDraft();
+    if (draft) {
+      setDraftPrompt(draft);
+    }
+  }, [isEdit]);
+
+  React.useEffect(() => {
+    if (isEdit || draftPrompt) return;
     applyCategorySpecs(form.cat, form.subcategory);
-  }, [isEdit, applyCategorySpecs]);
+  }, [isEdit, draftPrompt, applyCategorySpecs]);
+
+  React.useEffect(() => {
+    if (isEdit || draftPrompt) return;
+
+    if (draftSaveTimerRef.current) {
+      clearTimeout(draftSaveTimerRef.current);
+    }
+
+    draftSaveTimerRef.current = setTimeout(() => {
+      saveListingDraft({
+        form,
+        specs,
+        geo,
+        existingImages: existingImages.map((img) => ({
+          url: img.url,
+          alt: img.alt || "",
+        })),
+      });
+    }, 12000);
+
+    return () => {
+      if (draftSaveTimerRef.current) {
+        clearTimeout(draftSaveTimerRef.current);
+      }
+    };
+  }, [form, specs, geo, existingImages, isEdit, draftPrompt]);
 
   React.useEffect(() => {
     if (!files.length) {
@@ -278,6 +321,44 @@ export default function ListingForm({
     });
   };
 
+  const restoreDraft = () => {
+    if (!draftPrompt) return;
+
+    const draftCat =
+      draftPrompt.form?.cat && CATS[draftPrompt.form.cat]
+        ? draftPrompt.form.cat
+        : startCat;
+
+    setForm({
+      title: draftPrompt.form?.title || "",
+      price: draftPrompt.form?.price || "",
+      location: draftPrompt.form?.location || "Душанбе",
+      cat: draftCat,
+      subcategory:
+        draftPrompt.form?.subcategory || CATS[draftCat]?.subs?.[0] || "",
+      description: draftPrompt.form?.description || "",
+    });
+
+    applyCategorySpecs(
+      draftCat,
+      draftPrompt.form?.subcategory || CATS[draftCat]?.subs?.[0] || "",
+      Array.isArray(draftPrompt.specs) ? draftPrompt.specs : []
+    );
+
+    setExistingImages(
+      Array.isArray(draftPrompt.existingImages)
+        ? draftPrompt.existingImages
+        : []
+    );
+    setGeo(draftPrompt.geo || null);
+    setDraftPrompt(null);
+  };
+
+  const discardDraft = () => {
+    clearListingDraft();
+    setDraftPrompt(null);
+  };
+
   const resetForm = () => {
     if (isEdit && initialData) {
       const cat = initialData.cat || "transport";
@@ -325,6 +406,10 @@ export default function ListingForm({
     setFiles([]);
     setPreviews([]);
     setErr("");
+
+    if (!isEdit) {
+      clearListingDraft();
+    }
   };
 
   const submit = async (event) => {
@@ -336,41 +421,16 @@ export default function ListingForm({
       return;
     }
 
-    if (!form.title.trim() || !form.cat.trim() || !form.subcategory.trim()) {
-      setErr("Заполните заголовок, категорию и подкатегорию");
-      return;
-    }
+    const validationError = validateListingForm({
+      form,
+      specs,
+      existingImages,
+      files,
+      isRealEstate: isRealEstateWizardCategory(form.cat),
+    });
 
-    if (form.title.trim().length > TITLE_MAX) {
-      setErr(`Заголовок не должен быть длиннее ${TITLE_MAX} символов`);
-      return;
-    }
-
-    if (getPriceDigits(form.price).length > PRICE_MAX_DIGITS) {
-      setErr(`Цена не может быть длиннее ${PRICE_MAX_DIGITS} цифр`);
-      return;
-    }
-
-    if (form.description.length > DESC_MAX) {
-      setErr(`Описание не должно быть длиннее ${DESC_MAX} символов`);
-      return;
-    }
-
-    if (!form.location.trim()) {
-      setErr("Выберите локацию");
-      return;
-    }
-
-    const photoLimit = getListingPhotoLimit(form.cat);
-    const totalPhotos = existingImages.length + files.length;
-
-    if (totalPhotos > photoLimit) {
-      setErr(`Максимум ${photoLimit} фотографий для этой категории`);
-      return;
-    }
-
-    if (totalPhotos < 1) {
-      setErr("Добавьте минимум 1 фото");
+    if (validationError) {
+      setErr(validationError);
       return;
     }
 
@@ -420,6 +480,10 @@ export default function ListingForm({
         ? await api.updateListing(token, listingId, payload)
         : await api.createListing(token, payload);
 
+      if (!isEdit) {
+        clearListingDraft();
+      }
+
       onSuccess?.(result);
     } catch (error) {
       setErr(error.message || (isEdit ? "Ошибка сохранения" : "Ошибка создания"));
@@ -432,21 +496,33 @@ export default function ListingForm({
   const subs = cat?.subs || [];
   const photosCount = existingImages.length + previews.length;
   const photoLimit = getListingPhotoLimit(form.cat);
+  const minPhotos = getListingMinPhotos(form.cat);
   const useRealEstateWizard = isRealEstateWizardCategory(form.cat);
   const specsComplete = areListingSpecsComplete(specs);
   const hasTitle = Boolean(form.title.trim());
   const hasPrice = Boolean(priceDigits.length);
-  const hasPhotos = photosCount >= 1;
-  const canPublish = hasTitle && hasPrice && hasPhotos && specsComplete && !saving;
+  const hasPhotos = photosCount >= minPhotos;
+  const canPublish =
+    hasTitle &&
+    hasPrice &&
+    hasPhotos &&
+    (useRealEstateWizard || specsComplete) &&
+    !saving;
 
-  const publishHintParts = [];
-  if (!hasTitle) publishHintParts.push("заголовок");
-  if (!hasPrice) publishHintParts.push("цену");
-  if (!hasPhotos) publishHintParts.push("минимум 1 фото");
-  if (!specsComplete) publishHintParts.push("характеристики");
+  const publishHintParts = buildPublishHintParts({
+    form,
+    specs,
+    photosCount,
+    minPhotos,
+    isRealEstate: useRealEstateWizard,
+  });
   const publishHint = publishHintParts.length
     ? `Заполните: ${publishHintParts.join(", ")}`
     : "";
+
+  const suggestTransportTitle = () => {
+    setField("title", buildTransportSuggestedTitle(specs));
+  };
 
   if (loading) {
     return (
@@ -493,6 +569,40 @@ export default function ListingForm({
         </Link>
       </div>
 
+      {draftPrompt ? (
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="flex items-start gap-3">
+            <FileText className="w-5 h-5 text-amber-700 mt-0.5 shrink-0" />
+            <div>
+              <div className="font-semibold text-amber-900">
+                Продолжить черновик?
+              </div>
+              <div className="text-sm text-amber-800 mt-1">
+                Сохранён{" "}
+                {formatDraftSavedAt(draftPrompt.savedAt) || "недавно"}. Новые
+                фото из черновика не восстанавливаются.
+              </div>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={restoreDraft}
+              className="rounded-xl bg-sun text-white px-4 py-2 text-sm font-semibold hover:opacity-90"
+            >
+              Продолжить
+            </button>
+            <button
+              type="button"
+              onClick={discardDraft}
+              className="rounded-xl border bg-white px-4 py-2 text-sm font-medium hover:bg-slate-50"
+            >
+              Начать заново
+            </button>
+          </div>
+        </div>
+      ) : null}
+
       {err && (
         <div className="rounded-2xl border border-red-200 bg-red-50 text-red-700 p-4">
           {err}
@@ -514,10 +624,12 @@ export default function ListingForm({
           onInputFiles={onInputFiles}
           removeFile={removeFile}
           removeExistingImage={removeExistingImage}
+          clearNewFiles={clearNewFiles}
           photoLimit={photoLimit}
           onSubmit={submit}
           saving={saving}
           isEdit={isEdit}
+          onReset={resetForm}
         />
       ) : (
       <form onSubmit={submit} className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_20rem] xl:grid-cols-[minmax(0,1fr)_22rem] gap-5">
@@ -532,9 +644,21 @@ export default function ListingForm({
 
             <div className="listing-form-card__body">
               <div>
-                <label className="listing-form-label listing-form-label-required">
-                  Заголовок
-                </label>
+                <div className="flex items-center justify-between gap-3 mb-1">
+                  <label className="listing-form-label listing-form-label-required">
+                    Заголовок
+                  </label>
+                  {form.cat === "transport" ? (
+                    <button
+                      type="button"
+                      onClick={suggestTransportTitle}
+                      className="inline-flex items-center gap-1 text-xs font-medium text-sun hover:text-sun-700"
+                    >
+                      <Sparkles className="w-3.5 h-3.5" />
+                      Сгенерировать
+                    </button>
+                  ) : null}
+                </div>
                 <input
                   value={form.title}
                   onChange={(e) =>
@@ -643,116 +767,28 @@ export default function ListingForm({
             </div>
           </div>
 
-          <div className="listing-form-card">
-            <div className="listing-form-card__head">
-              <div className="listing-form-card__title">
-                <ImageIcon className="w-5 h-5 text-sun" />
-                Фотографии
-              </div>
-              <span className="text-sm font-medium text-slate-500">
-                {photosCount}/{photoLimit}
-              </span>
-            </div>
-
-            <div className="listing-form-card__body space-y-4">
-              <div
-                onDragOver={(e) => {
-                  e.preventDefault();
-                  setIsDragOver(true);
-                }}
-                onDragLeave={() => setIsDragOver(false)}
-                onDrop={(e) => {
-                  e.preventDefault();
-                  setIsDragOver(false);
-                  onFiles(e.dataTransfer.files);
-                }}
-                className={`listing-form-dropzone ${
-                  isDragOver
-                    ? "listing-form-dropzone--active"
-                    : "listing-form-dropzone--idle"
-                }`}
-              >
-                <UploadCloud className="w-10 h-10 mx-auto text-slate-400 mb-2" />
-                <div className="font-medium">
-                  Перетащите фото сюда или выберите файлы
-                </div>
-                <div className="text-sm text-slate-500 mt-1">
-                  До {photoLimit} изображений для этой категории. JPG, PNG, WEBP.
-                </div>
-                <label className="inline-flex items-center justify-center gap-2 mt-4 rounded-xl border bg-white px-4 py-2 hover:bg-slate-50 cursor-pointer text-sm font-medium">
-                  <Plus className="w-4 h-4" />
-                  Выбрать фото
-                  <input
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    onChange={onInputFiles}
-                    className="hidden"
-                  />
-                </label>
-              </div>
-
-              {photosCount > 0 ? (
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="text-sm text-slate-500">
-                      Выбрано: {photosCount}/{photoLimit}
-                    </div>
-                    {previews.length > 0 ? (
-                      <button
-                        type="button"
-                        onClick={clearNewFiles}
-                        className="text-sm text-red-600 hover:underline"
-                      >
-                        Очистить новые
-                      </button>
-                    ) : null}
-                  </div>
-
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                    {existingImages.map((img, index) => (
-                      <div key={`existing-${index}`} className="relative group">
-                        <img
-                          src={resolveMediaUrl(img.url, {
-                            allowEmpty: true,
-                            placeholder: "",
-                          })}
-                          alt={`Фото ${index + 1}`}
-                          className="w-full h-28 object-cover rounded-xl border bg-slate-100"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => removeExistingImage(index)}
-                          className="absolute right-1 top-1 rounded-full bg-black/70 text-white p-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition"
-                          title="Удалить фото"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
-                      </div>
-                    ))}
-
-                    {previews.map((src, index) => (
-                      <div key={`new-${index}`} className="relative group">
-                        <img
-                          src={src}
-                          alt={`Новое фото ${index + 1}`}
-                          className="w-full h-28 object-cover rounded-xl border bg-slate-100"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => removeFile(index)}
-                          className="absolute right-1 top-1 rounded-full bg-black/70 text-white p-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition"
-                          title="Удалить фото"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ) : null}
-            </div>
-          </div>
+          <ListingFormPhotosSection
+            photosCount={photosCount}
+            photoLimit={photoLimit}
+            minPhotos={minPhotos}
+            existingImages={existingImages}
+            previews={previews}
+            isDragOver={isDragOver}
+            onDragOver={(e) => {
+              e.preventDefault();
+              setIsDragOver(true);
+            }}
+            onDragLeave={() => setIsDragOver(false)}
+            onDrop={(e) => {
+              e.preventDefault();
+              setIsDragOver(false);
+              onFiles(e.dataTransfer.files);
+            }}
+            onInputFiles={onInputFiles}
+            onRemoveExisting={removeExistingImage}
+            onRemoveNew={removeFile}
+            onClearNew={clearNewFiles}
+          />
 
           <div className="listing-form-card overflow-hidden">
             <div className="listing-form-card__head">
@@ -770,102 +806,42 @@ export default function ListingForm({
           </div>
         </section>
 
-        <aside>
-          <div className="listing-form-sidebar">
-            <div className="flex items-center gap-2">
-              <Tag className="w-5 h-5 text-sun" />
-              <h2 className="text-lg font-semibold">Публикация</h2>
-            </div>
-
-            <div className="rounded-xl border border-slate-100 bg-slate-50/80 p-3 space-y-2 text-sm">
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-slate-500">Категория</span>
-                <span className="font-semibold text-slate-900 text-right">
-                  {cat?.title || "—"}
-                </span>
-              </div>
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-slate-500">Подкатегория</span>
-                <span className="font-semibold text-slate-900 text-right">
-                  {form.subcategory || "—"}
-                </span>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <div
-                className={`listing-form-check ${
-                  hasPhotos ? "listing-form-check--ok" : "listing-form-check--warn"
-                }`}
-              >
-                <span>Фото</span>
-                <span className="font-medium">
-                  {hasPhotos ? `${photosCount}/${photoLimit}` : `${photosCount}/${photoLimit}`}
-                </span>
-              </div>
-
-              <div
-                className={`listing-form-check ${
-                  specsComplete ? "listing-form-check--ok" : "listing-form-check--warn"
-                }`}
-              >
-                <span>Характеристики</span>
-                <span className="font-medium">
-                  {specsComplete ? "заполнены" : "не заполнены"}
-                </span>
-              </div>
-
-              <div
-                className={`listing-form-check ${
-                  hasPrice ? "listing-form-check--ok" : "listing-form-check--warn"
-                }`}
-              >
-                <span>Цена</span>
-                <span className="font-medium">
-                  {hasPrice ? formatPriceInput(form.price) + " с." : "не указана"}
-                </span>
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              disabled={!canPublish}
-              className={`listing-form-publish-btn ${
-                canPublish
-                  ? "listing-form-publish-btn--ready"
-                  : "listing-form-publish-btn--disabled"
-              }`}
-            >
-              <CheckCircle2 className="w-5 h-5" />
-              {saving
-                ? isEdit
-                  ? "Сохранение..."
-                  : "Публикация..."
-                : isEdit
-                ? "Сохранить изменения"
-                : "Опубликовать"}
-            </button>
-
-            {!canPublish && publishHint ? (
-              <p className="text-xs text-red-600">{publishHint}</p>
-            ) : null}
-
-            <button
-              type="button"
-              onClick={resetForm}
-              className="w-full inline-flex items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-medium hover:bg-slate-50 transition"
-            >
-              <RotateCcw className="w-4 h-4" />
-              Сбросить
-            </button>
-
-            <p className="text-xs text-slate-500 leading-relaxed">
-              {isEdit
-                ? "После сохранения объявление снова уйдёт на модерацию."
-                : "После проверки объявление будет доступно в общем списке."}
-            </p>
-          </div>
-        </aside>
+        <ListingFormPublicationSidebar
+          categoryTitle={cat?.title}
+          subcategory={form.subcategory}
+          checks={[
+            {
+              key: "photos",
+              label: "Фото",
+              ok: hasPhotos,
+              detail: `${photosCount}/${photoLimit}`,
+            },
+            {
+              key: "specs",
+              label: "Характеристики",
+              ok: specsComplete,
+              detail: specsComplete ? "заполнены" : "не заполнены",
+            },
+            {
+              key: "price",
+              label: "Цена",
+              ok: hasPrice,
+              detail: hasPrice
+                ? `${formatPriceInput(form.price)} с.`
+                : "не указана",
+            },
+          ]}
+          canPublish={canPublish}
+          publishHint={publishHint}
+          saving={saving}
+          isEdit={isEdit}
+          onReset={resetForm}
+          footerNote={
+            isEdit
+              ? "После сохранения объявление снова уйдёт на модерацию."
+              : "После проверки объявление будет доступно в общем списке."
+          }
+        />
       </form>
       )}
     </div>

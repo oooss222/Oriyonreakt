@@ -9,10 +9,21 @@ const CATEGORY_PHOTO_LIMITS = {
   furniture: 6,
 };
 
+const CATEGORY_MIN_PHOTOS = {
+  transport: 3,
+  realestate: 3,
+  services: 1,
+  repair: 1,
+};
+
 const MAX_LISTING_PHOTO_LIMIT = Math.max(...Object.values(CATEGORY_PHOTO_LIMITS));
 
 function getListingPhotoLimit(cat) {
   return CATEGORY_PHOTO_LIMITS[cat] ?? 6;
+}
+
+function getListingMinPhotos(cat) {
+  return CATEGORY_MIN_PHOTOS[cat] ?? 1;
 }
 
 function assertImagesWithinLimit(images, cat) {
@@ -25,11 +36,21 @@ function assertImagesWithinLimit(images, cat) {
     error.count = count;
     throw error;
   }
+
+  const minPhotos = getListingMinPhotos(cat);
+  if (count < minPhotos) {
+    const error = new Error("PHOTO_MIN_NOT_MET");
+    error.min = minPhotos;
+    error.count = count;
+    throw error;
+  }
 }
 
 module.exports = {
   CATEGORY_PHOTO_LIMITS,
+  CATEGORY_MIN_PHOTOS,
   MAX_LISTING_PHOTO_LIMIT,
   getListingPhotoLimit,
+  getListingMinPhotos,
   assertImagesWithinLimit,
 };
