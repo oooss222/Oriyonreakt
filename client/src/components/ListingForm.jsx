@@ -4,7 +4,6 @@ import { api } from "../lib/api";
 import { goToAuth } from "../lib/auth";
 import { resolveMediaUrl } from "../lib/media";
 import {
-  getDependentOptions,
   SPEC_DEPENDENCIES,
   LOCATIONS,
   PRICE_MAX_DIGITS,
@@ -24,6 +23,9 @@ import { REAL_ESTATE_CAT } from "../data/realEstate";
 import RealEstateListingWizard, {
   isRealEstateWizardCategory,
 } from "./RealEstateListingWizard";
+import ListingFormSpecFields, {
+  areListingSpecsComplete,
+} from "./listing/ListingFormSpecFields";
 import {
   Plus,
   X,
@@ -367,6 +369,11 @@ export default function ListingForm({
       return;
     }
 
+    if (totalPhotos < 1) {
+      setErr("Добавьте минимум 1 фото");
+      return;
+    }
+
     const compactSpecs = compactSpecsForSubmit(specs);
 
     try {
@@ -425,15 +432,21 @@ export default function ListingForm({
   const subs = cat?.subs || [];
   const photosCount = existingImages.length + previews.length;
   const photoLimit = getListingPhotoLimit(form.cat);
-  const filledSpecs = compactSpecsForSubmit(specs).length;
   const useRealEstateWizard = isRealEstateWizardCategory(form.cat);
+  const specsComplete = areListingSpecsComplete(specs);
+  const hasTitle = Boolean(form.title.trim());
+  const hasPrice = Boolean(priceDigits.length);
+  const hasPhotos = photosCount >= 1;
+  const canPublish = hasTitle && hasPrice && hasPhotos && specsComplete && !saving;
 
-  const locationOptions = React.useMemo(() => {
-    if (form.location && !LOCATIONS.includes(form.location)) {
-      return [form.location, ...LOCATIONS];
-    }
-    return LOCATIONS;
-  }, [form.location]);
+  const publishHintParts = [];
+  if (!hasTitle) publishHintParts.push("заголовок");
+  if (!hasPrice) publishHintParts.push("цену");
+  if (!hasPhotos) publishHintParts.push("минимум 1 фото");
+  if (!specsComplete) publishHintParts.push("характеристики");
+  const publishHint = publishHintParts.length
+    ? `Заполните: ${publishHintParts.join(", ")}`
+    : "";
 
   if (loading) {
     return (
@@ -446,53 +459,38 @@ export default function ListingForm({
   }
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 py-6 space-y-6 text-slate-900">
-      <div className="rounded-2xl border bg-white p-5">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-          <div>
-            <div className="inline-flex items-center gap-2 text-sm text-sun-700 bg-sun-50 border border-sun-100 rounded-full px-3 py-1 mb-2">
-              {isEdit ? (
-                <>
-                  <Pencil className="w-4 h-4" />
-                  Редактирование
-                </>
-              ) : (
-                <>
-                  <Sparkles className="w-4 h-4" />
-                  Новое объявление
-                </>
-              )}
-            </div>
-
-            <h1 className="text-2xl font-bold">
-              {isEdit ? "Редактировать объявление" : "Создать объявление"}
-            </h1>
-
-            <p className="text-slate-600 text-sm mt-1">
-              {isEdit
-                ? "После сохранения объявление снова отправится на модерацию."
-                : "Заполните данные, загрузите фото и опубликуйте объявление."}
-            </p>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Link
-              to={backTo}
-              className="inline-flex items-center justify-center gap-2 rounded-xl border px-4 py-2 hover:bg-slate-50"
-            >
-              Назад
-            </Link>
-
-            <button
-              type="button"
-              onClick={resetForm}
-              className="inline-flex items-center justify-center gap-2 rounded-xl border px-4 py-2 hover:bg-slate-50"
-            >
-              <RotateCcw className="w-4 h-4" />
-              Сбросить
-            </button>
-          </div>
+    <div className="listing-form-page bg-slate-50/70 min-h-[calc(100vh-4rem)]">
+      <div className="listing-form-header">
+        <div className="listing-form-badge">
+          {isEdit ? (
+            <>
+              <Pencil className="w-4 h-4" />
+              Редактирование
+            </>
+          ) : (
+            <>
+              <Sparkles className="w-4 h-4" />
+              Новое объявление
+            </>
+          )}
         </div>
+
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
+          {isEdit ? "Редактировать объявление" : "Создать объявление"}
+        </h1>
+
+        <p className="text-slate-600 text-sm md:text-base">
+          {isEdit
+            ? "После сохранения объявление снова отправится на модерацию."
+            : "Заполните данные, загрузите фото и опубликуйте объявление."}
+        </p>
+
+        <Link
+          to={backTo}
+          className="inline-flex text-sm text-slate-500 hover:text-slate-800 transition"
+        >
+          ← Назад
+        </Link>
       </div>
 
       {err && (
@@ -522,356 +520,320 @@ export default function ListingForm({
           isEdit={isEdit}
         />
       ) : (
-      <form onSubmit={submit} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <section className="lg:col-span-2 space-y-6">
-          <div className="rounded-2xl border bg-white p-5 space-y-4">
-            <div className="flex items-center gap-2">
-              <Info className="w-5 h-5 text-sun" />
-              <h2 className="text-lg font-semibold">Основная информация</h2>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-1">Заголовок</label>
-              <input
-                value={form.title}
-                onChange={(e) =>
-                  setField("title", e.target.value.slice(0, TITLE_MAX))
-                }
-                placeholder="Например: Toyota Camry 2018"
-                className="w-full h-11 rounded-lg border px-3 outline-none focus:ring-2 focus:ring-sun/40"
-              />
-              <div className="mt-1 text-xs text-slate-500">
-                {form.title.length}/{TITLE_MAX}
+      <form onSubmit={submit} className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_20rem] xl:grid-cols-[minmax(0,1fr)_22rem] gap-5">
+        <section className="space-y-5 min-w-0">
+          <div className="listing-form-card">
+            <div className="listing-form-card__head">
+              <div className="listing-form-card__title">
+                <Info className="w-5 h-5 text-sun" />
+                Основная информация
               </div>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-4">
+            <div className="listing-form-card__body">
               <div>
-                <label className="block text-sm font-medium mb-1">Цена</label>
+                <label className="listing-form-label listing-form-label-required">
+                  Заголовок
+                </label>
                 <input
-                  value={form.price}
-                  onChange={(e) => handlePriceChange(e.target.value)}
-                  onPaste={(e) => {
-                    e.preventDefault();
-                    handlePriceChange(e.clipboardData.getData("text"));
-                  }}
-                  placeholder="Например: 120 000"
-                  inputMode="numeric"
-                  autoComplete="off"
-                  className="w-full h-11 rounded-lg border px-3 outline-none focus:ring-2 focus:ring-sun/40"
+                  value={form.title}
+                  onChange={(e) =>
+                    setField("title", e.target.value.slice(0, TITLE_MAX))
+                  }
+                  placeholder="Например: Toyota Camry 2018"
+                  className="listing-form-input"
                 />
-                <div className="mt-1 text-xs text-slate-500">
-                  {priceDigits.length}/{PRICE_MAX_DIGITS} цифр
-                  {priceDigits.length >= PRICE_MAX_DIGITS && (
-                    <span className="text-amber-600"> — максимум</span>
-                  )}
+                <div className="listing-form-meta">
+                  {form.title.length}/{TITLE_MAX}
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1">Локация</label>
-                <div className="relative">
-                  <MapPin className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none z-10" />
-                  <select
-                    value={
-                      locationOptions.includes(form.location)
-                        ? form.location
-                        : locationOptions[0]
-                    }
-                    onChange={(e) => setField("location", e.target.value)}
-                    className="w-full h-11 rounded-lg border pl-9 pr-8 outline-none focus:ring-2 focus:ring-sun/40 bg-white cursor-pointer"
-                  >
-                    {locationOptions.map((city) => (
-                      <option key={city} value={city}>
+                <label className="listing-form-label listing-form-label-required">
+                  Цена
+                </label>
+                <div className="listing-form-price-wrap">
+                  <input
+                    value={form.price}
+                    onChange={(e) => handlePriceChange(e.target.value)}
+                    onPaste={(e) => {
+                      e.preventDefault();
+                      handlePriceChange(e.clipboardData.getData("text"));
+                    }}
+                    placeholder="Например: 120 000"
+                    inputMode="numeric"
+                    autoComplete="off"
+                  />
+                  <span className="listing-form-price-suffix">с.</span>
+                </div>
+                <div className="listing-form-meta">
+                  {priceDigits.length}/{PRICE_MAX_DIGITS} цифр
+                </div>
+              </div>
+
+              <div>
+                <label className="listing-form-label">Локация</label>
+                <div className="listing-form-location-segment">
+                  {LOCATIONS.map((city) => {
+                    const active = form.location === city;
+
+                    return (
+                      <button
+                        key={city}
+                        type="button"
+                        onClick={() => setField("location", city)}
+                        className={`listing-form-location-btn ${
+                          active ? "listing-form-location-btn--active" : ""
+                        }`}
+                      >
+                        <MapPin className="w-4 h-4" />
                         {city}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <label className="listing-form-label">Категория</label>
+                  <select
+                    value={form.cat}
+                    onChange={(e) => handleCatChange(e.target.value)}
+                    className="listing-form-select"
+                  >
+                    {Object.entries(CATS).map(([key, value]) => (
+                      <option key={key} value={key}>
+                        {value.title}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="listing-form-label">Подкатегория</label>
+                  <select
+                    value={form.subcategory}
+                    onChange={(e) => handleSubcategoryChange(e.target.value)}
+                    className="listing-form-select"
+                  >
+                    {subs.map((sub) => (
+                      <option key={sub} value={sub}>
+                        {sub}
                       </option>
                     ))}
                   </select>
                 </div>
               </div>
-            </div>
-
-            <div className="grid md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Категория</label>
-                <select
-                  value={form.cat}
-                  onChange={(e) => handleCatChange(e.target.value)}
-                  className="w-full h-11 rounded-lg border px-3 outline-none focus:ring-2 focus:ring-sun/40"
-                >
-                  {Object.entries(CATS).map(([key, value]) => (
-                    <option key={key} value={key}>
-                      {value.title}
-                    </option>
-                  ))}
-                </select>
-              </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1">Подкатегория</label>
-                <select
-                  value={form.subcategory}
-                  onChange={(e) => handleSubcategoryChange(e.target.value)}
-                  className="w-full h-11 rounded-lg border px-3 outline-none focus:ring-2 focus:ring-sun/40"
-                >
-                  {subs.map((sub) => (
-                    <option key={sub} value={sub}>
-                      {sub}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-1">Описание</label>
-              <textarea
-                value={form.description}
-                onChange={(e) =>
-                  setField("description", e.target.value.slice(0, DESC_MAX))
-                }
-                rows={7}
-                placeholder="Опишите товар, состояние, комплектацию и условия сделки"
-                className="w-full rounded-lg border px-3 py-2 outline-none focus:ring-2 focus:ring-sun/40 resize-y"
-              />
-              <div className="mt-1 text-xs text-slate-500">
-                {form.description.length}/{DESC_MAX}
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-2xl border bg-white p-5 space-y-4">
-            <div className="flex items-center gap-2">
-              <ImageIcon className="w-5 h-5 text-sun" />
-              <h2 className="text-lg font-semibold">Фотографии</h2>
-            </div>
-
-            <div
-              onDragOver={(e) => {
-                e.preventDefault();
-                setIsDragOver(true);
-              }}
-              onDragLeave={() => setIsDragOver(false)}
-              onDrop={(e) => {
-                e.preventDefault();
-                setIsDragOver(false);
-                onFiles(e.dataTransfer.files);
-              }}
-              className={`rounded-2xl border-2 border-dashed p-6 text-center transition ${
-                isDragOver
-                  ? "border-sun bg-sun-50"
-                  : "border-slate-200 bg-slate-50"
-              }`}
-            >
-              <UploadCloud className="w-10 h-10 mx-auto text-slate-400 mb-2" />
-              <div className="font-medium">
-                Перетащите фото сюда или выберите файлы
-              </div>
-              <div className="text-sm text-slate-500 mt-1">
-                До {photoLimit} изображений. JPG, PNG, WEBP.
-              </div>
-              <label className="inline-flex items-center justify-center gap-2 mt-4 rounded-xl border bg-white px-4 py-2 hover:bg-slate-50 cursor-pointer">
-                <Plus className="w-4 h-4" />
-                Выбрать фото
-                <input
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  onChange={onInputFiles}
-                  className="hidden"
+                <label className="listing-form-label">Описание</label>
+                <textarea
+                  value={form.description}
+                  onChange={(e) =>
+                    setField("description", e.target.value.slice(0, DESC_MAX))
+                  }
+                  placeholder="Опишите товар, состояние, комплектацию и условия сделки"
+                  className="listing-form-textarea"
                 />
-              </label>
-            </div>
-
-            {photosCount > 0 && (
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="text-sm text-slate-500">
-                    Выбрано: {photosCount}/{photoLimit}
-                  </div>
-                  {previews.length > 0 && (
-                    <button
-                      type="button"
-                      onClick={clearNewFiles}
-                      className="text-sm text-red-600 hover:underline"
-                    >
-                      Очистить новые
-                    </button>
-                  )}
-                </div>
-
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-                  {existingImages.map((img, index) => (
-                    <div key={`existing-${index}`} className="relative group">
-                      <img
-                        src={resolveMediaUrl(img.url, { allowEmpty: true, placeholder: "" })}
-                        alt={`Фото ${index + 1}`}
-                        className="w-full h-28 object-cover rounded-xl border bg-slate-100"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => removeExistingImage(index)}
-                        className="absolute right-1 top-1 rounded-full bg-black/70 text-white p-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition"
-                        title="Удалить фото"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))}
-
-                  {previews.map((src, index) => (
-                    <div key={`new-${index}`} className="relative group">
-                      <img
-                        src={src}
-                        alt={`Новое фото ${index + 1}`}
-                        className="w-full h-28 object-cover rounded-xl border bg-slate-100"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => removeFile(index)}
-                        className="absolute right-1 top-1 rounded-full bg-black/70 text-white p-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition"
-                        title="Удалить фото"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))}
+                <div className="listing-form-meta">
+                  {form.description.length}/{DESC_MAX}
                 </div>
               </div>
-            )}
+            </div>
           </div>
 
-          <div className="rounded-2xl border bg-white p-5 space-y-4">
-            <div className="flex items-center gap-2">
-              <ListChecks className="w-5 h-5 text-sun" />
-              <h2 className="text-lg font-semibold">Характеристики</h2>
+          <div className="listing-form-card">
+            <div className="listing-form-card__head">
+              <div className="listing-form-card__title">
+                <ImageIcon className="w-5 h-5 text-sun" />
+                Фотографии
+              </div>
+              <span className="text-sm font-medium text-slate-500">
+                {photosCount}/{photoLimit}
+              </span>
             </div>
 
-            <div className="space-y-3">
-              {specs.map((spec, index) => {
-                const selectOptions = getDependentOptions(spec, specs);
-                const needsParent = Boolean(spec.dependsOn);
-                const parentSelected = needsParent
-                  ? specs.some(
-                      (row) => row.name === spec.dependsOn && row.value
-                    )
-                  : true;
+            <div className="listing-form-card__body space-y-4">
+              <div
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setIsDragOver(true);
+                }}
+                onDragLeave={() => setIsDragOver(false)}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setIsDragOver(false);
+                  onFiles(e.dataTransfer.files);
+                }}
+                className={`listing-form-dropzone ${
+                  isDragOver
+                    ? "listing-form-dropzone--active"
+                    : "listing-form-dropzone--idle"
+                }`}
+              >
+                <UploadCloud className="w-10 h-10 mx-auto text-slate-400 mb-2" />
+                <div className="font-medium">
+                  Перетащите фото сюда или выберите файлы
+                </div>
+                <div className="text-sm text-slate-500 mt-1">
+                  До {photoLimit} изображений для этой категории. JPG, PNG, WEBP.
+                </div>
+                <label className="inline-flex items-center justify-center gap-2 mt-4 rounded-xl border bg-white px-4 py-2 hover:bg-slate-50 cursor-pointer text-sm font-medium">
+                  <Plus className="w-4 h-4" />
+                  Выбрать фото
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={onInputFiles}
+                    className="hidden"
+                  />
+                </label>
+              </div>
 
-                return (
-                  <div
-                    key={`${spec.name}-${index}`}
-                    className="grid grid-cols-[1fr_1fr_auto] gap-2 items-center"
-                  >
-                    {spec.locked ? (
-                      <div className="h-10 flex items-center px-3 text-sm font-medium text-slate-700 bg-slate-50 rounded-lg border">
-                        {spec.name}
-                      </div>
-                    ) : (
-                      <input
-                        value={spec.name}
-                        onChange={(e) =>
-                          updateSpec(index, "name", e.target.value)
-                        }
-                        placeholder="Название"
-                        className="h-10 rounded-lg border px-3 outline-none focus:ring-2 focus:ring-sun/40"
-                      />
-                    )}
-
-                    {spec.type === "select" ? (
-                      <select
-                        value={spec.value}
-                        onChange={(e) =>
-                          updateSpec(index, "value", e.target.value)
-                        }
-                        disabled={needsParent && !parentSelected}
-                        className="h-10 rounded-lg border px-3 outline-none focus:ring-2 focus:ring-sun/40 disabled:bg-slate-100 disabled:text-slate-400"
-                      >
-                        <option value="">
-                          {needsParent && !parentSelected
-                            ? `Сначала выберите ${spec.dependsOn.toLowerCase()}`
-                            : "Выберите"}
-                        </option>
-                        {selectOptions.map((option) => (
-                          <option key={option} value={option}>
-                            {option}
-                          </option>
-                        ))}
-                      </select>
-                    ) : (
-                      <input
-                        value={spec.value}
-                        onChange={(e) =>
-                          updateSpec(index, "value", e.target.value)
-                        }
-                        placeholder="Значение"
-                        className="h-10 rounded-lg border px-3 outline-none focus:ring-2 focus:ring-sun/40"
-                      />
-                    )}
-
-                    {!spec.locked ? (
+              {photosCount > 0 ? (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm text-slate-500">
+                      Выбрано: {photosCount}/{photoLimit}
+                    </div>
+                    {previews.length > 0 ? (
                       <button
                         type="button"
-                        onClick={() => removeSpecRow(index)}
-                        className="h-10 w-10 inline-flex items-center justify-center rounded-lg border text-red-600 hover:bg-red-50"
-                        title="Удалить характеристику"
+                        onClick={clearNewFiles}
+                        className="text-sm text-red-600 hover:underline"
                       >
-                        <X className="w-4 h-4" />
+                        Очистить новые
                       </button>
-                    ) : (
-                      <div className="h-10 w-10" />
-                    )}
+                    ) : null}
                   </div>
-                );
-              })}
 
-              {specs.length === 0 && (
-                <div className="text-sm text-slate-500">
-                  Характеристики не добавлены.
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                    {existingImages.map((img, index) => (
+                      <div key={`existing-${index}`} className="relative group">
+                        <img
+                          src={resolveMediaUrl(img.url, {
+                            allowEmpty: true,
+                            placeholder: "",
+                          })}
+                          alt={`Фото ${index + 1}`}
+                          className="w-full h-28 object-cover rounded-xl border bg-slate-100"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeExistingImage(index)}
+                          className="absolute right-1 top-1 rounded-full bg-black/70 text-white p-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition"
+                          title="Удалить фото"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+
+                    {previews.map((src, index) => (
+                      <div key={`new-${index}`} className="relative group">
+                        <img
+                          src={src}
+                          alt={`Новое фото ${index + 1}`}
+                          className="w-full h-28 object-cover rounded-xl border bg-slate-100"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeFile(index)}
+                          className="absolute right-1 top-1 rounded-full bg-black/70 text-white p-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition"
+                          title="Удалить фото"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              )}
+              ) : null}
             </div>
+          </div>
+
+          <div className="listing-form-card overflow-hidden">
+            <div className="listing-form-card__head">
+              <div className="listing-form-card__title">
+                <ListChecks className="w-5 h-5 text-sun" />
+                Характеристики
+              </div>
+            </div>
+
+            <ListingFormSpecFields
+              specs={specs}
+              onUpdate={updateSpec}
+              onRemove={removeSpecRow}
+            />
           </div>
         </section>
 
-        <aside className="space-y-6">
-          <div className="rounded-2xl border bg-white p-5 space-y-4 sticky top-4">
+        <aside>
+          <div className="listing-form-sidebar">
             <div className="flex items-center gap-2">
               <Tag className="w-5 h-5 text-sun" />
               <h2 className="text-lg font-semibold">Публикация</h2>
             </div>
 
-            <div className="space-y-3 text-sm text-slate-600">
+            <div className="rounded-xl border border-slate-100 bg-slate-50/80 p-3 space-y-2 text-sm">
               <div className="flex items-center justify-between gap-3">
-                <span>Категория</span>
-                <span className="font-medium text-slate-900">
+                <span className="text-slate-500">Категория</span>
+                <span className="font-semibold text-slate-900 text-right">
                   {cat?.title || "—"}
                 </span>
               </div>
               <div className="flex items-center justify-between gap-3">
-                <span>Подкатегория</span>
-                <span className="font-medium text-slate-900 text-right">
+                <span className="text-slate-500">Подкатегория</span>
+                <span className="font-semibold text-slate-900 text-right">
                   {form.subcategory || "—"}
                 </span>
               </div>
-              <div className="flex items-center justify-between gap-3">
+            </div>
+
+            <div className="space-y-2">
+              <div
+                className={`listing-form-check ${
+                  hasPhotos ? "listing-form-check--ok" : "listing-form-check--warn"
+                }`}
+              >
                 <span>Фото</span>
-                <span className="font-medium text-slate-900">
-                  {photosCount}/{photoLimit}
+                <span className="font-medium">
+                  {hasPhotos ? `${photosCount}/${photoLimit}` : `${photosCount}/${photoLimit}`}
                 </span>
               </div>
-              <div className="flex items-center justify-between gap-3">
+
+              <div
+                className={`listing-form-check ${
+                  specsComplete ? "listing-form-check--ok" : "listing-form-check--warn"
+                }`}
+              >
                 <span>Характеристики</span>
-                <span className="font-medium text-slate-900">{filledSpecs}</span>
+                <span className="font-medium">
+                  {specsComplete ? "заполнены" : "не заполнены"}
+                </span>
+              </div>
+
+              <div
+                className={`listing-form-check ${
+                  hasPrice ? "listing-form-check--ok" : "listing-form-check--warn"
+                }`}
+              >
+                <span>Цена</span>
+                <span className="font-medium">
+                  {hasPrice ? formatPriceInput(form.price) + " с." : "не указана"}
+                </span>
               </div>
             </div>
 
             <button
               type="submit"
-              disabled={saving}
-              className={`w-full inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-white transition ${
-                saving
-                  ? "bg-slate-400 cursor-not-allowed"
-                  : "bg-sun hover:bg-sun-600"
+              disabled={!canPublish}
+              className={`listing-form-publish-btn ${
+                canPublish
+                  ? "listing-form-publish-btn--ready"
+                  : "listing-form-publish-btn--disabled"
               }`}
             >
               <CheckCircle2 className="w-5 h-5" />
@@ -884,11 +846,24 @@ export default function ListingForm({
                 : "Опубликовать"}
             </button>
 
-            <div className="text-xs text-slate-500">
+            {!canPublish && publishHint ? (
+              <p className="text-xs text-red-600">{publishHint}</p>
+            ) : null}
+
+            <button
+              type="button"
+              onClick={resetForm}
+              className="w-full inline-flex items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-medium hover:bg-slate-50 transition"
+            >
+              <RotateCcw className="w-4 h-4" />
+              Сбросить
+            </button>
+
+            <p className="text-xs text-slate-500 leading-relaxed">
               {isEdit
                 ? "После сохранения объявление снова уйдёт на модерацию."
-                : "После публикации объявление будет доступно в общем списке."}
-            </div>
+                : "После проверки объявление будет доступно в общем списке."}
+            </p>
           </div>
         </aside>
       </form>

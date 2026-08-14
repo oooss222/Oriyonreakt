@@ -491,6 +491,170 @@
       transparent
     );
   }
+
+  .listing-form-page {
+    @apply w-full max-w-7xl mx-auto px-4 py-6 space-y-5 text-slate-900;
+  }
+
+  .listing-form-header {
+    @apply space-y-1;
+  }
+
+  .listing-form-badge {
+    @apply inline-flex items-center gap-2 text-sm text-sun-700 bg-sun-50 border border-sun-100 rounded-full px-3 py-1;
+  }
+
+  .listing-form-card {
+    @apply rounded-2xl border border-slate-200 bg-white shadow-sm;
+  }
+
+  .listing-form-card__head {
+    @apply flex items-center justify-between gap-3 px-5 py-4 border-b border-slate-100;
+  }
+
+  .listing-form-card__title {
+    @apply flex items-center gap-2 text-lg font-semibold text-slate-900;
+  }
+
+  .listing-form-card__body {
+    @apply p-5 space-y-4;
+  }
+
+  .listing-form-label {
+    @apply block text-sm font-medium text-slate-700 mb-1.5;
+  }
+
+  .listing-form-label-required::after {
+    content: " *";
+    @apply text-red-500;
+  }
+
+  .listing-form-input,
+  .listing-form-select,
+  .listing-form-textarea {
+    @apply w-full rounded-xl border border-slate-200 bg-slate-50 px-3 outline-none transition focus:border-sun/40 focus:bg-white focus:ring-2 focus:ring-sun/20;
+  }
+
+  .listing-form-input,
+  .listing-form-select {
+    @apply h-11;
+  }
+
+  .listing-form-textarea {
+    @apply py-3 resize-y min-h-[9rem];
+  }
+
+  .listing-form-meta {
+    @apply mt-1 text-xs text-slate-500;
+  }
+
+  .listing-form-price-wrap {
+    @apply flex items-stretch rounded-xl border border-slate-200 bg-slate-50 overflow-hidden focus-within:border-sun/40 focus-within:bg-white focus-within:ring-2 focus-within:ring-sun/20;
+  }
+
+  .listing-form-price-wrap input {
+    @apply flex-1 h-11 border-0 bg-transparent px-3 outline-none;
+  }
+
+  .listing-form-price-suffix {
+    @apply inline-flex items-center px-3 text-sm font-medium text-slate-500 border-l border-slate-200 bg-white;
+  }
+
+  .listing-form-location-segment {
+    @apply inline-flex rounded-xl border border-slate-200 bg-slate-50 p-1 gap-1;
+  }
+
+  .listing-form-location-btn {
+    @apply inline-flex items-center justify-center gap-1.5 min-w-[7.5rem] h-10 px-4 rounded-lg text-sm font-semibold text-slate-600 transition;
+  }
+
+  .listing-form-location-btn--active {
+    @apply bg-slate-900 text-white shadow-sm;
+  }
+
+  .listing-form-dropzone {
+    @apply rounded-2xl border-2 border-dashed p-8 text-center transition;
+  }
+
+  .listing-form-dropzone--active {
+    @apply border-sun bg-sun-50;
+  }
+
+  .listing-form-dropzone--idle {
+    @apply border-slate-200 bg-slate-50;
+  }
+
+  .listing-form-spec-list {
+    @apply divide-y divide-slate-100;
+  }
+
+  .listing-form-spec-row {
+    @apply grid grid-cols-1 sm:grid-cols-[9.5rem_1fr_2rem] gap-0 items-stretch;
+  }
+
+  .listing-form-spec-label {
+    @apply flex items-center px-4 py-3 text-sm font-medium text-slate-700 bg-slate-50 sm:border-r border-slate-100 border-b sm:border-b-0;
+  }
+
+  .listing-form-spec-control {
+    @apply flex items-center px-4 py-3 min-w-0;
+  }
+
+  .listing-form-spec-remove {
+    @apply inline-flex items-center justify-center text-lg leading-none text-slate-400 hover:text-red-600 transition;
+  }
+
+  .listing-form-spec-remove--spacer {
+    @apply pointer-events-none opacity-0;
+  }
+
+  .listing-form-chip {
+    @apply inline-flex items-center justify-center h-9 px-3.5 rounded-full border border-slate-200 bg-white text-sm font-medium text-slate-700 transition disabled:opacity-50;
+  }
+
+  .listing-form-chip--active {
+    @apply border-slate-900 bg-slate-900 text-white;
+  }
+
+  .listing-form-color-swatch {
+    @apply inline-flex h-8 w-8 items-center justify-center rounded-full border-2 border-transparent transition;
+  }
+
+  .listing-form-color-swatch--active {
+    @apply border-sun ring-2 ring-sun/20;
+  }
+
+  .listing-form-color-swatch__dot {
+    @apply h-5 w-5 rounded-full border border-slate-200;
+  }
+
+  .listing-form-sidebar {
+    @apply rounded-2xl border border-slate-200 bg-white p-5 space-y-4 sticky top-4 shadow-sm;
+  }
+
+  .listing-form-check {
+    @apply flex items-center justify-between gap-3 rounded-xl px-3 py-2.5 text-sm;
+  }
+
+  .listing-form-check--ok {
+    @apply bg-slate-50 text-slate-700;
+  }
+
+  .listing-form-check--warn {
+    @apply bg-red-50 text-red-700;
+  }
+
+  .listing-form-publish-btn {
+    @apply w-full inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition;
+  }
+
+  .listing-form-publish-btn--ready {
+    @apply bg-sun text-white hover:bg-sun-600;
+  }
+
+  .listing-form-publish-btn--disabled {
+    @apply bg-slate-200 text-slate-500 cursor-not-allowed;
+  }
 }
 
 .shadow-soft {
