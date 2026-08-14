@@ -163,7 +163,6 @@ router.post("/login", async (req, res) => {
 
     return res.status(500).json({
       error: "Login failed",
-      details: e?.message || "Unknown error",
     });
   }
 });

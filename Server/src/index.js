@@ -13,6 +13,14 @@ const { startMonthlyReportScheduler } = require("./lib/financeReport");
 const { startListingMaintenanceScheduler } = require("./lib/listingMaintenance");
 const { registerSeoRoutes, registerCrawlerRoutes } = require("./lib/seoPrerender");
 const { securityHeaders } = require("./middleware/securityHeaders");
+const {
+  authLoginLimiter,
+  authRegisterLimiter,
+  authPhoneSendLimiter,
+  authPhoneVerifyLimiter,
+  apiGeneralLimiter,
+} = require("./middleware/rateLimit");
+const { validateEnv } = require("./lib/env");
 const Listing = require("./models/Listing");
 
 const app = express();
@@ -20,8 +28,10 @@ const server = http.createServer(app);
 const io = initSocket(server);
 
 app.set("io", io);
+app.set("trust proxy", 1);
 
 const PORT = Number(process.env.PORT || 4000);
+const IS_PRODUCTION = process.env.NODE_ENV === "production";
 
 app.use(securityHeaders);
 
@@ -42,6 +52,7 @@ const corsMiddleware = cors({
 });
 
 app.use("/api", corsMiddleware);
+app.use("/api", apiGeneralLimiter);
 
 app.use(
   express.json({
@@ -63,6 +74,10 @@ app.get("/api/health", (req, res) =>
   })
 );
 
+app.use("/api/auth/login", authLoginLimiter);
+app.use("/api/auth/register", authRegisterLimiter);
+app.use("/api/auth/phone/send-code", authPhoneSendLimiter);
+app.use("/api/auth/phone/verify", authPhoneVerifyLimiter);
 app.use("/api/auth", require("./routes/auth"));
 
 app.use("/api/users", require("./routes/users"));
@@ -147,13 +162,14 @@ app.use((err, req, res, next) => {
   }
 
   res.status(500).json({
-    error: err?.message || "Server error",
-    stack: err?.stack,
+    error: IS_PRODUCTION ? "Server error" : err?.message || "Server error",
+    ...(IS_PRODUCTION ? {} : { stack: err?.stack }),
   });
 });
 
 async function start() {
   try {
+    validateEnv();
     await initDb();
 
     server.listen(PORT, "0.0.0.0", () => {

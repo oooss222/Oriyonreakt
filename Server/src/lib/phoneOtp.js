@@ -16,10 +16,11 @@ function generateCode() {
 }
 
 function shouldExposeDevCode() {
-  return (
-    process.env.SMS_EXPOSE_CODE === "true" ||
-    process.env.NODE_ENV !== "production"
-  );
+  if (process.env.NODE_ENV === "production") {
+    return false;
+  }
+
+  return process.env.SMS_EXPOSE_CODE !== "false";
 }
 
 async function sendSms(phone, code) {

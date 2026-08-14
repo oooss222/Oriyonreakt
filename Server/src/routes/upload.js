@@ -3,6 +3,7 @@ const multer = require("multer");
 const sharp = require("sharp");
 const { v2: cloudinary } = require("cloudinary");
 const auth = require("../middleware/auth");
+const { uploadLimiter } = require("../middleware/rateLimit");
 const { MAX_LISTING_PHOTO_LIMIT } = require("../lib/listingPhotoLimits");
 
 cloudinary.config({
@@ -63,7 +64,12 @@ function isModerationRejected(result) {
   });
 }
 
-router.post("/images", auth, upload.array("images", MAX_LISTING_PHOTO_LIMIT), async (req, res) => {
+router.post(
+  "/images",
+  auth,
+  uploadLimiter,
+  upload.array("images", MAX_LISTING_PHOTO_LIMIT),
+  async (req, res) => {
   try {
     const files = req.files || [];
 
