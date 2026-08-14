@@ -24,8 +24,8 @@ export default function CategoryStrip({ compact = false }) {
               <Link
                 key={cat.slug}
                 to={cat.landingPath}
-                title={cat.title}
-                className="group shrink-0 flex w-[84px] sm:w-[92px] lg:w-[104px] xl:w-[112px] flex-col items-center text-center"
+                title={cat.fullTitle || cat.title}
+                className="group shrink-0 flex w-[92px] sm:w-[100px] lg:w-[112px] xl:w-[120px] flex-col items-center text-center"
               >
                 <div
                   className={`relative h-[50px] sm:h-[56px] lg:h-[68px] xl:h-[72px] w-full overflow-hidden rounded-xl lg:rounded-2xl bg-ink-600 ring-1 transition duration-200 group-hover:ring-sun/60 group-hover:shadow-md ${
@@ -53,11 +53,11 @@ export default function CategoryStrip({ compact = false }) {
                 </div>
 
                 <span
-                  className={`mt-1.5 lg:mt-2 min-h-[2.35rem] lg:min-h-[2.5rem] w-full px-0.5 font-medium leading-[1.2] transition group-hover:text-sun ${
+                  className={`mt-1.5 lg:mt-2 min-h-[3rem] lg:min-h-[3.25rem] w-full px-0.5 font-medium leading-[1.15] transition group-hover:text-sun ${
                     active ? "text-sun" : "text-white/95"
-                  } ${compact ? "text-[11px] lg:text-sm" : "text-[11px] sm:text-xs lg:text-sm"}`}
+                  } ${compact ? "text-[10px] lg:text-xs" : "text-[10px] sm:text-[11px] lg:text-xs"}`}
                 >
-                  {cat.title}
+                  {cat.fullTitle || cat.title}
                 </span>
               </Link>
             );

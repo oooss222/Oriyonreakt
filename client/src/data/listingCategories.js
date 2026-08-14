@@ -213,7 +213,6 @@ export const CATS = {
   },
   computers: {
     title: "Компьютеры и оргтехника",
-    shortTitle: "Компьютеры",
     img: "/img/computers.png",
     desc: "ПК, ноутбуки, оргтехника",
     subs: ["Ноутбуки", "ПК", "Приставки", "Принтеры и сканеры"],
@@ -279,6 +278,7 @@ export const HOME_CATEGORIES = Object.entries(CATS)
   .map(([slug, cat]) => ({
   slug,
   title: cat.shortTitle || cat.title,
+  fullTitle: cat.title,
   img: cat.img,
   desc: cat.desc,
   featured: Boolean(cat.featured),
