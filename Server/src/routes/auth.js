@@ -3,7 +3,7 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const SiteSettings = require("../models/SiteSettings");
 const { requestOtp, verifyOtp } = require("../lib/phoneOtp");
-const { formatPhoneDisplay } = require("../lib/phoneUtils");
+const { formatPhoneDisplay, normalizePhone, isValidTjPhone } = require("../lib/phoneUtils");
 const { getRegistrationDeviceFromRequest } = require("../lib/registrationDevice");
 
 function makeToken(user) {
@@ -65,7 +65,8 @@ router.post("/register", async (req, res) => {
 
     if (password.length < 6) {
       return res.status(400).json({
-        error: "Password must be at least 6 chars",
+        error: "Пароль должен быть не короче 6 символов",
+        code: "WEAK_PASSWORD",
       });
     }
 
@@ -73,8 +74,20 @@ router.post("/register", async (req, res) => {
 
     if (exists) {
       return res.status(409).json({
-        error: "Email already registered",
+        error: "Этот email уже зарегистрирован. Войдите в аккаунт.",
+        code: "EMAIL_ALREADY_REGISTERED",
       });
+    }
+
+    if (phone) {
+      const phoneUser = await User.findByPhone(phone);
+
+      if (phoneUser) {
+        return res.status(409).json({
+          error: "Этот номер телефона уже привязан к другому аккаунту.",
+          code: "PHONE_ALREADY_REGISTERED",
+        });
+      }
     }
 
     const user = await User.create({
@@ -97,7 +110,8 @@ router.post("/register", async (req, res) => {
 
     if (e?.code === "23505") {
       return res.status(409).json({
-        error: "Email already registered",
+        error: "Этот email уже зарегистрирован. Войдите в аккаунт.",
+        code: "EMAIL_ALREADY_REGISTERED",
       });
     }
 
@@ -135,14 +149,17 @@ router.post("/login", async (req, res) => {
     const user = await User.findByEmail(email);
 
     if (!user) {
-      return res.status(401).json({
-        error: "Invalid credentials",
+      return res.status(404).json({
+        error:
+          "Аккаунт с таким email не найден. Зарегистрируйтесь или проверьте адрес.",
+        code: "EMAIL_NOT_FOUND",
       });
     }
 
     if (user.isBlocked) {
       return res.status(403).json({
-        error: "User is blocked",
+        error: "Аккаунт заблокирован",
+        code: "USER_BLOCKED",
       });
     }
 
@@ -150,7 +167,8 @@ router.post("/login", async (req, res) => {
 
     if (!ok) {
       return res.status(401).json({
-        error: "Invalid credentials",
+        error: "Неверный пароль. Проверьте раскладку и Caps Lock.",
+        code: "WRONG_PASSWORD",
       });
     }
 
@@ -205,6 +223,109 @@ function phoneError(res, err, fallback = "Ошибка") {
     retryAfterSec: err?.retryAfterSec,
   });
 }
+
+router.post("/check-identity", async (req, res) => {
+  try {
+    const intent = String(req.body?.intent || "").toLowerCase();
+    const email = String(req.body?.email || "").trim().toLowerCase();
+    const phoneRaw = req.body?.phone;
+
+    if (!["login", "register"].includes(intent)) {
+      return res.status(400).json({
+        error: "Некорректный режим проверки",
+        code: "INVALID_INTENT",
+      });
+    }
+
+    if (email) {
+      if (!isValidEmail(email)) {
+        return res.status(400).json({
+          error: "Некорректный email",
+          code: "INVALID_EMAIL",
+        });
+      }
+
+      const user = await User.findByEmail(email);
+
+      if (intent === "register" && user) {
+        return res.json({
+          ok: false,
+          field: "email",
+          exists: true,
+          code: "EMAIL_ALREADY_REGISTERED",
+          message: "Этот email уже зарегистрирован. Войдите в аккаунт.",
+        });
+      }
+
+      if (intent === "login" && !user) {
+        return res.json({
+          ok: false,
+          field: "email",
+          exists: false,
+          code: "EMAIL_NOT_FOUND",
+          message:
+            "Аккаунт с таким email не найден. Зарегистрируйтесь или проверьте адрес.",
+        });
+      }
+
+      return res.json({
+        ok: true,
+        field: "email",
+        exists: Boolean(user),
+      });
+    }
+
+    if (phoneRaw) {
+      const phone = normalizePhone(phoneRaw);
+
+      if (!isValidTjPhone(phone)) {
+        return res.status(400).json({
+          error: PHONE_ERRORS.INVALID_PHONE,
+          code: "INVALID_PHONE",
+        });
+      }
+
+      const user = await User.findByPhone(phone);
+
+      if (intent === "register" && user) {
+        return res.json({
+          ok: false,
+          field: "phone",
+          exists: true,
+          code: "PHONE_ALREADY_REGISTERED",
+          message: "Этот номер уже зарегистрирован. Войдите в аккаунт.",
+        });
+      }
+
+      if (intent === "login" && !user) {
+        return res.json({
+          ok: false,
+          field: "phone",
+          exists: false,
+          code: "USER_NOT_FOUND",
+          message: PHONE_ERRORS.USER_NOT_FOUND,
+        });
+      }
+
+      return res.json({
+        ok: true,
+        field: "phone",
+        exists: Boolean(user),
+      });
+    }
+
+    return res.status(400).json({
+      error: "Укажите email или номер телефона",
+      code: "IDENTITY_REQUIRED",
+    });
+  } catch (e) {
+    console.error("CHECK_IDENTITY_ERROR:", e?.message);
+
+    return res.status(500).json({
+      error: "Не удалось проверить данные",
+    });
+  }
+});
 
 router.post("/phone/send-code", async (req, res) => {
   try {

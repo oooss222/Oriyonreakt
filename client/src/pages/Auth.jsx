@@ -16,6 +16,10 @@ import {
   isValidPhoneDigits,
   phoneDigitsToApi,
 } from "../lib/phoneUtils";
+import {
+  applyAuthError,
+  applyIdentityCheckResult,
+} from "../lib/authIdentity";
 
 function getAuthSubtitle(returnTo, tab) {
   const path = String(returnTo || "").toLowerCase();
@@ -62,6 +66,8 @@ export default function Auth() {
   const [loading, setLoading] = React.useState(false);
   const [err, setErr] = React.useState("");
   const [ok, setOk] = React.useState("");
+  const [identityHint, setIdentityHint] = React.useState(null);
+  const [emailFieldHint, setEmailFieldHint] = React.useState("");
 
   const emailRef = React.useRef(null);
   const phoneRef = React.useRef(null);
@@ -145,6 +151,8 @@ export default function Auth() {
       setAuthMethod(method);
       setErr("");
       setOk("");
+      setIdentityHint(null);
+      setEmailFieldHint("");
       resetPhoneFlow();
     },
     [resetPhoneFlow]
@@ -155,6 +163,8 @@ export default function Auth() {
       setTab(nextTab);
       setErr("");
       setOk("");
+      setIdentityHint(null);
+      setEmailFieldHint("");
       resetPhoneFlow();
 
       const params = new URLSearchParams(searchParams);
@@ -163,6 +173,80 @@ export default function Auth() {
     },
     [searchParams, setSearchParams, resetPhoneFlow]
   );
+
+  const runIdentityHintAction = React.useCallback(() => {
+    if (!identityHint?.tab) return;
+    switchTab(identityHint.tab);
+  }, [identityHint, switchTab]);
+
+  const checkEmailIdentity = React.useCallback(
+    async (emailValue) => {
+      const email = String(emailValue || "").trim().toLowerCase();
+
+      if (!/^\S+@\S+\.\S+$/.test(email)) {
+        setEmailFieldHint("");
+        return;
+      }
+
+      try {
+        const result = await api.checkIdentity({ email, intent: tab });
+        if (result?.ok === false) {
+          setEmailFieldHint(result.message || "");
+        } else {
+          setEmailFieldHint("");
+        }
+      } catch {
+        setEmailFieldHint("");
+      }
+    },
+    [tab]
+  );
+
+  const checkPhoneIdentity = React.useCallback(
+    async (digits) => {
+      if (!isValidPhoneDigits(digits)) {
+        setEmailFieldHint("");
+        return;
+      }
+
+      try {
+        const result = await api.checkIdentity({
+          phone: phoneDigitsToApi(digits),
+          intent: tab,
+        });
+
+        if (result?.ok === false) {
+          setEmailFieldHint(result.message || "");
+        } else {
+          setEmailFieldHint("");
+        }
+      } catch {
+        setEmailFieldHint("");
+      }
+    },
+    [tab]
+  );
+
+  React.useEffect(() => {
+    if (authMethod !== "email") return undefined;
+
+    const emailValue = tab === "login" ? login.email : reg.email;
+    const timer = window.setTimeout(() => {
+      checkEmailIdentity(emailValue);
+    }, 450);
+
+    return () => window.clearTimeout(timer);
+  }, [authMethod, tab, login.email, reg.email, checkEmailIdentity]);
+
+  React.useEffect(() => {
+    if (authMethod !== "phone" || phoneStep !== "phone") return undefined;
+
+    const timer = window.setTimeout(() => {
+      checkPhoneIdentity(phoneDigits);
+    }, 450);
+
+    return () => window.clearTimeout(timer);
+  }, [authMethod, phoneStep, phoneDigits, checkPhoneIdentity]);
 
   React.useEffect(() => {
     if (!registrationEnabled && tab === "register") {
@@ -188,6 +272,7 @@ export default function Auth() {
     e.preventDefault();
     setErr("");
     setOk("");
+    setIdentityHint(null);
     setDevCodeHint("");
 
     if (!isValidPhoneDigits(phoneDigits)) {
@@ -198,6 +283,16 @@ export default function Auth() {
     setLoading(true);
 
     try {
+      const check = await api.checkIdentity({
+        phone: phoneDigitsToApi(phoneDigits),
+        intent: tab,
+      });
+
+      if (check?.ok === false) {
+        applyIdentityCheckResult(check, { setErr, setIdentityHint });
+        return;
+      }
+
       const data = await api.sendPhoneCode({
         phone: phoneDigitsToApi(phoneDigits),
         mode: tab,
@@ -213,7 +308,7 @@ export default function Auth() {
 
       setOk(`Код отправлен на ${data.phoneDisplay || phoneDigitsToApi(phoneDigits)}`);
     } catch (e) {
-      setErr(e.message || "Не удалось отправить код");
+      applyAuthError(e, { setErr, setIdentityHint });
     } finally {
       setLoading(false);
     }
@@ -223,6 +318,7 @@ export default function Auth() {
     e.preventDefault();
     setErr("");
     setOk("");
+    setIdentityHint(null);
 
     if (!/^\d{6}$/.test(phoneCode)) {
       setErr("Введите 6-значный код из SMS");
@@ -255,7 +351,7 @@ export default function Auth() {
       const { token, user } = await api.verifyPhoneCode(payload);
       persistAuth({ token, user });
     } catch (e) {
-      setErr(e.message || "Не удалось подтвердить код");
+      applyAuthError(e, { setErr, setIdentityHint });
     } finally {
       setLoading(false);
     }
@@ -266,6 +362,7 @@ export default function Auth() {
 
     setErr("");
     setOk("");
+    setIdentityHint(null);
     setDevCodeHint("");
     setLoading(true);
 
@@ -283,7 +380,7 @@ export default function Auth() {
 
       setOk("Новый код отправлен");
     } catch (e) {
-      setErr(e.message || "Не удалось отправить код");
+      applyAuthError(e, { setErr, setIdentityHint });
     } finally {
       setLoading(false);
     }
@@ -293,11 +390,22 @@ export default function Auth() {
     e.preventDefault();
     setErr("");
     setOk("");
+    setIdentityHint(null);
     setLoading(true);
 
     try {
       if (!login.email || !login.password) {
         throw new Error("Заполните email и пароль");
+      }
+
+      const check = await api.checkIdentity({
+        email: login.email.trim(),
+        intent: "login",
+      });
+
+      if (check?.ok === false) {
+        applyIdentityCheckResult(check, { setErr, setIdentityHint });
+        return;
       }
 
       const { token, user } = await api.login({
@@ -307,7 +415,7 @@ export default function Auth() {
 
       persistAuth({ token, user });
     } catch (e) {
-      setErr(e.message || "Ошибка входа");
+      applyAuthError(e, { setErr, setIdentityHint });
     } finally {
       setLoading(false);
     }
@@ -317,6 +425,7 @@ export default function Auth() {
     e.preventDefault();
     setErr("");
     setOk("");
+    setIdentityHint(null);
     setLoading(true);
 
     try {
@@ -340,6 +449,16 @@ export default function Auth() {
         throw new Error("Подтвердите согласие с политикой сайта");
       }
 
+      const check = await api.checkIdentity({
+        email: reg.email.trim(),
+        intent: "register",
+      });
+
+      if (check?.ok === false) {
+        applyIdentityCheckResult(check, { setErr, setIdentityHint });
+        return;
+      }
+
       const { token, user } = await api.register({
         name: reg.name.trim(),
         email: reg.email.trim(),
@@ -348,7 +467,7 @@ export default function Auth() {
 
       persistAuth({ token, user });
     } catch (e) {
-      setErr(e.message || "Ошибка регистрации");
+      applyAuthError(e, { setErr, setIdentityHint });
     } finally {
       setLoading(false);
     }
@@ -414,7 +533,13 @@ export default function Auth() {
                   />
                 ) : null}
 
-                <Alert type="error">{err}</Alert>
+                <Alert
+                  type="error"
+                  actionLabel={identityHint?.label}
+                  onAction={runIdentityHintAction}
+                >
+                  {err}
+                </Alert>
                 <Alert type="success">{ok}</Alert>
 
                 {devCodeHint && authMethod === "phone" && (
@@ -444,6 +569,7 @@ export default function Auth() {
                     onVerifyCode={onVerifyPhoneCode}
                     onResendCode={onResendPhoneCode}
                     onResetPhone={resetPhoneFlow}
+                    fieldHint={emailFieldHint}
                   />
                 ) : tab === "login" ? (
                   <EmailLoginForm
@@ -458,6 +584,7 @@ export default function Auth() {
                     capsLock={capsLogin}
                     onCapsLockChange={setCapsLogin}
                     emailRef={emailRef}
+                    emailHint={emailFieldHint}
                   />
                 ) : registrationEnabled ? (
                   <EmailRegisterForm
@@ -471,6 +598,7 @@ export default function Auth() {
                     onTogglePass={() => setShowPassReg((value) => !value)}
                     showConfirm={showPassReg2}
                     onToggleConfirm={() => setShowPassReg2((value) => !value)}
+                    emailHint={emailFieldHint}
                   />
                 ) : null}
               </div>

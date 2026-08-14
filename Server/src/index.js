@@ -80,6 +80,7 @@ app.get("/api/health", (req, res) =>
   })
 );
 
+app.use("/api/auth/check-identity", authLoginLimiter);
 app.use("/api/auth/login", authLoginLimiter);
 app.use("/api/auth/register", authRegisterLimiter);
 app.use("/api/auth/phone/send-code", authPhoneSendLimiter);

@@ -33,6 +33,7 @@ export default function PhoneAuthFlow({
   onVerifyCode,
   onResendCode,
   onResetPhone,
+  fieldHint = "",
 }) {
   const isRegister = mode === "register";
 
@@ -71,6 +72,9 @@ export default function PhoneAuthFlow({
               Номер должен начинаться с 9 и содержать 9 цифр
             </p>
           )}
+          {fieldHint ? (
+            <p className="auth-field-hint auth-field-hint--warn">{fieldHint}</p>
+          ) : null}
         </Field>
 
         <SubmitButton

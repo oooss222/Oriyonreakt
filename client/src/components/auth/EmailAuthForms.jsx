@@ -49,6 +49,7 @@ export default function EmailRegisterForm({
   onTogglePass,
   showConfirm,
   onToggleConfirm,
+  emailHint = "",
 }) {
   const strength = getStrengthMeta(reg.password);
   const checks = getPasswordChecks(reg.password);
@@ -84,6 +85,9 @@ export default function EmailRegisterForm({
           autoComplete="email"
           withIcon
         />
+        {emailHint ? (
+          <p className="auth-field-hint auth-field-hint--warn">{emailHint}</p>
+        ) : null}
       </Field>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -184,6 +188,7 @@ export function EmailLoginForm({
   capsLock,
   onCapsLockChange,
   emailRef,
+  emailHint = "",
 }) {
   return (
     <form onSubmit={onSubmit} className="space-y-5">
@@ -197,6 +202,9 @@ export function EmailLoginForm({
           autoComplete="email"
           withIcon
         />
+        {emailHint ? (
+          <p className="auth-field-hint auth-field-hint--warn">{emailHint}</p>
+        ) : null}
       </Field>
 
       <Field

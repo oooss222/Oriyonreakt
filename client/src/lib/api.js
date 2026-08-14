@@ -58,12 +58,15 @@ async function request(
   if (!res.ok) {
     let msg = `HTTP ${res.status}`;
 
+    let code = "";
+
     try {
       const err = await res.json();
 
       msg =
         err.error ||
         JSON.stringify(err);
+      code = String(err.code || "");
     } catch {}
 
     if (res.status === 401 && token) {
@@ -74,7 +77,7 @@ async function request(
       msg = "Сервер временно недоступен. Попробуйте через минуту.";
     }
 
-    throw new ApiError(msg, { kind: "http", status: res.status });
+    throw new ApiError(msg, { kind: "http", status: res.status, code });
   }
 
   const text = await res.text();
@@ -109,6 +112,12 @@ export const api = {
 
   verifyPhoneCode: (data) =>
     request("/auth/phone/verify", {
+      method: "POST",
+      body: data,
+    }),
+
+  checkIdentity: (data) =>
+    request("/auth/check-identity", {
       method: "POST",
       body: data,
     }),

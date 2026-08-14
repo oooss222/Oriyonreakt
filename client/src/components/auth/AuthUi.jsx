@@ -47,7 +47,7 @@ export const Input = React.forwardRef(function AuthInput(
   );
 });
 
-export function Alert({ type = "error", children }) {
+export function Alert({ type = "error", children, actionLabel, onAction }) {
   if (!children) return null;
 
   const styles =
@@ -59,7 +59,14 @@ export function Alert({ type = "error", children }) {
   return (
     <div className={styles}>
       <Icon size={18} className="mt-0.5 shrink-0" />
-      <div className="text-sm">{children}</div>
+      <div className="text-sm space-y-2">
+        <div>{children}</div>
+        {actionLabel && onAction ? (
+          <button type="button" className="auth-alert__action" onClick={onAction}>
+            {actionLabel}
+          </button>
+        ) : null}
+      </div>
     </div>
   );
 }
