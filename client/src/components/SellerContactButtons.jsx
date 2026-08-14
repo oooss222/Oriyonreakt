@@ -1,6 +1,7 @@
 import React from "react";
 import { MessageCircle, Phone } from "lucide-react";
 import { buildTelegramHref, buildWhatsappHref } from "../lib/sellerContact";
+import { useI18n } from "../i18n";
 
 export default function SellerContactButtons({
   phone = "",
@@ -14,6 +15,8 @@ export default function SellerContactButtons({
   layout = "default",
   className = "",
 }) {
+  const { t } = useI18n();
+
   if (!canContact) {
     return null;
   }
@@ -42,7 +45,7 @@ export default function SellerContactButtons({
               onClick={onRevealPhone}
             >
               <Phone className="h-5 w-5" />
-              Показать телефон
+              {t("seller.showPhone")}
             </button>
           ))}
 
@@ -81,7 +84,7 @@ export default function SellerContactButtons({
           onClick={onChat}
         >
           <MessageCircle className="h-5 w-5" />
-          Написать продавцу
+          {t("seller.writeSeller")}
         </button>
       </div>
     );
@@ -96,7 +99,7 @@ export default function SellerContactButtons({
           rel="noopener noreferrer"
           className={`btn w-full rounded-2xl bg-[#25D366] text-white border-[#25D366] hover:bg-[#20bd5a] font-semibold ${btnSize}`}
         >
-          Написать в WhatsApp
+          {t("seller.writeWhatsapp")}
         </a>
       ) : (
         <button
@@ -105,7 +108,7 @@ export default function SellerContactButtons({
           onClick={onChat}
         >
           <MessageCircle className="w-5 h-5" />
-          {compact ? "Написать" : "Написать продавцу"}
+          {compact ? t("seller.write") : t("seller.writeSeller")}
         </button>
       )}
 
@@ -116,7 +119,7 @@ export default function SellerContactButtons({
           onClick={onChat}
         >
           <MessageCircle className="w-5 h-5" />
-          {compact ? "Чат на сайте" : "Написать в чат Oriyon"}
+          {compact ? t("seller.writeChat") : t("seller.writeOriyon")}
         </button>
       )}
 
@@ -136,7 +139,7 @@ export default function SellerContactButtons({
             onClick={onRevealPhone}
           >
             <Phone className="w-5 h-5" />
-            {compact ? "Позвонить" : "Показать телефон"}
+            {compact ? t("seller.call") : t("seller.showPhone")}
           </button>
         ))}
 
@@ -153,7 +156,7 @@ export default function SellerContactButtons({
 
       {!hasPhone && !whatsappHref && (
         <p className="text-xs text-center text-slate-500 px-2">
-          Продавец предпочитает сообщения на сайте
+          {t("seller.preferChat")}
         </p>
       )}
     </div>

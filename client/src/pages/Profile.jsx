@@ -19,9 +19,12 @@ import MyListingsPanel from "../components/profile/MyListingsPanel";
 import ProfileListingsGrid from "../components/profile/ProfileListingsGrid";
 import SavedSearchesTab from "../components/profile/SavedSearchesTab";
 import { getId, normalizeTab } from "../components/profile/profileUtils";
+import { useI18n } from "../i18n";
+import { getUserFacingErrorMessage } from "../lib/apiError";
 
 export default function Profile() {
   const nav = useNavigate();
+  const { t } = useI18n();
   const [searchParams, setSearchParams] = useSearchParams();
   const token = localStorage.getItem(TOKEN_KEY) || "";
 
@@ -257,21 +260,19 @@ export default function Profile() {
 
   const remove = React.useCallback(
     async (id) => {
-      if (!confirm("Удалить объявление?")) return;
+      if (!confirm(t("listing.confirmDelete"))) return;
 
       try {
         await api.deleteListing(token, id);
         setMyItems((arr) => arr.filter((x) => String(getId(x)) !== String(id)));
       } catch {}
     },
-    [token]
+    [token, t]
   );
 
   const submitAppeal = React.useCallback(
     async (id) => {
-      const text = prompt(
-        "Опишите, почему объявление должно быть одобрено (минимум 10 символов):"
-      );
+      const text = prompt(t("profile.appealPrompt"));
       if (!text) return;
 
       try {
@@ -281,33 +282,33 @@ export default function Profile() {
             String(getId(item)) === String(id) ? { ...item, ...updated } : item
           )
         );
-        alert("Апелляция отправлена на рассмотрение");
+        alert(t("profile.appealSent"));
       } catch (e) {
-        alert(e?.message || "Не удалось отправить апелляцию");
+        alert(getUserFacingErrorMessage(e, t) || t("errors.appealFailed"));
       }
     },
-    [token]
+    [token, t]
   );
 
   const logout = React.useCallback(() => {
-    if (!confirm("Выйти из аккаунта?")) return;
+    if (!confirm(t("listing.confirmLogout"))) return;
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
     nav("/auth");
-  }, [nav]);
+  }, [nav, t]);
 
   const requestVerifyEmail = React.useCallback(async () => {
     try {
       setSendingEmail(true);
       await api.requestEmailVerification(token);
       setEmailStatus("pending");
-      alert("Письмо для подтверждения отправлено. Проверьте почту!");
+      alert(t("profile.verifyEmailSent"));
     } catch (e) {
-      alert("Ошибка: " + (e?.message || "не удалось отправить письмо"));
+      alert(`${t("errors.generic")}: ${getUserFacingErrorMessage(e, t) || t("errors.emailSend")}`);
     } finally {
       setSendingEmail(false);
     }
-  }, [token]);
+  }, [token, t]);
 
   const onWalletSuccess = React.useCallback(
     (user) => {
@@ -328,15 +329,13 @@ export default function Profile() {
     const orderId = sessionStorage.getItem("alifPendingOrder");
 
     if (!orderId) {
-      setPaymentReturnMessage(
-        "Вы вернулись с оплаты. Если баланс не обновился, подождите несколько секунд и обновите страницу."
-      );
+      setPaymentReturnMessage(t("profile.paymentReturnHint"));
       setSearchParams({ tab: "wallet" }, { replace: true });
       return;
     }
 
     let alive = true;
-    setPaymentReturnMessage("Проверяем статус оплаты...");
+    setPaymentReturnMessage(t("profile.checkingPayment"));
 
     api
       .syncAlifPayment(token, orderId)
@@ -347,24 +346,22 @@ export default function Profile() {
 
         if (result?.user) {
           onWalletSuccess(result.user);
-          setPaymentReturnMessage("Оплата прошла успешно. Баланс обновлён.");
+          setPaymentReturnMessage(t("profile.paymentSuccess"));
           return;
         }
 
         const status = result?.order?.status || result?.providerStatus?.status;
 
         if (status === "failed" || status === "cancelled") {
-          setPaymentReturnMessage("Оплата не завершена или была отменена.");
+          setPaymentReturnMessage(t("profile.paymentCancelled"));
           return;
         }
 
-        setPaymentReturnMessage(
-          "Оплата ещё обрабатывается. Баланс обновится автоматически после подтверждения."
-        );
+        setPaymentReturnMessage(t("profile.paymentPending"));
       })
       .catch((e) => {
         if (!alive) return;
-        setPaymentReturnMessage(e?.message || "Не удалось проверить статус оплаты.");
+        setPaymentReturnMessage(getUserFacingErrorMessage(e, t) || t("errors.verifyPayment"));
       })
       .finally(() => {
         if (!alive) return;
@@ -374,17 +371,17 @@ export default function Profile() {
     return () => {
       alive = false;
     };
-  }, [token, searchParams, setSearchParams, onWalletSuccess]);
+  }, [token, searchParams, setSearchParams, onWalletSuccess, t]);
 
   const updateListingStatus = React.useCallback(
     async (id, action) => {
       const prompts = {
-        sold: "Отметить объявление как проданное?",
-        archive: "Снять объявление с публикации?",
-        republish: "Опубликовать объявление снова?",
+        sold: t("listing.confirmSold"),
+        archive: t("listing.confirmArchive"),
+        republish: t("listing.confirmRepublish"),
       };
 
-      if (!confirm(prompts[action] || "Изменить статус объявления?")) return;
+      if (!confirm(prompts[action] || t("listing.confirmStatus"))) return;
 
       try {
         let updated;
@@ -397,21 +394,21 @@ export default function Profile() {
           items.map((item) => (String(getId(item)) === String(id) ? updated : item))
         );
       } catch (e) {
-        alert(e.message || "Не удалось обновить статус");
+        alert(getUserFacingErrorMessage(e, t) || t("listing.statusUpdateFailed"));
       }
     },
-    [token]
+    [token, t]
   );
 
   const bulkAction = React.useCallback(
     async (action, ids) => {
       const labels = {
-        sold: "Отметить выбранные объявления как проданные?",
-        archive: "Снять выбранные объявления с публикации?",
-        delete: "Удалить выбранные объявления?",
+        sold: t("listing.confirmBulkSold"),
+        archive: t("listing.confirmBulkArchive"),
+        delete: t("listing.confirmBulkDelete"),
       };
 
-      if (!confirm(labels[action] || "Применить действие к выбранным объявлениям?")) {
+      if (!confirm(labels[action] || t("listing.confirmBulkAction"))) {
         return;
       }
 
@@ -435,25 +432,25 @@ export default function Profile() {
           setMyItems(Array.isArray(refreshed) ? refreshed : []);
         }
       } catch (e) {
-        alert(e?.message || "Не удалось выполнить массовое действие");
+        alert(getUserFacingErrorMessage(e, t) || t("listing.bulkActionFailed"));
       }
     },
-    [token]
+    [token, t]
   );
 
   const promoteListing = React.useCallback(
     async (id, type, days) => {
       if (type === "bump") {
         const price = Number(promotionPrices.bumpPrice || 0);
-        const priceLabel = price <= 0 ? "бесплатно" : formatMoney(price);
+        const priceLabel = price <= 0 ? t("price.free") : formatMoney(price);
         const confirmText =
           price <= 0
-            ? "Обновить дату объявления бесплатно?"
-            : `Обновить дату объявления за ${priceLabel}?`;
+            ? t("profile.bumpFree")
+            : t("profile.bumpPaid", { price: priceLabel });
 
         if (!confirm(confirmText)) return;
       } else if (!getPromotionPlan(type, days)) {
-        alert("Выберите срок продвижения");
+        alert(t("profile.selectPromotion"));
         return;
       }
 
@@ -479,29 +476,23 @@ export default function Profile() {
           localStorage.setItem(USER_KEY, JSON.stringify(user));
         }
 
-        alert(
-          type === "vip"
-            ? "VIP продвижение активировано"
-            : type === "top"
-              ? "TOP продвижение активировано"
-              : "Дата объявления обновлена"
-        );
+        alert(t("profile.dateUpdated"));
       } catch (e) {
         const message = e?.message || "";
 
         if (message.includes("Insufficient balance") || message.includes("402")) {
-          if (confirm("Недостаточно средств на кошельке. Перейти к пополнению?")) {
+          if (confirm(t("profile.insufficientFunds"))) {
             setTab("wallet");
           }
           return;
         }
 
-        alert(message || "Не удалось подключить продвижение");
+        alert(getUserFacingErrorMessage(e, t) || t("profile.promotionFailed"));
       } finally {
         setPromotingId(null);
       }
     },
-    [token, promotionPrices, setTab]
+    [token, promotionPrices, setTab, t]
   );
 
   const walletBalance = Number(me?.walletBalance || 0);

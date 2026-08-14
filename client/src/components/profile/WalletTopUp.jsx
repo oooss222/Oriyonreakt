@@ -1,7 +1,9 @@
 import React from "react";
 import { api } from "../../lib/api";
+import { useI18n } from "../../i18n";
 
 export default React.memo(function WalletTopUp({ token, onSuccess }) {
+  const { t } = useI18n();
   const QUICK_AMOUNTS = [10, 25, 50, 100, 250, 500];
 
   const [amount, setAmount] = React.useState("");
@@ -49,17 +51,17 @@ export default React.memo(function WalletTopUp({ token, onSuccess }) {
       setSuccess("");
 
       if (!isValid) {
-        setError("Введите корректную сумму");
+        setError(t("wallet.invalidAmount"));
         return;
       }
 
       if (value < 1) {
-        setError("Минимальная сумма пополнения — 1 TJS");
+        setError(t("wallet.minAmount"));
         return;
       }
 
       if (value > 10000) {
-        setError("Максимальная сумма пополнения — 10 000 TJS");
+        setError(t("wallet.maxAmount"));
         return;
       }
 
@@ -94,11 +96,11 @@ export default React.memo(function WalletTopUp({ token, onSuccess }) {
             return;
           }
 
-          throw new Error("Не удалось получить ссылку на оплату");
+          throw new Error(t("wallet.noPaymentLink"));
         }
 
         if (!paymentConfig.directTopUpEnabled) {
-          throw new Error("Оплата временно недоступна");
+          throw new Error(t("wallet.paymentUnavailable"));
         }
 
         const user = await api.topUpWallet(token, value);
@@ -110,10 +112,10 @@ export default React.memo(function WalletTopUp({ token, onSuccess }) {
         setSuccess(`Баланс пополнен на ${value.toLocaleString("ru-RU")} TJS`);
         setAmount("");
       } catch (e) {
-        const message = e.message || "Ошибка пополнения";
+        const message = e.message || t("wallet.topUpError");
 
         if (message.includes("HTTP 401")) {
-          setError("Сессия истекла. Выйдите и войдите снова, затем повторите оплату.");
+          setError(t("wallet.sessionExpired"));
         } else if (
           message.includes("401") ||
           message.includes("доступ в транзакции отказан")
@@ -128,21 +130,21 @@ export default React.memo(function WalletTopUp({ token, onSuccess }) {
         setLoading(false);
       }
     },
-    [token, value, isValid, onSuccess, paymentConfig]
+    [token, value, isValid, onSuccess, paymentConfig, t]
   );
 
   const paymentHint = React.useMemo(() => {
-    if (configLoading) return "Загружаем способы оплаты...";
+    if (configLoading) return t("wallet.loadingMethods");
     if (paymentConfig.alifEnabled) {
       return paymentConfig.environment === "test"
-        ? "Оплата через Alif (тестовый режим)."
-        : "Оплата через Alif.";
+        ? t("wallet.alifTest")
+        : t("wallet.alifLive");
     }
     if (paymentConfig.directTopUpEnabled) {
-      return "Пополнение в тестовом режиме через внутренний API.";
+      return t("wallet.internalTest");
     }
-    return "Пополнение временно недоступно.";
-  }, [configLoading, paymentConfig]);
+    return t("wallet.unavailable");
+  }, [configLoading, paymentConfig, t]);
 
   return (
     <form onSubmit={submit} className="space-y-4">
@@ -192,7 +194,7 @@ export default React.memo(function WalletTopUp({ token, onSuccess }) {
               setError("");
               setSuccess("");
             }}
-            placeholder="Например: 100"
+            placeholder={t("wallet.amountPlaceholder")}
             className="mobile-control pr-14"
           />
           <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-500">TJS</span>
@@ -215,11 +217,11 @@ export default React.memo(function WalletTopUp({ token, onSuccess }) {
       >
         {loading
           ? paymentConfig.alifEnabled
-            ? "Переходим к оплате..."
-            : "Пополняем..."
+            ? t("wallet.redirecting")
+            : t("wallet.toppingUp")
           : paymentConfig.alifEnabled
-            ? "Оплатить через Alif"
-            : "Пополнить баланс"}
+            ? t("wallet.payAlif")
+            : t("wallet.topUp")}
       </button>
     </form>
   );

@@ -12,6 +12,7 @@ import BusinessPromoBanner from "../BusinessPromoBanner";
 import EmailBadge from "./EmailBadge";
 import { USER_KEY } from "../../lib/auth";
 import { isStaffRole } from "./profileUtils";
+import { useI18n } from "../../i18n";
 
 function SectionCard({ icon: Icon, title, description, action, children, className = "" }) {
   return (
@@ -58,6 +59,8 @@ export default function ProfileSettingsPanel({
   token,
   onUpdated,
 }) {
+  const { t } = useI18n();
+
   return (
     <div className="space-y-6 max-w-6xl">
       <BusinessPromoBanner sellerType={me?.sellerType} className="rounded-2xl" />
@@ -65,7 +68,7 @@ export default function ProfileSettingsPanel({
       <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)] gap-6">
         <SectionCard
           icon={UserRound}
-          title="Контактные данные"
+          title={t("profile.contacts")}
           description="Имя и контакты видят покупатели в объявлениях. Изменения сохраняются автоматически."
           action={
             <div className="hidden sm:flex items-center gap-1.5 text-xs font-medium text-emerald-700 bg-emerald-50 border border-emerald-100 px-2.5 py-1 rounded-full shrink-0">
@@ -75,12 +78,12 @@ export default function ProfileSettingsPanel({
           }
         >
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Field label="Имя пользователя">
+            <Field label={t("profile.username")}>
               <input
                 className="mobile-control"
                 value={form.name}
                 onChange={(e) => setForm((v) => ({ ...v, name: e.target.value }))}
-                placeholder="Как вас видят покупатели"
+                placeholder={t("profile.usernamePlaceholder")}
               />
             </Field>
 
@@ -101,7 +104,7 @@ export default function ProfileSettingsPanel({
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Field label="Телефон">
+              <Field label={t("profile.phone")}>
                 <input
                   className="mobile-control"
                   placeholder="+992 90 123 4567"
@@ -133,8 +136,8 @@ export default function ProfileSettingsPanel({
 
         <SectionCard
           icon={ShieldCheck}
-          title="Безопасность"
-          description="Подтверждённая почта повышает доверие и защищает аккаунт."
+          title={t("profile.security")}
+          description={t("profile.securityDesc")}
           action={<EmailBadge status={emailStatus} />}
         >
           {emailStatus === "verified" ? (
@@ -160,7 +163,9 @@ export default function ProfileSettingsPanel({
                 <div className="flex-1 min-w-0">
                   <div className="font-semibold text-slate-900">Подтвердите email</div>
                   <p className="text-sm text-slate-500 mt-1 leading-relaxed">
-                    Отправим письмо на {form.email || "ваш адрес"}. Перейдите по ссылке в письме.
+                    {t("profile.verifyEmailHint", {
+                      email: form.email || t("profile.yourAddress"),
+                    })}
                   </p>
                   <button
                     type="button"
@@ -170,10 +175,10 @@ export default function ProfileSettingsPanel({
                   >
                     <Mail size={16} />
                     {emailStatus === "pending"
-                      ? "Письмо отправлено"
+                      ? t("profile.emailSent")
                       : sendingEmail
-                        ? "Отправляем..."
-                        : "Отправить письмо"}
+                        ? t("profile.emailSending")
+                        : t("profile.sendEmail")}
                   </button>
                 </div>
               </div>

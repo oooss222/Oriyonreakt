@@ -4,6 +4,7 @@ import { Heart } from "lucide-react";
 import { api } from "../lib/api";
 import { goToAuth } from "../lib/auth";
 import { trackFavorite } from "../lib/track";
+import { useI18n } from "../i18n";
 
 export default function FavoriteButton({
   id,
@@ -14,6 +15,7 @@ export default function FavoriteButton({
   listing = null,
 }) {
   const nav = useNavigate();
+  const { t } = useI18n();
   const token = localStorage.getItem("auth_token") || "";
 
   const [active, setActive] = React.useState(Boolean(defaultActive));
@@ -61,13 +63,15 @@ export default function FavoriteButton({
     }
   };
 
+  const label = active ? t("favorites.remove") : t("favorites.add");
+
   return (
     <button
       type="button"
       onClick={toggle}
       disabled={loading}
-      aria-label={active ? "Убрать из избранного" : "В избранное"}
-      title={active ? "Убрать из избранного" : "В избранное"}
+      aria-label={label}
+      title={label}
       className={`inline-flex items-center justify-center transition group shrink-0 ${
         overlay
           ? "h-9 w-9 rounded-full border border-ink/10 bg-white shadow-sm hover:shadow-md"

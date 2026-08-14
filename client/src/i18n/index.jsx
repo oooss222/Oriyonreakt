@@ -2,11 +2,19 @@ import React from "react";
 import ru from "./locales/ru.js";
 import en from "./locales/en.js";
 import tg from "./locales/tg.js";
+import ruExtra from "./locales/extra/ru.js";
+import enExtra from "./locales/extra/en.js";
+import tgExtra from "./locales/extra/tg.js";
+import { mergeLocale } from "./helpers.js";
 
 export const LANG_STORAGE_KEY = "oriyon_lang";
 export const SUPPORTED_LANGS = ["ru", "tg", "en"];
 
-const MESSAGES = { ru, tg, en };
+const MESSAGES = {
+  ru: mergeLocale(ru, ruExtra),
+  tg: mergeLocale(tg, tgExtra),
+  en: mergeLocale(en, enExtra),
+};
 
 function resolvePath(obj, path) {
   return String(path || "")
@@ -91,3 +99,13 @@ export function getCategoryLabel(cat, t) {
     ? t(`categories.${key}`)
     : key;
 }
+
+export {
+  formatListingTimeAgo,
+  formatDayLabel,
+  formatNightsLabel,
+  getQuickReplies,
+  getBusinessBenefits,
+  formatPromotionDaysLabel,
+  pluralRealEstateListings,
+} from "./helpers.js";

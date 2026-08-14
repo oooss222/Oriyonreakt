@@ -12,6 +12,7 @@ import {
 import { formatMoney } from "../lib/format";
 import { getMinPromotionPrice } from "../lib/promotionPlans";
 import PromotionPlanModal from "./PromotionPlanModal";
+import { useI18n } from "../i18n";
 
 function formatUntil(until) {
   if (!until) return null;
@@ -60,6 +61,7 @@ export default function ListingPromotionActions({
   promoting = null,
   compact = false,
 }) {
+  const { t } = useI18n();
   const [planPickerType, setPlanPickerType] = React.useState(null);
 
   const vipActive = Boolean(listing?.vip);
@@ -121,10 +123,10 @@ export default function ListingPromotionActions({
             >
               <Crown className="w-4 h-4" />
               {vipBusy
-                ? "Подключаем..."
+                ? t("promotion.activating")
                 : vipActive
-                ? `VIP до ${vipUntilLabel || "—"}`
-                : `VIP от ${formatMoney(vipFromPrice)}`}
+                ? t("promotion.vipUntil", { date: vipUntilLabel || "—" })
+                : t("promotion.vipFrom", { price: formatMoney(vipFromPrice) })}
             </button>
 
             <button
@@ -139,10 +141,10 @@ export default function ListingPromotionActions({
             >
               <TrendingUp className="w-4 h-4" />
               {topBusy
-                ? "Подключаем..."
+                ? t("promotion.activating")
                 : topActive
-                ? `TOP до ${topUntilLabel || "—"}`
-                : `TOP от ${formatMoney(topFromPrice)}`}
+                ? t("promotion.topUntil", { date: topUntilLabel || "—" })
+                : t("promotion.topFrom", { price: formatMoney(topFromPrice) })}
             </button>
 
             <button
@@ -153,12 +155,12 @@ export default function ListingPromotionActions({
             >
               <CalendarClock className="w-4 h-4" />
               {bumpBusy
-                ? "Обновляем..."
+                ? t("promotion.bumpUpdating")
                 : Number(bumpPrice) <= 0
-                ? "Обновить дату · бесплатно"
+                ? t("promotion.bumpFree")
                 : bumpedAtLabel
-                ? `Обновлено ${bumpedAtLabel}`
-                : `Обновить дату · ${formatMoney(bumpPrice)}`}
+                ? t("promotion.bumpUpdated", { date: bumpedAtLabel })
+                : t("promotion.bumpPrice", { price: formatMoney(bumpPrice) })}
             </button>
           </div>
         </div>
@@ -176,16 +178,15 @@ export default function ListingPromotionActions({
             <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-md">
               <Sparkles className="w-4 h-4" />
             </span>
-            Продвиньте объявление
+            {t("promotion.title")}
           </div>
           <p className="text-sm text-slate-600 mt-2 max-w-2xl">
-            VIP и TOP выделяют объявление в ленте, привлекают больше просмотров
-            и помогают продать быстрее.
+            {t("promotion.desc")}
           </p>
         </div>
 
         <div className="rounded-2xl border border-white/80 bg-white/80 px-3 py-2 text-xs text-slate-600 shadow-sm">
-          Баланс:{" "}
+          {t("promotion.balance")}{" "}
           <span className="font-bold text-ink">
             {balance.toLocaleString("ru-RU")} TJS
           </span>
@@ -213,22 +214,22 @@ export default function ListingPromotionActions({
                     VIP
                   </div>
                   <div className="text-xs font-semibold uppercase tracking-wide text-amber-700/80">
-                    Максимум внимания
+                    {t("promotion.vipMaxAttention")}
                   </div>
                 </div>
               </div>
 
               {vipActive && (
                 <span className="rounded-full bg-amber-500 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-white">
-                  Активно
+                  {t("promotion.active")}
                 </span>
               )}
             </div>
 
             <ul className="space-y-1.5">
-              <Benefit icon={Crown}>Золотой значок VIP на карточке</Benefit>
-              <Benefit icon={Zap}>Первое место в ленте на выбранный срок</Benefit>
-              <Benefit icon={Eye}>Больше просмотров и откликов</Benefit>
+              <Benefit icon={Crown}>{t("promotion.vipBadge")}</Benefit>
+              <Benefit icon={Zap}>{t("promotion.vipFirst")}</Benefit>
+              <Benefit icon={Eye}>{t("promotion.vipViews")}</Benefit>
             </ul>
 
             <button
@@ -242,10 +243,10 @@ export default function ListingPromotionActions({
               }`}
             >
               {vipBusy
-                ? "Подключаем VIP..."
+                ? t("promotion.activatingVip")
                 : vipActive
-                ? `VIP активен до ${vipUntilLabel || "—"}`
-                : `Подключить VIP от ${formatMoney(vipFromPrice)}`}
+                ? t("promotion.vipActiveUntil", { date: vipUntilLabel || "—" })
+                : t("promotion.connectVip", { price: formatMoney(vipFromPrice) })}
             </button>
           </div>
         </div>
@@ -270,22 +271,22 @@ export default function ListingPromotionActions({
                     TOP
                   </div>
                   <div className="text-xs font-semibold uppercase tracking-wide text-teal-700/80">
-                    Выше конкурентов
+                    {t("promotion.topAbove")}
                   </div>
                 </div>
               </div>
 
               {topActive && (
                 <span className="rounded-full bg-lagoon px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-white">
-                  Активно
+                  {t("promotion.active")}
                 </span>
               )}
             </div>
 
             <ul className="space-y-1.5">
-              <Benefit icon={ArrowUp}>Поднятие выше обычных объявлений</Benefit>
-              <Benefit icon={TrendingUp}>Яркий TOP-значок на фото</Benefit>
-              <Benefit icon={Sparkles}>Повышенная видимость на выбранный срок</Benefit>
+              <Benefit icon={ArrowUp}>{t("promotion.topRaise")}</Benefit>
+              <Benefit icon={TrendingUp}>{t("promotion.topBadge")}</Benefit>
+              <Benefit icon={Sparkles}>{t("promotion.topVisibility")}</Benefit>
             </ul>
 
             <button
@@ -299,10 +300,10 @@ export default function ListingPromotionActions({
               }`}
             >
               {topBusy
-                ? "Подключаем TOP..."
+                ? t("promotion.activatingTop")
                 : topActive
-                ? `TOP активен до ${topUntilLabel || "—"}`
-                : `Подключить TOP от ${formatMoney(topFromPrice)}`}
+                ? t("promotion.topActiveUntil", { date: topUntilLabel || "—" })
+                : t("promotion.connectTop", { price: formatMoney(topFromPrice) })}
             </button>
           </div>
         </div>
@@ -312,10 +313,10 @@ export default function ListingPromotionActions({
         <div>
           <div className="inline-flex items-center gap-2 text-sm font-semibold text-slate-800">
             <CalendarClock className="w-4 h-4 text-slate-500" />
-            Обновить дату
+            {t("promotion.bumpTitle")}
           </div>
           <p className="text-xs text-slate-500 mt-1">
-            Поднимает объявление среди обычных без VIP/TOP.
+            {t("promotion.bumpDesc")}
           </p>
         </div>
 
@@ -326,19 +327,19 @@ export default function ListingPromotionActions({
           className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-white transition disabled:opacity-60 shrink-0"
         >
           {bumpBusy
-            ? "Обновляем..."
+            ? t("promotion.bumpUpdating")
             : Number(bumpPrice) <= 0
-            ? "Обновить · бесплатно"
+            ? t("promotion.bumpFreeShort")
             : bumpedAtLabel
-            ? `Обновлено ${bumpedAtLabel}`
-            : `Обновить · ${formatMoney(bumpPrice)}`}
+            ? t("promotion.bumpUpdated", { date: bumpedAtLabel })
+            : t("promotion.bumpPriceShort", { price: formatMoney(bumpPrice) })}
         </button>
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
-        <span>Оплата списывается с кошелька Oriyon.</span>
+        <span>{t("promotion.walletNote")}</span>
         <Link to="/profile?tab=wallet" className="font-semibold text-sun-700 hover:underline">
-          Пополнить кошелёк →
+          {t("promotion.topUpWallet")}
         </Link>
       </div>
       </div>

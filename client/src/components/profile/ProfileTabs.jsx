@@ -9,6 +9,7 @@ import {
   Bookmark,
   LayoutGrid,
 } from "lucide-react";
+import { useI18n } from "../../i18n";
 
 function TabButton({ active, onClick, children, icon: Icon }) {
   return (
@@ -61,6 +62,8 @@ export default function ProfileTabs({
   canAccessAccountant,
   role,
 }) {
+  const { t } = useI18n();
+
   return (
     <div className="rounded-2xl border bg-white px-1 sm:px-2">
       <div
@@ -68,21 +71,21 @@ export default function ProfileTabs({
         className="flex gap-0.5 overflow-x-auto scrollbar-hide snap-x snap-mandatory border-b border-slate-100"
       >
         <TabButton active={tab === "my"} onClick={() => setTab("my")} icon={LayoutGrid}>
-          Мои объявления
+          {t("profile.myListings")}
           <CountBadge count={myCount} active={tab === "my"} />
         </TabButton>
 
         <TabButton active={tab === "fav"} onClick={() => setTab("fav")} icon={FolderHeart}>
-          Избранное
+          {t("profile.favorites")}
           <CountBadge count={favCount} active={tab === "fav"} />
         </TabButton>
 
         <TabButton active={tab === "searches"} onClick={() => setTab("searches")} icon={Bookmark}>
-          Поиски
+          {t("profile.searches")}
         </TabButton>
 
         <TabButton active={tab === "profile"} onClick={() => setTab("profile")} icon={UserIcon}>
-          Профиль
+          {t("profile.profile")}
         </TabButton>
 
         {canOpenModeration && (
@@ -91,7 +94,7 @@ export default function ProfileTabs({
             onClick={() => setTab("moderation")}
             icon={ClipboardCheck}
           >
-            Модерация
+            {t("profile.moderation")}
           </TabButton>
         )}
 
@@ -100,7 +103,7 @@ export default function ProfileTabs({
             to={canAccessAccountant(role) ? "/admin?section=finance" : "/admin"}
             icon={canAccessAccountant(role) ? Wallet : Shield}
           >
-            {canAccessAccountant(role) ? "Финансы" : "Админка"}
+            {canAccessAccountant(role) ? t("profile.finance") : t("profile.admin")}
           </TabLink>
         )}
       </div>

@@ -18,29 +18,32 @@ import {
   getPromotionMediaClass,
 } from "../../lib/promotionStyles";
 import { getId } from "./profileUtils";
+import { useI18n } from "../../i18n";
 
-const STATUS_MAP = {
-  pending: {
-    label: "На модерации",
-    className: "bg-amber-500 text-white",
-  },
-  approved: {
-    label: "Опубликовано",
-    className: "bg-emerald-500 text-white",
-  },
-  rejected: {
-    label: "Отклонено",
-    className: "bg-red-500 text-white",
-  },
-  sold: {
-    label: "Продано",
-    className: "bg-slate-600 text-white",
-  },
-  archived: {
-    label: "Снято",
-    className: "bg-slate-500 text-white",
-  },
-};
+function getStatusMap(t) {
+  return {
+    pending: {
+      label: t("profile.statusPending"),
+      className: "bg-amber-500 text-white",
+    },
+    approved: {
+      label: t("profile.statusApproved"),
+      className: "bg-emerald-500 text-white",
+    },
+    rejected: {
+      label: t("profile.statusRejected"),
+      className: "bg-red-500 text-white",
+    },
+    sold: {
+      label: t("profile.statusSold"),
+      className: "bg-slate-600 text-white",
+    },
+    archived: {
+      label: t("profile.statusArchived"),
+      className: "bg-slate-500 text-white",
+    },
+  };
+}
 
 function CardAction({ as: Component = "button", icon: Icon, children, variant = "muted", className = "", ...props }) {
   const variants = {
@@ -79,11 +82,13 @@ export default React.memo(function ProfileListingCard({
   selected = false,
   onToggleSelect,
 }) {
+  const { t } = useI18n();
   const id = getId(ad);
   const imgUrl = getListingThumb(ad);
   const more = Math.max(0, (ad.images?.length || 0) - 1);
   const status = ad.status || "pending";
-  const statusInfo = STATUS_MAP[status] || STATUS_MAP.pending;
+  const statusMap = getStatusMap(t);
+  const statusInfo = statusMap[status] || statusMap.pending;
 
   return (
     <article

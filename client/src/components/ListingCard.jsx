@@ -5,6 +5,7 @@ import ListingCardFooter from "./ListingCardFooter";
 import { trackListingClick } from "../lib/track";
 import { useListingViewed } from "../lib/viewedListings";
 import { getPromotionCardClass } from "../lib/promotionStyles";
+import { useI18n } from "../i18n";
 
 export default function ListingCard({
   item,
@@ -15,9 +16,11 @@ export default function ListingCard({
   style,
 }) {
   const nav = useNavigate();
+  const { t } = useI18n();
   const listingId = item?.id || item?._id;
   const viewed = useListingViewed(listingId);
-  const location = item?.location || item?.city || "Не указано";
+  const title = item?.title || t("listing.noTitle");
+  const location = item?.location || item?.city || t("listing.noLocation");
 
   const openAd = () => {
     if (!listingId) return;
@@ -53,7 +56,7 @@ export default function ListingCard({
         }
       )} ${className}`}
       style={style}
-      aria-label={`Объявление: ${item?.title || "Без названия"}`}
+      aria-label={t("a11y.listingCard", { title })}
     >
       <ListingCardMedia
         item={item}
@@ -68,7 +71,7 @@ export default function ListingCard({
       <div className="listing-card__body">
         <span className="listing-card__location">{location}</span>
 
-        <h3 className="listing-card__title">{item?.title || "Без названия"}</h3>
+        <h3 className="listing-card__title">{title}</h3>
 
         <ListingCardFooter item={item} listingId={listingId} />
       </div>

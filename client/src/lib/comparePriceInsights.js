@@ -2,17 +2,19 @@ import { parsePriceNumber } from "./format";
 import { getCompareItemKey, isExternalCompareItem } from "./compareResolve";
 import { getPlatformLabel } from "./comparePlatforms";
 
-function formatDiff(amount) {
+function formatDiff(amount, t) {
   const value = Math.round(Number(amount) || 0);
   if (!value) return "";
-  return `${value.toLocaleString("ru-RU")} с.`;
+  return `${value.toLocaleString("ru-RU")} ${t("price.currency")}`;
 }
 
 export function getCompareItemPrice(item) {
   return parsePriceNumber(item?.price);
 }
 
-export function buildComparePriceInsights(items = []) {
+export function buildComparePriceInsights(items = [], t) {
+  if (!t) return null;
+
   const priced = items
     .map((item) => ({
       key: getCompareItemKey(item),
@@ -47,23 +49,23 @@ export function buildComparePriceInsights(items = []) {
   let tone = "neutral";
 
   if (minPrice === maxPrice) {
-    headline = "У всех объявлений в списке одинаковая цена";
+    headline = t("compare.priceSame");
   } else if (oriyonItems.length && externalItems.length) {
     const oriyonBest = Math.min(...oriyonItems.map((row) => row.price));
     const externalBest = Math.min(...externalItems.map((row) => row.price));
     const diff = Math.abs(oriyonBest - externalBest);
 
     if (oriyonBest < externalBest) {
-      headline = `На Oriyon дешевле на ${formatDiff(diff)} по сравнению с другими площадками`;
+      headline = t("compare.oriyonCheaper", { diff: formatDiff(diff, t) });
       tone = "positive";
     } else if (externalBest < oriyonBest) {
-      headline = `На других площадках дешевле на ${formatDiff(diff)} по сравнению с Oriyon`;
+      headline = t("compare.externalCheaper", { diff: formatDiff(diff, t) });
       tone = "warning";
     } else {
-      headline = "Цены на Oriyon и других площадках совпадают";
+      headline = t("compare.pricesMatch");
     }
   } else {
-    headline = `Самое выгодное предложение дешевле на ${formatDiff(maxPrice - minPrice)}`;
+    headline = t("compare.bestDeal", { diff: formatDiff(maxPrice - minPrice, t) });
     tone = "positive";
   }
 
@@ -76,9 +78,9 @@ export function buildComparePriceInsights(items = []) {
       cheapest: row.isCheapest && minPrice !== maxPrice,
       diffLabel:
         !row.isCheapest && row.diffFromCheapest > 0
-          ? `+${formatDiff(row.diffFromCheapest)}`
+          ? `+${formatDiff(row.diffFromCheapest, t)}`
           : row.isCheapest && minPrice !== maxPrice
-            ? "Лучшая цена"
+            ? t("compare.bestPrice")
             : "",
     };
   });

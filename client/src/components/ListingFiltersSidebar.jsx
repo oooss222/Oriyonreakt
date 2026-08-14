@@ -12,6 +12,7 @@ import { LOCATIONS, formatPriceInput, getPriceDigits, COMMON_SPEC_OPTIONS } from
 import RangeFilter from "./filters/RangeFilter";
 import { getDistrictsForCity } from "../data/realEstate";
 import { getSellerFilterOptions } from "../lib/filterConflicts";
+import { useI18n } from "../i18n";
 
 function commitDraft(setDraft, onApply, updater, current) {
   const next = updater(current);
@@ -137,6 +138,7 @@ export default function ListingFiltersSidebar({
   previewLoading = false,
   hasActiveFilters = false,
 }) {
+  const { t } = useI18n();
   const grid = React.useMemo(
     () => getListingFilterGrid(activeCat, draft.subcategory),
     [activeCat, draft.subcategory]
@@ -160,10 +162,10 @@ export default function ListingFiltersSidebar({
 
   const sortField = flatFields.find((field) => field.type === "sort");
   const sortLabels = grid?.sortOptions || {
-    new: "Сначала новые",
-    views_desc: "Сначала популярные",
-    price_asc: "Цена по возрастанию",
-    price_desc: "Цена по убыванию",
+    new: t("filter.sortNew"),
+    views_desc: t("filter.sortPopular"),
+    price_asc: t("filter.sortPriceAsc"),
+    price_desc: t("filter.sortPriceDesc"),
   };
 
   const extraSpecFields = flatFields.filter(
@@ -207,7 +209,7 @@ export default function ListingFiltersSidebar({
     <div className="filter-sidebar">
       <div className="filter-sidebar__header">
         <SlidersHorizontal size={18} className="text-ink-500" />
-        <h2 className="text-base font-bold text-ink">Фильтры</h2>
+        <h2 className="text-base font-bold text-ink">{t("filter.title")}</h2>
       </div>
 
       <div className="filter-sidebar__body">
@@ -232,7 +234,7 @@ export default function ListingFiltersSidebar({
         </FilterSection>
 
         {sortField ? (
-          <FilterSection title="Сортировка">
+          <FilterSection title={t("filter.sort")}>
             <div className="relative">
               <ArrowUpDown
                 size={16}
@@ -651,7 +653,7 @@ export default function ListingFiltersSidebar({
             className="inline-flex items-center gap-1.5 text-sm text-ink-400 transition hover:text-ink-600"
           >
             <X size={15} />
-            Сбросить фильтры
+            {t("filter.reset")}
           </button>
         ) : null}
       </div>
@@ -662,7 +664,7 @@ export default function ListingFiltersSidebar({
           onClick={() => onApply()}
           className="filter-sidebar__apply"
         >
-          {previewLoading ? "Показать…" : `Показать ${showCount} объявления`}
+          {previewLoading ? t("filter.showLoading") : t("filter.showCount", { count: showCount })}
         </button>
       </div>
     </div>

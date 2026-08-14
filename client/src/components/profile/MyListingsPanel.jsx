@@ -4,6 +4,7 @@ import { PlusCircle, CheckSquare, Square } from "lucide-react";
 import ListingGridSkeleton from "../ListingGridSkeleton";
 import ProfileListingsGrid from "./ProfileListingsGrid";
 import { getId } from "./profileUtils";
+import { useI18n } from "../../i18n";
 
 export default function MyListingsPanel({
   items,
@@ -14,6 +15,7 @@ export default function MyListingsPanel({
   onAppeal,
   onBulkAction,
 }) {
+  const { t } = useI18n();
   const [query, setQuery] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState("all");
   const [view, setView] = React.useState("grid");
@@ -135,10 +137,10 @@ export default function MyListingsPanel({
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {[
-            ["all", "Всего", stats.total, "bg-sun-50 border-sun-200"],
-            ["approved", "Опубликовано", stats.approved, "bg-emerald-50 border-emerald-200"],
-            ["pending", "На модерации", stats.pending, "bg-amber-50 border-amber-200"],
-            ["rejected", "Отклонено", stats.rejected, "bg-red-50 border-red-200"],
+            ["all", t("profile.statsTotal"), stats.total, "bg-sun-50 border-sun-200"],
+            ["approved", t("profile.statsApproved"), stats.approved, "bg-emerald-50 border-emerald-200"],
+            ["pending", t("profile.statsPending"), stats.pending, "bg-amber-50 border-amber-200"],
+            ["rejected", t("profile.statsRejected"), stats.rejected, "bg-red-50 border-red-200"],
           ].map(([key, label, count, activeClass]) => (
             <button
               key={key}
@@ -158,7 +160,7 @@ export default function MyListingsPanel({
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Поиск по названию, описанию, категории или городу"
+            placeholder={t("profile.searchListings")}
             className="mobile-control sm:col-span-2 lg:col-span-1"
           />
 
@@ -194,8 +196,8 @@ export default function MyListingsPanel({
           {selectMode && (
             <button type="button" className="text-sun font-semibold" onClick={toggleSelectAll}>
               {selectedIds.size === filtered.length && filtered.length > 0
-                ? "Снять выделение"
-                : "Выбрать все"}
+                ? t("profile.deselectAll")
+                : t("profile.selectAll")}
             </button>
           )}
         </div>

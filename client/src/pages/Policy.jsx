@@ -1,5 +1,6 @@
 import React from "react";
 import { api } from "../lib/api";
+import { useI18n } from "../i18n";
 
 function PolicyContent({ content }) {
   const blocks = String(content || "")
@@ -52,9 +53,11 @@ function PolicyContent({ content }) {
 }
 
 export default function Policy() {
+  const { t } = useI18n();
   const [content, setContent] = React.useState("");
   const [updatedAt, setUpdatedAt] = React.useState(null);
   const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState("");
 
   React.useEffect(() => {
     api
@@ -63,27 +66,35 @@ export default function Policy() {
         setContent(data.content || "");
         setUpdatedAt(data.updatedAt || null);
       })
-      .catch(() => {})
+      .catch(() => {
+        setError(t("policy.loadFailed"));
+      })
       .finally(() => setLoading(false));
-  }, []);
+  }, [t]);
 
   return (
     <div className="container-x py-6">
       <div className="max-w-3xl mx-auto card p-6 space-y-4">
         <h1 className="text-2xl font-bold mb-2">
-          Политика конфиденциальности и условия использования
+          {t("policy.title")}
         </h1>
 
         {loading ? (
-          <div className="text-sm text-slate-500 animate-pulse">Загрузка...</div>
+          <div className="text-sm text-slate-500 animate-pulse">
+            {t("policy.loading")}
+          </div>
+        ) : error ? (
+          <div className="text-sm text-red-600">{error}</div>
         ) : (
           <PolicyContent content={content} />
         )}
 
         <div className="text-sm text-slate-500 border-t pt-3">
           {updatedAt
-            ? `Последнее обновление: ${new Date(updatedAt).toLocaleDateString("ru-RU")}`
-            : "Последнее обновление: —"}
+            ? t("policy.lastUpdated", {
+                date: new Date(updatedAt).toLocaleDateString(),
+              })
+            : t("policy.lastUpdatedEmpty")}
         </div>
       </div>
     </div>

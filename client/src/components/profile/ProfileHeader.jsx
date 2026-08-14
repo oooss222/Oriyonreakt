@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import EmailBadge from "./EmailBadge";
 import { calculateProfileCompletion, getUserInitials, isStaffRole } from "./profileUtils";
+import { useI18n } from "../../i18n";
 
 export default function ProfileHeader({
   me,
@@ -19,6 +20,7 @@ export default function ProfileHeader({
   onOpenWallet,
   onLogout,
 }) {
+  const { t } = useI18n();
   const completion = calculateProfileCompletion(me, emailStatus);
   const userId = me?.id || me?._id;
   const initials = getUserInitials(me?.name);
@@ -44,7 +46,7 @@ export default function ProfileHeader({
               </div>
 
               <h1 className="text-xl sm:text-2xl font-bold leading-tight break-words text-slate-900">
-                {me?.name || "Без имени"}
+                {me?.name || t("seller.noName")}
               </h1>
 
               <p className="text-sm text-slate-500 mt-1 truncate">{me?.email}</p>

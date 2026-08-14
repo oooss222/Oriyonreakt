@@ -10,6 +10,7 @@ import {
   normalizeSearchFilters,
   saveSearchLocally,
 } from "../lib/savedSearch";
+import { useI18n } from "../i18n";
 
 export default function SaveSearchButton({
   draft,
@@ -17,6 +18,7 @@ export default function SaveSearchButton({
   className = "",
   compact = false,
 }) {
+  const { t } = useI18n();
   const token = localStorage.getItem(TOKEN_KEY) || "";
   const [saved, setSaved] = React.useState(false);
   const [duplicate, setDuplicate] = React.useState(false);
@@ -32,7 +34,7 @@ export default function SaveSearchButton({
   const save = async () => {
     if (!canSave || saving) return;
 
-    const label = buildSearchLabel(draft, activeCat) || "Поиск без названия";
+    const label = buildSearchLabel(draft, activeCat) || t("search.untitled");
     const filters = normalizeSearchFilters(draft, activeCat);
 
     try {
@@ -73,11 +75,11 @@ export default function SaveSearchButton({
   };
 
   const title = !canSave
-    ? "Сначала выберите фильтры"
+    ? t("search.selectFiltersFirst")
     : duplicate
-      ? "Такой поиск уже сохранён — смотрите в профиле"
+      ? t("search.duplicate")
       : saved
-        ? "Поиск сохранён в профиле"
+        ? t("search.saved")
         : undefined;
 
   return (
@@ -103,12 +105,12 @@ export default function SaveSearchButton({
           <BookmarkPlus size={16} />
         )}
         {saved
-          ? "Сохранено"
+          ? t("search.savedShort")
           : duplicate
-            ? "Уже есть"
+            ? t("search.duplicateShort")
             : compact
-              ? "Сохранить"
-              : "Сохранить поиск"}
+              ? t("search.save")
+              : t("search.saveSearch")}
       </button>
 
       {saved && token && (
@@ -116,13 +118,13 @@ export default function SaveSearchButton({
           to="/profile?tab=searches"
           className="text-[11px] text-center text-sun-700 hover:text-sun font-medium"
         >
-          Открыть в профиле
+          {t("search.openInProfile")}
         </Link>
       )}
 
       {!token && saved && (
         <span className="text-[11px] text-center text-slate-500">
-          Войдите, чтобы синхронизировать с профилем
+          {t("search.loginToSync")}
         </span>
       )}
     </div>

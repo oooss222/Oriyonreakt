@@ -4,8 +4,8 @@ import { formatMoney } from "../lib/format";
 import {
   getPromotionPlans,
   getPromotionPlan,
-  formatPromotionDays,
 } from "../lib/promotionPlans";
+import { useI18n, formatPromotionDaysLabel } from "../i18n";
 
 export default function PromotionPlanModal({
   open,
@@ -15,6 +15,7 @@ export default function PromotionPlanModal({
   onConfirm,
   confirming = false,
 }) {
+  const { t } = useI18n();
   const plans = React.useMemo(
     () => (open ? getPromotionPlans(type) : []),
     [open, type]
@@ -32,7 +33,7 @@ export default function PromotionPlanModal({
   }
 
   const selectedPlan = getPromotionPlan(type, selectedDays);
-  const title = type === "vip" ? "Подключить VIP" : "Подключить TOP";
+  const title = type === "vip" ? t("promotion.connectVipTitle") : t("promotion.connectTopTitle");
   const accent =
     type === "vip"
       ? "border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50"
@@ -48,7 +49,7 @@ export default function PromotionPlanModal({
       <button
         type="button"
         className="absolute inset-0 bg-black/45"
-        aria-label="Закрыть"
+        aria-label={t("common.close")}
         onClick={onClose}
       />
 
@@ -64,7 +65,7 @@ export default function PromotionPlanModal({
               {title}
             </h2>
             <p className="text-sm text-slate-600 mt-1">
-              Выберите срок продвижения
+              {t("promotion.selectPeriod")}
             </p>
           </div>
 
@@ -95,7 +96,7 @@ export default function PromotionPlanModal({
                 }`}
               >
                 <span className="font-semibold text-slate-900">
-                  {formatPromotionDays(plan.days)}
+                  {formatPromotionDaysLabel(t, plan.days)}
                 </span>
                 <span className="font-bold text-ink">
                   {formatMoney(plan.price)}
@@ -107,7 +108,7 @@ export default function PromotionPlanModal({
 
         <div className="border-t border-white/70 px-5 py-4 space-y-3 bg-white/60 rounded-b-3xl">
           <div className="flex items-center justify-between text-sm text-slate-600">
-            <span>Баланс кошелька</span>
+            <span>{t("promotion.walletBalance")}</span>
             <span className="font-semibold text-ink">
               {formatMoney(walletBalance)}
             </span>
@@ -124,10 +125,10 @@ export default function PromotionPlanModal({
             }`}
           >
             {confirming
-              ? "Подключаем..."
+              ? t("promotion.activating")
               : selectedPlan
-              ? `Оплатить ${formatMoney(selectedPlan.price)}`
-              : "Выберите срок"}
+              ? t("promotion.pay", { price: formatMoney(selectedPlan.price) })
+              : t("promotion.selectPeriodBtn")}
           </button>
         </div>
       </div>

@@ -18,18 +18,34 @@ export function isNetworkError(err) {
   );
 }
 
-export function getUserFacingErrorMessage(err, fallback = "Что-то пошло не так") {
+export function getUserFacingErrorMessage(err, tOrFallback) {
+  const t = typeof tOrFallback === "function" ? tOrFallback : null;
+  const fallback =
+    typeof tOrFallback === "string"
+      ? tOrFallback
+      : t
+        ? t("errors.generic")
+        : "Что-то пошло не так";
+
   if (err instanceof ApiError) return err.message;
+
   if (isNetworkError(err)) {
-    return "Нет соединения с сервером. Проверьте интернет и попробуйте снова.";
+    return t ? t("errors.network") : "Нет соединения с сервером. Проверьте интернет и попробуйте снова.";
   }
+
   const msg = String(err?.message || "").trim();
+
   if (!msg || msg.startsWith("HTTP ")) {
-    if (msg === "HTTP 401") return "Войдите в аккаунт, чтобы продолжить.";
+    if (msg === "HTTP 401") {
+      return t ? t("errors.loginRequired") : "Войдите в аккаунт, чтобы продолжить.";
+    }
     if (msg === "HTTP 503" || msg === "HTTP 502") {
-      return "Сервер временно недоступен. Попробуйте через минуту.";
+      return t
+        ? t("errors.serverUnavailable")
+        : "Сервер временно недоступен. Попробуйте через минуту.";
     }
     return fallback;
   }
+
   return msg;
 }

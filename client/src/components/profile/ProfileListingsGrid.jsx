@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { PlusCircle } from "lucide-react";
 import ProfileListingCard from "./ProfileListingCard";
 import { getId } from "./profileUtils";
+import { useI18n } from "../../i18n";
 
 export default React.memo(function ProfileListingsGrid({
   items,
@@ -16,6 +17,8 @@ export default React.memo(function ProfileListingsGrid({
   selectedIds = new Set(),
   onToggleSelect,
 }) {
+  const { t } = useI18n();
+
   if (!items?.length) {
     return (
       <div className="rounded-3xl border bg-white p-10 text-center">
@@ -24,13 +27,13 @@ export default React.memo(function ProfileListingsGrid({
         </div>
 
         <div className="text-slate-800 font-semibold mb-1">
-          {tab === "fav" ? "В избранном пока пусто" : "Пока нет объявлений"}
+          {tab === "fav" ? t("favorites.empty") : t("empty.noMyListings")}
         </div>
 
         <div className="text-sm text-slate-500 mb-4">
           {tab === "fav"
-            ? "Добавляйте объявления в избранное, чтобы быстро вернуться к ним."
-            : "Создайте первое объявление, и после модерации оно появится на сайте."}
+            ? t("favorites.emptyHint")
+            : t("empty.noMyListingsHint")}
         </div>
 
         {tab === "my" ? (
@@ -39,14 +42,14 @@ export default React.memo(function ProfileListingsGrid({
             className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-sun text-white hover:bg-sun-600 transition"
           >
             <PlusCircle size={18} />
-            Подать объявление
+            {t("empty.postListing")}
           </Link>
         ) : (
           <Link
             to="/"
             className="inline-flex items-center gap-2 px-5 py-3 rounded-xl border hover:bg-slate-50 transition"
           >
-            На главную
+            {t("empty.goHome")}
           </Link>
         )}
       </div>

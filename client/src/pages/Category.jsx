@@ -17,6 +17,7 @@ import {
   isCompareSupported,
 } from "../lib/compareListings";
 import { getComparePath } from "../lib/compareConfig";
+import { useI18n, getCategoryLabel } from "../i18n";
 import { Search, FolderOpen, Scale, ArrowRight } from "lucide-react";
 
 const PREVIEW_LIMIT = 6;
@@ -24,6 +25,7 @@ const PREVIEW_LIMIT = 6;
 export default function Category() {
   const { slug } = useParams();
   const nav = useNavigate();
+  const { t } = useI18n();
 
   if (slug === "realestate") {
     return <Navigate to={DEFAULT_REAL_ESTATE_BROWSE_PATH} replace />;
@@ -98,11 +100,16 @@ export default function Category() {
     };
   }, [slug]);
 
+  const catTitle = cat ? getCategoryLabel(slug, t) : "";
+
   usePageMeta({
-    title: cat ? cat.title : "Категория не найдена",
+    title: cat ? catTitle : t("empty.categoryNotFound"),
     description: cat
-      ? `Объявления в категории «${cat.title}» на Oriyon.store. ${stats.total || cat.subs.length} объявлений.`
-      : "Запрошенная категория не существует на Oriyon.store.",
+      ? t("category.metaDescription", {
+          title: catTitle,
+          count: stats.total || cat.subs.length,
+        })
+      : t("empty.categoryNotFoundMeta"),
     url: typeof window !== "undefined" ? window.location.href : undefined,
   });
 
@@ -111,9 +118,9 @@ export default function Category() {
       <div className="page-container py-6">
         <EmptyState
           icon={FolderOpen}
-          title="Категория не найдена"
-          description="Проверьте адрес или выберите категорию на главной."
-          actionLabel="На главную"
+          title={t("empty.categoryNotFound")}
+          description={t("empty.categoryNotFoundDesc")}
+          actionLabel={t("empty.goHome")}
           actionTo="/"
         />
       </div>
@@ -128,8 +135,8 @@ export default function Category() {
     <div className="container mx-auto px-4 py-6 space-y-6">
       <Breadcrumbs
         items={[
-          { label: "Главная", to: "/" },
-          { label: cat.title },
+          { label: t("nav.home"), to: "/" },
+          { label: catTitle },
         ]}
       />
 
@@ -142,7 +149,7 @@ export default function Category() {
         >
           <span className="inline-flex items-center gap-2 text-sm font-semibold">
             <Scale size={18} className="text-sun" />
-            Сравнение · {compareCount}/{COMPARE_MAX}
+            {t("compare.open", { count: compareCount, max: COMPARE_MAX })}
           </span>
           <ArrowRight size={18} className="text-white/70" />
         </Link>
@@ -162,12 +169,12 @@ export default function Category() {
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Быстрый поиск по подкатегориям…"
+            placeholder={t("empty.searchSubcats")}
             className="input w-full"
           />
 
           <div className="text-xs text-ink-400 md:w-56">
-            Найдено подкатегорий:{" "}
+            {t("category.subcatsFound")}{" "}
             <span className="font-medium text-ink">{subs.length}</span>
           </div>
         </div>
@@ -179,9 +186,9 @@ export default function Category() {
         {subs.length === 0 ? (
           <EmptyState
             icon={Search}
-            title={`Ничего не найдено по запросу «${q}»`}
-            description="Попробуйте другой запрос или посмотрите все объявления категории."
-            actionLabel="Сбросить поиск"
+            title={t("empty.searchQueryTitle", { query: q })}
+            description={t("empty.searchNoMatch")}
+            actionLabel={t("empty.resetSearch")}
             onAction={() => setQ("")}
           />
         ) : (
@@ -190,7 +197,7 @@ export default function Category() {
               to={`/listing?cat=${slug}`}
               className="subcategory-chip subcategory-chip-active"
             >
-              Все
+              {t("category.all")}
               {stats.total > 0 && (
                 <span className="ml-1.5 opacity-80">({stats.total})</span>
               )}
@@ -223,13 +230,13 @@ export default function Category() {
 
       <section className="space-y-4">
         <div className="flex items-center justify-between gap-3">
-          <h2 className="section-title text-lg">Свежие объявления</h2>
+          <h2 className="section-title text-lg">{t("category.freshListings")}</h2>
 
           <Link
             to={`/listing?cat=${slug}`}
             className="text-sm text-sun hover:text-sun-600 font-medium"
           >
-            Смотреть все
+            {t("home.viewAll")}
           </Link>
         </div>
 
@@ -238,9 +245,9 @@ export default function Category() {
         {!loadingPreview && preview.length === 0 && (
           <EmptyState
             icon={Search}
-            title="Пока нет объявлений"
-            description="Станьте первым — разместите объявление в этой категории."
-            actionLabel="Подать объявление"
+            title={t("empty.noListings")}
+            description={t("empty.noListingsHint")}
+            actionLabel={t("empty.postListing")}
             actionTo={`/add?cat=${slug}`}
           />
         )}
@@ -268,7 +275,7 @@ export default function Category() {
           to={`/listing?cat=${slug}`}
           className="flex w-full justify-center px-4 py-3 rounded-xl bg-sun text-white hover:bg-sun-600 transition shadow-sm font-medium"
         >
-          Все объявления ({stats.total})
+          {t("footer.allListings")} ({stats.total})
         </Link>
       </div>
     </div>

@@ -7,7 +7,7 @@ const TONE_STYLES = {
   neutral: "border-slate-200 bg-slate-50 text-slate-800",
 };
 
-export default function ComparePriceInsights({ insights }) {
+export default function ComparePriceInsights({ insights, t, lang = "ru" }) {
   if (!insights?.headline) return null;
 
   const tone = TONE_STYLES[insights.tone] || TONE_STYLES.neutral;
@@ -18,16 +18,21 @@ export default function ComparePriceInsights({ insights }) {
         ? TrendingDown
         : Scale;
 
+  const locale = lang === "en" ? "en-US" : lang === "tg" ? "tg-TJ" : "ru-RU";
+
   return (
     <section className={`rounded-2xl border px-4 py-3.5 ${tone}`}>
       <div className="flex items-start gap-3">
         <Icon size={18} className="shrink-0 mt-0.5" />
         <div className="space-y-1">
           <p className="text-sm font-semibold">{insights.headline}</p>
-          {insights.insights?.length > 1 && insights.minPrice !== insights.maxPrice && (
+          {insights.insights?.length > 1 && insights.minPrice !== insights.maxPrice && t && (
             <p className="text-xs opacity-80">
-              Диапазон цен: {insights.minPrice.toLocaleString("ru-RU")} –{" "}
-              {insights.maxPrice.toLocaleString("ru-RU")} с.
+              {t("compare.priceRange", {
+                min: insights.minPrice.toLocaleString(locale),
+                max: insights.maxPrice.toLocaleString(locale),
+                currency: t("price.currency"),
+              })}
             </p>
           )}
         </div>

@@ -2,8 +2,10 @@ import React from "react";
 import { api } from "../lib/api";
 import { TOKEN_KEY } from "../lib/auth";
 import { readLocalSavedSearches } from "../lib/savedSearch";
+import { useI18n } from "../i18n";
 
 export default function SavedSearchesPanel({ onApply }) {
+  const { t } = useI18n();
   const token = localStorage.getItem(TOKEN_KEY) || "";
   const [items, setItems] = React.useState([]);
   const [loading, setLoading] = React.useState(false);
@@ -59,20 +61,17 @@ export default function SavedSearchesPanel({ onApply }) {
   return (
     <div className="rounded-2xl border bg-white p-4 space-y-3">
       <div>
-        <div className="text-sm font-semibold text-slate-900">Сохранённые поиски</div>
+        <div className="text-sm font-semibold text-slate-900">{t("search.savedSearches")}</div>
         <div className="text-xs text-slate-500 mt-1">
-          {token
-            ? "Сохраняйте фильтры на странице каталога кнопкой «Сохранить». Email-уведомления — раз в час."
-            : "Войдите, чтобы синхронизировать поиски между устройствами и получать email-уведомления."}
+          {token ? t("search.savedHintLoggedIn") : t("search.savedHintGuest")}
         </div>
       </div>
 
       {loading ? (
-        <div className="text-sm text-slate-500">Загрузка...</div>
+        <div className="text-sm text-slate-500">{t("common.loading")}</div>
       ) : items.length === 0 ? (
         <div className="rounded-xl border border-dashed bg-slate-50/80 p-6 text-center text-sm text-slate-500">
-          Пока нет сохранённых поисков. На странице каталога настройте фильтры и нажмите
-          «Сохранить».
+          {t("search.empty")}
         </div>
       ) : (
         <div className="space-y-2">
@@ -92,14 +91,14 @@ export default function SavedSearchesPanel({ onApply }) {
                 }
               >
                 <div className="font-medium text-sm text-slate-900 truncate">
-                  {item.label || "Поиск"}
+                  {item.label || t("search.defaultLabel")}
                 </div>
                 <div className="text-xs text-slate-500 mt-1">
                   {token
                     ? item.alertsEnabled
-                      ? "Уведомления включены"
-                      : "Без уведомлений"
-                    : "Только на этом устройстве"}
+                      ? t("search.alertsOn")
+                      : t("search.alertsOff")
+                    : t("search.localOnly")}
                 </div>
               </button>
 
@@ -110,7 +109,7 @@ export default function SavedSearchesPanel({ onApply }) {
                     className="text-xs font-semibold text-sun hover:text-sun-600"
                     onClick={() => toggleAlerts(item)}
                   >
-                    {item.alertsEnabled ? "Выключить" : "Включить"}
+                    {item.alertsEnabled ? t("search.disableAlerts") : t("search.enableAlerts")}
                   </button>
                 )}
                 <button
@@ -118,7 +117,7 @@ export default function SavedSearchesPanel({ onApply }) {
                   className="text-xs text-red-600 hover:underline"
                   onClick={() => removeItem(item)}
                 >
-                  Удалить
+                  {t("search.delete")}
                 </button>
               </div>
             </div>

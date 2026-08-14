@@ -33,19 +33,21 @@ import { PromotionBadgeGroup } from "../components/PromotionBadge";
 import { CAT_LABELS } from "../data/listingCategories";
 import { enrichRealEstateListing, getSpecValue, isRealEstateListing } from "../lib/realEstate";
 import { REPORT_REASONS } from "../data/reportReasons";
+import { useI18n } from "../i18n";
+import { getUserFacingErrorMessage } from "../lib/apiError";
 
 const TOKEN_KEY = "auth_token";
 
-function formatDate(dateStr) {
+function formatDate(dateStr, t) {
   if (!dateStr || Number.isNaN(Date.parse(dateStr))) return null;
 
   const d = new Date(dateStr);
   const now = new Date();
   const diffDays = Math.floor((now - d) / 86400000);
 
-  if (diffDays === 0) return "Сегодня";
-  if (diffDays === 1) return "Вчера";
-  if (diffDays < 7) return `${diffDays} дн. назад`;
+  if (diffDays === 0) return t("date.today");
+  if (diffDays === 1) return t("date.yesterday");
+  if (diffDays < 7) return t("date.daysAgo", { count: diffDays });
 
   return d.toLocaleDateString("ru-RU", {
     day: "numeric",
@@ -126,6 +128,7 @@ function Toast({ message, onClose }) {
 export default function AdDetails() {
   const { id } = useParams();
   const nav = useNavigate();
+  const { t } = useI18n();
   const token = localStorage.getItem(TOKEN_KEY) || "";
 
   const [ad, setAd] = React.useState(null);
@@ -269,9 +272,9 @@ export default function AdDetails() {
 
   usePageMeta({
     enabled: Boolean(ad),
-    title: ad?.title || "Объявление",
+    title: ad?.title || t("listing.title"),
     description: [
-      formatPrice(ad?.price, { emptyLabel: "Договорная" }),
+      formatPrice(ad?.price, { emptyLabel: t("price.negotiable") }),
       ad?.location || ad?.city,
       ad?.description?.slice(0, 140),
     ]
@@ -288,7 +291,7 @@ export default function AdDetails() {
       ? {
           "@context": "https://schema.org",
           "@type": "Product",
-          name: ad.title || "Объявление",
+          name: ad.title || t("listing.title"),
           description: ad.description || "",
           image: images[0],
           offers: {
@@ -375,11 +378,11 @@ export default function AdDetails() {
       if (isFav) {
         await api.removeFavorite(token, adId);
         setIsFav(false);
-        setToast("Убрано из избранного");
+        setToast(t("favorites.removed"));
       } else {
         await api.addFavorite(token, adId);
         setIsFav(true);
-        setToast("Добавлено в избранное");
+        setToast(t("favorites.added"));
       }
     } catch (e) {
       console.error("Favorite toggle failed:", e);
@@ -393,7 +396,7 @@ export default function AdDetails() {
     }
 
     if (!ad?.owner) {
-      setToast("Продавец недоступен");
+      setToast(t("seller.unavailable"));
       return;
     }
 
@@ -402,7 +405,7 @@ export default function AdDetails() {
     const listingId = ad._id || ad.id;
 
     nav(
-      `/messages?listingId=${listingId}&peerId=${ad.owner}&title=${encodeURIComponent(ad.title || "Объявление")}`
+      `/messages?listingId=${listingId}&peerId=${ad.owner}&title=${encodeURIComponent(ad.title || t("listing.title"))}`
     );
   };
 
@@ -429,7 +432,7 @@ export default function AdDetails() {
     }
 
     if (reportReason === "other" && reportDetails.trim().length < 5) {
-      setToast("Опишите проблему подробнее");
+      setToast(t("report.describe"));
       return;
     }
 
@@ -442,12 +445,12 @@ export default function AdDetails() {
       });
 
       setReportOpen(false);
-      setToast("Жалоба отправлена. Спасибо!");
+      setToast(t("report.sent"));
     } catch (e) {
-      const message = e.message || "Не удалось отправить жалобу";
+      const message = e.message || t("errors.sendReport");
 
       if (message.includes("already reported") || message.includes("409")) {
-        setToast("Вы уже жаловались на это объявление");
+        setToast(t("errors.reportDuplicate"));
         setReportOpen(false);
         return;
       }
@@ -457,7 +460,7 @@ export default function AdDetails() {
         return;
       }
 
-      setToast(message);
+      setToast(getUserFacingErrorMessage(e, t));
     } finally {
       setReportSending(false);
     }
@@ -470,12 +473,12 @@ export default function AdDetails() {
     }
 
     const prompts = {
-      sold: "Отметить объявление как проданное?",
-      archive: "Снять объявление с публикации?",
-      republish: "Опубликовать объявление снова?",
+      sold: t("listing.confirmSold"),
+      archive: t("listing.confirmArchive"),
+      republish: t("listing.confirmRepublish"),
     };
 
-    if (!confirm(prompts[action] || "Изменить статус объявления?")) {
+    if (!confirm(prompts[action] || t("listing.confirmStatus"))) {
       return;
     }
 
@@ -494,19 +497,19 @@ export default function AdDetails() {
       setAd((current) => ({ ...current, ...updated }));
       setToast(
         action === "sold"
-          ? "Объявление отмечено как проданное"
+          ? t("listing.statusSold")
           : action === "archive"
-          ? "Объявление снято с публикации"
-          : "Объявление снова опубликовано"
+          ? t("listing.statusArchived")
+          : t("listing.statusRepublished")
       );
     } catch (e) {
-      setToast(e.message || "Не удалось обновить статус");
+      setToast(getUserFacingErrorMessage(e, t) || t("listing.statusUpdateFailed"));
     }
   };
 
   const shareAd = async () => {
     const url = window.location.href;
-    const title = ad?.title || "Объявление";
+    const title = ad?.title || t("listing.title");
 
     try {
       if (navigator.share) {
@@ -516,7 +519,7 @@ export default function AdDetails() {
 
       await navigator.clipboard.writeText(url);
       setCopied(true);
-      setToast("Ссылка скопирована");
+      setToast(t("listing.linkCopied"));
       setTimeout(() => setCopied(false), 2000);
     } catch {
       /* user cancelled share */
@@ -559,17 +562,17 @@ export default function AdDetails() {
             🔍
           </div>
           <h1 className="text-2xl font-bold text-slate-900">
-            Объявление не найдено
+            {t("errors.loadFailed")}
           </h1>
           <p className="text-slate-500">
-            Возможно, оно было удалено или ссылка устарела.
+            {t("seller.notFoundDesc")}
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link to="/listing" className="btn">
-              К каталогу
+              {t("empty.goCatalog")}
             </Link>
             <Link to="/" className="btn btn-primary">
-              На главную
+              {t("empty.goHome")}
             </Link>
           </div>
         </div>
@@ -588,17 +591,17 @@ export default function AdDetails() {
     return name !== "цена" && name !== "price";
   });
 
-  const price = formatPrice(ad.price, { emptyLabel: "Договорная" });
+  const price = formatPrice(ad.price, { emptyLabel: t("price.negotiable") });
   const realEstateEnriched = isRealEstateListing(ad)
     ? enrichRealEstateListing(ad)
     : null;
   const realEstatePricePerSqm =
     realEstateEnriched?.realEstateSummary?.pricePerSqm || "";
-  const sellerName = getSellerName(ad) || "Продавец";
+  const sellerName = getSellerName(ad) || t("seller.default");
   const publicId = ad.publicId || ad.public_id || ad._id || ad.id;
   const listingId = ad._id || ad.id;
   const catLabel = CAT_LABELS[ad.cat] || ad.cat;
-  const published = formatDate(getListingDisplayDate(ad) || ad.createdAt);
+  const published = formatDate(getListingDisplayDate(ad) || ad.createdAt, t);
   const listingUrl = `/listing${ad.cat ? `?cat=${encodeURIComponent(ad.cat)}` : ""}${
     ad.subcategory
       ? `${ad.cat ? "&" : "?"}subcategory=${encodeURIComponent(ad.subcategory)}`
@@ -621,9 +624,9 @@ export default function AdDetails() {
       <div className="container-x py-10">
         <EmptyState
           icon={PackageSearch}
-          title="Объявление снято с публикации"
-          description="Продавец временно убрал это объявление из каталога."
-          actionLabel="К каталогу"
+          title={t("listing.unpublished")}
+          description={t("listing.unpublishedDesc")}
+          actionLabel={t("empty.goCatalog")}
           onAction={() => nav("/listing")}
         />
       </div>
@@ -631,14 +634,14 @@ export default function AdDetails() {
   }
 
   const breadcrumbItems = [
-    { label: "Главная", to: "/" },
+    { label: t("nav.home"), to: "/" },
     ...(ad.cat
       ? [{ label: catLabel, to: `/c/${ad.cat}` }]
       : []),
     ...(ad.subcategory
       ? [{ label: ad.subcategory, to: listingUrl }]
       : []),
-    { label: ad.title || "Объявление" },
+    { label: ad.title || t("listing.title") },
   ];
 
   return (
@@ -661,14 +664,14 @@ export default function AdDetails() {
             {moderationStatus === "pending" ? (
               <p>
                 {isOwner
-                  ? "Объявление на модерации. Оно появится в каталоге после одобрения."
-                  : "Объявление проходит модерацию."}
+                  ? t("listing.moderationPending")
+                  : t("listing.moderationReview")}
               </p>
             ) : (
               <p>
                 {isOwner
-                  ? `Объявление отклонено${ad.rejectionReason ? `: ${ad.rejectionReason}` : "."} Вы можете отредактировать и отправить снова.`
-                  : "Объявление отклонено модератором."}
+                  ? `${t("listing.moderationRejected")}${ad.rejectionReason ? `: ${ad.rejectionReason}` : ""}`
+                  : t("listing.moderationRejected")}
               </p>
             )}
           </div>
@@ -678,9 +681,9 @@ export default function AdDetails() {
           <div className="mb-6 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-slate-700">
             {isSold
               ? isOwner
-                ? "Вы отметили это объявление как проданное. Оно больше не показывается в каталоге."
-                : "Это объявление уже продано."
-              : "Объявление снято с публикации и скрыто из каталога."}
+                ? t("listing.soldOwner")
+                : t("listing.soldOther")
+              : t("listing.archived")}
           </div>
         )}
 
@@ -730,11 +733,11 @@ export default function AdDetails() {
                     type="button"
                     className="w-full block cursor-zoom-in"
                     onClick={() => setLightboxOpen(true)}
-                    aria-label="Открыть фото в полном размере"
+                    aria-label={t("a11y.photoFullscreen")}
                   >
                     <img
                       src={images[activeImageIndex] || images[0]}
-                      alt={ad.title || "Фото объявления"}
+                      alt={ad.title || t("listing.photoAlt")}
                       className="w-full aspect-[4/3] object-contain bg-slate-50"
                       onError={(e) => {
                         e.currentTarget.src =
@@ -771,7 +774,7 @@ export default function AdDetails() {
                         type="button"
                         onClick={goPrev}
                         className="absolute left-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/95 shadow-md transition hover:bg-white"
-                        aria-label="Предыдущее фото"
+                        aria-label={t("a11y.photoPrev")}
                       >
                         <ChevronLeft className="h-5 w-5" />
                       </button>
@@ -779,7 +782,7 @@ export default function AdDetails() {
                         type="button"
                         onClick={goNext}
                         className="absolute right-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/95 shadow-md transition hover:bg-white"
-                        aria-label="Следующее фото"
+                        aria-label={t("a11y.photoNext")}
                       >
                         <ChevronRight className="h-5 w-5" />
                       </button>
@@ -863,7 +866,7 @@ export default function AdDetails() {
                 <p className="text-slate-700 flex items-start gap-2">
                   <MapPin className="w-4 h-4 text-sun shrink-0 mt-1" />
                   <span>
-                    {[ad.location || "Душанбе", getSpecValue(ad.specs, "Район"), getSpecValue(ad.specs, "Адрес")]
+                    {[ad.location || t("location.dushanbe"), getSpecValue(ad.specs, "Район"), getSpecValue(ad.specs, "Адрес")]
                       .filter(Boolean)
                       .join(", ")}
                   </span>
@@ -881,7 +884,7 @@ export default function AdDetails() {
             {filteredSpecs.length > 0 && (
               <section className="rounded-3xl border border-slate-200 bg-white p-5 md:p-6 shadow-sm">
                 <h2 className="mb-4 text-lg font-bold text-slate-900">
-                  Характеристики
+                  {t("form.specs")}
                 </h2>
                 <div className="divide-y divide-slate-100">
                   {filteredSpecs.map((spec, index) => (
@@ -909,7 +912,7 @@ export default function AdDetails() {
             <section className="rounded-3xl border border-slate-200 bg-white p-5 md:p-6 shadow-sm">
               <h2 className="mb-4 text-lg font-bold text-slate-900">Описание</h2>
               <p className="text-slate-700 whitespace-pre-wrap leading-7 text-[15px]">
-                {ad.description || "Описание отсутствует."}
+                {ad.description || t("listing.noDescription")}
               </p>
             </section>
 
@@ -1027,7 +1030,7 @@ export default function AdDetails() {
                       className="btn w-full py-3 rounded-2xl border-sun-200 bg-sun-50 text-sun-700 hover:bg-sun-100"
                     >
                       <Pencil className="w-5 h-5" />
-                      Редактировать объявление
+                      {t("listing.editForm")}
                     </Link>
                   )}
 
@@ -1041,7 +1044,7 @@ export default function AdDetails() {
           <div className="fixed inset-0 z-[120] flex items-end sm:items-center justify-center p-0 sm:p-4">
             <button
               type="button"
-              aria-label="Закрыть"
+              aria-label={t("common.close")}
               className="absolute inset-0 bg-black/40"
               onClick={() => setReportOpen(false)}
             />
@@ -1049,7 +1052,7 @@ export default function AdDetails() {
             <div className="relative w-full sm:max-w-lg rounded-t-3xl sm:rounded-2xl bg-white shadow-xl border p-5 space-y-4">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <h3 className="text-lg font-bold">Пожаловаться</h3>
+                  <h3 className="text-lg font-bold">{t("report.title")}</h3>
                   <p className="text-sm text-slate-500 mt-1">
                     Расскажите, что не так с этим объявлением.
                   </p>
@@ -1059,7 +1062,7 @@ export default function AdDetails() {
                   type="button"
                   onClick={() => setReportOpen(false)}
                   className="p-2 rounded-xl border hover:bg-slate-50"
-                  aria-label="Закрыть"
+                  aria-label={t("common.close")}
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -1095,7 +1098,7 @@ export default function AdDetails() {
                   value={reportDetails}
                   onChange={(e) => setReportDetails(e.target.value)}
                   rows={4}
-                  placeholder="Опишите проблему..."
+                  placeholder={t("report.placeholder")}
                   className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-sun/40 resize-y"
                 />
               )}
@@ -1106,7 +1109,7 @@ export default function AdDetails() {
                   onClick={() => setReportOpen(false)}
                   className="btn rounded-xl"
                 >
-                  Отмена
+                  {t("common.cancel")}
                 </button>
 
                 <button
@@ -1115,7 +1118,7 @@ export default function AdDetails() {
                   disabled={reportSending}
                   className="btn btn-primary rounded-xl disabled:opacity-60"
                 >
-                  {reportSending ? "Отправляем..." : "Отправить жалобу"}
+                  {reportSending ? t("report.sending") : t("report.send")}
                 </button>
               </div>
             </div>
@@ -1129,7 +1132,7 @@ export default function AdDetails() {
         images={images}
         activeIndex={activeImageIndex}
         onChangeIndex={setActiveImageIndex}
-        title={ad.title || "Фото объявления"}
+        title={ad.title || t("listing.photoAlt")}
       />
     </div>
   );

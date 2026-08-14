@@ -24,21 +24,12 @@ import {
   requestUnreadRefresh,
 } from "../lib/unread";
 import { isBusinessSupportThread } from "../lib/openBusinessSupportChat";
+import { useI18n } from "../i18n";
+import { formatDayLabel, getQuickReplies } from "../i18n/helpers";
+import { getUserFacingErrorMessage } from "../lib/apiError";
 
 const TOKEN_KEY = "auth_token";
 const USER_KEY = "auth_user";
-
-const QUICK_REPLIES = [
-  "Здравствуйте! Актуально?",
-  "Можно посмотреть сегодня?",
-  "Торг возможен?",
-];
-
-const BUSINESS_SUPPORT_REPLIES = [
-  "Сколько стоит подключение?",
-  "Какие документы нужны?",
-  "Когда можно начать?",
-];
 
 const getId = (item) => item?.id || item?._id;
 
@@ -52,18 +43,17 @@ const getPeerId = (item, me) => {
     : item.senderId;
 };
 
-const formatLastSeen = (lastSeen) => {
-  if (!lastSeen) return "не в сети";
+const formatLastSeen = (lastSeen, t) => {
+  if (!lastSeen) return t("chat.offline");
 
-  return (
-    "был(а) " +
-    new Date(lastSeen).toLocaleString("ru-RU", {
-      day: "numeric",
-      month: "short",
-      hour: "2-digit",
-      minute: "2-digit",
-    })
-  );
+  const time = new Date(lastSeen).toLocaleString(undefined, {
+    day: "numeric",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+  return t("chat.lastSeen", { time });
 };
 
 const formatTime = (value) => {
@@ -75,33 +65,12 @@ const formatTime = (value) => {
   });
 };
 
-const formatDayLabel = (value) => {
-  if (!value) return "";
-
-  const d = new Date(value);
-  const now = new Date();
-  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const startOfDay = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-  const diffDays = Math.round(
-    (startOfToday - startOfDay) / 86400000
-  );
-
-  if (diffDays === 0) return "Сегодня";
-  if (diffDays === 1) return "Вчера";
-
-  return d.toLocaleDateString("ru-RU", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
-};
-
-function groupMessagesByDay(messages) {
+function groupMessagesByDay(messages, t) {
   const groups = [];
   let currentDay = null;
 
   for (const msg of messages) {
-    const day = formatDayLabel(msg.createdAt);
+    const day = formatDayLabel(msg.createdAt, t);
 
     if (day !== currentDay) {
       groups.push({ type: "day", id: `day-${day}`, label: day });
@@ -118,7 +87,7 @@ function listingImageUrl(src) {
   return resolveMediaUrl(src, { placeholder: "" });
 }
 
-function Toast({ message, type = "info", onClose }) {
+function Toast({ message, type = "info", onClose, closeLabel }) {
   React.useEffect(() => {
     if (!message) return;
 
@@ -146,7 +115,7 @@ function Toast({ message, type = "info", onClose }) {
           type="button"
           onClick={onClose}
           className="p-0.5 rounded hover:bg-white/15"
-          aria-label="Закрыть"
+          aria-label={closeLabel}
         >
           <X size={16} />
         </button>
@@ -157,6 +126,7 @@ function Toast({ message, type = "info", onClose }) {
 
 export default function Messages() {
   const nav = useNavigate();
+  const { t } = useI18n();
   const [searchParams, setSearchParams] = useSearchParams();
   const token = localStorage.getItem(TOKEN_KEY) || "";
 
@@ -303,13 +273,13 @@ export default function Messages() {
       } catch (e) {
         if (!silent) {
           setThread([]);
-          showToast(e.message || "Не удалось загрузить диалог", "error");
+          showToast(getUserFacingErrorMessage(e, t) || t("chat.loadFailed"), "error");
         }
       } finally {
         setThreadLoading(false);
       }
     },
-    [token, me, showToast]
+    [token, me, showToast, t]
   );
 
   const openThread = React.useCallback(
@@ -414,7 +384,7 @@ export default function Messages() {
     const onDisconnect = () => setSocketReady(false);
     const onConnectError = (err) => {
       setSocketReady(false);
-      setSocketError(err?.message || "Ошибка подключения");
+      setSocketError(err?.message || t("errors.socket"));
     };
 
     const onMessageNew = ({ message }) => {
@@ -491,7 +461,7 @@ export default function Messages() {
       });
 
       if (String(message.receiverId) === String(myId)) {
-        showToast("Новое сообщение", "info");
+        showToast(t("chat.newMessage"), "info");
       }
     };
 
@@ -590,7 +560,7 @@ export default function Messages() {
       socket.off("presence:snapshot", onPresenceSnapshot);
       setSocketReady(false);
     };
-  }, [token, myId, me, loadThread, showToast, applyPresenceUpdate]);
+  }, [token, myId, me, loadThread, showToast, applyPresenceUpdate, t]);
 
   React.useEffect(() => {
     if (!selected || !token || socketReady) return undefined;
@@ -626,7 +596,7 @@ export default function Messages() {
       match ||
       {
         listingId: deepListingId,
-        listingTitle: deepTitle || "Объявление",
+        listingTitle: deepTitle || t("chat.listing"),
         senderId: myId,
         receiverId: deepPeerId,
         receiverName: deepPeerName || "",
@@ -654,6 +624,7 @@ export default function Messages() {
     myId,
     openThread,
     setSearchParams,
+    t,
   ]);
 
   React.useEffect(() => {
@@ -732,7 +703,7 @@ export default function Messages() {
 
       await loadInbox({ silent: true });
     } catch (e) {
-      showToast(e.message || "Не удалось отправить сообщение", "error");
+      showToast(getUserFacingErrorMessage(e, t) || t("chat.loadFailed"), "error");
     } finally {
       setSending(false);
     }
@@ -756,8 +727,8 @@ export default function Messages() {
   }, [items, query]);
 
   const groupedThread = React.useMemo(
-    () => groupMessagesByDay(thread),
-    [thread]
+    () => groupMessagesByDay(thread, t),
+    [thread, t]
   );
 
   const selectedPeerId = selected ? getPeerId(selected, me) : null;
@@ -781,7 +752,7 @@ export default function Messages() {
       ? selected?.receiverName ||
         selected?.senderName ||
         deepPeerName ||
-        "Администратор Oriyon"
+        t("chat.admin")
       : String(selected?.senderId) === String(myId)
       ? selected?.receiverName || selected?.receiverEmail
       : selected?.senderName || selected?.senderEmail;
@@ -803,6 +774,7 @@ export default function Messages() {
         message={toast.message}
         type={toast.type}
         onClose={() => setToast({ message: "", type: "info" })}
+        closeLabel={t("common.close")}
       />
 
       <div className="max-w-[1800px] mx-auto px-2 md:px-5 py-4">
@@ -814,19 +786,19 @@ export default function Messages() {
 
             <div>
               <h1 className="font-display text-2xl md:text-3xl font-bold text-ink">
-                Сообщения
+                {t("chat.title")}
               </h1>
               <p className="text-ink-400 mt-0.5 text-sm">
                 {socketReady
-                  ? "Онлайн · мгновенные обновления"
+                  ? t("chat.onlineRealtime")
                   : socketError
-                  ? "Нет real-time · сообщения обновляются автоматически"
-                  : "Подключение к чату…"}
+                  ? t("chat.offlinePolling")
+                  : t("chat.connecting")}
               </p>
               {isAdmin && (
                 <div className="mt-2 inline-flex items-center gap-2 text-xs text-purple-700 bg-purple-50 border border-purple-100 rounded-full px-3 py-1">
                   <Shield size={14} />
-                  Администратор видит все диалоги
+                  {t("chat.adminSeeAll")}
                 </div>
               )}
             </div>
@@ -834,7 +806,7 @@ export default function Messages() {
 
           <Link to="/profile" className="btn hidden sm:inline-flex">
             <ArrowLeft size={18} />
-            Профиль
+            {t("nav.profile")}
           </Link>
         </div>
 
@@ -847,10 +819,10 @@ export default function Messages() {
             <div className="flex items-center justify-between gap-2 px-4 py-3 border-b border-ink/10">
               <div>
                 <div className="font-display font-bold text-lg text-ink">
-                  Диалоги
+                  {t("chat.dialogs")}
                 </div>
                 <div className="text-xs text-ink-400">
-                  {filteredItems.length} чатов
+                  {t("chat.chatsCount", { count: filteredItems.length })}
                 </div>
               </div>
 
@@ -859,7 +831,7 @@ export default function Messages() {
                 onClick={() => loadInbox()}
                 disabled={refreshing}
                 className="btn p-2.5 disabled:opacity-60"
-                title="Обновить"
+                title={t("chat.refresh")}
               >
                 <RefreshCw
                   size={17}
@@ -876,14 +848,14 @@ export default function Messages() {
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Поиск по сообщениям..."
+                placeholder={t("chat.searchPlaceholder")}
                 className="input w-full h-11 pl-10"
               />
             </div>
 
             {filteredItems.length === 0 ? (
               <div className="mx-4 mb-4 rounded-2xl bg-mist p-6 text-center text-sm text-ink-400">
-                Диалогов пока нет.
+                {t("chat.empty")}
               </div>
             ) : (
               <div className="flex-1 space-y-2 overflow-y-auto px-3 pb-3">
@@ -931,8 +903,8 @@ export default function Messages() {
                           <div className="flex items-start justify-between gap-2">
                             <div className="font-semibold text-ink line-clamp-1">
                               {supportItem
-                                ? "Поддержка Oriyon"
-                                : item.listingTitle || "Объявление"}
+                                ? t("chat.supportOriyon")
+                                : item.listingTitle || t("chat.listing")}
                             </div>
 
                             {Number(item.unreadCount || 0) > 0 && (
@@ -946,8 +918,8 @@ export default function Messages() {
 
                           <div className="text-xs text-ink-400 mt-0.5 line-clamp-1">
                             {supportItem
-                              ? "Премиум-аккаунт"
-                              : item.senderName || item.senderEmail || "Пользователь"}
+                              ? t("chat.premiumAccount")
+                              : item.senderName || item.senderEmail || t("chat.user")}
                           </div>
 
                           <div className="text-sm mt-1 line-clamp-2 text-ink-500">
@@ -974,10 +946,10 @@ export default function Messages() {
                     <MessageCircle size={30} />
                   </div>
                   <div className="font-display font-bold text-xl text-ink">
-                    Выберите диалог
+                    {t("chat.selectDialog")}
                   </div>
                   <div className="text-sm text-ink-400 mt-2">
-                    Откройте чат из списка слева.
+                    {t("chat.selectDialogHint")}
                   </div>
                 </div>
               </div>
@@ -988,7 +960,7 @@ export default function Messages() {
                     type="button"
                     onClick={() => setMobileView("list")}
                     className="btn p-2.5 xl:hidden shrink-0"
-                    aria-label="Назад к диалогам"
+                    aria-label={t("chat.backToDialogs")}
                   >
                     <ArrowLeft size={18} />
                   </button>
@@ -1012,14 +984,14 @@ export default function Messages() {
                   <div className="min-w-0 flex-1">
                     <div className="font-display font-bold text-ink line-clamp-1">
                       {supportThread
-                        ? "Поддержка Oriyon"
-                        : selected.listingTitle || "Объявление"}
+                        ? t("chat.supportOriyon")
+                        : selected.listingTitle || t("chat.listing")}
                     </div>
                     <div className="flex flex-wrap items-center gap-2 text-xs text-ink-400">
                       <span>
                         {supportThread
-                          ? `${peerName} · премиум-аккаунт`
-                          : peerName || "Пользователь"}
+                          ? t("chat.peerPremium", { name: peerName })
+                          : peerName || t("chat.user")}
                       </span>
                       {!supportThread && (
                         <>
@@ -1030,13 +1002,13 @@ export default function Messages() {
                           />
                           <span>
                             {peerOnline
-                              ? "онлайн"
-                              : formatLastSeen(selectedPeerLastSeen)}
+                              ? t("chat.online")
+                              : formatLastSeen(selectedPeerLastSeen, t)}
                           </span>
                         </>
                       )}
                       {typingPeer && (
-                        <span className="text-sun font-medium">печатает…</span>
+                        <span className="text-sun font-medium">{t("chat.typing")}</span>
                       )}
                     </div>
                   </div>
@@ -1046,7 +1018,7 @@ export default function Messages() {
                       to={`/ad/${selected.listingId}`}
                       className="btn btn-primary shrink-0 text-sm hidden sm:inline-flex"
                     >
-                      Объявление
+                      {t("chat.listing")}
                     </Link>
                   )}
                 </div>
@@ -1072,16 +1044,15 @@ export default function Messages() {
                             <Building2 size={20} />
                           </div>
                           <div className="font-display font-bold text-ink">
-                            Консультация по Oriyon Premium
+                            {t("chat.premiumConsultTitle")}
                           </div>
                           <p className="text-sm text-ink-400 mt-2 leading-relaxed">
-                            Задайте вопрос об условиях, стоимости и подключении
-                            премиум-аккаунта. Администратор ответит в этом чате.
+                            {t("chat.premiumConsultDesc")}
                           </p>
                         </div>
                       ) : (
                         <div className="text-center text-ink-400">
-                          Сообщений пока нет. Напишите первым!
+                          {t("chat.empty")}
                         </div>
                       )}
                     </div>
@@ -1128,7 +1099,7 @@ export default function Messages() {
                               {mine && (
                                 <span
                                   className="inline-flex"
-                                  title={msg.isRead ? "Прочитано" : "Доставлено"}
+                                  title={msg.isRead ? t("chat.read") : t("chat.delivered")}
                                 >
                               {msg.isRead === true ? (
                                     <CheckCheck size={14} className="text-sun-300" />
@@ -1151,8 +1122,8 @@ export default function Messages() {
                   <div className="border-t border-ink/10 bg-white p-4 space-y-3">
                     <div className="flex flex-wrap gap-2">
                       {(supportThread
-                        ? BUSINESS_SUPPORT_REPLIES
-                        : QUICK_REPLIES
+                        ? getQuickReplies(t, true)
+                        : getQuickReplies(t)
                       ).map((reply) => (
                         <button
                           key={reply}
@@ -1177,11 +1148,7 @@ export default function Messages() {
                           }
                         }}
                         rows={1}
-                        placeholder={
-                          supportThread
-                            ? "Сообщение администратору..."
-                            : "Введите сообщение..."
-                        }
+                        placeholder={t("chat.placeholder")}
                         className="input flex-1 min-h-[52px] max-h-[160px] resize-none py-3"
                       />
 
@@ -1192,20 +1159,19 @@ export default function Messages() {
                         className="btn btn-primary h-[52px] px-5 disabled:opacity-60"
                       >
                         <Send size={18} />
-                        {sending ? "..." : "Отправить"}
+                        {sending ? t("chat.sending") : t("chat.send")}
                       </button>
                     </div>
 
                     <div className="text-xs text-ink-400">
-                      Enter — отправить · Shift+Enter — новая строка
+                      {t("chat.sendHint")}
                     </div>
                   </div>
                 )}
 
                 {isAdmin && (
                   <div className="border-t border-ink/10 bg-white p-4 text-sm text-ink-400">
-                    Администратор может просматривать диалог, но не отвечает от
-                    имени пользователей.
+                    {t("chat.adminReadOnly")}
                   </div>
                 )}
               </>

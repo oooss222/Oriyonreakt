@@ -8,6 +8,7 @@ import {
 import { COMPARE_PLATFORMS } from "../lib/comparePlatforms";
 import { getCompareConfig } from "../lib/compareConfig";
 import { api } from "../lib/api";
+import { useI18n } from "../i18n";
 
 const EMPTY_FORM = {
   platform: "somon",
@@ -36,6 +37,7 @@ function specsArrayToMap(specs = []) {
 }
 
 export default function CompareExternalForm({ cat, onAdded }) {
+  const { t } = useI18n();
   const config = getCompareConfig(cat);
   const [open, setOpen] = React.useState(false);
   const [form, setForm] = React.useState(EMPTY_FORM);
@@ -79,7 +81,7 @@ export default function CompareExternalForm({ cat, onAdded }) {
   const importFromUrl = async () => {
     const url = form.url.trim();
     if (!url) {
-      setError("Вставьте ссылку на объявление");
+      setError(t("compare.pasteUrl"));
       return;
     }
 
@@ -107,10 +109,10 @@ export default function CompareExternalForm({ cat, onAdded }) {
       if (Array.isArray(result?.warnings) && result.warnings.length) {
         setNotice(result.warnings.join(" "));
       } else {
-        setNotice("Данные загружены. Проверьте поля и нажмите «Добавить в сравнение».");
+        setNotice(t("compare.importSuccess"));
       }
     } catch (err) {
-      setError(err?.message || "Не удалось загрузить объявление по ссылке");
+      setError(err?.message || t("compare.importFailed"));
     } finally {
       setImporting(false);
     }
@@ -120,7 +122,7 @@ export default function CompareExternalForm({ cat, onAdded }) {
     event.preventDefault();
 
     if (full) {
-      setError(`Максимум ${COMPARE_MAX} объявления в сравнении`);
+      setError(t("compare.maxReached", { max: COMPARE_MAX }));
       return;
     }
 
@@ -128,7 +130,7 @@ export default function CompareExternalForm({ cat, onAdded }) {
     const price = form.price.trim();
 
     if (!title || !price) {
-      setError("Укажите название и цену");
+      setError(t("compare.titlePriceRequired"));
       return;
     }
 
@@ -158,10 +160,10 @@ export default function CompareExternalForm({ cat, onAdded }) {
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 className="text-base font-bold text-slate-900">
-            Объявление с другой площадки
+            {t("compare.externalTitle")}
           </h2>
           <p className="text-sm text-slate-500 mt-1">
-            Вставьте ссылку с Somon или Paydo — поля заполнятся автоматически
+            {t("compare.externalHint")}
           </p>
         </div>
 
@@ -173,14 +175,14 @@ export default function CompareExternalForm({ cat, onAdded }) {
             className="inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-semibold hover:bg-slate-50 disabled:opacity-50"
           >
             <Plus size={16} />
-            Добавить
+            {t("compare.add")}
           </button>
         )}
       </div>
 
       {full && (
         <p className="text-sm text-amber-700 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2">
-          Список сравнения заполнен ({COMPARE_MAX}/{COMPARE_MAX}). Удалите объявление, чтобы добавить новое.
+          {t("compare.listFull", { count: COMPARE_MAX, max: COMPARE_MAX })}
         </p>
       )}
 
@@ -189,7 +191,7 @@ export default function CompareExternalForm({ cat, onAdded }) {
           <div className="grid md:grid-cols-[1fr_auto] gap-3 items-end">
             <label className="space-y-1.5 block">
               <span className="text-sm font-medium text-slate-700">
-                Ссылка на объявление
+                {t("compare.urlLabel")}
               </span>
               <div className="relative">
                 <Link2
@@ -213,13 +215,13 @@ export default function CompareExternalForm({ cat, onAdded }) {
               className="inline-flex items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-semibold hover:bg-slate-50 disabled:opacity-50"
             >
               {importing ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
-              Загрузить
+              {t("compare.import")}
             </button>
           </div>
 
           <div className="grid md:grid-cols-2 gap-3">
             <label className="space-y-1.5 block">
-              <span className="text-sm font-medium text-slate-700">Площадка</span>
+              <span className="text-sm font-medium text-slate-700">{t("compare.platform")}</span>
               <select
                 value={form.platform}
                 onChange={(e) => updateField("platform", e.target.value)}
@@ -234,7 +236,7 @@ export default function CompareExternalForm({ cat, onAdded }) {
             </label>
 
             <label className="space-y-1.5 block">
-              <span className="text-sm font-medium text-slate-700">Город</span>
+              <span className="text-sm font-medium text-slate-700">{t("compare.city")}</span>
               <input
                 type="text"
                 value={form.location}
@@ -246,7 +248,7 @@ export default function CompareExternalForm({ cat, onAdded }) {
 
             <label className="space-y-1.5 block md:col-span-2">
               <span className="text-sm font-medium text-slate-700">
-                Название <span className="text-red-500">*</span>
+                {t("compare.nameLabel")} <span className="text-red-500">*</span>
               </span>
               <input
                 type="text"
@@ -260,7 +262,7 @@ export default function CompareExternalForm({ cat, onAdded }) {
 
             <label className="space-y-1.5 block">
               <span className="text-sm font-medium text-slate-700">
-                Цена <span className="text-red-500">*</span>
+                {t("compare.priceLabel")} <span className="text-red-500">*</span>
               </span>
               <input
                 type="text"
@@ -305,7 +307,7 @@ export default function CompareExternalForm({ cat, onAdded }) {
 
           <div className="flex flex-wrap gap-2">
             <button type="submit" className="btn btn-primary">
-              Добавить в сравнение
+              {t("compare.addToCompare")}
             </button>
             <button
               type="button"
@@ -315,7 +317,7 @@ export default function CompareExternalForm({ cat, onAdded }) {
               }}
               className="inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-semibold hover:bg-slate-50"
             >
-              Отмена
+              {t("common.cancel")}
             </button>
           </div>
         </form>

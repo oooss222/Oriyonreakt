@@ -39,6 +39,7 @@ import {
   saveListingDraft,
 } from "../lib/listingFormDraft";
 import { buildTransportSuggestedTitle } from "../lib/listingFormTitles";
+import { useI18n } from "../i18n";
 import {
   Info,
   Sparkles,
@@ -57,6 +58,7 @@ export default function ListingForm({
   backTo = "/profile?tab=my",
 }) {
   const nav = useNavigate();
+  const { t } = useI18n();
   const token = localStorage.getItem("auth_token") || "";
   const isEdit = mode === "edit";
 
@@ -266,7 +268,7 @@ export default function ListingForm({
     const total = existingImages.length + files.length + arr.length;
 
     if (total > photoLimit) {
-      setErr(`Максимум ${photoLimit} фотографий для этой категории`);
+      setErr(t("form.maxPhotos", { count: photoLimit }));
       return;
     }
 
@@ -438,6 +440,7 @@ export default function ListingForm({
       existingImages,
       files,
       isRealEstate: isRealEstateWizardCategory(form.cat),
+      t,
     });
 
     if (validationError) {
@@ -497,7 +500,10 @@ export default function ListingForm({
 
       onSuccess?.(result);
     } catch (error) {
-      setErr(error.message || (isEdit ? "Ошибка сохранения" : "Ошибка создания"));
+      setErr(
+        error.message ||
+          (isEdit ? t("listing.saveError") : t("listing.createError"))
+      );
     } finally {
       setSaving(false);
     }
@@ -526,9 +532,10 @@ export default function ListingForm({
     photosCount,
     minPhotos,
     isRealEstate: useRealEstateWizard,
+    t,
   });
   const publishHint = publishHintParts.length
-    ? `Заполните: ${publishHintParts.join(", ")}`
+    ? `${t("form.fillPrefix")} ${publishHintParts.join(", ")}`
     : "";
 
   const suggestTransportTitle = () => {
@@ -539,7 +546,7 @@ export default function ListingForm({
     return (
       <div className="w-full max-w-7xl mx-auto px-4 py-6">
         <div className="rounded-2xl border bg-white p-6 text-center">
-          Загрузка...
+          {t("common.loading")}
         </div>
       </div>
     );
@@ -552,31 +559,29 @@ export default function ListingForm({
           {isEdit ? (
             <>
               <Pencil className="w-4 h-4" />
-              Редактирование
+              {t("listing.editing")}
             </>
           ) : (
             <>
               <Sparkles className="w-4 h-4" />
-              Новое объявление
+              {t("listing.newBadge")}
             </>
           )}
         </div>
 
         <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
-          {isEdit ? "Редактировать объявление" : "Создать объявление"}
+          {isEdit ? t("listing.editForm") : t("listing.createForm")}
         </h1>
 
         <p className="text-slate-600 text-sm md:text-base">
-          {isEdit
-            ? "После сохранения объявление снова отправится на модерацию."
-            : "Заполните данные, загрузите фото и опубликуйте объявление."}
+          {isEdit ? t("listing.editHint") : t("listing.createHint")}
         </p>
 
         <Link
           to={backTo}
           className="inline-flex text-sm text-slate-500 hover:text-slate-800 transition"
         >
-          ← Назад
+          {t("form.back")}
         </Link>
       </div>
 
@@ -586,12 +591,14 @@ export default function ListingForm({
             <FileText className="w-5 h-5 text-amber-700 mt-0.5 shrink-0" />
             <div>
               <div className="font-semibold text-amber-900">
-                Продолжить черновик?
+                {t("listing.draftContinue")}
               </div>
               <div className="text-sm text-amber-800 mt-1">
-                Сохранён{" "}
-                {formatDraftSavedAt(draftPrompt.savedAt) || "недавно"}. Новые
-                фото из черновика не восстанавливаются.
+                {t("listing.draftContinueDesc", {
+                  time:
+                    formatDraftSavedAt(draftPrompt.savedAt) ||
+                    t("listing.draftRecently"),
+                })}
               </div>
             </div>
           </div>
@@ -601,14 +608,14 @@ export default function ListingForm({
               onClick={restoreDraft}
               className="rounded-xl bg-sun text-white px-4 py-2 text-sm font-semibold hover:opacity-90"
             >
-              Продолжить
+              {t("listing.continue")}
             </button>
             <button
               type="button"
               onClick={discardDraft}
               className="rounded-xl border bg-white px-4 py-2 text-sm font-medium hover:bg-slate-50"
             >
-              Начать заново
+              {t("listing.startOver")}
             </button>
           </div>
         </div>
@@ -649,7 +656,7 @@ export default function ListingForm({
             <div className="listing-form-card__head">
               <div className="listing-form-card__title">
                 <Info className="w-5 h-5 text-sun" />
-                Основная информация
+                {t("form.basicInfo")}
               </div>
             </div>
 
@@ -657,7 +664,7 @@ export default function ListingForm({
               <div>
                 <div className="flex items-center justify-between gap-3 mb-1">
                   <label className="listing-form-label listing-form-label-required">
-                    Заголовок
+                    {t("form.title")}
                   </label>
                   {form.cat === "transport" ? (
                     <button
@@ -666,7 +673,7 @@ export default function ListingForm({
                       className="inline-flex items-center gap-1 text-xs font-medium text-sun hover:text-sun-700"
                     >
                       <Sparkles className="w-3.5 h-3.5" />
-                      Сгенерировать
+                      {t("form.generateTitle")}
                     </button>
                   ) : null}
                 </div>
@@ -675,7 +682,7 @@ export default function ListingForm({
                   onChange={(e) =>
                     setField("title", e.target.value.slice(0, TITLE_MAX))
                   }
-                  placeholder="Например: Toyota Camry 2018"
+                  placeholder={t("form.titlePlaceholder")}
                   className="listing-form-input"
                 />
                 <div className="listing-form-meta">
@@ -685,7 +692,7 @@ export default function ListingForm({
 
               <div>
                 <label className="listing-form-label listing-form-label-required">
-                  Цена
+                  {t("form.price")}
                 </label>
                 <div className="listing-form-price-wrap">
                   <input
@@ -695,19 +702,19 @@ export default function ListingForm({
                       e.preventDefault();
                       handlePriceChange(e.clipboardData.getData("text"));
                     }}
-                    placeholder="Например: 120 000"
+                    placeholder={t("form.pricePlaceholder")}
                     inputMode="numeric"
                     autoComplete="off"
                   />
-                  <span className="listing-form-price-suffix">с.</span>
+                  <span className="listing-form-price-suffix">{t("price.currency")}</span>
                 </div>
                 <div className="listing-form-meta">
-                  {priceDigits.length}/{PRICE_MAX_DIGITS} цифр
+                  {priceDigits.length}/{PRICE_MAX_DIGITS} {t("form.digits")}
                 </div>
               </div>
 
               <div>
-                <label className="listing-form-label">Локация</label>
+                <label className="listing-form-label">{t("form.location")}</label>
                 <div className="listing-form-location-segment">
                   {LOCATIONS.map((city) => {
                     const active = form.location === city;
@@ -731,7 +738,7 @@ export default function ListingForm({
 
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
-                  <label className="listing-form-label">Категория</label>
+                  <label className="listing-form-label">{t("form.category")}</label>
                   <select
                     value={form.cat}
                     onChange={(e) => handleCatChange(e.target.value)}
@@ -746,7 +753,7 @@ export default function ListingForm({
                 </div>
 
                 <div>
-                  <label className="listing-form-label">Подкатегория</label>
+                  <label className="listing-form-label">{t("form.subcategory")}</label>
                   <select
                     value={form.subcategory}
                     onChange={(e) => handleSubcategoryChange(e.target.value)}
@@ -762,13 +769,13 @@ export default function ListingForm({
               </div>
 
               <div>
-                <label className="listing-form-label">Описание</label>
+                <label className="listing-form-label">{t("form.description")}</label>
                 <textarea
                   value={form.description}
                   onChange={(e) =>
                     setField("description", e.target.value.slice(0, DESC_MAX))
                   }
-                  placeholder="Опишите товар, состояние, комплектацию и условия сделки"
+                  placeholder={t("form.descriptionPlaceholder")}
                   className="listing-form-textarea"
                 />
                 <div className="listing-form-meta">
@@ -805,7 +812,7 @@ export default function ListingForm({
             <div className="listing-form-card__head">
               <div className="listing-form-card__title">
                 <ListChecks className="w-5 h-5 text-sun" />
-                Характеристики
+                {t("form.specs")}
               </div>
             </div>
 
@@ -823,23 +830,23 @@ export default function ListingForm({
           checks={[
             {
               key: "photos",
-              label: "Фото",
+              label: t("form.photos"),
               ok: hasPhotos,
               detail: `${photosCount}/${photoLimit}`,
             },
             {
               key: "specs",
-              label: "Характеристики",
+              label: t("form.specs"),
               ok: specsComplete,
-              detail: specsComplete ? "заполнены" : "не заполнены",
+              detail: specsComplete ? t("form.specsFilled") : t("form.specsEmpty"),
             },
             {
               key: "price",
-              label: "Цена",
+              label: t("form.price"),
               ok: hasPrice,
               detail: hasPrice
-                ? `${formatPriceInput(form.price)} с.`
-                : "не указана",
+                ? `${formatPriceInput(form.price)} ${t("price.currency")}`
+                : t("form.priceEmpty"),
             },
           ]}
           canPublish={canPublish}
@@ -849,8 +856,8 @@ export default function ListingForm({
           onReset={resetForm}
           footerNote={
             isEdit
-              ? "После сохранения объявление снова уйдёт на модерацию."
-              : "После проверки объявление будет доступно в общем списке."
+              ? t("listing.editModerationHint")
+              : t("listing.publishHint")
           }
         />
       </form>

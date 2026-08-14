@@ -3,6 +3,7 @@ import ListingCardOverlays from "./ListingCardOverlays";
 import GalleryPhotoIndicator from "./GalleryPhotoIndicator";
 import { getListingImages } from "../lib/media";
 import { getPromotionMediaClass } from "../lib/promotionStyles";
+import { useI18n } from "../i18n";
 
 export default function ListingCardMedia({
   item,
@@ -15,6 +16,7 @@ export default function ListingCardMedia({
   className = "listing-card__media",
   photoCount = 0,
 }) {
+  const { t } = useI18n();
   const listingId = item?.id || item?._id;
   const images = React.useMemo(() => getListingImages(item), [item]);
   const [activeIndex, setActiveIndex] = React.useState(0);
@@ -93,7 +95,7 @@ export default function ListingCardMedia({
     >
       <img
         src={images[activeIndex] || images[0]}
-        alt={item?.title || "Объявление"}
+        alt={item?.title || t("listing.title")}
         loading="lazy"
         className={`h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03] ${getPromotionMediaClass(
           { vip }

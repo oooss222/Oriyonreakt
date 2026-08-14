@@ -5,6 +5,8 @@ import RealEstateListingCard from "../components/RealEstateListingCard";
 import AdSlot from "../components/AdSlot";
 import BusinessPromoBanner from "../components/BusinessPromoBanner";
 import { api } from "../lib/api";
+import { getUserFacingErrorMessage } from "../lib/apiError";
+import { useI18n } from "../i18n";
 import { getDefaultCity } from "../lib/recommendationProfile";
 import { CONSENT_EVENT } from "../lib/cookieConsent";
 import { sortListingsByPromotion } from "../lib/listingSort";
@@ -25,6 +27,8 @@ import {
 } from "lucide-react";
 
 function RealEstateSection({ items }) {
+  const { t } = useI18n();
+
   if (!items?.length) {
     return (
       <AdSlot placement="home_top" className="overflow-hidden rounded-3xl" />
@@ -39,8 +43,10 @@ function RealEstateSection({ items }) {
             <Building2 size={20} />
           </div>
           <div>
-            <h2 className="section-title">Недвижимость</h2>
-            <div className="text-sm text-ink-400">{items.length} объявлений</div>
+            <h2 className="section-title">{t("categories.realestate")}</h2>
+            <div className="text-sm text-ink-400">
+              {t("listing.count", { count: items.length })}
+            </div>
           </div>
         </div>
 
@@ -48,7 +54,7 @@ function RealEstateSection({ items }) {
           to={DEFAULT_REAL_ESTATE_BROWSE_PATH}
           className="hidden sm:inline-flex items-center gap-1 text-sm font-semibold text-sun-700 hover:text-sun transition"
         >
-          Все объявления
+          {t("footer.allListings")}
           <ArrowRight size={16} />
         </Link>
       </div>
@@ -63,6 +69,8 @@ function RealEstateSection({ items }) {
 }
 
 function HorizontalSection({ title, icon: Icon, items, linkTo = "/listing" }) {
+  const { t } = useI18n();
+
   if (!items?.length) return null;
 
   return (
@@ -75,7 +83,9 @@ function HorizontalSection({ title, icon: Icon, items, linkTo = "/listing" }) {
 
           <div>
             <h2 className="section-title">{title}</h2>
-            <div className="text-sm text-ink-400">{items.length} объявлений</div>
+            <div className="text-sm text-ink-400">
+              {t("listing.count", { count: items.length })}
+            </div>
           </div>
         </div>
 
@@ -83,7 +93,7 @@ function HorizontalSection({ title, icon: Icon, items, linkTo = "/listing" }) {
           to={linkTo}
           className="hidden sm:inline-flex items-center gap-1 text-sm font-semibold text-sun-700 hover:text-sun transition"
         >
-          Смотреть все
+          {t("home.viewAll")}
           <ArrowRight size={16} />
         </Link>
       </div>
@@ -127,6 +137,7 @@ function ListingSkeleton() {
 }
 
 export default function Home() {
+  const { t } = useI18n();
   const [forYou, setForYou] = React.useState([]);
   const [recentlyViewed, setRecentlyViewed] = React.useState([]);
   const [personalized, setPersonalized] = React.useState(false);
@@ -187,7 +198,7 @@ export default function Home() {
         }
       } catch (e) {
         if (active) {
-          setError(e.message || "Не удалось загрузить объявления");
+          setError(getUserFacingErrorMessage(e, t) || t("errors.loadListings"));
         }
       } finally {
         if (active) {
@@ -201,7 +212,7 @@ export default function Home() {
     return () => {
       active = false;
     };
-  }, [reloadKey]);
+  }, [reloadKey, t]);
 
   const feedPool = React.useMemo(() => {
     const merged = [...forYou, ...listings];
@@ -260,11 +271,11 @@ export default function Home() {
                 </div>
 
                 <div className="font-display font-semibold text-ink">
-                  Пока нет опубликованных объявлений
+                  {t("home.noPublished")}
                 </div>
 
                 <p className="text-sm text-ink-400 mt-1">
-                  Добавьте объявление, после модерации оно появится здесь.
+                  {t("home.noPublishedHint")}
                 </p>
 
                 <Link
@@ -272,14 +283,14 @@ export default function Home() {
                   className="btn btn-primary mt-4"
                 >
                   <PlusCircle size={18} />
-                  Подать объявление
+                  {t("footer.postListing")}
                 </Link>
               </div>
             ) : (
               <div className="space-y-10">
             {recentlyViewed.length > 0 && (
               <HorizontalSection
-                title="Вы смотрели"
+                title={t("home.viewed")}
                 icon={Eye}
                 items={recentlyViewed}
                 linkTo="/listing"
@@ -287,7 +298,7 @@ export default function Home() {
             )}
 
             <HorizontalSection
-              title={personalized ? "Подобрано для вас" : "Горящие товары"}
+              title={personalized ? t("home.pickedForYou") : t("home.hotDeals")}
               icon={personalized ? Sparkles : Flame}
               items={hotListings}
               linkTo="/listing"
@@ -296,28 +307,28 @@ export default function Home() {
             <AdSlot placement="home_mid" className="overflow-hidden rounded-3xl" />
 
             <HorizontalSection
-              title="Бытовая техника"
+              title={t("categories.electronics")}
               icon={HomeIcon}
               items={electronicsListings}
               linkTo="/c/electronics"
             />
 
             <HorizontalSection
-              title="Телефоны"
+              title={t("categories.phones")}
               icon={Smartphone}
               items={phonesListings}
               linkTo="/c/phones"
             />
 
             <HorizontalSection
-              title="Компьютеры"
+              title={t("categories.computers")}
               icon={Monitor}
               items={computersListings}
               linkTo="/c/computers"
             />
 
             <HorizontalSection
-              title="Новые объявления"
+              title={t("home.newListings")}
               icon={TrendingUp}
               items={newestListings}
               linkTo="/listing"
@@ -333,11 +344,11 @@ export default function Home() {
               <ShieldCheck />
             </div>
 
-            <h3 className="font-display font-bold text-lg text-ink">Модерация объявлений</h3>
+            <h3 className="font-display font-bold text-lg text-ink">
+              {t("home.moderationTitle")}
+            </h3>
 
-            <p className="text-sm text-ink-400 mt-2">
-              Объявления проверяются перед публикацией, чтобы снизить риск мошенничества и спама.
-            </p>
+            <p className="text-sm text-ink-400 mt-2">{t("home.moderationDesc")}</p>
           </div>
 
           <div className="surface-panel p-5">
@@ -345,11 +356,11 @@ export default function Home() {
               <BadgeCheck />
             </div>
 
-            <h3 className="font-display font-bold text-lg text-ink">Личный кабинет</h3>
+            <h3 className="font-display font-bold text-lg text-ink">
+              {t("home.accountTitle")}
+            </h3>
 
-            <p className="text-sm text-ink-400 mt-2">
-              Управляйте объявлениями, избранным, кошельком и настройками профиля в одном месте.
-            </p>
+            <p className="text-sm text-ink-400 mt-2">{t("home.accountDesc")}</p>
           </div>
 
           <div className="surface-panel p-5">
@@ -357,11 +368,11 @@ export default function Home() {
               <Sparkles />
             </div>
 
-            <h3 className="font-display font-bold text-lg text-ink">Продвижение</h3>
+            <h3 className="font-display font-bold text-lg text-ink">
+              {t("home.promotionTitle")}
+            </h3>
 
-            <p className="text-sm text-ink-400 mt-2">
-              Поднимайте объявления в TOP и VIP прямо из личного кабинета или со страницы объявления.
-            </p>
+            <p className="text-sm text-ink-400 mt-2">{t("home.promotionDesc")}</p>
           </div>
         </section>
       </div>

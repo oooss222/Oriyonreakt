@@ -2,6 +2,7 @@ import React from "react";
 import { useSearchParams, useNavigate, useParams, useLocation } from "react-router-dom";
 import { api } from "../lib/api";
 import { getUserFacingErrorMessage } from "../lib/apiError";
+import { useI18n, getCategoryLabel, formatNightsLabel } from "../i18n";
 import ListingGridSkeleton from "../components/ListingGridSkeleton";
 import ListingCard from "../components/ListingCard";
 import EmptyState from "../components/EmptyState";
@@ -170,6 +171,7 @@ function draftsMatch(appliedDraft, nextDraft, urlCat = "") {
 }
 
 export default function Listing() {
+  const { t } = useI18n();
   const [searchParams, setSearchParams] = useSearchParams();
   const nav = useNavigate();
   const params = useParams();
@@ -328,7 +330,7 @@ export default function Listing() {
         }
       } catch (e) {
         if (active) {
-          setError(getUserFacingErrorMessage(e, "Не удалось загрузить объявления"));
+          setError(getUserFacingErrorMessage(e, t) || t("errors.loadListings"));
         }
       } finally {
         if (active) {
@@ -342,7 +344,7 @@ export default function Listing() {
     return () => {
       active = false;
     };
-  }, [listingQuery, sort]);
+  }, [listingQuery, sort, t]);
 
   React.useEffect(() => {
     if (!draftIsDirty) {
@@ -424,25 +426,37 @@ export default function Listing() {
   const isDailyListing = isRealEstate && isDailyDeal(effectiveDeal);
   const stayNights = countNights(appliedDraft.checkIn, appliedDraft.checkOut);
 
+  const localizedCatTitle = catConfig
+    ? getCategoryLabel(effectiveListingCat, t)
+    : "";
+
   const pageTitle = React.useMemo(() => {
     if (isRealEstate) {
       return buildRealEstatePageTitle(appliedDraft);
     }
 
     if (effectiveSubcategory && catConfig) {
-      return `${catConfig.title} · ${effectiveSubcategory}`;
+      return `${localizedCatTitle} · ${effectiveSubcategory}`;
     }
 
     if (catConfig) {
-      return catConfig.title;
+      return localizedCatTitle;
     }
 
     if (search) {
-      return `Поиск: ${search}`;
+      return t("listing.searchTitle", { query: search });
     }
 
-    return "Объявления в Душанбе";
-  }, [isRealEstate, appliedDraft, effectiveSubcategory, catConfig, search]);
+    return t("listing.listingsInDushanbe");
+  }, [
+    isRealEstate,
+    appliedDraft,
+    effectiveSubcategory,
+    catConfig,
+    localizedCatTitle,
+    search,
+    t,
+  ]);
 
   const pageDescription = React.useMemo(() => {
     if (isRealEstate) {
@@ -450,22 +464,22 @@ export default function Listing() {
     }
 
     if (catConfig) {
-      return `Объявления в категории «${pageTitle}» на Oriyon.store.`;
+      return t("listing.categoryMeta", { title: pageTitle });
     }
 
-    return "Объявления на Oriyon.store — покупка и продажа в Таджикистане.";
-  }, [isRealEstate, appliedDraft, catConfig, pageTitle]);
+    return t("listing.listingsMeta");
+  }, [isRealEstate, appliedDraft, catConfig, pageTitle, t]);
 
   const breadcrumbItems = React.useMemo(() => {
     if (isRealEstate) {
       return buildRealEstateBreadcrumbs(appliedDraft);
     }
 
-    const crumbs = [{ label: "Главная", to: "/" }];
+    const crumbs = [{ label: t("nav.home"), to: "/" }];
 
     if (catConfig) {
       crumbs.push({
-        label: catConfig.title,
+        label: localizedCatTitle,
         to: catConfig.landingPath || `/c/${effectiveListingCat}`,
       });
     }
@@ -475,9 +489,9 @@ export default function Listing() {
         label: effectiveSubcategory,
       });
     } else if (!catConfig && search) {
-      crumbs.push({ label: "Поиск" });
+      crumbs.push({ label: t("listing.search") });
     } else if (!catConfig) {
-      crumbs.push({ label: "Объявления" });
+      crumbs.push({ label: t("listing.listings") });
     }
 
     return crumbs;
@@ -489,6 +503,8 @@ export default function Listing() {
     effectiveSubcategory,
     effectiveLocation,
     search,
+    localizedCatTitle,
+    t,
   ]);
 
   usePageMeta({
@@ -793,11 +809,17 @@ export default function Listing() {
               <h1 className="text-2xl font-bold text-ink">{pageTitle}</h1>
 
               <p className="mt-1 text-sm text-ink-400">
-                {loading ? "…" : total.toLocaleString("ru-RU")} объявлений
+                {loading
+                  ? "…"
+                  : t("listing.count", {
+                      count: total.toLocaleString("ru-RU"),
+                    })}
                 {!loading && totalPages > 1 && (
                   <span>
-                    {" "}
-                    · страница {currentPage} из {totalPages}
+                    {t("listing.pageOf", {
+                      page: currentPage,
+                      total: totalPages,
+                    })}
                   </span>
                 )}
               </p>
@@ -823,7 +845,7 @@ export default function Listing() {
                         day: "numeric",
                         month: "short",
                       })}
-                      {stayNights > 0 && ` · ${stayNights} ${stayNights === 1 ? "ночь" : stayNights < 5 ? "ночи" : "ночей"}`}
+                      {stayNights > 0 && ` · ${formatNightsLabel(stayNights, t)}`}
                     </span>
                   )}
                   {appliedDraft.guests && (
@@ -844,7 +866,7 @@ export default function Listing() {
                   className="mobile-btn border bg-white hover:bg-mist lg:hidden"
                 >
                   <SlidersHorizontal size={18} />
-                  Ещё фильтры
+                  {t("listing.moreFilters")}
                   {activeFilterCount > 0 && (
                     <span className="min-w-[1.25rem] h-5 px-1 rounded-full bg-sun text-white text-xs grid place-items-center">
                       {activeFilterCount}
@@ -871,7 +893,7 @@ export default function Listing() {
                   className="mobile-btn border bg-white hover:bg-mist lg:hidden"
                 >
                   <SlidersHorizontal size={18} />
-                  Фильтры
+                  {t("listing.filters")}
                   {activeFilterCount > 0 && (
                     <span className="min-w-[1.25rem] h-5 px-1 rounded-full bg-sun text-white text-xs grid place-items-center">
                       {activeFilterCount}
@@ -898,9 +920,9 @@ export default function Listing() {
       {!loading && error && (
         <EmptyState
           icon={PackageSearch}
-          title="Не удалось загрузить объявления"
+          title={t("errors.loadListings")}
           description={error}
-          actionLabel="Попробовать снова"
+          actionLabel={t("empty.tryAgain")}
           onAction={() => window.location.reload()}
         />
       )}
@@ -908,9 +930,9 @@ export default function Listing() {
       {!loading && !error && items.length === 0 && total === 0 && (
         <EmptyState
           icon={Search}
-          title="По выбранным фильтрам ничего не найдено"
-          description="Попробуйте изменить цену, категорию или характеристики."
-          actionLabel="Сбросить фильтры"
+          title={t("empty.noResults")}
+          description={t("empty.noResultsHint")}
+          actionLabel={t("empty.resetFilters")}
           onAction={resetFilters}
         />
       )}
@@ -976,20 +998,20 @@ export default function Listing() {
         <div className="lg:hidden fixed inset-0 z-[70]">
           <button
             type="button"
-            aria-label="Закрыть фильтры"
+            aria-label={t("a11y.closeFilters")}
             className="absolute inset-0 bg-black/40"
             onClick={() => setMobileFiltersOpen(false)}
           />
 
           <div className="absolute inset-x-0 bottom-0 flex max-h-[92vh] flex-col rounded-t-3xl bg-mist shadow-2xl">
             <div className="flex shrink-0 items-center justify-between gap-3 border-b border-ink/10 px-4 py-3">
-              <h2 className="text-lg font-semibold">Фильтры</h2>
+              <h2 className="text-lg font-semibold">{t("listing.filters")}</h2>
 
               <button
                 type="button"
                 onClick={() => setMobileFiltersOpen(false)}
                 className="p-2 rounded-xl border bg-white hover:bg-mist"
-                aria-label="Закрыть"
+                aria-label={t("common.close")}
               >
                 <X size={18} />
               </button>

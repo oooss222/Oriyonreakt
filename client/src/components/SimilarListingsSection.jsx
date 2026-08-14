@@ -4,18 +4,20 @@ import { ArrowRight } from "lucide-react";
 import { api } from "../lib/api";
 import ListingCard from "./ListingCard";
 import ListingGridSkeleton from "./ListingGridSkeleton";
-import { CAT_LABELS } from "../data/listingCategories";
+import { useI18n, getCategoryLabel } from "../i18n";
 
 export default function SimilarListingsSection({
   cat,
   subcategory = "",
   excludeIds = [],
-  title = "Ещё в этой категории",
+  title,
   limit = 8,
 }) {
+  const { t } = useI18n();
   const [items, setItems] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
 
+  const sectionTitle = title || t("listing.similarTitle");
   const excludeKey = excludeIds.map(String).join(",");
 
   React.useEffect(() => {
@@ -72,7 +74,7 @@ export default function SimilarListingsSection({
       : ""
   }`;
 
-  const catLabel = CAT_LABELS[cat] || cat;
+  const catLabel = getCategoryLabel(cat, t);
 
   if (!loading && items.length === 0) return null;
 
@@ -80,11 +82,11 @@ export default function SimilarListingsSection({
     <section className="space-y-4 pt-2">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-bold text-slate-900">{title}</h2>
+          <h2 className="text-xl font-bold text-slate-900">{sectionTitle}</h2>
           <p className="text-sm text-slate-500 mt-0.5">
             {subcategory
               ? `${catLabel} · ${subcategory}`
-              : `Категория «${catLabel}»`}
+              : t("listing.categoryLabel", { name: catLabel })}
           </p>
         </div>
 
@@ -92,7 +94,7 @@ export default function SimilarListingsSection({
           to={listingUrl}
           className="inline-flex items-center gap-1 text-sm font-medium text-sun hover:text-sun-600 shrink-0"
         >
-          Все
+          {t("category.all")}
           <ArrowRight className="w-4 h-4" />
         </Link>
       </div>

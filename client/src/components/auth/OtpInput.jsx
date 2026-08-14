@@ -1,8 +1,10 @@
 import React from "react";
+import { useI18n } from "../../i18n";
 
 const BOX_COUNT = 6;
 
 export default function OtpInput({ value, onChange, disabled = false, inputRef }) {
+  const { t } = useI18n();
   const boxesRef = React.useRef([]);
   const digits = String(value || "")
     .replace(/\D/g, "")
@@ -103,7 +105,7 @@ export default function OtpInput({ value, onChange, disabled = false, inputRef }
           onChange={(e) => handleChange(index, e.target.value)}
           onKeyDown={(e) => handleKeyDown(index, e)}
           onFocus={(e) => e.target.select()}
-          aria-label={`Цифра ${index + 1} из ${BOX_COUNT}`}
+          aria-label={t("a11y.otpDigit", { n: index + 1 })}
         />
       ))}
     </div>

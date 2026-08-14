@@ -1,15 +1,16 @@
 import React from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { getVisiblePages } from "../lib/pagination";
+import { useI18n } from "../i18n";
 
-function PageButton({ page, active, onClick }) {
+function PageButton({ page, active, onClick, t }) {
   if (active) {
     return (
       <button
         type="button"
         onClick={() => onClick(page)}
         aria-current="page"
-        aria-label={`Страница ${page}`}
+        aria-label={t("a11y.page", { page })}
         className="flex h-10 w-10 items-center justify-center rounded-full bg-ink text-sm font-semibold text-white transition hover:bg-ink-700"
       >
         {page}
@@ -21,7 +22,7 @@ function PageButton({ page, active, onClick }) {
     <button
       type="button"
       onClick={() => onClick(page)}
-      aria-label={`Страница ${page}`}
+      aria-label={t("a11y.page", { page })}
       className="flex h-10 min-w-10 items-center justify-center px-1 text-sm font-semibold text-ink transition hover:text-sun"
     >
       {page}
@@ -29,9 +30,10 @@ function PageButton({ page, active, onClick }) {
   );
 }
 
-function NavButton({ direction, disabled, onClick }) {
+function NavButton({ direction, disabled, onClick, t }) {
   const Icon = direction === "prev" ? ChevronLeft : ChevronRight;
-  const label = direction === "prev" ? "Предыдущая страница" : "Следующая страница";
+  const label =
+    direction === "prev" ? t("a11y.prevPage") : t("a11y.nextPage");
 
   return (
     <button
@@ -56,19 +58,22 @@ export default function Pagination({
   onPageChange,
   className = "",
 }) {
+  const { t } = useI18n();
+
   if (totalPages <= 1) return null;
 
   const pages = getVisiblePages(currentPage, totalPages);
 
   return (
     <nav
-      aria-label="Пагинация"
+      aria-label={t("a11y.pagination")}
       className={`flex items-center justify-center gap-3 sm:gap-4 ${className}`}
     >
       <NavButton
         direction="prev"
         disabled={currentPage <= 1}
         onClick={() => onPageChange(currentPage - 1)}
+        t={t}
       />
 
       <div className="flex items-center gap-1 sm:gap-2">
@@ -78,6 +83,7 @@ export default function Pagination({
             page={page}
             active={page === currentPage}
             onClick={onPageChange}
+            t={t}
           />
         ))}
       </div>
@@ -86,6 +92,7 @@ export default function Pagination({
         direction="next"
         disabled={currentPage >= totalPages}
         onClick={() => onPageChange(currentPage + 1)}
+        t={t}
       />
     </nav>
   );

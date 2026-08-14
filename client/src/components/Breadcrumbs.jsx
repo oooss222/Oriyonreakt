@@ -1,13 +1,16 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
+import { useI18n } from "../i18n";
 
 export default function Breadcrumbs({ items = [] }) {
+  const { t } = useI18n();
+
   if (!items.length) return null;
 
   return (
     <nav
-      aria-label="Навигация"
+      aria-label={t("a11y.breadcrumbs")}
       className="flex flex-wrap items-center gap-1 text-sm text-slate-500"
     >
       {items.map((item, index) => {

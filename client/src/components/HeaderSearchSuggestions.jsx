@@ -2,6 +2,7 @@ import React from "react";
 import { api } from "../lib/api";
 import { getListingThumb } from "../lib/media";
 import { formatPrice } from "../lib/format";
+import { useI18n } from "../i18n";
 
 export default function HeaderSearchSuggestions({
   query,
@@ -9,6 +10,7 @@ export default function HeaderSearchSuggestions({
   onSelect,
   onNavigate,
 }) {
+  const { t } = useI18n();
   const [items, setItems] = React.useState([]);
   const [loading, setLoading] = React.useState(false);
 
@@ -54,7 +56,7 @@ export default function HeaderSearchSuggestions({
   if (loading && items.length === 0) {
     return (
       <div className="absolute left-0 right-0 top-full mt-2 z-50 rounded-2xl border border-ink/10 bg-white shadow-lift overflow-hidden text-ink px-4 py-3 text-sm text-ink-400">
-        Ищем...
+        {t("header.searching")}
       </div>
     );
   }
@@ -80,12 +82,12 @@ export default function HeaderSearchSuggestions({
           >
             <img
               src={getListingThumb(ad)}
-              alt={ad.title || "Объявление"}
+              alt={ad.title || t("listing.title")}
               className="w-12 h-12 rounded-xl object-cover bg-mist"
             />
             <div className="min-w-0">
               <div className="text-sm font-semibold truncate">
-                {ad.title || "Без названия"}
+                {ad.title || t("listing.noTitle")}
               </div>
               <div className="text-xs text-ink-400">
                 {formatPrice(ad.price)}
@@ -104,7 +106,7 @@ export default function HeaderSearchSuggestions({
         }}
         className="w-full px-4 py-2.5 text-sm font-medium text-sun hover:bg-sun-50 text-left"
       >
-        Показать все результаты
+        {t("header.showAllResults")}
       </button>
     </div>
   );

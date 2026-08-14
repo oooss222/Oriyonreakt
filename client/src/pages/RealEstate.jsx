@@ -22,8 +22,10 @@ import { api } from "../lib/api";
 import { sortListingsByPromotion } from "../lib/listingSort";
 import { REAL_ESTATE_CAT } from "../data/realEstate";
 import { buildRealEstateListingUrl, buildRealEstateCategoryUrl } from "../lib/realEstate";
+import { useI18n, getCategoryLabel } from "../i18n";
 
 export default function RealEstate() {
+  const { t } = useI18n();
   const [stats, setStats] = React.useState({ total: 0, bySubcategory: {} });
   const [listings, setListings] = React.useState([]);
   const [premium, setPremium] = React.useState([]);
@@ -108,18 +110,19 @@ export default function RealEstate() {
   }, [city]);
 
   usePageMeta({
-    title: "Недвижимость в Таджикистане — купить и снять | Oriyon.store",
-    description:
-      "Квартиры, дома, участки и коммерческая недвижимость в Душанбе и по всему Таджикистану. Фильтры, цена за м², новостройки и аренда на Oriyon.store.",
+    title: t("realestate.metaTitle"),
+    description: t("realestate.metaDesc"),
     url: typeof window !== "undefined" ? window.location.href : undefined,
   });
+
+  const categoryLabel = getCategoryLabel(REAL_ESTATE_CAT, t);
 
   return (
     <div className="container mx-auto px-3 sm:px-4 py-5 sm:py-8 space-y-8 max-w-6xl">
       <Breadcrumbs
         items={[
-          { label: "Главная", to: "/" },
-          { label: "Недвижимость" },
+          { label: t("nav.home"), to: "/" },
+          { label: categoryLabel },
         ]}
       />
 
@@ -153,7 +156,7 @@ export default function RealEstate() {
           </span>
           <span className="min-w-0">
             <span className="block text-sm font-semibold">
-              Сравнение объектов
+              {t("realestate.compareTitle")}
               {compareCount > 0 ? ` · ${compareCount}/${COMPARE_MAX}` : ""}
             </span>
             <span
@@ -161,7 +164,7 @@ export default function RealEstate() {
                 compareCount > 0 ? "text-white/60" : "text-slate-500"
               }`}
             >
-              До {COMPARE_MAX} объявлений Oriyon и других площадок
+              {t("realestate.compareHint", { max: COMPARE_MAX })}
             </span>
           </span>
         </span>
@@ -173,8 +176,8 @@ export default function RealEstate() {
 
       <div className="space-y-3">
         <RealEstateSectionHeader
-          title="Категории"
-          description="Выберите тип недвижимости для быстрого перехода к объявлениям"
+          title={t("realestate.categories")}
+          description={t("realestate.categoriesDesc")}
         />
         <RealEstateCategoryGrid city={city} statsBySubcategory={stats.bySubcategory} />
       </div>
@@ -189,9 +192,9 @@ export default function RealEstate() {
         <section className="space-y-1">
           <RealEstateSectionHeader
             icon={Sparkles}
-            title="Премиум объявления"
-            description={`VIP и TOP в ${city}`}
-            actionLabel="Все премиум"
+            title={t("realestate.premiumTitle")}
+            description={t("realestate.premiumDesc", { city })}
+            actionLabel={t("realestate.allPremium")}
             actionTo={buildRealEstateListingUrl({ city, sort: "promoted" })}
           />
 
@@ -213,9 +216,9 @@ export default function RealEstate() {
         <section>
           <RealEstateSectionHeader
             icon={Building2}
-            title="Жилые комплексы"
-            description="Карточки застройщиков и проектов"
-            actionLabel="Все новостройки"
+            title={t("realestate.complexesTitle")}
+            description={t("realestate.complexesDesc")}
+            actionLabel={t("realestate.allNovostroyki")}
             actionTo={buildRealEstateCategoryUrl(city, "Новостройки")}
           />
 
@@ -255,7 +258,9 @@ export default function RealEstate() {
                     {item.city}
                   </div>
                   {item.completionDate && (
-                    <div className="text-xs text-slate-400 pt-1">Сдача: {item.completionDate}</div>
+                    <div className="text-xs text-slate-400 pt-1">
+                      {t("realestate.completion", { date: item.completionDate })}
+                    </div>
                   )}
                 </div>
               </Link>
@@ -266,9 +271,9 @@ export default function RealEstate() {
 
       <section>
         <RealEstateSectionHeader
-          title={`Свежие объявления · ${city}`}
-          description="Недавно добавленные объекты в выбранном городе"
-          actionLabel="Смотреть все"
+          title={t("realestate.freshTitle", { city })}
+          description={t("realestate.freshDesc")}
+          actionLabel={t("realestate.viewAll")}
           actionTo={buildRealEstateListingUrl({ city })}
         />
 
@@ -278,18 +283,17 @@ export default function RealEstate() {
           <div className="rounded-2xl border border-dashed bg-slate-50/50 p-10 text-center">
             <Building2 className="mx-auto text-slate-300 mb-3" size={40} />
             <div className="font-semibold text-slate-800">
-              Пока нет объявлений в {city}
+              {t("realestate.emptyInCity", { city })}
             </div>
             <p className="text-sm text-slate-500 mt-2 mb-5 max-w-md mx-auto">
-              Станьте первым — разместите квартиру, дом или участок. Объявление появится после
-              модерации.
+              {t("realestate.emptyHint")}
             </p>
             <Link
               to={`/add?cat=${REAL_ESTATE_CAT}`}
               className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-sun text-white font-semibold hover:bg-sun-600 transition"
             >
               <PlusCircle size={18} />
-              Подать объявление
+              {t("empty.postListing")}
             </Link>
           </div>
         )}
@@ -297,7 +301,7 @@ export default function RealEstate() {
         {!loading && listings.length === 0 && fallbackListings.length > 0 && (
           <div className="space-y-4">
             <p className="text-sm text-slate-500">
-              В {city} пока нет объявлений — показываем свежие из других городов.
+              {t("realestate.fallbackHint", { city })}
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
               {fallbackListings.map((item) => (

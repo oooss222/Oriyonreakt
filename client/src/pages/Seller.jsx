@@ -22,6 +22,8 @@ import { usePageMeta } from "../lib/usePageMeta";
 import { getDisplayName, parseCompanyAddresses } from "../lib/businessAccount";
 import { api } from "../lib/api";
 import { goToAuth } from "../lib/auth";
+import { useI18n } from "../i18n";
+import { getUserFacingErrorMessage } from "../lib/apiError";
 
 const TOKEN_KEY = "auth_token";
 
@@ -46,8 +48,8 @@ function formatMemberSince(value) {
   });
 }
 
-function sellerTypeLabel(type) {
-  return type === "company" ? "Премиум" : "Частное лицо";
+function sellerTypeLabel(type, t) {
+  return type === "company" ? t("seller.premium") : t("seller.private");
 }
 
 function normalizeExternalUrl(value = "") {
@@ -59,6 +61,7 @@ function normalizeExternalUrl(value = "") {
 export default function Seller() {
   const { id } = useParams();
   const nav = useNavigate();
+  const { t } = useI18n();
   const token = localStorage.getItem(TOKEN_KEY) || "";
 
   const [seller, setSeller] = React.useState(null);
@@ -119,7 +122,7 @@ export default function Seller() {
         if (active) {
           setSeller(null);
           setListings([]);
-          setError(e.message || "Не удалось загрузить профиль продавца");
+          setError(getUserFacingErrorMessage(e, t) || t("errors.loadSeller"));
         }
       } finally {
         if (active) {
@@ -133,7 +136,7 @@ export default function Seller() {
     return () => {
       active = false;
     };
-  }, [id]);
+  }, [id, t]);
 
   const sellerName = getDisplayName(seller);
   const memberSince = formatMemberSince(seller?.createdAt);
@@ -145,8 +148,11 @@ export default function Seller() {
   usePageMeta({
     title: sellerName,
     description: seller
-      ? `Объявления продавца ${sellerName} на Oriyon.store. ${seller.listingsCount || listings.length} активных объявлений.`
-      : "Профиль продавца на Oriyon.store",
+      ? t("seller.metaDescription", {
+          name: sellerName,
+          count: seller.listingsCount || listings.length,
+        })
+      : t("seller.meta"),
     url: typeof window !== "undefined" ? window.location.href : undefined,
   });
 
@@ -196,9 +202,9 @@ export default function Seller() {
       <div className="container mx-auto px-4 py-10">
         <EmptyState
           icon={User}
-          title="Продавец не найден"
-          description={error || "Такого профиля нет или он недоступен."}
-          actionLabel="К каталогу"
+          title={t("seller.notFound")}
+          description={error || t("seller.notFoundDesc")}
+          actionLabel={t("empty.goCatalog")}
           onAction={() => nav("/listing")}
         />
       </div>
@@ -209,8 +215,8 @@ export default function Seller() {
     <div className="container mx-auto px-4 py-6 space-y-6">
       <Breadcrumbs
         items={[
-          { label: "Главная", to: "/" },
-          { label: "Продавцы", to: "/listing" },
+          { label: t("nav.home"), to: "/" },
+          { label: t("seller.sellers"), to: "/listing" },
           { label: sellerName },
         ]}
       />
@@ -242,14 +248,14 @@ export default function Seller() {
               {seller.emailVerified && (
                 <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-100">
                   <BadgeCheck className="w-3.5 h-3.5" />
-                  Email подтверждён
+                  {t("seller.emailVerified")}
                 </span>
               )}
 
               {seller.phoneVerified && (
                 <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100">
                   <BadgeCheck className="w-3.5 h-3.5" />
-                  Телефон указан
+                  {t("seller.phoneListed")}
                 </span>
               )}
 
@@ -268,14 +274,16 @@ export default function Seller() {
                 ) : (
                   <User className="w-4 h-4" />
                 )}
-                {sellerTypeLabel(seller.sellerType)}
+                {sellerTypeLabel(seller.sellerType, t)}
               </span>
 
-              {memberSince && <span>На сайте с {memberSince}</span>}
+              {memberSince && (
+                <span>{t("seller.memberSince", { date: memberSince })}</span>
+              )}
 
               <span className="inline-flex items-center gap-1.5">
                 <Package className="w-4 h-4" />
-                {seller.listingsCount} объявлений
+                {t("seller.listingsCount", { count: seller.listingsCount })}
               </span>
             </div>
           </div>
@@ -309,7 +317,7 @@ export default function Seller() {
                   className="inline-flex items-center gap-1.5 text-blue-600 hover:underline"
                 >
                   <Globe className="w-4 h-4" />
-                  Сайт
+                  {t("seller.website")}
                 </a>
               )}
               {seller.companyInstagram && (
@@ -329,7 +337,7 @@ export default function Seller() {
         <div className="flex items-start gap-2 text-xs text-emerald-800 bg-emerald-50 border border-emerald-100 rounded-2xl p-3">
           <ShieldCheck className="w-4 h-4 shrink-0 mt-0.5 text-emerald-600" />
           <span>
-            Встречайтесь лично и проверяйте товар перед оплатой
+            {t("auth.trustLoginItem3Text")}
           </span>
         </div>
 
@@ -341,7 +349,7 @@ export default function Seller() {
               onClick={openSellerChat}
             >
               <MessageCircle className="w-5 h-5" />
-              Написать продавцу
+              {t("seller.writeSeller")}
             </button>
 
             {whatsappHref && (
@@ -370,7 +378,7 @@ export default function Seller() {
 
         {isOwner && (
           <Link to="/profile" className="btn rounded-2xl py-3 w-full sm:w-auto">
-            Мой профиль
+            {t("seller.myProfile")}
           </Link>
         )}
       </section>
@@ -379,10 +387,10 @@ export default function Seller() {
         <div className="flex items-end justify-between gap-3 px-1">
           <div>
             <h2 className="text-xl font-bold text-slate-900">
-              Объявления продавца
+              {t("seller.sellerListings")}
             </h2>
             <p className="text-sm text-slate-500 mt-1">
-              Активные объявления на Oriyon.store
+              {t("seller.activeListingsDesc")}
             </p>
           </div>
         </div>
@@ -390,9 +398,9 @@ export default function Seller() {
         {listings.length === 0 ? (
           <EmptyState
             icon={Package}
-            title="Нет активных объявлений"
-            description="У этого продавца пока нет опубликованных объявлений."
-            actionLabel="К каталогу"
+            title={t("seller.noListings")}
+            description={t("seller.noListingsDesc")}
+            actionLabel={t("empty.goCatalog")}
             onAction={() => nav("/listing")}
           />
         ) : (

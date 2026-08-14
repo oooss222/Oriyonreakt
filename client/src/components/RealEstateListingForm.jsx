@@ -27,6 +27,7 @@ import ListingFormPhotosSection from "./listing/ListingFormPhotosSection";
 import ListingFormPublicationSidebar from "./listing/ListingFormPublicationSidebar";
 import RealEstateListingSpecFields from "./realestate/RealEstateListingSpecFields";
 import { api } from "../lib/api";
+import { useI18n } from "../i18n";
 
 function updateSpecByName(setSpecs, name, value) {
   setSpecs((rows) =>
@@ -55,6 +56,7 @@ export default function RealEstateListingForm({
   isEdit = false,
   onReset,
 }) {
+  const { t } = useI18n();
   const [isDragOver, setIsDragOver] = React.useState(false);
   const [developments, setDevelopments] = React.useState([]);
 
@@ -126,53 +128,56 @@ export default function RealEstateListingForm({
     photosCount,
     minPhotos,
     isRealEstate: true,
+    t,
   });
   const publishHint = publishHintParts.length
-    ? `Заполните: ${publishHintParts.join(", ")}`
+    ? `${t("form.fillPrefix")} ${publishHintParts.join(", ")}`
     : "";
 
   const sidebarChecks = [
     {
       key: "type",
-      label: "Тип объекта",
+      label: t("form.objectType"),
       ok: hasDealType && hasSubcategory,
       detail:
         hasDealType && hasSubcategory
           ? `${dealType}, ${form.subcategory}`
-          : "не выбран",
+          : t("form.notSelected"),
     },
     {
       key: "location",
-      label: "Адрес",
+      label: t("form.address"),
       ok: hasLocation && hasDistrict,
       detail:
         hasLocation && hasDistrict
           ? `${form.location}${getSpecValue(specs, "Район") ? `, ${getSpecValue(specs, "Район")}` : ""}`
-          : "не указан",
+          : t("form.notSpecified"),
     },
     {
       key: "params",
-      label: "Параметры",
+      label: t("form.parameters"),
       ok: coreSpecsComplete,
-      detail: coreSpecsComplete ? "заполнены" : "не заполнены",
+      detail: coreSpecsComplete ? t("form.filled") : t("form.notFilled"),
     },
     {
       key: "photos",
-      label: "Фото",
+      label: t("form.photos"),
       ok: hasPhotos,
       detail: `${photosCount}/${photoLimit}`,
     },
     {
       key: "title",
-      label: "Заголовок",
+      label: t("form.titleLabel"),
       ok: hasTitle,
-      detail: hasTitle ? "указан" : "не указан",
+      detail: hasTitle ? t("form.specified") : t("form.notSpecified"),
     },
     {
       key: "price",
-      label: "Цена",
+      label: t("form.price"),
       ok: hasPrice,
-      detail: hasPrice ? `${formatPriceInput(form.price)} с.` : "не указана",
+      detail: hasPrice
+        ? `${formatPriceInput(form.price)} ${t("price.currency")}`
+        : t("form.priceEmpty"),
     },
   ];
 
@@ -303,7 +308,7 @@ export default function RealEstateListingForm({
                 onChange={(e) =>
                   updateSpecByName(setSpecs, "Адрес", e.target.value)
                 }
-                placeholder="Улица, дом, ориентир"
+                placeholder={t("form.streetPlaceholder")}
                 className="listing-form-input"
               />
             </div>
@@ -397,7 +402,7 @@ export default function RealEstateListingForm({
                 onChange={(e) =>
                   setField("title", e.target.value.slice(0, TITLE_MAX))
                 }
-                placeholder="Например: Снять, 2-комн. квартира, Шохмансур"
+                placeholder={t("form.reTitlePlaceholder")}
                 className="listing-form-input"
               />
               <div className="listing-form-meta">
@@ -422,7 +427,7 @@ export default function RealEstateListingForm({
                       formatPriceInput(e.clipboardData.getData("text"))
                     );
                   }}
-                  placeholder="Например: 1 500 000"
+                  placeholder={t("form.rePricePlaceholder")}
                   inputMode="numeric"
                   autoComplete="off"
                 />
@@ -439,7 +444,7 @@ export default function RealEstateListingForm({
                 onChange={(e) =>
                   setField("description", e.target.value.slice(0, DESC_MAX))
                 }
-                placeholder="Опишите планировку, состояние, инфраструктуру рядом..."
+                placeholder={t("form.reDescPlaceholder")}
                 className="listing-form-textarea"
               />
               <div className="listing-form-meta">
@@ -451,7 +456,7 @@ export default function RealEstateListingForm({
       </section>
 
       <ListingFormPublicationSidebar
-        categoryTitle="Недвижимость"
+        categoryTitle={t("categories.realestate")}
         subcategory={form.subcategory}
         checks={sidebarChecks}
         canPublish={canPublish}
@@ -460,9 +465,7 @@ export default function RealEstateListingForm({
         isEdit={isEdit}
         onReset={onReset}
         footerNote={
-          isEdit
-            ? "После сохранения объявление снова уйдёт на модерацию."
-            : "После проверки объявление будет доступно в общем списке."
+          isEdit ? t("listing.editModerationHint") : t("listing.publishHint")
         }
       />
     </form>

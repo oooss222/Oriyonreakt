@@ -87,29 +87,32 @@ export function validateListingForm({
   existingImages = [],
   files = [],
   isRealEstate = false,
+  t,
 }) {
+  const tr = (key, vars) => (t ? t(key, vars) : key);
+
   if (!form.title?.trim() || !form.cat?.trim() || !form.subcategory?.trim()) {
-    return "Заполните заголовок, категорию и подкатегорию";
+    return tr("form.validationTitle");
   }
 
   if (form.title.trim().length > TITLE_MAX) {
-    return `Заголовок не должен быть длиннее ${TITLE_MAX} символов`;
+    return tr("form.validationTitleMax", { max: TITLE_MAX });
   }
 
   if (getPriceDigits(form.price).length > PRICE_MAX_DIGITS) {
-    return `Цена не может быть длиннее ${PRICE_MAX_DIGITS} цифр`;
+    return tr("form.validationPriceMax", { max: PRICE_MAX_DIGITS });
   }
 
   if ((form.description || "").length > DESC_MAX) {
-    return `Описание не должно быть длиннее ${DESC_MAX} символов`;
+    return tr("form.validationDescMax", { max: DESC_MAX });
   }
 
   if (!form.location?.trim()) {
-    return "Выберите локацию";
+    return tr("form.validationLocation");
   }
 
   if (!getPriceDigits(form.price)) {
-    return "Укажите цену";
+    return tr("form.validationPrice");
   }
 
   const photoLimit = getListingPhotoLimit(form.cat);
@@ -117,21 +120,21 @@ export function validateListingForm({
   const totalPhotos = existingImages.length + files.length;
 
   if (totalPhotos > photoLimit) {
-    return `Максимум ${photoLimit} фотографий для этой категории`;
+    return tr("form.validationPhotoMax", { max: photoLimit });
   }
 
   if (totalPhotos < minPhotos) {
     return minPhotos === 1
-      ? "Добавьте минимум 1 фото"
-      : `Добавьте минимум ${minPhotos} фотографии`;
+      ? tr("form.validationPhotoMin1")
+      : tr("form.validationPhotoMin", { min: minPhotos });
   }
 
   if (isRealEstate || form.cat === REAL_ESTATE_CAT) {
     if (!areRealEstateCoreSpecsComplete(form, specs)) {
-      return "Заполните тип сделки, адрес и основные параметры объекта";
+      return tr("form.validationReCore");
     }
   } else if (!areListingSpecsComplete(specs)) {
-    return "Заполните обязательные характеристики";
+    return tr("form.validationSpecs");
   }
 
   return "";
@@ -143,26 +146,28 @@ export function buildPublishHintParts({
   photosCount,
   minPhotos,
   isRealEstate,
+  t,
 }) {
+  const tr = (key, vars) => (t ? t(key, vars) : key);
   const parts = [];
 
-  if (!form.title?.trim()) parts.push("заголовок");
-  if (!getPriceDigits(form.price)) parts.push("цену");
+  if (!form.title?.trim()) parts.push(tr("form.hintTitle"));
+  if (!getPriceDigits(form.price)) parts.push(tr("form.hintPrice"));
 
   if (photosCount < minPhotos) {
     parts.push(
       minPhotos === 1
-        ? "минимум 1 фото"
-        : `минимум ${minPhotos} фото`
+        ? tr("form.hintPhotoMin1")
+        : tr("form.hintPhotoMin", { min: minPhotos })
     );
   }
 
   if (isRealEstate) {
     if (!areRealEstateCoreSpecsComplete(form, specs)) {
-      parts.push("параметры объекта");
+      parts.push(tr("form.hintReParams"));
     }
   } else if (!areListingSpecsComplete(specs)) {
-    parts.push("характеристики");
+    parts.push(tr("form.hintSpecs"));
   }
 
   return parts;

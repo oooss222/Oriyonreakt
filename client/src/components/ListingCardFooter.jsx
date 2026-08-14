@@ -1,6 +1,8 @@
 import React from "react";
-import { formatPrice, formatListingTimeAgo } from "../lib/format";
+import { formatPrice } from "../lib/format";
+import { formatListingTimeAgo } from "../i18n/helpers";
 import { useListingViewed } from "../lib/viewedListings";
+import { useI18n } from "../i18n";
 
 export default function ListingCardFooter({
   item,
@@ -8,13 +10,17 @@ export default function ListingCardFooter({
   priceSuffix = null,
   priceNote = null,
 }) {
+  const { t } = useI18n();
   const viewed = useListingViewed(listingId);
 
   return (
     <div className="listing-card__footer">
       <div className="min-w-0">
         <strong className="listing-card__price">
-          {formatPrice(item?.price, { currency: "с." })}
+          {formatPrice(item?.price, {
+            currency: t("price.currency"),
+            emptyLabel: t("price.negotiable"),
+          })}
           {priceSuffix ? (
             <span className="ml-1 text-xs font-semibold text-slate-500">
               {priceSuffix}
@@ -29,10 +35,10 @@ export default function ListingCardFooter({
       </div>
       <div className="listing-card__meta">
         <time className="listing-card__time">
-          {formatListingTimeAgo(item)}
+          {formatListingTimeAgo(item, t)}
         </time>
         {viewed ? (
-          <span className="listing-card__viewed">Просмотрено</span>
+          <span className="listing-card__viewed">{t("listing.viewed")}</span>
         ) : null}
       </div>
     </div>

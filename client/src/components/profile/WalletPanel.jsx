@@ -2,6 +2,7 @@ import React from "react";
 import { Sparkles, Wallet } from "lucide-react";
 import WalletTopUp from "./WalletTopUp";
 import { WALLET_TYPE_LABELS } from "./profileUtils";
+import { useI18n } from "../../i18n";
 
 const LOW_BALANCE_THRESHOLD = 15;
 
@@ -13,6 +14,7 @@ export default function WalletPanel({
   onWalletSuccess,
   onOpenPromote,
 }) {
+  const { t } = useI18n();
   const isLowBalance = walletBalance < LOW_BALANCE_THRESHOLD;
 
   return (
@@ -76,7 +78,7 @@ export default function WalletPanel({
                   <div className="font-medium text-sm">
                     {WALLET_TYPE_LABELS[operation.type] ||
                       operation.description ||
-                      "Операция"}
+                      t("wallet.operation")}
                   </div>
                   <div className="text-xs text-slate-500">
                     {operation.createdAt

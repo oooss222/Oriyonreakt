@@ -16,6 +16,7 @@ import {
 } from "../data/realEstate";
 import { buildRealEstateListingUrl } from "../lib/realEstate";
 import { formatPriceInput, getPriceDigits } from "../data/specOptions";
+import { useI18n, pluralRealEstateListings } from "../i18n";
 
 const FIELD_LABEL =
   "mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500";
@@ -32,13 +33,8 @@ function formatHeroPriceSummary(from, to, currency = "с.") {
   return "";
 }
 
-function pluralAds(count) {
-  const mod10 = count % 10;
-  const mod100 = count % 100;
-
-  if (mod10 === 1 && mod100 !== 11) return "объявление";
-  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return "объявления";
-  return "объявлений";
+function pluralAds(count, t) {
+  return pluralRealEstateListings(t, count);
 }
 
 function HeroSelect({ label, value, onChange, children, className = "", icon: Icon }) {
@@ -68,7 +64,7 @@ function HeroSelect({ label, value, onChange, children, className = "", icon: Ic
   );
 }
 
-function HeroPriceFilter({ priceFrom, priceTo, priceCurrency, onChange, dealType = "Купить", label = "Цена" }) {
+function HeroPriceFilter({ priceFrom, priceTo, priceCurrency, onChange, dealType = "Купить", label, t }) {
   const [open, setOpen] = React.useState(false);
   const rootRef = React.useRef(null);
   const summary = formatHeroPriceSummary(priceFrom, priceTo, priceCurrency);
@@ -108,7 +104,7 @@ function HeroPriceFilter({ priceFrom, priceTo, priceCurrency, onChange, dealType
           summary ? "text-slate-900" : "text-slate-500"
         }`}
       >
-        <span className="truncate">{summary || "Любая"}</span>
+        <span className="truncate">{summary || t("realestate.anyPrice")}</span>
         {open ? (
           <ChevronUp size={15} className="shrink-0 text-slate-400" />
         ) : (
@@ -119,14 +115,14 @@ function HeroPriceFilter({ priceFrom, priceTo, priceCurrency, onChange, dealType
       {open && (
         <div
           role="dialog"
-          aria-label="Диапазон цены"
+          aria-label={t("realestate.priceRange")}
           className="absolute left-0 right-0 top-[calc(100%+6px)] z-50 rounded-xl border border-slate-200 bg-white p-2 shadow-xl text-slate-900"
         >
           <div className="flex h-11 items-stretch overflow-hidden rounded-lg border border-slate-200">
             <input
               type="text"
               inputMode="numeric"
-              placeholder="от"
+              placeholder={t("realestate.from")}
               value={priceFrom ? formatPriceInput(priceFrom) : ""}
               onChange={(e) =>
                 onChange({
@@ -140,7 +136,7 @@ function HeroPriceFilter({ priceFrom, priceTo, priceCurrency, onChange, dealType
             <input
               type="text"
               inputMode="numeric"
-              placeholder="до"
+              placeholder={t("realestate.to")}
               value={priceTo ? formatPriceInput(priceTo) : ""}
               onChange={(e) =>
                 onChange({
@@ -211,6 +207,7 @@ export default function RealEstateSearchHero({
   onCityChange,
   onSearch,
 }) {
+  const { t } = useI18n();
   const nav = useNavigate();
   const [dealType, setDealType] = React.useState(initialDeal);
   const [city, setCity] = React.useState(initialCity);
@@ -310,15 +307,26 @@ export default function RealEstateSearchHero({
   const isDaily = isDailyDeal(dealType);
 
   const dealLabel = isDaily
-    ? "Посуточная аренда"
+    ? t("realestate.dailyRent")
     : DEAL_TYPES.find((item) => item.value === dealType)?.label?.toLowerCase() || "купить";
+
+  const actionLabel = isDaily
+    ? dealLabel
+    : dealLabel.charAt(0).toUpperCase() + dealLabel.slice(1);
+
+  const heroTitle = city
+    ? t("realestate.inCity", { action: actionLabel, city })
+    : t("realestate.inTajikistan", { action: actionLabel });
 
   const submitLabel =
     totalCount > 0
-      ? `Показать ${totalCount.toLocaleString("ru-RU")} ${pluralAds(totalCount)}`
+      ? t("realestate.showCount", {
+          count: totalCount.toLocaleString("ru-RU"),
+          unit: pluralAds(totalCount, t),
+        })
       : isDaily
-        ? "Показать"
-        : "Показать объявления";
+        ? t("realestate.show")
+        : t("realestate.showListings");
 
   const hasActiveFilters = Boolean(
     subcategory ||
@@ -352,17 +360,15 @@ export default function RealEstateSearchHero({
         {!compact && (
           <div className="relative mb-5 md:mb-6 max-w-3xl">
             <p className="mb-2 text-xs font-bold uppercase tracking-[0.14em] text-sun-300">
-              Oriyon · Недвижимость
+              {t("realestate.heroBrand")}
             </p>
             <h1 className="font-display text-3xl md:text-[2.35rem] font-extrabold leading-tight">
-              {isDaily
-                ? `${dealLabel} в ${city || "Таджикистане"}`
-                : `${dealLabel.charAt(0).toUpperCase() + dealLabel.slice(1)} в ${city || "Таджикистане"}`}
+              {heroTitle}
             </h1>
             {totalCount > 0 && (
               <p className="mt-2 text-sm text-white/70">
-                {totalCount.toLocaleString("ru-RU")} активных объявлений
-                {isDaily ? " · квартиры и дома на сутки" : " · квартиры, дома, участки"}
+                {t("realestate.activeCount", { count: totalCount.toLocaleString("ru-RU") })}
+                {isDaily ? t("realestate.dailyTypes") : t("realestate.saleTypes")}
               </p>
             )}
           </div>
@@ -373,7 +379,7 @@ export default function RealEstateSearchHero({
             <div className="rounded-2xl bg-white/95 p-4 text-slate-900 shadow-xl ring-1 ring-slate-900/5 md:p-5">
               <div
                 role="tablist"
-                aria-label="Тип сделки"
+                aria-label={t("realestate.dealType")}
                 className="mb-4 inline-flex w-full gap-1 rounded-xl border border-slate-200/80 bg-slate-100/80 p-1 sm:w-auto"
               >
                 {DEAL_TYPES.map((item) => {
@@ -421,7 +427,7 @@ export default function RealEstateSearchHero({
             <div className="rounded-2xl bg-white p-4 text-slate-900 shadow-xl ring-1 ring-slate-900/5 md:p-5">
               <div
                 role="tablist"
-                aria-label="Тип сделки"
+                aria-label={t("realestate.dealType")}
                 className="mb-4 inline-flex w-full gap-1 rounded-xl border border-slate-200/80 bg-slate-100/80 p-1 sm:w-auto"
               >
                 {DEAL_TYPES.map((item) => {
@@ -454,7 +460,7 @@ export default function RealEstateSearchHero({
               >
                 {!listingPage && (
                 <label className="block min-w-0">
-                  <span className={FIELD_LABEL}>Город</span>
+                  <span className={FIELD_LABEL}>{t("realestate.city")}</span>
                   <div className="relative">
                     <MapPin
                       size={15}
@@ -474,11 +480,11 @@ export default function RealEstateSearchHero({
                 )}
 
                 <HeroSelect
-                  label="Тип"
+                  label={t("realestate.type")}
                   value={subcategory}
                   onChange={(e) => setSubcategory(e.target.value)}
                 >
-                  <option value="">Все типы</option>
+                  <option value="">{t("realestate.allTypes")}</option>
                   {Object.keys(SUBCATEGORY_META).map((item) => (
                     <option key={item} value={item}>
                       {item}
@@ -488,11 +494,11 @@ export default function RealEstateSearchHero({
 
                 {showRooms && (
                   <HeroSelect
-                    label="Комнаты"
+                    label={t("realestate.rooms")}
                     value={rooms}
                     onChange={(e) => setRooms(e.target.value)}
                   >
-                    <option value="">Любое</option>
+                    <option value="">{t("realestate.any")}</option>
                     {ROOM_OPTIONS.map((item) => (
                       <option key={item} value={item}>
                         {item}
@@ -506,6 +512,8 @@ export default function RealEstateSearchHero({
                   priceFrom={priceFrom}
                   priceTo={priceTo}
                   priceCurrency={priceCurrency}
+                  label={t("realestate.price")}
+                  t={t}
                   onChange={({
                     priceFrom: nextFrom,
                     priceTo: nextTo,
@@ -545,7 +553,7 @@ export default function RealEstateSearchHero({
                   }`}
                 >
                   <SlidersHorizontal size={18} />
-                  Ещё фильтры
+                  {t("realestate.moreFilters")}
                 </button>
               </div>
               )}
