@@ -48,28 +48,32 @@ export default function CompareListingButton({
     toggleCompareId(listingId, cat);
   };
 
+  const sizeClass = compact
+    ? "h-10 w-10"
+    : "h-9 w-9";
+
   return (
     <div className={`flex items-center gap-2 ${className}`}>
       <button
         type="button"
         onClick={toggle}
-        className={`inline-flex items-center gap-1.5 rounded-xl border font-semibold transition ${
-          compact ? "px-2 py-1 text-[10px]" : "px-3 py-1.5 text-xs"
-        } ${
+        aria-label={active ? "В сравнении" : "Сравнить"}
+        aria-pressed={active}
+        title={active ? "В сравнении" : "Сравнить"}
+        className={`inline-flex ${sizeClass} items-center justify-center rounded-full border transition ${
           active
-            ? "bg-slate-900 text-white border-slate-900"
-            : "bg-white hover:bg-slate-50"
+            ? "border-slate-300 bg-slate-50 text-slate-700"
+            : "border-slate-200 bg-white text-slate-500 hover:bg-slate-50 hover:text-slate-600"
         }`}
       >
-        <Scale size={compact ? 12 : 14} />
-        {active ? "В сравнении" : "Сравнить"}
+        <Scale className={compact ? "h-4 w-4" : "h-[18px] w-[18px]"} />
       </button>
 
       {count > 0 && !compact && showOpenLink && (
         <Link
           to={comparePath}
           onClick={(e) => e.stopPropagation()}
-          className="text-xs font-semibold text-sun hover:text-sun-600"
+          className="text-xs text-slate-500 hover:text-slate-700"
         >
           Открыть ({count}/{COMPARE_MAX})
         </Link>
