@@ -84,7 +84,7 @@ function buildListingJsonLd(listing, requestUrl = "") {
 
 function buildSitemapXml(listings = []) {
   const baseUrl = getSiteBaseUrl();
-  const staticUrls = ["", "/listing", "/auth", "/realestate"].map((pathSuffix) => {
+  const staticUrls = ["", "/listing", "/realestate", "/policy"].map((pathSuffix) => {
     const loc = `${baseUrl}${pathSuffix}`;
     return `<url><loc>${escapeHtml(loc)}</loc><changefreq>daily</changefreq></url>`;
   });
@@ -122,17 +122,55 @@ ${[...staticUrls, ...realEstatePaths, ...listingUrls].join("\n")}
 function buildRobotsTxt() {
   const baseUrl = getSiteBaseUrl();
 
-  return `User-agent: *
-Allow: /
+  const privatePaths = [
+    "/api/",
+    "/admin",
+    "/profile",
+    "/messages",
+    "/auth",
+    "/add",
+    "/edit/",
+    "/uploads/",
+  ];
 
-Sitemap: ${baseUrl}/sitemap.xml
-`;
+  const blockedScrapers = [
+    "GPTBot",
+    "ChatGPT-User",
+    "CCBot",
+    "Google-Extended",
+    "anthropic-ai",
+    "ClaudeBot",
+    "Bytespider",
+    "PetalBot",
+  ];
+
+  const lines = [
+    "# https://oriyon.store",
+    "# Public marketplace pages are allowed; private app areas are blocked.",
+    "",
+    "User-agent: *",
+    "Allow: /",
+    ...privatePaths.map((pathSuffix) => `Disallow: ${pathSuffix}`),
+    "",
+  ];
+
+  for (const bot of blockedScrapers) {
+    lines.push(`User-agent: ${bot}`, "Disallow: /", "");
+  }
+
+  lines.push(`Sitemap: ${baseUrl}/sitemap.xml`);
+
+  return `${lines.join("\n")}\n`;
 }
 
-function registerSeoRoutes(app, { clientDist, Listing, query }) {
+function registerCrawlerRoutes(app, { Listing, query } = {}) {
   app.get("/robots.txt", (req, res) => {
-    res.type("text/plain").send(buildRobotsTxt());
+    res.type("text/plain; charset=utf-8").send(buildRobotsTxt());
   });
+
+  if (!Listing || !query) {
+    return;
+  }
 
   app.get("/sitemap.xml", async (req, res) => {
     try {
@@ -146,13 +184,15 @@ function registerSeoRoutes(app, { clientDist, Listing, query }) {
         `
       );
 
-      res.type("application/xml").send(buildSitemapXml(result.rows));
+      res.type("application/xml; charset=utf-8").send(buildSitemapXml(result.rows));
     } catch (error) {
       console.error("SITEMAP_ERROR:", error?.message);
       res.status(500).type("text/plain").send("Sitemap unavailable");
     }
   });
+}
 
+function registerSeoRoutes(app, { clientDist, Listing }) {
   if (!clientDist) {
     return;
   }
@@ -194,5 +234,6 @@ module.exports = {
   buildListingJsonLd,
   buildSitemapXml,
   buildRobotsTxt,
+  registerCrawlerRoutes,
   registerSeoRoutes,
 };

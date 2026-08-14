@@ -11,7 +11,8 @@ const { initSocket } = require("./socket");
 const { getAllowedOrigins, isOriginAllowed } = require("./corsOrigins");
 const { startMonthlyReportScheduler } = require("./lib/financeReport");
 const { startListingMaintenanceScheduler } = require("./lib/listingMaintenance");
-const { registerSeoRoutes } = require("./lib/seoPrerender");
+const { registerSeoRoutes, registerCrawlerRoutes } = require("./lib/seoPrerender");
+const { securityHeaders } = require("./middleware/securityHeaders");
 const Listing = require("./models/Listing");
 
 const app = express();
@@ -21,6 +22,8 @@ const io = initSocket(server);
 app.set("io", io);
 
 const PORT = Number(process.env.PORT || 4000);
+
+app.use(securityHeaders);
 
 const ALLOWED_ORIGINS = getAllowedOrigins();
 
@@ -103,6 +106,11 @@ app.use("/api", (req, res) =>
   })
 );
 
+registerCrawlerRoutes(app, {
+  Listing,
+  query: require("./db").query,
+});
+
 const clientDistCandidates = [
   path.join(__dirname, "..", "public"),
   path.join(__dirname, "..", "..", "client", "dist"),
@@ -118,7 +126,6 @@ if (clientDist) {
   registerSeoRoutes(app, {
     clientDist,
     Listing,
-    query: require("./db").query,
   });
 
   app.use(express.static(clientDist));
