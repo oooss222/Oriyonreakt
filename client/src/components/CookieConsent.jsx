@@ -32,6 +32,8 @@ function Toggle({ checked, onChange, label }) {
 }
 
 function SettingsModal({ open, analyticsEnabled, onAnalyticsChange, onClose, onSave }) {
+  const { t } = useI18n();
+
   if (!open) return null;
 
   return (
@@ -54,10 +56,10 @@ function SettingsModal({ open, analyticsEnabled, onAnalyticsChange, onClose, onS
               </div>
               <div>
                 <h2 id="cookie-settings-title" className="font-display text-xl font-bold text-ink">
-                  Настройки cookie
+                  {t("cookie.settingsTitle")}
                 </h2>
                 <p className="text-sm text-ink-400 mt-1 leading-relaxed">
-                  Управляйте тем, какие данные мы можем сохранять.
+                  {t("cookie.settingsDesc")}
                 </p>
               </div>
             </div>
@@ -65,7 +67,7 @@ function SettingsModal({ open, analyticsEnabled, onAnalyticsChange, onClose, onS
             <button
               type="button"
               onClick={onClose}
-              aria-label="Закрыть"
+              aria-label={t("common.close")}
               className="rounded-xl p-2 text-ink-400 hover:bg-white/80 hover:text-ink transition"
             >
               <X size={18} />
@@ -81,13 +83,13 @@ function SettingsModal({ open, analyticsEnabled, onAnalyticsChange, onClose, onS
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center justify-between gap-3">
-                  <div className="font-semibold text-ink text-sm">Необходимые</div>
+                  <div className="font-semibold text-ink text-sm">{t("cookie.essential")}</div>
                   <span className="rounded-full bg-sun/10 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-sun-700">
-                    Всегда
+                    {t("cookie.essentialAlways")}
                   </span>
                 </div>
                 <p className="text-xs text-ink-400 mt-1.5 leading-relaxed">
-                  Вход, безопасность, корзина избранного и базовая работа сайта.
+                  {t("cookie.essentialDesc")}
                 </p>
               </div>
             </div>
@@ -106,16 +108,15 @@ function SettingsModal({ open, analyticsEnabled, onAnalyticsChange, onClose, onS
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center justify-between gap-3">
-                  <div className="font-semibold text-ink text-sm">Персонализация</div>
+                  <div className="font-semibold text-ink text-sm">{t("cookie.personalization")}</div>
                   <Toggle
                     checked={analyticsEnabled}
                     onChange={onAnalyticsChange}
-                    label="Аналитика и персонализация"
+                    label={t("cookie.personalizationToggle")}
                   />
                 </div>
                 <p className="text-xs text-ink-400 mt-1.5 leading-relaxed">
-                  Рекомендации «Подобрано для вас», блок «Вы смотрели» и история
-                  интересов.
+                  {t("cookie.personalizationDesc")}
                 </p>
               </div>
             </div>
@@ -129,21 +130,21 @@ function SettingsModal({ open, analyticsEnabled, onAnalyticsChange, onClose, onS
               onClick={onClose}
               className="inline-flex min-h-11 items-center justify-center rounded-full border border-mist-300 bg-white px-5 text-sm font-semibold text-ink hover:bg-mist-50 transition"
             >
-              Отмена
+              {t("common.cancel")}
             </button>
             <button
               type="button"
               onClick={onSave}
               className="inline-flex min-h-11 items-center justify-center rounded-full bg-sun px-5 text-sm font-semibold text-white shadow-[0_8px_24px_rgb(255_106_0_/_0.28)] hover:bg-sun-600 transition"
             >
-              Сохранить выбор
+              {t("cookie.saveChoice")}
             </button>
           </div>
 
           <p className="text-xs text-ink-400 text-center sm:text-left">
-            Подробнее — в{" "}
+            {t("cookie.privacyPrefix")}{" "}
             <Link to="/policy" className="font-medium text-sun-700 hover:underline" onClick={onClose}>
-              политике конфиденциальности
+              {t("cookie.privacyLink")}
             </Link>
             .
           </p>
@@ -199,7 +200,7 @@ export default function CookieConsent() {
         <div
           className="fixed inset-x-0 z-[60] pointer-events-none bottom-[calc(4.85rem+env(safe-area-inset-bottom))] lg:bottom-6 px-3 sm:px-5"
           role="region"
-          aria-label="Уведомление о cookie"
+          aria-label={t("a11y.cookieNotice")}
         >
           <div className="pointer-events-auto mx-auto w-full max-w-5xl animate-fade-in-up">
             <div className="relative overflow-hidden rounded-[999px] bg-white p-[3px] shadow-[0_20px_60px_rgba(15,23,42,0.16),0_2px_8px_rgba(15,23,42,0.06)]">

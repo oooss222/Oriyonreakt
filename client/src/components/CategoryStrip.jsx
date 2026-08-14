@@ -11,7 +11,7 @@ export default function CategoryStrip({ compact = false }) {
     <div className="border-t border-white/10 bg-ink-800">
       <div className="container mx-auto max-w-7xl px-2 sm:px-4">
         <nav
-          aria-label="Категории"
+          aria-label={t("a11y.categories")}
           className={`flex items-start gap-2 sm:gap-3 lg:gap-4 overflow-x-auto lg:overflow-visible lg:justify-center scroll-smooth [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${
             compact ? "py-2 lg:py-2.5" : "py-3 lg:py-4"
           }`}

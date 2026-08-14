@@ -5,6 +5,7 @@ import {
   isValidPhoneDigits,
   phoneDigitsToApi,
 } from "../../lib/phoneUtils";
+import { useI18n } from "../../i18n";
 import OtpInput from "./OtpInput";
 import {
   Field,
@@ -35,6 +36,7 @@ export default function PhoneAuthFlow({
   onResetPhone,
   fieldHint = "",
 }) {
+  const { t } = useI18n();
   const isRegister = mode === "register";
 
   if (phoneStep === "phone") {
@@ -43,13 +45,11 @@ export default function PhoneAuthFlow({
         <div className="auth-phone-hint">
           <Phone size={18} className="text-sun shrink-0" />
           <p>
-            {isRegister
-              ? "Отправим SMS с кодом подтверждения. Регистрация занимает около минуты."
-              : "Введите номер — мы отправим код для входа без пароля."}
+            {isRegister ? t("auth.phoneRegisterHint") : t("auth.phoneLoginHint")}
           </p>
         </div>
 
-        <Field label="Номер телефона">
+        <Field label={t("auth.phoneLabel")}>
           <div className="auth-phone-row">
             <span className="auth-phone-prefix">+992</span>
             <Input
@@ -68,9 +68,7 @@ export default function PhoneAuthFlow({
             />
           </div>
           {phoneDigits.length > 0 && !isValidPhoneDigits(phoneDigits) && (
-            <p className="text-xs text-red-600 mt-1">
-              Номер должен начинаться с 9 и содержать 9 цифр
-            </p>
+            <p className="text-xs text-red-600 mt-1">{t("auth.phoneInvalid")}</p>
           )}
           {fieldHint ? (
             <p className="auth-field-hint auth-field-hint--warn">{fieldHint}</p>
@@ -82,12 +80,12 @@ export default function PhoneAuthFlow({
           loadingLabel={
             <span className="flex items-center justify-center gap-2">
               <Loader2 className="animate-spin" size={18} />
-              Отправляем…
+              {t("auth.phoneSending")}
             </span>
           }
           disabled={!isValidPhoneDigits(phoneDigits)}
         >
-          Получить код
+          {t("auth.phoneGetCode")}
         </SubmitButton>
       </form>
     );
@@ -101,22 +99,20 @@ export default function PhoneAuthFlow({
         className="auth-back-link"
       >
         <ArrowLeft size={16} />
-        Изменить номер
+        {t("auth.phoneChangeNumber")}
       </button>
 
       <div className="auth-code-banner">
-        <div className="auth-code-banner__title">Код отправлен</div>
+        <div className="auth-code-banner__title">{t("auth.phoneCodeSent")}</div>
         <div className="auth-code-banner__phone">
           {phoneDisplay || phoneDigitsToApi(phoneDigits)}
         </div>
       </div>
 
       <Field
-        label="Код из SMS"
+        label={t("auth.phoneCodeLabel")}
         hint={
-          <p className="text-xs text-slate-500 mt-1">
-            Введите 6 цифр из сообщения
-          </p>
+          <p className="text-xs text-slate-500 mt-1">{t("auth.phoneCodeHint")}</p>
         }
       >
         <OtpInput
@@ -129,9 +125,9 @@ export default function PhoneAuthFlow({
 
       {isRegister ? (
         <>
-          <Field label="Как к вам обращаться" icon={UserIcon}>
+          <Field label={t("auth.phoneNameLabel")} icon={UserIcon}>
             <Input
-              placeholder="Имя или ФИО"
+              placeholder={t("auth.phoneNamePlaceholder")}
               value={phoneName}
               onChange={(e) => onPhoneNameChange(e.target.value)}
               autoComplete="name"
@@ -152,12 +148,12 @@ export default function PhoneAuthFlow({
         loadingLabel={
           <span className="flex items-center justify-center gap-2">
             <Loader2 className="animate-spin" size={18} />
-            {isRegister ? "Создаём…" : "Проверяем…"}
+            {isRegister ? t("auth.phoneCreating") : t("auth.phoneVerifying")}
           </span>
         }
         disabled={phoneCode.length !== 6 || (isRegister && !phoneName.trim())}
       >
-        {isRegister ? "Создать аккаунт" : "Войти"}
+        {isRegister ? t("auth.phoneCreateAccount") : t("auth.phoneSignIn")}
       </SubmitButton>
 
       <button
@@ -167,8 +163,8 @@ export default function PhoneAuthFlow({
         className="auth-resend"
       >
         {resendSec > 0
-          ? `Отправить код повторно через ${resendSec} сек`
-          : "Отправить код повторно"}
+          ? t("auth.phoneResendWait", { sec: resendSec })
+          : t("auth.phoneResend")}
       </button>
     </form>
   );

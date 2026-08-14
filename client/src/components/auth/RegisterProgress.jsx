@@ -1,24 +1,23 @@
 import React from "react";
 import { CheckCircle2 } from "lucide-react";
+import { useI18n } from "../../i18n";
 
 export default function RegisterProgress({ authMethod, phoneStep }) {
+  const { t } = useI18n();
+
   const phoneSteps = [
-    { id: "phone", label: "Номер" },
-    { id: "code", label: "Подтверждение" },
+    { id: "phone", label: t("auth.progressPhone") },
+    { id: "code", label: t("auth.progressCode") },
   ];
 
-  const emailSteps = [{ id: "form", label: "Данные аккаунта" }];
+  const emailSteps = [{ id: "form", label: t("auth.progressAccount") }];
 
   const steps = authMethod === "phone" ? phoneSteps : emailSteps;
   const activeIndex =
-    authMethod === "phone"
-      ? phoneStep === "code"
-        ? 1
-        : 0
-      : 0;
+    authMethod === "phone" ? (phoneStep === "code" ? 1 : 0) : 0;
 
   return (
-    <ol className="auth-register-steps" aria-label="Шаги регистрации">
+    <ol className="auth-register-steps" aria-label={t("auth.progressAria")}>
       {steps.map((step, index) => {
         const done = index < activeIndex;
         const active = index === activeIndex;

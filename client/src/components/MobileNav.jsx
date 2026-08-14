@@ -16,7 +16,7 @@ import {
 } from "../lib/unread";
 import { useI18n } from "../i18n";
 
-export default function MobileNav() {
+export default function MobileNav({ showPolicyLink = false }) {
   const { pathname } = useLocation();
   const [searchParams] = useSearchParams();
   const tab = searchParams.get("tab") || "my";
@@ -87,6 +87,16 @@ export default function MobileNav() {
       className="fixed bottom-0 inset-x-0 z-40 lg:hidden border-t border-ink/10 bg-white/95 backdrop-blur-md supports-[backdrop-filter]:bg-white/90 pb-[max(env(safe-area-inset-bottom),0px)]"
       aria-label={t("nav.mobileNav")}
     >
+      {showPolicyLink ? (
+        <div className="border-b border-ink/5 px-4 py-1.5 text-center">
+          <Link
+            to="/policy"
+            className="text-[10px] font-semibold text-ink-400 hover:text-sun transition"
+          >
+            {t("nav.policy")}
+          </Link>
+        </div>
+      ) : null}
       <div className="grid grid-cols-5 h-16 max-w-lg mx-auto">
         {navItems.map(({ to, label, icon: Icon, highlight, badge, match }) => {
           const active = match(pathname, tab);

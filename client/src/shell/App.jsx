@@ -58,7 +58,7 @@ export default function App() {
           <Footer />
         </div>
       )}
-      {layout.showMobileNav && <MobileNav />}
+      {layout.showMobileNav && <MobileNav showPolicyLink={layout.showFooter} />}
       {layout.showCompareBar && <CompareFloatingBar />}
       {layout.showCookieConsent && <CookieConsent />}
     </div>

@@ -50,11 +50,14 @@ export default function CompareFloatingBar() {
         to={comparePath}
         className="pointer-events-auto mx-auto flex max-w-md items-center justify-between gap-3 rounded-2xl border border-slate-900/10 bg-slate-900 px-4 py-3 text-white shadow-lift transition hover:bg-slate-800"
       >
-        <span className="inline-flex items-center gap-2 text-sm font-semibold">
-          <Scale size={18} className="text-sun" />
-          {t("compare.open", { count, max: COMPARE_MAX })}
-          <span className="text-white/60 font-medium">
-            · {t(`categories.${activeCat}`)}
+        <span className="inline-flex min-w-0 items-center gap-2 text-sm font-semibold">
+          <Scale size={18} className="text-sun shrink-0" />
+          <span className="truncate">
+            {t("compare.open", { count, max: COMPARE_MAX })}
+            <span className="hidden sm:inline text-white/60 font-medium">
+              {" "}
+              · {t(`categories.${activeCat}`)}
+            </span>
           </span>
         </span>
         <ChevronRight size={18} className="text-white/70" />

@@ -19,36 +19,37 @@ import {
 import {
   applyAuthError,
   applyIdentityCheckResult,
+  translateAuthMessage,
 } from "../lib/authIdentity";
 import { useI18n } from "../i18n";
 
-function getAuthSubtitle(returnTo, tab) {
+function getAuthSubtitle(returnTo, tab, t) {
   const path = String(returnTo || "").toLowerCase();
 
   if (tab === "register") {
     if (path.includes("/add") || path.includes("edit")) {
-      return "Создайте аккаунт, чтобы подать объявление — это займёт около минуты";
+      return t("auth.subtitleRegisterAdd");
     }
-    return "Бесплатная регистрация: публикуйте объявления и получайте отклики";
+    return t("auth.subtitleRegisterDefault");
   }
 
   if (path.includes("fav")) {
-    return "Войдите, чтобы сохранять объявления в избранное";
+    return t("auth.subtitleLoginFav");
   }
   if (path.includes("/add") || path.includes("edit")) {
-    return "Войдите, чтобы подать или редактировать объявление";
+    return t("auth.subtitleLoginAdd");
   }
   if (path.includes("messages")) {
-    return "Войдите, чтобы писать продавцам и покупателям";
+    return t("auth.subtitleLoginMessages");
   }
   if (path.includes("profile?tab=promote")) {
-    return "Войдите, чтобы продвинуть объявление";
+    return t("auth.subtitleLoginPromote");
   }
   if (path.includes("wallet")) {
-    return "Войдите, чтобы пополнить кошелёк";
+    return t("auth.subtitleLoginWallet");
   }
 
-  return "Войдите, чтобы управлять объявлениями";
+  return t("auth.subtitleLoginDefault");
 }
 
 export default function Auth() {
@@ -193,7 +194,9 @@ export default function Auth() {
       try {
         const result = await api.checkIdentity({ email, intent: tab });
         if (result?.ok === false) {
-          setEmailFieldHint(result.message || "");
+          setEmailFieldHint(
+            translateAuthMessage(t, result.code, result.message || "")
+          );
         } else {
           setEmailFieldHint("");
         }
@@ -201,7 +204,7 @@ export default function Auth() {
         setEmailFieldHint("");
       }
     },
-    [tab]
+    [tab, t]
   );
 
   const checkPhoneIdentity = React.useCallback(
@@ -218,7 +221,9 @@ export default function Auth() {
         });
 
         if (result?.ok === false) {
-          setEmailFieldHint(result.message || "");
+          setEmailFieldHint(
+            translateAuthMessage(t, result.code, result.message || "")
+          );
         } else {
           setEmailFieldHint("");
         }
@@ -226,7 +231,7 @@ export default function Auth() {
         setEmailFieldHint("");
       }
     },
-    [tab]
+    [tab, t]
   );
 
   React.useEffect(() => {
@@ -276,7 +281,7 @@ export default function Auth() {
     setDevCodeHint("");
 
     if (!isValidPhoneDigits(phoneDigits)) {
-      setErr("Введите номер в формате 90 123 45 67");
+      setErr(t("auth.errPhoneFormat"));
       return;
     }
 
@@ -289,7 +294,7 @@ export default function Auth() {
       });
 
       if (check?.ok === false) {
-        applyIdentityCheckResult(check, { setErr, setIdentityHint });
+        applyIdentityCheckResult(check, { setErr, setIdentityHint, t });
         return;
       }
 
@@ -303,12 +308,16 @@ export default function Auth() {
       setResendSec(Number(data.retryAfterSec) || 60);
 
       if (data.devCode) {
-        setDevCodeHint(`Код для разработки: ${data.devCode}`);
+        setDevCodeHint(t("auth.devCode", { code: data.devCode }));
       }
 
-      setOk(`Код отправлен на ${data.phoneDisplay || phoneDigitsToApi(phoneDigits)}`);
+      setOk(
+        t("auth.codeSentTo", {
+          phone: data.phoneDisplay || phoneDigitsToApi(phoneDigits),
+        })
+      );
     } catch (e) {
-      applyAuthError(e, { setErr, setIdentityHint });
+      applyAuthError(e, { setErr, setIdentityHint, t });
     } finally {
       setLoading(false);
     }
@@ -321,17 +330,17 @@ export default function Auth() {
     setIdentityHint(null);
 
     if (!/^\d{6}$/.test(phoneCode)) {
-      setErr("Введите 6-значный код из SMS");
+      setErr(t("auth.errPhoneCode"));
       return;
     }
 
     if (tab === "register" && !phoneName.trim()) {
-      setErr("Укажите, как к вам обращаться");
+      setErr(t("auth.errNameRequired"));
       return;
     }
 
     if (tab === "register" && !phoneAgree) {
-      setErr("Подтвердите согласие с политикой сайта");
+      setErr(t("auth.errPolicyRequired"));
       return;
     }
 
@@ -351,7 +360,7 @@ export default function Auth() {
       const { token, user } = await api.verifyPhoneCode(payload);
       persistAuth({ token, user });
     } catch (e) {
-      applyAuthError(e, { setErr, setIdentityHint });
+      applyAuthError(e, { setErr, setIdentityHint, t });
     } finally {
       setLoading(false);
     }
@@ -375,12 +384,12 @@ export default function Auth() {
       setResendSec(Number(data.retryAfterSec) || 60);
 
       if (data.devCode) {
-        setDevCodeHint(`Код для разработки: ${data.devCode}`);
+        setDevCodeHint(t("auth.devCode", { code: data.devCode }));
       }
 
-      setOk("Новый код отправлен");
+      setOk(t("auth.codeResent"));
     } catch (e) {
-      applyAuthError(e, { setErr, setIdentityHint });
+      applyAuthError(e, { setErr, setIdentityHint, t });
     } finally {
       setLoading(false);
     }
@@ -395,7 +404,7 @@ export default function Auth() {
 
     try {
       if (!login.email || !login.password) {
-        throw new Error("Заполните email и пароль");
+        throw new Error(t("auth.errEmailPasswordRequired"));
       }
 
       const check = await api.checkIdentity({
@@ -404,7 +413,7 @@ export default function Auth() {
       });
 
       if (check?.ok === false) {
-        applyIdentityCheckResult(check, { setErr, setIdentityHint });
+        applyIdentityCheckResult(check, { setErr, setIdentityHint, t });
         return;
       }
 
@@ -415,7 +424,7 @@ export default function Auth() {
 
       persistAuth({ token, user });
     } catch (e) {
-      applyAuthError(e, { setErr, setIdentityHint });
+      applyAuthError(e, { setErr, setIdentityHint, t });
     } finally {
       setLoading(false);
     }
@@ -430,23 +439,23 @@ export default function Auth() {
 
     try {
       if (!reg.name || !reg.email || !reg.password || !reg.confirm) {
-        throw new Error("Заполните все поля");
+        throw new Error(t("auth.errAllFieldsRequired"));
       }
 
       if (!/^\S+@\S+\.\S+$/.test(reg.email.trim())) {
-        throw new Error("Некорректный email");
+        throw new Error(t("auth.errInvalidEmail"));
       }
 
       if (reg.password.length < 6) {
-        throw new Error("Пароль должен быть не короче 6 символов");
+        throw new Error(t("auth.errPasswordMin"));
       }
 
       if (reg.password !== reg.confirm) {
-        throw new Error("Пароли не совпадают");
+        throw new Error(t("auth.errPasswordMismatch"));
       }
 
       if (!reg.agree) {
-        throw new Error("Подтвердите согласие с политикой сайта");
+        throw new Error(t("auth.errPolicyRequired"));
       }
 
       const check = await api.checkIdentity({
@@ -455,7 +464,7 @@ export default function Auth() {
       });
 
       if (check?.ok === false) {
-        applyIdentityCheckResult(check, { setErr, setIdentityHint });
+        applyIdentityCheckResult(check, { setErr, setIdentityHint, t });
         return;
       }
 
@@ -467,13 +476,13 @@ export default function Auth() {
 
       persistAuth({ token, user });
     } catch (e) {
-      applyAuthError(e, { setErr, setIdentityHint });
+      applyAuthError(e, { setErr, setIdentityHint, t });
     } finally {
       setLoading(false);
     }
   };
 
-  const subtitle = getAuthSubtitle(returnTo, tab);
+  const subtitle = getAuthSubtitle(returnTo, tab, t);
   const isRegister = tab === "register" && registrationEnabled;
 
   return (

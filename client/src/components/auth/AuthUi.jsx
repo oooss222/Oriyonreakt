@@ -6,6 +6,7 @@ import {
   Eye,
   EyeOff,
 } from "lucide-react";
+import { useI18n } from "../../i18n";
 
 export const Field = ({ label, hint, icon: Icon, right, children }) => (
   <div className="space-y-1.5">
@@ -72,12 +73,16 @@ export function Alert({ type = "error", children, actionLabel, onAction }) {
 }
 
 export function PasswordToggle({ visible, onToggle, label }) {
+  const { t } = useI18n();
+
   return (
     <button
       type="button"
       onClick={onToggle}
       className="text-slate-400 hover:text-slate-600 transition"
-      aria-label={visible ? `Скрыть ${label}` : `Показать ${label}`}
+      aria-label={
+        visible ? t("auth.hideField", { field: label }) : t("auth.showField", { field: label })
+      }
     >
       {visible ? <EyeOff size={18} /> : <Eye size={18} />}
     </button>
@@ -85,6 +90,8 @@ export function PasswordToggle({ visible, onToggle, label }) {
 }
 
 export function PolicyCheckbox({ checked, onChange, id = "auth-policy" }) {
+  const { t } = useI18n();
+
   return (
     <label
       htmlFor={id}
@@ -101,24 +108,26 @@ export function PolicyCheckbox({ checked, onChange, id = "auth-policy" }) {
         {checked ? "✓" : ""}
       </span>
       <span>
-        Я согласен с{" "}
+        {t("auth.policyPrefix")}{" "}
         <Link to="/policy" className="text-sun font-medium hover:underline">
-          политикой сайта
+          {t("auth.policyLink")}
         </Link>{" "}
-        и обработкой персональных данных
+        {t("auth.policySuffix")}
       </span>
     </label>
   );
 }
 
 export function SubmitButton({ loading, loadingLabel, children, disabled }) {
+  const { t } = useI18n();
+
   return (
     <button
       type="submit"
       className="auth-submit"
       disabled={loading || disabled}
     >
-      {loading ? loadingLabel || "Загрузка…" : children}
+      {loading ? loadingLabel || t("common.loading") : children}
     </button>
   );
 }
