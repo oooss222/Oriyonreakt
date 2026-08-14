@@ -352,38 +352,25 @@ export function buildSpecTemplate(catKey, subcategory = "") {
 }
 
 export function mergeSpecsWithExisting(template, existingSpecs = []) {
+  const templateNames = new Set(template.map((row) => row.name));
   const existingMap = new Map(
     existingSpecs
-      .filter((item) => item?.name)
+      .filter((item) => item?.name && templateNames.has(String(item.name).trim()))
       .map((item) => [String(item.name).trim(), String(item.value || "").trim()])
   );
 
-  const used = new Set();
+  return template.map((row) => ({
+    ...row,
+    value: existingMap.get(row.name) || "",
+  }));
+}
 
-  const merged = template.map((row) => {
-    used.add(row.name);
-    return {
-      ...row,
-      value: existingMap.get(row.name) || "",
-    };
-  });
+export function filterSpecsToTemplate(catKey, subcategory, specs = []) {
+  const templateNames = new Set(
+    buildSpecTemplate(catKey, subcategory).map((row) => row.name)
+  );
 
-  for (const spec of existingSpecs) {
-    const name = String(spec?.name || "").trim();
-    if (!name || used.has(name)) continue;
-
-    merged.push({
-      name,
-      value: String(spec.value || "").trim(),
-      type: "text",
-      locked: false,
-      options: [],
-      dependsOn: "",
-      optionsFrom: null,
-    });
-  }
-
-  return merged;
+  return specs.filter((row) => templateNames.has(row.name));
 }
 
 export function compactSpecsForSubmit(specs) {

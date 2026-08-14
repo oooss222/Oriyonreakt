@@ -16,6 +16,7 @@ import {
   buildSpecTemplate,
   mergeSpecsWithExisting,
   compactSpecsForSubmit,
+  filterSpecsToTemplate,
 } from "../data/listingCategories";
 import { getListingPhotoLimit, getListingMinPhotos } from "../lib/listingPhotoLimits";
 import { REAL_ESTATE_CAT } from "../data/realEstate";
@@ -169,7 +170,7 @@ export default function ListingForm({
     draftSaveTimerRef.current = setTimeout(() => {
       saveListingDraft({
         form,
-        specs,
+        specs: filterSpecsToTemplate(form.cat, form.subcategory, specs),
         geo,
         existingImages: existingImages.map((img) => ({
           url: img.url,
@@ -226,7 +227,6 @@ export default function ListingForm({
 
   const handleCatChange = (catKey) => {
     const firstSub = CATS[catKey]?.subs?.[0] || "";
-    const currentValues = compactSpecsForSubmit(specs);
     const photoLimit = getListingPhotoLimit(catKey);
     const trimmedExistingCount = Math.min(existingImages.length, photoLimit);
 
@@ -241,11 +241,13 @@ export default function ListingForm({
       current.slice(0, Math.max(0, photoLimit - trimmedExistingCount))
     );
 
-    applyCategorySpecs(catKey, firstSub, currentValues);
+    applyCategorySpecs(catKey, firstSub, []);
   };
 
   const handleSubcategoryChange = (subcategory) => {
-    const currentValues = compactSpecsForSubmit(specs);
+    const currentValues = compactSpecsForSubmit(
+      filterSpecsToTemplate(form.cat, subcategory, specs)
+    );
 
     setForm((state) => ({
       ...state,
@@ -339,10 +341,19 @@ export default function ListingForm({
       description: draftPrompt.form?.description || "",
     });
 
+    const draftSub =
+      draftPrompt.form?.subcategory || CATS[draftCat]?.subs?.[0] || "";
+
     applyCategorySpecs(
       draftCat,
-      draftPrompt.form?.subcategory || CATS[draftCat]?.subs?.[0] || "",
-      Array.isArray(draftPrompt.specs) ? draftPrompt.specs : []
+      draftSub,
+      compactSpecsForSubmit(
+        filterSpecsToTemplate(
+          draftCat,
+          draftSub,
+          Array.isArray(draftPrompt.specs) ? draftPrompt.specs : []
+        )
+      )
     );
 
     setExistingImages(
