@@ -1,4 +1,5 @@
 const { Pool } = require("pg");
+const { validateQueryArgs } = require("./lib/sqlSafety");
 
 const DATABASE_URL =
   process.env.DATABASE_URL || process.env.POSTGRES_URL;
@@ -29,6 +30,13 @@ const TRANSACTION_TYPES = [
 const TRANSACTION_STATUSES = [
   "pending",
   "completed",
+  "failed",
+  "cancelled",
+];
+
+const PAYMENT_ORDER_STATUSES = [
+  "pending",
+  "paid",
   "failed",
   "cancelled",
 ];
@@ -80,6 +88,7 @@ pool.on("error", (err) => {
 });
 
 async function query(text, params = []) {
+  validateQueryArgs(text, params);
   return pool.query(text, params);
 }
 
@@ -1020,4 +1029,5 @@ module.exports = {
   LISTING_STATUSES,
   TRANSACTION_TYPES,
   TRANSACTION_STATUSES,
+  PAYMENT_ORDER_STATUSES,
 };

@@ -1,5 +1,11 @@
-const { query, mapListing } = require("../db");
+const { query, mapListing, LISTING_STATUSES } = require("../db");
 const { extractRealEstateMeta } = require("../lib/realEstateMeta");
+const {
+  assertEnumValue,
+  bindLike,
+  safeLimit,
+  safeOffset,
+} = require("../lib/sqlSafety");
 
 function toNumberOrNull(value) {
   if (value === undefined || value === null || value === "") {
@@ -248,15 +254,16 @@ function buildListingFilters({
   }
 
   if (search) {
-    values.push(`%${search}%`);
+    const idx = bindLike(values, search);
+
     conditions.push(`
       (
-        title ILIKE $${values.length}
-        OR description ILIKE $${values.length}
-        OR location ILIKE $${values.length}
-        OR cat ILIKE $${values.length}
-        OR subcategory ILIKE $${values.length}
-        OR specs::text ILIKE $${values.length}
+        title ILIKE $${idx} ESCAPE '\\'
+        OR description ILIKE $${idx} ESCAPE '\\'
+        OR location ILIKE $${idx} ESCAPE '\\'
+        OR cat ILIKE $${idx} ESCAPE '\\'
+        OR subcategory ILIKE $${idx} ESCAPE '\\'
+        OR specs::text ILIKE $${idx} ESCAPE '\\'
       )
     `);
   }
@@ -887,7 +894,8 @@ class ListingModel {
     const values = [];
 
     if (status && status !== "all") {
-      values.push(status);
+      const safeStatus = assertEnumValue(status, LISTING_STATUSES, "STATUS");
+      values.push(safeStatus);
       conditions.push(`l.status = $${values.length}`);
     }
 
@@ -902,14 +910,15 @@ class ListingModel {
     }
 
     if (search) {
-      values.push(`%${String(search).trim()}%`);
+      const idx = bindLike(values, search);
+
       conditions.push(`
         (
-          l.title ILIKE $${values.length}
-          OR l.description ILIKE $${values.length}
-          OR l.location ILIKE $${values.length}
-          OR u.name ILIKE $${values.length}
-          OR u.email ILIKE $${values.length}
+          l.title ILIKE $${idx} ESCAPE '\\'
+          OR l.description ILIKE $${idx} ESCAPE '\\'
+          OR l.location ILIKE $${idx} ESCAPE '\\'
+          OR u.name ILIKE $${idx} ESCAPE '\\'
+          OR u.email ILIKE $${idx} ESCAPE '\\'
         )
       `);
     }
@@ -1278,6 +1287,11 @@ class ListingModel {
     limit = 100,
     offset = 0,
   } = {}) {
+    const safeStatus =
+      assertEnumValue(status, LISTING_STATUSES, "STATUS") || "pending";
+    const safeLimitValue = safeLimit(limit, { fallback: 100, max: 200 });
+    const safeOffsetValue = safeOffset(offset);
+
     const result = await query(
       `
       SELECT
@@ -1308,7 +1322,7 @@ class ListingModel {
         l.created_at ASC
       LIMIT $2 OFFSET $3
       `,
-      [status, limit, offset]
+      [safeStatus, safeLimitValue, safeOffsetValue]
     );
 
     return result.rows.map((row) => this.mapModerationRow(row));

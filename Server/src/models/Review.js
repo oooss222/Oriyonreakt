@@ -1,4 +1,5 @@
 const { query } = require("../db");
+const { safeLimit, safeOffset } = require("../lib/sqlSafety");
 
 function mapReview(row) {
   if (!row) return null;
@@ -37,6 +38,9 @@ class ReviewModel {
   }
 
   static async listForSeller(sellerId, { limit = 20, offset = 0 } = {}) {
+    const safeLimitValue = safeLimit(limit, { fallback: 20, max: 100 });
+    const safeOffsetValue = safeOffset(offset);
+
     const result = await query(
       `
       SELECT
@@ -48,7 +52,7 @@ class ReviewModel {
       ORDER BY r.created_at DESC
       LIMIT $2 OFFSET $3
       `,
-      [sellerId, limit, offset]
+      [sellerId, safeLimitValue, safeOffsetValue]
     );
 
     return result.rows.map(mapReview);

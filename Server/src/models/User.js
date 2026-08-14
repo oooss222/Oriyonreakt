@@ -1,6 +1,13 @@
 const crypto = require("crypto");
 const bcrypt = require("bcryptjs");
-const { query, mapUser } = require("../db");
+const { query, mapUser, USER_ROLES } = require("../db");
+const {
+  assertEnumValue,
+  safeSort,
+  safeLimit,
+  safeOffset,
+  bindLike,
+} = require("../lib/sqlSafety");
 const {
   normalizePhone,
   phoneToSyntheticEmail,
@@ -218,8 +225,10 @@ class UserModel {
     const conditions = [];
     const values = [];
 
-    if (role && role !== "all") {
-      values.push(role);
+    const safeRole = assertEnumValue(role, USER_ROLES, "ROLE");
+
+    if (safeRole) {
+      values.push(safeRole);
       conditions.push(`role = $${values.length}`);
     }
 
@@ -244,15 +253,14 @@ class UserModel {
     const search = String(q || "").trim();
 
     if (search) {
-      values.push(`%${search}%`);
-      const idx = values.length;
+      const idx = bindLike(values, search);
 
       conditions.push(`
         (
-          name ILIKE $${idx}
-          OR email ILIKE $${idx}
-          OR phone ILIKE $${idx}
-          OR company_name ILIKE $${idx}
+          name ILIKE $${idx} ESCAPE '\\'
+          OR email ILIKE $${idx} ESCAPE '\\'
+          OR phone ILIKE $${idx} ESCAPE '\\'
+          OR company_name ILIKE $${idx} ESCAPE '\\'
         )
       `);
     }
@@ -270,9 +278,9 @@ class UserModel {
       name_asc: "name ASC",
     };
 
-    const orderBy = sortMap[sort] || sortMap.created_desc;
-    const safeLimit = Math.min(Math.max(Number(limit) || 25, 1), 100);
-    const safeOffset = Math.max(Number(offset) || 0, 0);
+    const orderBy = safeSort(sort, sortMap, "created_desc");
+    const safeLimitValue = safeLimit(limit, { fallback: 25, max: 100 });
+    const safeOffsetValue = safeOffset(offset);
 
     const countResult = await query(
       `
@@ -283,7 +291,7 @@ class UserModel {
       values
     );
 
-    const listValues = [...values, safeLimit, safeOffset];
+    const listValues = [...values, safeLimitValue, safeOffsetValue];
     const limitIdx = listValues.length - 1;
     const offsetIdx = listValues.length;
 

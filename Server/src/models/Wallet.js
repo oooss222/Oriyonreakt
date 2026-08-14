@@ -1,4 +1,16 @@
-const { query, mapWalletTransaction } = require("../db");
+const { query, mapWalletTransaction, TRANSACTION_TYPES } = require("../db");
+const {
+  assertEnumValue,
+  safeLimit,
+  safeOffset,
+  bindLike,
+  pickIdentifier,
+} = require("../lib/sqlSafety");
+
+const WALLET_DATE_COLUMNS = {
+  created_at: "created_at",
+  "wt.created_at": "wt.created_at",
+};
 
 function mapTransactionRow(row) {
   const tx = mapWalletTransaction(row);
@@ -41,8 +53,8 @@ class WalletModel {
   }
 
   static async findByUser(userId, { limit = 50, offset = 0 } = {}) {
-    const safeLimit = Math.min(Math.max(Number(limit) || 50, 1), 100);
-    const safeOffset = Math.max(Number(offset) || 0, 0);
+    const safeLimitValue = safeLimit(limit, { fallback: 50, max: 100 });
+    const safeOffsetValue = safeOffset(offset);
 
     const result = await query(
       `
@@ -52,7 +64,7 @@ class WalletModel {
       ORDER BY created_at DESC
       LIMIT $2 OFFSET $3
       `,
-      [userId, safeLimit, safeOffset]
+      [userId, safeLimitValue, safeOffsetValue]
     );
 
     return result.rows.map(mapWalletTransaction);
@@ -70,8 +82,10 @@ class WalletModel {
     const conditions = ["wt.status = 'completed'"];
     const values = [];
 
-    if (type && type !== "all") {
-      values.push(type);
+    const safeType = assertEnumValue(type, TRANSACTION_TYPES, "TYPE");
+
+    if (safeType) {
+      values.push(safeType);
       conditions.push(`wt.type = $${values.length}`);
     }
 
@@ -83,14 +97,13 @@ class WalletModel {
     const search = String(q || "").trim();
 
     if (search) {
-      values.push(`%${search}%`);
-      const idx = values.length;
+      const idx = bindLike(values, search);
 
       conditions.push(`
         (
-          u.email ILIKE $${idx}
-          OR u.name ILIKE $${idx}
-          OR wt.description ILIKE $${idx}
+          u.email ILIKE $${idx} ESCAPE '\\'
+          OR u.name ILIKE $${idx} ESCAPE '\\'
+          OR wt.description ILIKE $${idx} ESCAPE '\\'
         )
       `);
     }
@@ -106,8 +119,8 @@ class WalletModel {
     }
 
     const whereSql = `WHERE ${conditions.join(" AND ")}`;
-    const safeLimit = Math.min(Math.max(Number(limit) || 50, 1), 100);
-    const safeOffset = Math.max(Number(offset) || 0, 0);
+    const safeLimitValue = safeLimit(limit, { fallback: 50, max: 100 });
+    const safeOffsetValue = safeOffset(offset);
 
     const countResult = await query(
       `
@@ -119,7 +132,7 @@ class WalletModel {
       values
     );
 
-    const listValues = [...values, safeLimit, safeOffset];
+    const listValues = [...values, safeLimitValue, safeOffsetValue];
     const limitIdx = listValues.length - 1;
     const offsetIdx = listValues.length;
 
@@ -143,10 +156,10 @@ class WalletModel {
     return {
       items: result.rows.map(mapTransactionRow),
       total,
-      limit: safeLimit,
-      offset: safeOffset,
-      page: Math.floor(safeOffset / safeLimit) + 1,
-      totalPages: Math.max(1, Math.ceil(total / safeLimit)),
+      limit: safeLimitValue,
+      offset: safeOffsetValue,
+      page: Math.floor(safeOffsetValue / safeLimitValue) + 1,
+      totalPages: Math.max(1, Math.ceil(total / safeLimitValue)),
     };
   }
 
@@ -245,7 +258,8 @@ class WalletModel {
     };
   }
 
-  static _dateConditions(from, to, column, values) {
+  static _dateConditions(from, to, columnKey, values) {
+    const column = pickIdentifier(columnKey, WALLET_DATE_COLUMNS);
     const conditions = [];
 
     if (from) {

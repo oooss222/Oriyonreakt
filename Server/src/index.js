@@ -140,6 +140,12 @@ if (clientDist) {
 app.use((err, req, res, next) => {
   console.error("UNCAUGHT_ERROR:", err);
 
+  if (err?.status && err.status >= 400 && err.status < 500) {
+    return res.status(err.status).json({
+      error: err.message || "Bad request",
+    });
+  }
+
   res.status(500).json({
     error: err?.message || "Server error",
     stack: err?.stack,

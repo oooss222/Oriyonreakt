@@ -1,4 +1,5 @@
 const { query } = require("../db");
+const { assertEnumValue } = require("../lib/sqlSafety");
 
 const PLACEMENTS = [
   "home_mid",
@@ -72,6 +73,8 @@ class AdCampaignModel {
   }
 
   static async listActive({ placement, cat = "" } = {}) {
+    assertEnumValue(placement, PLACEMENTS, "PLACEMENT");
+
     const { where, values } = buildActiveWhere({ placement, cat });
 
     const result = await query(
@@ -218,17 +221,22 @@ class AdCampaignModel {
   }
 
   static async track(id, type) {
-    const column = type === "click" ? "clicks" : "impressions";
-
-    const result = await query(
-      `
+    const sql =
+      type === "click"
+        ? `
       UPDATE ad_campaigns
-      SET ${column} = ${column} + 1, updated_at = now()
+      SET clicks = clicks + 1, updated_at = now()
       WHERE id = $1
       RETURNING impressions, clicks
-      `,
-      [id]
-    );
+      `
+        : `
+      UPDATE ad_campaigns
+      SET impressions = impressions + 1, updated_at = now()
+      WHERE id = $1
+      RETURNING impressions, clicks
+      `;
+
+    const result = await query(sql, [id]);
 
     return result.rows[0] || null;
   }

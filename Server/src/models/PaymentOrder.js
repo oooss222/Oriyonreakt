@@ -1,4 +1,5 @@
-const { query } = require("../db");
+const { query, PAYMENT_ORDER_STATUSES } = require("../db");
+const { assertEnumValue, safeLimit, safeOffset } = require("../lib/sqlSafety");
 
 function mapPaymentOrder(row) {
   if (!row) return null;
@@ -120,13 +121,14 @@ class PaymentOrderModel {
     let where = "WHERE 1=1";
 
     if (status) {
-      values.push(status);
+      const safeStatus = assertEnumValue(status, PAYMENT_ORDER_STATUSES, "STATUS");
+      values.push(safeStatus);
       where += ` AND po.status = $${values.length}`;
     }
 
-    values.push(Math.min(Math.max(Number(limit) || 50, 1), 200));
+    values.push(safeLimit(limit, { fallback: 50, max: 200 }));
     const limitIdx = values.length;
-    values.push(Math.max(Number(offset) || 0, 0));
+    values.push(safeOffset(offset));
     const offsetIdx = values.length;
 
     const result = await query(
