@@ -21,6 +21,10 @@ const {
   apiGeneralLimiter,
 } = require("./middleware/rateLimit");
 const { validateEnv } = require("./lib/env");
+const {
+  rlsContextMiddleware,
+  systemRlsMiddleware,
+} = require("./lib/rlsContext");
 const Listing = require("./models/Listing");
 
 const app = express();
@@ -60,6 +64,8 @@ app.use(
   })
 );
 
+app.use(rlsContextMiddleware);
+
 app.use(
   "/uploads",
   express.static(
@@ -78,6 +84,7 @@ app.use("/api/auth/login", authLoginLimiter);
 app.use("/api/auth/register", authRegisterLimiter);
 app.use("/api/auth/phone/send-code", authPhoneSendLimiter);
 app.use("/api/auth/phone/verify", authPhoneVerifyLimiter);
+app.use("/api/auth", systemRlsMiddleware);
 app.use("/api/auth", require("./routes/auth"));
 
 app.use("/api/users", require("./routes/users"));
@@ -98,6 +105,7 @@ app.use("/api/settings", require("./routes/settings"));
 
 app.use("/api/messages", require("./routes/messages"));
 
+app.use("/api/payments/alif/callback", systemRlsMiddleware);
 app.use("/api/payments", require("./routes/payments"));
 
 app.use("/api/reviews", require("./routes/reviews"));

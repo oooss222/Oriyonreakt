@@ -1,6 +1,10 @@
 const jwt = require("jsonwebtoken");
 const User = require("./models/User");
 const { isModeratorRole } = require("./lib/moderationNotify");
+const {
+  runWithRlsContext,
+  SYSTEM_CONTEXT,
+} = require("./lib/rlsContext");
 
 const lastSeenUpdates = new Map();
 const SEEN_INTERVAL_MS = 30_000;
@@ -8,7 +12,7 @@ const SEEN_INTERVAL_MS = 30_000;
 /** @type {Map<string, number>} */
 const onlineUsers = new Map();
 
-function touchLastSeenThrottled(userId) {
+function touchLastSeenThrottled(userId, userRole = "user") {
   const now = Date.now();
   const last = lastSeenUpdates.get(userId) || 0;
 
@@ -18,7 +22,10 @@ function touchLastSeenThrottled(userId) {
 
   lastSeenUpdates.set(userId, now);
 
-  return User.touchLastSeen(userId);
+  return runWithRlsContext(
+    { userId, role: userRole },
+    () => User.touchLastSeen(userId)
+  );
 }
 
 function broadcastPresence(io, userId, online, lastSeen) {
@@ -47,7 +54,9 @@ function attachSocketHandlers(io) {
         return next(new Error("Invalid token"));
       }
 
-      const user = await User.findById(id);
+      const user = await runWithRlsContext(SYSTEM_CONTEXT, () =>
+        User.findById(id)
+      );
 
       if (!user || user.isBlocked) {
         return next(new Error("Unauthorized"));
@@ -75,7 +84,7 @@ function attachSocketHandlers(io) {
     const prev = onlineUsers.get(userId) || 0;
     onlineUsers.set(userId, prev + 1);
 
-    touchLastSeenThrottled(userId)
+    touchLastSeenThrottled(userId, userRole)
       .then((user) => {
         const lastSeen = user?.lastSeen || new Date().toISOString();
 
@@ -131,7 +140,7 @@ function attachSocketHandlers(io) {
 
       if (count <= 1) {
         onlineUsers.delete(userId);
-        touchLastSeenThrottled(userId)
+        touchLastSeenThrottled(userId, userRole)
           .then((user) => {
             broadcastPresence(
               io,

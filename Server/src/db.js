@@ -1,5 +1,11 @@
 const { Pool } = require("pg");
 const { validateQueryArgs } = require("./lib/sqlSafety");
+const {
+  getRlsContext,
+  isRlsEnabled,
+  runWithRlsContext,
+} = require("./lib/rlsContext");
+const { setupRowLevelSecurity } = require("./lib/rowLevelSecurity");
 
 const DATABASE_URL =
   process.env.DATABASE_URL || process.env.POSTGRES_URL;
@@ -89,7 +95,31 @@ pool.on("error", (err) => {
 
 async function query(text, params = []) {
   validateQueryArgs(text, params);
-  return pool.query(text, params);
+
+  if (!isRlsEnabled()) {
+    return pool.query(text, params);
+  }
+
+  const ctx = getRlsContext();
+  const client = await pool.connect();
+
+  try {
+    await client.query("BEGIN");
+    await client.query(`SELECT set_config('app.user_id', $1, true)`, [
+      ctx.userId ? String(ctx.userId) : "",
+    ]);
+    await client.query(`SELECT set_config('app.role', $1, true)`, [
+      ctx.role || "anon",
+    ]);
+    const result = await client.query(text, params);
+    await client.query("COMMIT");
+    return result;
+  } catch (error) {
+    await client.query("ROLLBACK").catch(() => {});
+    throw error;
+  } finally {
+    client.release();
+  }
 }
 
 async function initDb() {
@@ -657,6 +687,7 @@ async function initDb() {
   await backfillRealEstateMeta();
   await migrateServiceCategories();
   await seedRealEstateDevelopments();
+  await setupRowLevelSecurity(query);
 }
 
 async function migrateServiceCategories() {
@@ -1020,6 +1051,7 @@ module.exports = {
   pool,
   query,
   initDb,
+  runWithRlsContext,
   mapUser,
   mapListing,
   mapWalletTransaction,
