@@ -7,6 +7,7 @@ import {
   roleLabel,
   roleBadgeClass,
   canManageUser,
+  formatRegistrationDevice,
 } from "../../lib/adminUtils";
 import UserDetailModal from "./UserDetailModal";
 
@@ -285,6 +286,9 @@ export default function AdminUsersSection({
                   <th className="py-3 px-3">Роль</th>
                   <th className="py-3 px-3">Баланс</th>
                   <th className="py-3 px-3">Статус</th>
+                  {isSuperAdmin ? (
+                    <th className="py-3 px-3">Устройство</th>
+                  ) : null}
                   <th className="py-3 px-3">Дата</th>
                   <th className="py-3 px-3">Действия</th>
                 </tr>
@@ -379,6 +383,12 @@ export default function AdminUsersSection({
                           </span>
                         )}
                       </td>
+
+                      {isSuperAdmin ? (
+                        <td className="py-3 px-3 text-xs text-slate-600">
+                          {formatRegistrationDevice(user)}
+                        </td>
+                      ) : null}
 
                       <td className="py-3 px-3 text-slate-500">
                         {user.createdAt

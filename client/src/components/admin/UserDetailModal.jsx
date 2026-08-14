@@ -11,6 +11,7 @@ import {
   Wallet,
   BadgeCheck,
   Building2,
+  Smartphone,
 } from "lucide-react";
 import { api } from "../../lib/api";
 import {
@@ -20,6 +21,7 @@ import {
   roleLabel,
   roleBadgeClass,
   canManageUser,
+  formatRegistrationDevice,
 } from "../../lib/adminUtils";
 
 export default function UserDetailModal({
@@ -300,6 +302,20 @@ export default function UserDetailModal({
                       ? new Date(user.lastSeen).toLocaleString("ru-RU")
                       : "—"}
                   </div>
+                  {isSuperAdmin ? (
+                    <div className="sm:col-span-2 rounded-xl border bg-white p-3 text-sm space-y-1">
+                      <div className="inline-flex items-center gap-1 font-semibold text-slate-800">
+                        <Smartphone size={15} />
+                        Регистрация с устройства
+                      </div>
+                      <div>{formatRegistrationDevice(user)}</div>
+                      {user.registrationUserAgent ? (
+                        <div className="text-xs text-slate-500 break-all">
+                          {user.registrationUserAgent}
+                        </div>
+                      ) : null}
+                    </div>
+                  ) : null}
                   {user.sellerType === "company" && (
                     <div className="rounded-xl border bg-blue-50 p-3 text-sm space-y-1">
                       <div className="inline-flex items-center gap-1 font-semibold text-blue-800">

@@ -858,7 +858,12 @@ router.get(
     });
 
     return res.json({
-      items: result.items.map(User.sanitize),
+      items: result.items.map((user) => ({
+        ...User.sanitize(user),
+        ...(req.user?.role === "super_admin"
+          ? User.registrationDeviceFields(user)
+          : {}),
+      })),
       total: result.total,
       page: result.page,
       limit: result.limit,
@@ -913,6 +918,9 @@ router.get(
         user: {
           ...User.sanitize(user),
           lastSeen: user.lastSeen || null,
+          ...(req.user?.role === "super_admin"
+            ? User.registrationDeviceFields(user, { includeUserAgent: true })
+            : {}),
         },
         listings,
         transactions,

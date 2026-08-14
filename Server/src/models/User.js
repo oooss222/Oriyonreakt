@@ -47,6 +47,9 @@ class UserModel {
     sellerType = "private",
     companyName = "",
     role = "user",
+    registrationDeviceType = "",
+    registrationDeviceModel = "",
+    registrationUserAgent = "",
   }) {
     const hashedPassword = await bcrypt.hash(password, 10);
     const normalizedSellerType = sellerType === "company" ? "company" : "private";
@@ -64,9 +67,12 @@ class UserModel {
         phone,
         seller_type,
         company_name,
-        role
+        role,
+        registration_device_type,
+        registration_device_model,
+        registration_user_agent
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
       RETURNING *
       `,
       [
@@ -77,6 +83,9 @@ class UserModel {
         normalizedSellerType,
         normalizedCompanyName,
         role,
+        String(registrationDeviceType || "").slice(0, 32),
+        String(registrationDeviceModel || "").slice(0, 120),
+        String(registrationUserAgent || "").slice(0, 500),
       ]
     );
 
@@ -117,7 +126,13 @@ class UserModel {
     return mapUser(result.rows[0]);
   }
 
-  static async createFromPhone({ phone, name }) {
+  static async createFromPhone({
+    phone,
+    name,
+    registrationDeviceType = "",
+    registrationDeviceModel = "",
+    registrationUserAgent = "",
+  }) {
     const normalizedPhone = normalizePhone(phone);
     const email = phoneToSyntheticEmail(normalizedPhone);
     const hashedPassword = await bcrypt.hash(
@@ -136,12 +151,23 @@ class UserModel {
         seller_type,
         role,
         phone_verified,
-        email_verified
+        email_verified,
+        registration_device_type,
+        registration_device_model,
+        registration_user_agent
       )
-      VALUES ($1, $2, $3, $4, 'private', 'user', true, true)
+      VALUES ($1, $2, $3, $4, 'private', 'user', true, true, $5, $6, $7)
       RETURNING *
       `,
-      [email, hashedPassword, trimmedName, normalizedPhone]
+      [
+        email,
+        hashedPassword,
+        trimmedName,
+        normalizedPhone,
+        String(registrationDeviceType || "").slice(0, 32),
+        String(registrationDeviceModel || "").slice(0, 120),
+        String(registrationUserAgent || "").slice(0, 500),
+      ]
     );
 
     return mapUser(result.rows[0]);
@@ -345,6 +371,21 @@ class UserModel {
       ratingCount: ratingSummary.count,
       phoneVerified: Boolean(String(user.phone || "").replace(/\D/g, "").length >= 9),
     };
+  }
+
+  static registrationDeviceFields(user, { includeUserAgent = false } = {}) {
+    if (!user) return {};
+
+    const fields = {
+      registrationDeviceType: user.registrationDeviceType || null,
+      registrationDeviceModel: user.registrationDeviceModel || null,
+    };
+
+    if (includeUserAgent) {
+      fields.registrationUserAgent = user.registrationUserAgent || null;
+    }
+
+    return fields;
   }
 
   static sanitize(user) {

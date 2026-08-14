@@ -167,6 +167,15 @@ async function initDb() {
     ALTER TABLE users
       ADD COLUMN IF NOT EXISTS phone_verified BOOLEAN NOT NULL DEFAULT false;
 
+    ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS registration_device_type TEXT NOT NULL DEFAULT '';
+
+    ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS registration_device_model TEXT NOT NULL DEFAULT '';
+
+    ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS registration_user_agent TEXT NOT NULL DEFAULT '';
+
     CREATE TABLE IF NOT EXISTS phone_otps (
       phone TEXT PRIMARY KEY,
       code_hash TEXT NOT NULL,
@@ -853,6 +862,10 @@ function mapUser(row) {
 
     emailVerified: row.email_verified,
     phoneVerified: Boolean(row.phone_verified),
+
+    registrationDeviceType: row.registration_device_type || "",
+    registrationDeviceModel: row.registration_device_model || "",
+    registrationUserAgent: row.registration_user_agent || "",
 
     walletBalance: Number(row.wallet_balance || 0),
 

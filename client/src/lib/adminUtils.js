@@ -30,6 +30,28 @@ export const roleBadgeClass = (role) => {
   return "bg-slate-50 text-slate-700 border-slate-200";
 };
 
+export const registrationDeviceTypeLabel = (type = "") => {
+  const labels = {
+    mobile: "Мобильный",
+    tablet: "Планшет",
+    desktop: "Компьютер",
+  };
+
+  return labels[String(type || "").toLowerCase()] || "Неизвестно";
+};
+
+export const formatRegistrationDevice = (user = {}) => {
+  const type = user.registrationDeviceType;
+  const model = user.registrationDeviceModel;
+
+  if (!type && !model) return "—";
+
+  const typeLabel = registrationDeviceTypeLabel(type);
+  if (model) return `${typeLabel} · ${model}`;
+
+  return typeLabel;
+};
+
 export const canManageUser = (actor, target) => {
   if (!target || !actor) return false;
 

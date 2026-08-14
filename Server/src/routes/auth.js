@@ -4,6 +4,7 @@ const User = require("../models/User");
 const SiteSettings = require("../models/SiteSettings");
 const { requestOtp, verifyOtp } = require("../lib/phoneOtp");
 const { formatPhoneDisplay } = require("../lib/phoneUtils");
+const { getRegistrationDeviceFromRequest } = require("../lib/registrationDevice");
 
 function makeToken(user) {
   if (!process.env.JWT_SECRET) {
@@ -84,6 +85,7 @@ router.post("/register", async (req, res) => {
       sellerType,
       companyName,
       role: "user",
+      ...getRegistrationDeviceFromRequest(req),
     });
 
     return res.json({
@@ -316,6 +318,7 @@ router.post("/phone/verify", async (req, res) => {
       user = await User.createFromPhone({
         phone: verifiedPhone,
         name,
+        ...getRegistrationDeviceFromRequest(req),
       });
     }
 
