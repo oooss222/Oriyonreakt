@@ -8,9 +8,11 @@ import {
   findCompareCatWithItems,
 } from "../lib/compareListings";
 import { getCompareConfig, getComparePath } from "../lib/compareConfig";
+import { useI18n } from "../i18n";
 
 export default function CompareFloatingBar() {
   const location = useLocation();
+  const { t } = useI18n();
   const pathCat = getActiveCompareCat(location.pathname);
   const [activeCat, setActiveCat] = React.useState(
     () => findCompareCatWithItems(pathCat) || pathCat
@@ -50,8 +52,10 @@ export default function CompareFloatingBar() {
       >
         <span className="inline-flex items-center gap-2 text-sm font-semibold">
           <Scale size={18} className="text-sun" />
-          Сравнение · {count}/{COMPARE_MAX}
-          <span className="text-white/60 font-medium">· {config.label}</span>
+          {t("compare.open", { count, max: COMPARE_MAX })}
+          <span className="text-white/60 font-medium">
+            · {t(`categories.${activeCat}`)}
+          </span>
         </span>
         <ChevronRight size={18} className="text-white/70" />
       </Link>

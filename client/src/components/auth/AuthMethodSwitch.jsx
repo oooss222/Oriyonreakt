@@ -1,7 +1,10 @@
 import React from "react";
 import { Mail, Phone } from "lucide-react";
+import { useI18n } from "../../i18n";
 
 export default function AuthMethodSwitch({ value, onChange }) {
+  const { t } = useI18n();
+
   return (
     <div className="auth-method-switch">
       <button
@@ -12,7 +15,7 @@ export default function AuthMethodSwitch({ value, onChange }) {
         onClick={() => onChange("phone")}
       >
         <Phone size={16} />
-        Телефон
+        {t("auth.phone")}
       </button>
       <button
         type="button"
@@ -22,7 +25,7 @@ export default function AuthMethodSwitch({ value, onChange }) {
         onClick={() => onChange("email")}
       >
         <Mail size={16} />
-        Email
+        {t("auth.email")}
       </button>
     </div>
   );

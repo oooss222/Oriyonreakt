@@ -24,6 +24,8 @@ import {
 } from "../lib/unread";
 import CategoryStrip from "./CategoryStrip";
 import HeaderSearchSuggestions from "./HeaderSearchSuggestions";
+import LanguageSwitcher from "./LanguageSwitcher";
+import { useI18n } from "../i18n";
 import {
   readCompareIds,
   getActiveCompareCat,
@@ -36,6 +38,10 @@ export default function Header({ variant = "full" }) {
   const location = useLocation();
   const [sp] = useSearchParams();
   const isMinimal = variant === "minimal";
+  const { t, lang } = useI18n();
+
+  const numberLocale =
+    lang === "en" ? "en-US" : lang === "tg" ? "tg-TJ" : "ru-RU";
 
   const [q, setQ] = React.useState(sp.get("search") || sp.get("q") || "");
   const [catalogTotal, setCatalogTotal] = React.useState(0);
@@ -165,9 +171,11 @@ export default function Header({ variant = "full" }) {
   }, []);
 
   const listingsCountLabel = React.useMemo(() => {
-    if (!catalogTotal) return "Поиск объявлений";
-    return `Поиск среди ${catalogTotal.toLocaleString("ru-RU")} объявлений`;
-  }, [catalogTotal]);
+    if (!catalogTotal) return t("header.searchPlaceholder");
+    return t("header.searchAmong", {
+      count: catalogTotal.toLocaleString(numberLocale),
+    });
+  }, [catalogTotal, t, numberLocale]);
 
   const go = React.useCallback(() => {
     const text = q.trim();
@@ -228,7 +236,7 @@ export default function Header({ variant = "full" }) {
           compact ? "h-10 px-3.5" : "h-10 lg:h-11 px-4 lg:px-5"
         }`}
       >
-        Найти
+        {t("common.find")}
       </button>
       </div>
 
@@ -270,7 +278,7 @@ export default function Header({ variant = "full" }) {
             className="inline-flex items-center gap-1.5 shrink-0 px-3 py-2 rounded-xl border border-sun/50 text-sun text-sm font-semibold hover:bg-sun/10 transition"
           >
             <PlusCircle size={17} />
-            Добавить объявление
+            {t("header.addListing")}
           </Link>
 
           {!isMinimal && (
@@ -288,21 +296,23 @@ export default function Header({ variant = "full" }) {
                   to="/listing"
                   className="hidden sm:inline px-3 py-2 rounded-lg text-sm font-medium text-white/80 hover:bg-white/10 hover:text-white transition"
                 >
-                  Каталог
+                  {t("nav.catalog")}
                 </Link>
                 <Link
                   to="/"
                   className="px-3 py-2 rounded-lg text-sm font-medium text-white/80 hover:bg-white/10 hover:text-white transition"
                 >
-                  На главную
+                  {t("nav.backHome")}
                 </Link>
               </>
             ) : (
               <>
+            <LanguageSwitcher className="hidden sm:block" />
+
             <Link
               to="/profile?tab=fav"
               className="p-2.5 rounded-lg hover:bg-white/10 transition"
-              title="Избранное"
+              title={t("nav.favorites")}
             >
               <Heart size={20} />
             </Link>
@@ -310,7 +320,7 @@ export default function Header({ variant = "full" }) {
             <Link
               to="/messages"
               className="relative p-2.5 rounded-lg hover:bg-white/10 transition"
-              title="Сообщения"
+              title={t("nav.messages")}
             >
               <MessageCircle size={20} />
               {badgeCount > 0 && (
@@ -323,7 +333,7 @@ export default function Header({ variant = "full" }) {
             <Link
               to={comparePath}
               className="relative p-2.5 rounded-lg hover:bg-white/10 transition"
-              title="Сравнение"
+              title={t("nav.compare")}
             >
               <Scale size={20} />
               {compareCount > 0 && (
@@ -337,7 +347,7 @@ export default function Header({ variant = "full" }) {
               <Link
                 to="/admin?section=moderation"
                 className="relative p-2.5 rounded-lg hover:bg-white/10 transition"
-                title="Модерация"
+                title={t("nav.moderation")}
               >
                 <ClipboardCheck size={20} />
                 {moderationCount > 0 && (
@@ -353,7 +363,7 @@ export default function Header({ variant = "full" }) {
                 <Link
                   to="/profile?tab=wallet"
                   className="p-2.5 rounded-lg hover:bg-white/10 transition"
-                  title="Кошелёк"
+                  title={t("nav.wallet")}
                 >
                   <Wallet size={20} />
                 </Link>
@@ -361,7 +371,7 @@ export default function Header({ variant = "full" }) {
                 <Link
                   to="/profile?tab=profile"
                   className="p-2.5 rounded-lg hover:bg-white/10 transition"
-                  title={user?.name || "Профиль"}
+                  title={user?.name || t("nav.profile")}
                 >
                   <User size={20} />
                 </Link>
@@ -370,7 +380,7 @@ export default function Header({ variant = "full" }) {
               <Link
                 to="/auth"
                 className="p-2.5 rounded-lg hover:bg-white/10 transition"
-                title="Войти"
+                title={t("nav.login")}
               >
                 <LogIn size={20} />
               </Link>
@@ -383,13 +393,15 @@ export default function Header({ variant = "full" }) {
         {!isMinimal ? (
         <div className="lg:hidden pt-2 pb-2.5 relative">
           <div className="flex items-center gap-2">
-            <Link to="/" className="shrink-0" aria-label="На главную">
+            <Link to="/" className="shrink-0" aria-label={t("nav.backHome")}>
               <img
                 src="/oriyon.store.png"
                 alt="Oriyon Store"
                 className="w-9 h-9 object-contain"
               />
             </Link>
+
+            <LanguageSwitcher />
 
             <div className="flex-1 min-w-0 relative">
               {searchField(true)}
@@ -399,7 +411,7 @@ export default function Header({ variant = "full" }) {
         </div>
         ) : (
           <div className="lg:hidden py-2.5 flex items-center justify-between gap-3">
-            <Link to="/" className="shrink-0" aria-label="На главную">
+            <Link to="/" className="shrink-0" aria-label={t("nav.backHome")}>
               <img
                 src="/oriyon.store.png"
                 alt="Oriyon Store"
@@ -411,14 +423,15 @@ export default function Header({ variant = "full" }) {
                 to="/listing"
                 className="text-sm font-medium text-white/80 hover:text-white transition"
               >
-                Каталог
+                {t("nav.catalog")}
               </Link>
               <Link
                 to="/"
                 className="text-sm font-medium text-white/80 hover:text-white transition"
               >
-                На главную
+                {t("nav.backHome")}
               </Link>
+              <LanguageSwitcher />
             </div>
           </div>
         )}

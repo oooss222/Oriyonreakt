@@ -1,9 +1,11 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { HOME_CATEGORIES } from "../data/categories";
+import { useI18n } from "../i18n";
 
 export default function CategoryStrip({ compact = false }) {
   const { pathname } = useLocation();
+  const { t } = useI18n();
 
   return (
     <div className="border-t border-white/10 bg-ink-800">
@@ -57,7 +59,9 @@ export default function CategoryStrip({ compact = false }) {
                     active ? "text-sun" : "text-white/95"
                   } ${compact ? "text-[10px] lg:text-xs" : "text-[10px] sm:text-[11px] lg:text-xs"}`}
                 >
-                  {cat.fullTitle || cat.title}
+                  {t(`categories.${cat.slug}`) !== `categories.${cat.slug}`
+                    ? t(`categories.${cat.slug}`)
+                    : cat.fullTitle || cat.title}
                 </span>
               </Link>
             );

@@ -9,6 +9,7 @@ import {
   isCompareSupported,
 } from "../lib/compareListings";
 import { getComparePath } from "../lib/compareConfig";
+import { useI18n } from "../i18n";
 
 export default function CompareListingButton({
   listingId,
@@ -17,6 +18,7 @@ export default function CompareListingButton({
   compact = false,
   showOpenLink = true,
 }) {
+  const { t } = useI18n();
   const supported = isCompareSupported(cat);
   const [active, setActive] = React.useState(() =>
     supported ? isInCompare(listingId, cat) : false
@@ -57,9 +59,9 @@ export default function CompareListingButton({
       <button
         type="button"
         onClick={toggle}
-        aria-label={active ? "В сравнении" : "Сравнить"}
+        aria-label={active ? t("compare.inCompare") : t("compare.compareAction")}
         aria-pressed={active}
-        title={active ? "В сравнении" : "Сравнить"}
+        title={active ? t("compare.inCompare") : t("compare.compareAction")}
         className={`inline-flex ${sizeClass} items-center justify-center rounded-full border transition ${
           active
             ? "border-slate-300 bg-slate-50 text-slate-700"
@@ -75,7 +77,7 @@ export default function CompareListingButton({
           onClick={(e) => e.stopPropagation()}
           className="text-xs text-slate-500 hover:text-slate-700"
         >
-          Открыть ({count}/{COMPARE_MAX})
+          {t("compare.openList", { count, max: COMPARE_MAX })}
         </Link>
       )}
     </div>

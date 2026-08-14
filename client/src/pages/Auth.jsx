@@ -20,6 +20,7 @@ import {
   applyAuthError,
   applyIdentityCheckResult,
 } from "../lib/authIdentity";
+import { useI18n } from "../i18n";
 
 function getAuthSubtitle(returnTo, tab) {
   const path = String(returnTo || "").toLowerCase();
@@ -55,6 +56,7 @@ export default function Auth() {
   const [searchParams, setSearchParams] = useSearchParams();
   const returnTo = searchParams.get("returnTo") || "/profile";
   const urlTab = searchParams.get("tab") === "register" ? "register" : "login";
+  const { t } = useI18n();
 
   const redirectAfterAuth = React.useCallback(() => {
     nav(returnTo.startsWith("/") ? returnTo : "/profile", { replace: true });
@@ -259,13 +261,11 @@ export default function Auth() {
       localStorage.setItem(TOKEN_KEY, token);
       localStorage.setItem(USER_KEY, JSON.stringify(user));
       setOk(
-        tab === "login"
-          ? "Вход выполнен! Перенаправляем…"
-          : "Аккаунт создан! Перенаправляем…"
+        tab === "login" ? t("auth.loginSuccess") : t("auth.registerSuccess")
       );
       window.setTimeout(() => redirectAfterAuth(), 300);
     },
-    [redirectAfterAuth, tab]
+    [redirectAfterAuth, tab, t]
   );
 
   const onSendPhoneCode = async (e) => {
@@ -483,7 +483,7 @@ export default function Auth() {
           <div className="w-full max-w-xl mx-auto lg:max-w-none lg:mx-0">
             <div className="auth-header">
               <h1 className="auth-header__title">
-                {tab === "login" ? "Добро пожаловать" : "Создайте аккаунт"}
+                {tab === "login" ? t("auth.welcome") : t("auth.createAccount")}
               </h1>
               <p className="auth-header__subtitle">{subtitle}</p>
               <AuthMobileBenefits mode={tab} />
@@ -505,7 +505,7 @@ export default function Auth() {
                     }`}
                     onClick={() => switchTab("login")}
                   >
-                    Вход
+                    {t("auth.loginTab")}
                   </button>
                   {registrationEnabled && (
                     <button
@@ -517,7 +517,7 @@ export default function Auth() {
                       }`}
                       onClick={() => switchTab("register")}
                     >
-                      Регистрация
+                      {t("auth.registerTab")}
                     </button>
                   )}
                 </div>
@@ -608,25 +608,25 @@ export default function Auth() {
               {tab === "login" ? (
                 registrationEnabled ? (
                   <>
-                    Нет аккаунта?{" "}
+                    {t("auth.noAccount")}{" "}
                     <button
                       type="button"
                       className="text-sun font-medium hover:underline"
                       onClick={() => switchTab("register")}
                     >
-                      Зарегистрируйтесь
+                      {t("auth.registerLink")}
                     </button>
                   </>
                 ) : null
               ) : (
                 <>
-                  Уже есть аккаунт?{" "}
+                  {t("auth.hasAccount")}{" "}
                   <button
                     type="button"
                     className="text-sun font-medium hover:underline"
                     onClick={() => switchTab("login")}
                   >
-                    Войдите
+                    {t("auth.loginLink")}
                   </button>
                 </>
               )}

@@ -8,6 +8,7 @@ import {
   readCookieConsent,
   saveCookieConsent,
 } from "../lib/cookieConsent";
+import { useI18n } from "../i18n";
 
 function Toggle({ checked, onChange, label }) {
   return (
@@ -153,6 +154,7 @@ function SettingsModal({ open, analyticsEnabled, onAnalyticsChange, onClose, onS
 }
 
 export default function CookieConsent() {
+  const { t } = useI18n();
   const [visible, setVisible] = React.useState(() => !hasConsentDecision());
   const [settingsOpen, setSettingsOpen] = React.useState(false);
   const [analyticsEnabled, setAnalyticsEnabled] = React.useState(
@@ -213,13 +215,12 @@ export default function CookieConsent() {
                   </div>
 
                   <p className="text-[13px] sm:text-sm leading-relaxed text-ink/90">
-                    Мы используем cookie для улучшения работы сайта и персональных
-                    рекомендаций.{" "}
+                    {t("cookie.banner")}{" "}
                     <Link
                       to="/policy"
                       className="font-semibold text-sun-700 hover:text-sun underline-offset-2 hover:underline"
                     >
-                      Подробнее
+                      {t("cookie.learnMore")}
                     </Link>
                   </p>
                 </div>
@@ -233,7 +234,7 @@ export default function CookieConsent() {
                     }}
                     className="inline-flex min-h-10 flex-1 sm:flex-none items-center justify-center rounded-full border-2 border-sun bg-white px-5 sm:min-w-[128px] text-sm font-bold text-sun-700 transition hover:bg-sun-50 active:scale-[0.98]"
                   >
-                    Настроить
+                    {t("cookie.settings")}
                   </button>
 
                   <button
@@ -241,7 +242,7 @@ export default function CookieConsent() {
                     onClick={handleAccept}
                     className="inline-flex min-h-10 flex-1 sm:flex-none items-center justify-center rounded-full bg-sun px-5 sm:min-w-[128px] text-sm font-bold text-white shadow-[0_8px_22px_rgb(255_106_0_/_0.28)] transition hover:bg-sun-600 active:scale-[0.98]"
                   >
-                    Принять
+                    {t("cookie.accept")}
                   </button>
                 </div>
               </div>

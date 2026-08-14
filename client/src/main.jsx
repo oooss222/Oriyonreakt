@@ -20,6 +20,7 @@ import RealEstateDevelopment from "./pages/RealEstateDevelopment.jsx";
 import { DEFAULT_REAL_ESTATE_BROWSE_PATH } from "./lib/realestateSeo.js";
 
 import "./styles/index.css";
+import { I18nProvider } from "./i18n/index.jsx";
 
 function CategoryCompareRoute() {
   const { slug } = useParams();
@@ -173,5 +174,7 @@ const router = createBrowserRouter([
 ]);
 
 createRoot(document.getElementById("root")).render(
-  <RouterProvider router={router} />
+  <I18nProvider>
+    <RouterProvider router={router} />
+  </I18nProvider>
 );

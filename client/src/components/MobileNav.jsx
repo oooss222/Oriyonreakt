@@ -14,38 +14,7 @@ import {
   subscribeUnreadCount,
   subscribeUnreadRefresh,
 } from "../lib/unread";
-
-const NAV_ITEMS = [
-  { to: "/", label: "Главная", icon: Home, match: (path) => path === "/" },
-  {
-    to: "/profile?tab=fav",
-    label: "Избранное",
-    icon: Heart,
-    match: (path, tab) =>
-      path === "/profile" && (tab === "fav" || tab === "favorites"),
-  },
-  {
-    to: "/add",
-    label: "Добавить",
-    icon: PlusCircle,
-    highlight: true,
-    match: (path) => path === "/add" || path.startsWith("/edit/"),
-  },
-  {
-    to: "/messages",
-    label: "Чат",
-    icon: MessageCircle,
-    badge: true,
-    match: (path) => path === "/messages",
-  },
-  {
-    to: "/profile",
-    label: "Профиль",
-    icon: User,
-    match: (path, tab) =>
-      path === "/profile" && tab !== "fav" && tab !== "favorites",
-  },
-];
+import { useI18n } from "../i18n";
 
 export default function MobileNav() {
   const { pathname } = useLocation();
@@ -53,6 +22,42 @@ export default function MobileNav() {
   const tab = searchParams.get("tab") || "my";
   const token = localStorage.getItem(TOKEN_KEY) || "";
   const [unreadCount, setUnreadCount] = React.useState(0);
+  const { t } = useI18n();
+
+  const navItems = React.useMemo(
+    () => [
+      { to: "/", label: t("nav.home"), icon: Home, match: (path) => path === "/" },
+      {
+        to: "/profile?tab=fav",
+        label: t("nav.favorites"),
+        icon: Heart,
+        match: (path, tabValue) =>
+          path === "/profile" && (tabValue === "fav" || tabValue === "favorites"),
+      },
+      {
+        to: "/add",
+        label: t("nav.add"),
+        icon: PlusCircle,
+        highlight: true,
+        match: (path) => path === "/add" || path.startsWith("/edit/"),
+      },
+      {
+        to: "/messages",
+        label: t("nav.chat"),
+        icon: MessageCircle,
+        badge: true,
+        match: (path) => path === "/messages",
+      },
+      {
+        to: "/profile",
+        label: t("nav.profile"),
+        icon: User,
+        match: (path, tabValue) =>
+          path === "/profile" && tabValue !== "fav" && tabValue !== "favorites",
+      },
+    ],
+    [t]
+  );
 
   const loadUnread = React.useCallback(async () => {
     if (!token) {
@@ -80,10 +85,10 @@ export default function MobileNav() {
   return (
     <nav
       className="fixed bottom-0 inset-x-0 z-40 lg:hidden border-t border-ink/10 bg-white/95 backdrop-blur-md supports-[backdrop-filter]:bg-white/90 pb-[max(env(safe-area-inset-bottom),0px)]"
-      aria-label="Мобильная навигация"
+      aria-label={t("nav.mobileNav")}
     >
       <div className="grid grid-cols-5 h-16 max-w-lg mx-auto">
-        {NAV_ITEMS.map(({ to, label, icon: Icon, highlight, badge, match }) => {
+        {navItems.map(({ to, label, icon: Icon, highlight, badge, match }) => {
           const active = match(pathname, tab);
           const showBadge = badge && unreadCount > 0;
 

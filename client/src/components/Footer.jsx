@@ -2,9 +2,11 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { Facebook, Instagram, Send, Mail, ShieldCheck } from "lucide-react";
 import AdSlot from "./AdSlot";
+import { useI18n } from "../i18n";
 
 export default function Footer() {
   const year = new Date().getFullYear();
+  const { t } = useI18n();
 
   return (
     <>
@@ -21,7 +23,7 @@ export default function Footer() {
               <span className="text-white/60 text-lg font-semibold">store</span>
             </div>
             <p className="text-sm text-white/65 leading-relaxed">
-              Маркетплейс объявлений Таджикистана — покупайте и продавайте рядом с домом.
+              {t("footer.tagline")}
             </p>
           </section>
 
@@ -29,35 +31,35 @@ export default function Footer() {
             <div className="flex items-center gap-2 mb-3">
               <ShieldCheck className="text-sun w-5 h-5" aria-hidden="true" />
               <h2 id="footer-safety" className="font-display text-lg font-semibold">
-                Безопасные сделки
+                {t("footer.safeDeals")}
               </h2>
             </div>
             <ul className="space-y-1.5 text-white/65 text-sm leading-relaxed">
-              <li>Встречайтесь в людных местах и проверяйте товар.</li>
-              <li>Не переводите предоплату незнакомым продавцам.</li>
-              <li>Не делитесь данными банковских карт.</li>
-              <li>Сообщайте о подозрительных объявлениях в поддержку.</li>
+              <li>{t("footer.safeTip1")}</li>
+              <li>{t("footer.safeTip2")}</li>
+              <li>{t("footer.safeTip3")}</li>
+              <li>{t("footer.safeTip4")}</li>
             </ul>
           </section>
 
           <nav aria-labelledby="footer-links">
             <h2 id="footer-links" className="font-display text-lg font-semibold mb-3">
-              Разделы
+              {t("footer.sections")}
             </h2>
             <ul className="space-y-1.5 text-white/65 text-sm">
               <li>
                 <Link to="/listing" className="hover:text-sun transition-colors">
-                  Все объявления
+                  {t("footer.allListings")}
                 </Link>
               </li>
               <li>
                 <Link to="/add" className="hover:text-sun transition-colors">
-                  Подать объявление
+                  {t("footer.postListing")}
                 </Link>
               </li>
               <li>
                 <Link to="/policy" className="hover:text-sun transition-colors">
-                  Политика сайта
+                  {t("footer.sitePolicy")}
                 </Link>
               </li>
             </ul>
@@ -65,7 +67,7 @@ export default function Footer() {
 
           <address className="not-italic" aria-labelledby="footer-contacts">
             <h2 id="footer-contacts" className="font-display text-lg font-semibold mb-3">
-              Контакты
+              {t("footer.contacts")}
             </h2>
             <ul className="space-y-2 text-white/65 text-sm">
               <li className="flex items-center gap-2">
@@ -77,7 +79,7 @@ export default function Footer() {
                   info@oriyon.store
                 </a>
               </li>
-              <li>г. Душанбе, Таджикистан</li>
+              <li>{t("footer.location")}</li>
             </ul>
 
             <div className="flex items-center gap-3 mt-4">
@@ -85,7 +87,7 @@ export default function Footer() {
                 href="https://www.facebook.com/share/1BXsEgEbou/"
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label="Мы на Facebook"
+                aria-label={t("footer.facebook")}
                 className="text-white/65 hover:text-sun transition-colors"
                 title="Facebook"
               >
@@ -95,7 +97,7 @@ export default function Footer() {
                 href="https://instagram.com/"
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label="Мы в Instagram"
+                aria-label={t("footer.instagram")}
                 className="text-white/65 hover:text-sun transition-colors"
                 title="Instagram"
               >
@@ -105,7 +107,7 @@ export default function Footer() {
                 href="https://t.me/"
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label="Наш Telegram"
+                aria-label={t("footer.telegram")}
                 className="text-white/65 hover:text-sun transition-colors"
                 title="Telegram"
               >
@@ -118,8 +120,7 @@ export default function Footer() {
 
       <div className="border-t border-white/10 py-4 text-center text-white/45 text-sm">
         © {year}{" "}
-        <span className="font-medium text-white/70">Oriyon.store</span> — платформа
-        объявлений Таджикистана
+        <span className="font-medium text-white/70">Oriyon.store</span> — {t("footer.copyright")}
       </div>
     </footer>
     </>
