@@ -1,23 +1,8 @@
 import React from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import {
-  MessageCircle,
-  Send,
-  ArrowLeft,
-  Shield,
-  Search,
-  RefreshCw,
-  Check,
-  CheckCheck,
-  X,
-  Building2,
-} from "lucide-react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { Shield, X } from "lucide-react";
 import { api } from "../lib/api";
-import {
-  connectChatSocket,
-  getChatSocket,
-} from "../lib/chatSocket";
-import { resolveMediaUrl } from "../lib/media";
+import { connectChatSocket, getChatSocket } from "../lib/chatSocket";
 import {
   getUnreadTotal,
   publishUnreadCount,
@@ -25,74 +10,25 @@ import {
 } from "../lib/unread";
 import { isBusinessSupportThread } from "../lib/openBusinessSupportChat";
 import { useI18n } from "../i18n";
-import { formatDayLabel, getQuickReplies } from "../i18n/helpers";
+import { getQuickReplies } from "../i18n/helpers";
 import { getUserFacingErrorMessage } from "../lib/apiError";
+import {
+  getMessageId,
+  getPeerId,
+  getPeerName,
+  groupMessagesByDay,
+} from "../lib/messagesUtils";
+import ChatInboxPanel from "../components/messages/ChatInboxPanel";
+import ChatThreadPanel from "../components/messages/ChatThreadPanel";
 
 const TOKEN_KEY = "auth_token";
 const USER_KEY = "auth_user";
 
-const getId = (item) => item?.id || item?._id;
-
-const getPeerId = (item, me) => {
-  const myId = me?.id || me?._id;
-
-  if (!item || !myId) return null;
-
-  return String(item.senderId) === String(myId)
-    ? item.receiverId
-    : item.senderId;
-};
-
-const formatLastSeen = (lastSeen, t) => {
-  if (!lastSeen) return t("chat.offline");
-
-  const time = new Date(lastSeen).toLocaleString(undefined, {
-    day: "numeric",
-    month: "short",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-
-  return t("chat.lastSeen", { time });
-};
-
-const formatTime = (value) => {
-  if (!value) return "";
-
-  return new Date(value).toLocaleTimeString("ru-RU", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-};
-
-function groupMessagesByDay(messages, t) {
-  const groups = [];
-  let currentDay = null;
-
-  for (const msg of messages) {
-    const day = formatDayLabel(msg.createdAt, t);
-
-    if (day !== currentDay) {
-      groups.push({ type: "day", id: `day-${day}`, label: day });
-      currentDay = day;
-    }
-
-    groups.push({ type: "message", id: getId(msg), data: msg });
-  }
-
-  return groups;
-}
-
-function listingImageUrl(src) {
-  return resolveMediaUrl(src, { placeholder: "" });
-}
-
 function Toast({ message, type = "info", onClose, closeLabel }) {
   React.useEffect(() => {
-    if (!message) return;
+    if (!message) return undefined;
 
     const timer = setTimeout(onClose, 3200);
-
     return () => clearTimeout(timer);
   }, [message, onClose]);
 
@@ -148,23 +84,26 @@ export default function Messages() {
   const [items, setItems] = React.useState([]);
   const [selected, setSelected] = React.useState(null);
   const [thread, setThread] = React.useState([]);
+  const [previouslyUnreadIds, setPreviouslyUnreadIds] = React.useState([]);
   const [text, setText] = React.useState("");
   const [query, setQuery] = React.useState("");
+  const [filter, setFilter] = React.useState("all");
   const [mobileView, setMobileView] = React.useState("list");
   const [typingPeer, setTypingPeer] = React.useState(false);
   const [toast, setToast] = React.useState({ message: "", type: "info" });
   const [socketReady, setSocketReady] = React.useState(false);
   const [socketError, setSocketError] = React.useState("");
   const [peerPresence, setPeerPresence] = React.useState({});
+  const [listing, setListing] = React.useState(null);
+  const [phoneVisible, setPhoneVisible] = React.useState(false);
 
   const [loading, setLoading] = React.useState(true);
   const [threadLoading, setThreadLoading] = React.useState(false);
   const [sending, setSending] = React.useState(false);
-  const [refreshing, setRefreshing] = React.useState(false);
+  const [markingAll, setMarkingAll] = React.useState(false);
 
   const chatEndRef = React.useRef(null);
   const deepHandledRef = React.useRef(false);
-  const typingTimerRef = React.useRef(null);
   const typingEmitRef = React.useRef(null);
   const markThreadAsReadRef = React.useRef(null);
 
@@ -208,7 +147,7 @@ export default function Messages() {
 
           next[key] = {
             online: existing?.online ?? false,
-            lastSeen: lastSeen,
+            lastSeen,
           };
         }
       }
@@ -222,8 +161,6 @@ export default function Messages() {
       if (!token) return;
 
       try {
-        if (!silent) setRefreshing(true);
-
         const data = await api.messageInbox(token);
         const next = Array.isArray(data) ? data : [];
 
@@ -249,7 +186,6 @@ export default function Messages() {
         publishUnreadCount(0);
       } finally {
         setLoading(false);
-        setRefreshing(false);
       }
     },
     [token, me]
@@ -260,19 +196,27 @@ export default function Messages() {
       if (!item || !token) return;
 
       const peerId = getPeerId(item, me);
-
       if (!peerId) return;
 
       try {
         if (!silent) setThreadLoading(true);
 
         const data = await api.messageThread(token, item.listingId, peerId);
-        const next = Array.isArray(data) ? data : [];
+        const next = Array.isArray(data)
+          ? data
+          : Array.isArray(data?.messages)
+          ? data.messages
+          : [];
+        const unreadBeforeRead = Array.isArray(data?.previouslyUnreadIds)
+          ? data.previouslyUnreadIds
+          : [];
 
         setThread(next);
+        setPreviouslyUnreadIds(unreadBeforeRead);
       } catch (e) {
         if (!silent) {
           setThread([]);
+          setPreviouslyUnreadIds([]);
           showToast(getUserFacingErrorMessage(e, t) || t("chat.loadFailed"), "error");
         }
       } finally {
@@ -282,14 +226,30 @@ export default function Messages() {
     [token, me, showToast, t]
   );
 
+  const loadListingContext = React.useCallback(async (item) => {
+    if (!item?.listingId || isBusinessSupportThread(item)) {
+      setListing(null);
+      return;
+    }
+
+    try {
+      const data = await api.listingById(item.listingId);
+      setListing(data || null);
+    } catch {
+      setListing(null);
+    }
+  }, []);
+
   const openThread = React.useCallback(
     async (item) => {
       setSelected(item);
       setMobileView("chat");
       setTypingPeer(false);
-      await loadThread(item);
+      setPhoneVisible(false);
+      setListing(null);
+      await Promise.all([loadThread(item), loadListingContext(item)]);
     },
-    [loadThread]
+    [loadThread, loadListingContext]
   );
 
   const markThreadAsRead = React.useCallback(
@@ -331,7 +291,6 @@ export default function Messages() {
     if (!selected || threadLoading || isAdmin) return;
 
     const peerId = getPeerId(selected, me);
-
     if (!peerId) return;
 
     markThreadAsRead(selected.listingId, peerId);
@@ -340,7 +299,7 @@ export default function Messages() {
   React.useEffect(() => {
     if (!token) {
       nav("/auth");
-      return;
+      return undefined;
     }
 
     let alive = true;
@@ -374,7 +333,6 @@ export default function Messages() {
     if (!token) return undefined;
 
     const socket = connectChatSocket(token);
-
     if (!socket) return undefined;
 
     const onConnect = () => {
@@ -406,8 +364,7 @@ export default function Messages() {
           ...message,
           text: message.text,
           createdAt: message.createdAt,
-          unreadCount:
-            String(message.receiverId) === String(myId) ? 1 : 0,
+          unreadCount: String(message.receiverId) === String(myId) ? 1 : 0,
         };
 
         if (idx === -1) {
@@ -427,8 +384,7 @@ export default function Messages() {
         };
 
         copy.sort(
-          (a, b) =>
-            new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
+          (a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
         );
 
         return copy;
@@ -447,7 +403,7 @@ export default function Messages() {
 
         setThread((arr) => {
           const exists = arr.some(
-            (item) => String(getId(item)) === String(getId(message))
+            (item) => String(getMessageId(item)) === String(getMessageId(message))
           );
 
           return exists ? arr : [...arr, message];
@@ -473,7 +429,7 @@ export default function Messages() {
           if (String(readerId) === String(myId)) return msg;
 
           if (Array.isArray(messageIds) && messageIds.length > 0) {
-            return messageIds.includes(String(getId(msg)))
+            return messageIds.includes(String(getMessageId(msg)))
               ? { ...msg, isRead: true }
               : msg;
           }
@@ -560,7 +516,7 @@ export default function Messages() {
       socket.off("presence:snapshot", onPresenceSnapshot);
       setSocketReady(false);
     };
-  }, [token, myId, me, loadThread, showToast, applyPresenceUpdate, t]);
+  }, [token, myId, me, showToast, applyPresenceUpdate, t]);
 
   React.useEffect(() => {
     if (!selected || !token || socketReady) return undefined;
@@ -640,7 +596,6 @@ export default function Messages() {
 
       const socket = getChatSocket();
       const peerId = getPeerId(selected, me);
-
       if (!socket || !peerId) return;
 
       const payload = {
@@ -648,11 +603,7 @@ export default function Messages() {
         peerId,
       };
 
-      if (active) {
-        socket.emit("typing:start", payload);
-      } else {
-        socket.emit("typing:stop", payload);
-      }
+      socket.emit(active ? "typing:start" : "typing:stop", payload);
     },
     [selected, me, isAdmin]
   );
@@ -673,7 +624,6 @@ export default function Messages() {
 
   const send = async (presetText) => {
     const value = (presetText ?? text).trim();
-
     if (!value || !selected || sending) return;
 
     try {
@@ -691,7 +641,7 @@ export default function Messages() {
 
       setThread((arr) => {
         const exists = arr.some(
-          (item) => String(getId(item)) === String(getId(msg))
+          (item) => String(getMessageId(item)) === String(getMessageId(msg))
         );
 
         return exists ? arr : [...arr, msg];
@@ -709,26 +659,63 @@ export default function Messages() {
     }
   };
 
-  const filteredItems = React.useMemo(() => {
-    const value = query.trim().toLowerCase();
+  const markAllRead = async () => {
+    if (!token || isAdmin) return;
 
-    if (!value) return items;
+    const unreadItems = items.filter((item) => Number(item.unreadCount || 0) > 0);
+    if (!unreadItems.length) return;
 
-    return items.filter((item) => {
-      return (
-        String(item.listingTitle || "").toLowerCase().includes(value) ||
-        String(item.senderName || "").toLowerCase().includes(value) ||
-        String(item.receiverName || "").toLowerCase().includes(value) ||
-        String(item.senderEmail || "").toLowerCase().includes(value) ||
-        String(item.receiverEmail || "").toLowerCase().includes(value) ||
-        String(item.text || "").toLowerCase().includes(value)
+    try {
+      setMarkingAll(true);
+
+      await Promise.all(
+        unreadItems.map((item) => {
+          const peerId = getPeerId(item, me);
+          if (!peerId) return Promise.resolve();
+          return api.markMessagesRead(token, item.listingId, peerId);
+        })
       );
-    });
-  }, [items, query]);
+
+      await loadInbox({ silent: true });
+      showToast(t("chat.allMarkedRead"), "success");
+    } catch {
+      showToast(t("chat.loadFailed"), "error");
+    } finally {
+      setMarkingAll(false);
+    }
+  };
+
+  const handleThreadAction = async (action) => {
+    if (action === "report" && selected?.listingId && token) {
+      try {
+        await api.reportListing(token, selected.listingId, {
+          reason: "other",
+          details: t("chat.actionReport"),
+        });
+        showToast(t("report.sent"), "success");
+      } catch (e) {
+        showToast(getUserFacingErrorMessage(e, t) || t("chat.actionSoon"), "error");
+      }
+      return;
+    }
+
+    showToast(t("chat.actionSoon"), "info");
+  };
+
+  const revealPhone = () => {
+    const phone = listing?.phone || listing?.sellerPhone;
+
+    if (!phone) {
+      showToast(t("chat.phoneUnavailable"), "error");
+      return;
+    }
+
+    setPhoneVisible(true);
+  };
 
   const groupedThread = React.useMemo(
-    () => groupMessagesByDay(thread, t),
-    [thread, t]
+    () => groupMessagesByDay(thread, t, { previouslyUnreadIds }),
+    [thread, t, previouslyUnreadIds]
   );
 
   const selectedPeerId = selected ? getPeerId(selected, me) : null;
@@ -742,27 +729,25 @@ export default function Messages() {
       ? selected?.receiverLastSeen
       : selected?.senderLastSeen);
 
-  const peerOnline =
-    socketReady && peerPresenceInfo?.online === true;
-
+  const peerOnline = socketReady && peerPresenceInfo?.online === true;
   const supportThread = isBusinessSupportThread(selected);
 
-  const peerName =
-    supportThread
-      ? selected?.receiverName ||
-        selected?.senderName ||
-        deepPeerName ||
-        t("chat.admin")
-      : String(selected?.senderId) === String(myId)
-      ? selected?.receiverName || selected?.receiverEmail
-      : selected?.senderName || selected?.senderEmail;
+  const peerName = supportThread
+    ? selected?.receiverName || selected?.senderName || deepPeerName || t("chat.admin")
+    : getPeerName(selected, me, t);
+
+  const quickReplies = supportThread
+    ? getQuickReplies(t, true)
+    : getQuickReplies(t);
+
+  const phoneNumber = listing?.phone || listing?.sellerPhone || "";
 
   if (loading) {
     return (
-      <div className="page-shell min-h-screen px-4 py-8">
-        <div className="max-w-[1800px] mx-auto surface-panel p-6 animate-pulse space-y-3">
+      <div className="page-shell min-h-screen px-4 py-6">
+        <div className="max-w-[1800px] mx-auto messages-workspace p-6 animate-pulse space-y-3">
           <div className="h-8 bg-mist-200 rounded-xl w-48" />
-          <div className="h-64 bg-mist-200 rounded-2xl" />
+          <div className="h-[70vh] bg-mist-200 rounded-2xl" />
         </div>
       </div>
     );
@@ -778,405 +763,79 @@ export default function Messages() {
       />
 
       <div className="max-w-[1800px] mx-auto px-2 md:px-5 py-4">
-        <div className="mb-5 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-sun to-lagoon-600 text-white shadow-soft flex items-center justify-center">
-              <MessageCircle size={26} />
+        {isAdmin ? (
+          <div className="mb-3 inline-flex items-center gap-2 text-xs text-purple-700 bg-purple-50 border border-purple-100 rounded-full px-3 py-1">
+            <Shield size={14} />
+            {t("chat.adminSeeAll")}
+          </div>
+        ) : null}
+
+        {socketError ? (
+          <div className="mb-3 text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2">
+            {t("chat.offlinePolling")}
+          </div>
+        ) : null}
+
+        <div className="messages-workspace">
+          <div className="messages-layout">
+            <div
+              className={`h-full min-h-0 ${
+                mobileView === "chat" ? "hidden xl:block" : "block"
+              }`}
+            >
+              <ChatInboxPanel
+                t={t}
+                items={items}
+                selected={selected}
+                me={me}
+                query={query}
+                onQueryChange={setQuery}
+                filter={filter}
+                onFilterChange={setFilter}
+                onSelect={openThread}
+                onMarkAllRead={markAllRead}
+                onClearSearch={() => {
+                  setQuery("");
+                  setFilter("all");
+                }}
+                markingAll={markingAll}
+              />
             </div>
 
-            <div>
-              <h1 className="font-display text-2xl md:text-3xl font-bold text-ink">
-                {t("chat.title")}
-              </h1>
-              <p className="text-ink-400 mt-0.5 text-sm">
-                {socketReady
-                  ? t("chat.onlineRealtime")
-                  : socketError
-                  ? t("chat.offlinePolling")
-                  : t("chat.connecting")}
-              </p>
-              {isAdmin && (
-                <div className="mt-2 inline-flex items-center gap-2 text-xs text-purple-700 bg-purple-50 border border-purple-100 rounded-full px-3 py-1">
-                  <Shield size={14} />
-                  {t("chat.adminSeeAll")}
-                </div>
-              )}
+            <div
+              className={`h-full min-h-0 ${
+                mobileView === "list" ? "hidden xl:block" : "block"
+              }`}
+            >
+              <ChatThreadPanel
+              t={t}
+              selected={selected}
+              me={me}
+              thread={thread}
+              groupedThread={groupedThread}
+              threadLoading={threadLoading}
+              typingPeer={typingPeer}
+              peerOnline={peerOnline}
+              selectedPeerLastSeen={selectedPeerLastSeen}
+              peerName={peerName}
+              supportThread={supportThread}
+              listing={listing}
+              phoneVisible={phoneVisible}
+              onRevealPhone={revealPhone}
+              phoneNumber={phoneNumber}
+              text={text}
+              onTextChange={handleTextChange}
+              onSend={send}
+              sending={sending}
+              quickReplies={quickReplies}
+              isAdmin={isAdmin}
+              mobileView={mobileView}
+              onBack={() => setMobileView("list")}
+              onAction={handleThreadAction}
+              chatEndRef={chatEndRef}
+            />
             </div>
           </div>
-
-          <Link to="/profile" className="btn hidden sm:inline-flex">
-            <ArrowLeft size={18} />
-            {t("nav.profile")}
-          </Link>
-        </div>
-
-        <div className="grid grid-cols-1 xl:grid-cols-[380px_minmax(0,1fr)] gap-5">
-          <aside
-            className={`surface-panel h-[calc(100vh-140px)] min-h-[480px] flex-col overflow-hidden ${
-              mobileView === "chat" ? "hidden xl:flex" : "flex"
-            }`}
-          >
-            <div className="flex items-center justify-between gap-2 px-4 py-3 border-b border-ink/10">
-              <div>
-                <div className="font-display font-bold text-lg text-ink">
-                  {t("chat.dialogs")}
-                </div>
-                <div className="text-xs text-ink-400">
-                  {t("chat.chatsCount", { count: filteredItems.length })}
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => loadInbox()}
-                disabled={refreshing}
-                className="btn p-2.5 disabled:opacity-60"
-                title={t("chat.refresh")}
-              >
-                <RefreshCw
-                  size={17}
-                  className={refreshing ? "animate-spin" : ""}
-                />
-              </button>
-            </div>
-
-            <div className="relative px-4 py-3">
-              <Search
-                size={18}
-                className="absolute left-7 top-1/2 -translate-y-1/2 text-ink-300"
-              />
-              <input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder={t("chat.searchPlaceholder")}
-                className="input w-full h-11 pl-10"
-              />
-            </div>
-
-            {filteredItems.length === 0 ? (
-              <div className="mx-4 mb-4 rounded-2xl bg-mist p-6 text-center text-sm text-ink-400">
-                {t("chat.empty")}
-              </div>
-            ) : (
-              <div className="flex-1 space-y-2 overflow-y-auto px-3 pb-3">
-                {filteredItems.map((item) => {
-                  const peerId = getPeerId(item, me);
-                  const supportItem = isBusinessSupportThread(item);
-
-                  const active =
-                    String(selected?.listingId) === String(item.listingId) &&
-                    String(getPeerId(selected, me)) === String(peerId);
-
-                  const thumb = listingImageUrl(item.listingImage);
-
-                  return (
-                    <button
-                      key={`${item.listingId}-${peerId}-${getId(item)}`}
-                      type="button"
-                      onClick={() => openThread(item)}
-                      className={`w-full text-left rounded-2xl p-3 transition border ${
-                        active
-                          ? "bg-sun-50 border-sun-200 shadow-soft"
-                          : "bg-white border-ink/10 hover:border-sun/30 hover:shadow-soft"
-                      }`}
-                    >
-                      <div className="flex gap-3">
-                        <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0">
-                          {supportItem ? (
-                            <div className="w-full h-full bg-gradient-to-br from-sun to-lagoon-600 text-white grid place-items-center">
-                              <Building2 size={18} />
-                            </div>
-                          ) : thumb ? (
-                            <img
-                              src={thumb}
-                              alt=""
-                              className="w-full h-full object-cover bg-mist"
-                            />
-                          ) : (
-                            <div className="w-full h-full bg-mist grid place-items-center text-ink-300">
-                              <MessageCircle size={18} />
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-start justify-between gap-2">
-                            <div className="font-semibold text-ink line-clamp-1">
-                              {supportItem
-                                ? t("chat.supportOriyon")
-                                : item.listingTitle || t("chat.listing")}
-                            </div>
-
-                            {Number(item.unreadCount || 0) > 0 && (
-                              <div className="min-w-[22px] h-[22px] px-1 rounded-full bg-sun text-white text-[11px] font-bold flex items-center justify-center">
-                                {Number(item.unreadCount || 0) > 99
-                                  ? "99+"
-                                  : item.unreadCount}
-                              </div>
-                            )}
-                          </div>
-
-                          <div className="text-xs text-ink-400 mt-0.5 line-clamp-1">
-                            {supportItem
-                              ? t("chat.premiumAccount")
-                              : item.senderName || item.senderEmail || t("chat.user")}
-                          </div>
-
-                          <div className="text-sm mt-1 line-clamp-2 text-ink-500">
-                            {item.text}
-                          </div>
-                        </div>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </aside>
-
-          <main
-            className={`surface-panel h-[calc(100vh-140px)] min-h-[480px] flex-col overflow-hidden ${
-              mobileView === "list" ? "hidden xl:flex" : "flex"
-            }`}
-          >
-            {!selected ? (
-              <div className="flex-1 grid place-items-center p-8 text-center">
-                <div>
-                  <div className="mx-auto w-16 h-16 rounded-2xl bg-gradient-to-br from-sun to-lagoon-600 text-white grid place-items-center mb-4 shadow-soft">
-                    <MessageCircle size={30} />
-                  </div>
-                  <div className="font-display font-bold text-xl text-ink">
-                    {t("chat.selectDialog")}
-                  </div>
-                  <div className="text-sm text-ink-400 mt-2">
-                    {t("chat.selectDialogHint")}
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <>
-                <div className="border-b border-ink/10 px-4 py-3 flex items-center gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setMobileView("list")}
-                    className="btn p-2.5 xl:hidden shrink-0"
-                    aria-label={t("chat.backToDialogs")}
-                  >
-                    <ArrowLeft size={18} />
-                  </button>
-
-                  {supportThread ? (
-                    <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-sun to-lagoon-600 text-white grid place-items-center shrink-0 shadow-soft">
-                      <Building2 size={18} />
-                    </div>
-                  ) : listingImageUrl(selected.listingImage) ? (
-                    <img
-                      src={listingImageUrl(selected.listingImage)}
-                      alt=""
-                      className="w-11 h-11 rounded-xl object-cover bg-mist shrink-0"
-                    />
-                  ) : (
-                    <div className="w-11 h-11 rounded-xl bg-mist grid place-items-center shrink-0">
-                      <MessageCircle size={18} className="text-ink-300" />
-                    </div>
-                  )}
-
-                  <div className="min-w-0 flex-1">
-                    <div className="font-display font-bold text-ink line-clamp-1">
-                      {supportThread
-                        ? t("chat.supportOriyon")
-                        : selected.listingTitle || t("chat.listing")}
-                    </div>
-                    <div className="flex flex-wrap items-center gap-2 text-xs text-ink-400">
-                      <span>
-                        {supportThread
-                          ? t("chat.peerPremium", { name: peerName })
-                          : peerName || t("chat.user")}
-                      </span>
-                      {!supportThread && (
-                        <>
-                          <span
-                            className={`w-2 h-2 rounded-full ${
-                              peerOnline ? "bg-emerald-500" : "bg-ink-200"
-                            }`}
-                          />
-                          <span>
-                            {peerOnline
-                              ? t("chat.online")
-                              : formatLastSeen(selectedPeerLastSeen, t)}
-                          </span>
-                        </>
-                      )}
-                      {typingPeer && (
-                        <span className="text-sun font-medium">{t("chat.typing")}</span>
-                      )}
-                    </div>
-                  </div>
-
-                  {!supportThread && (
-                    <Link
-                      to={`/ad/${selected.listingId}`}
-                      className="btn btn-primary shrink-0 text-sm hidden sm:inline-flex"
-                    >
-                      {t("chat.listing")}
-                    </Link>
-                  )}
-                </div>
-
-                <div
-                  className="flex-1 overflow-y-auto px-4 md:px-6 py-5 space-y-3 bg-mist"
-                  style={{
-                    backgroundImage:
-                      "radial-gradient(rgba(28,27,26,0.05) 1px, transparent 1px)",
-                    backgroundSize: "22px 22px",
-                  }}
-                >
-                  {threadLoading ? (
-                    <div className="space-y-3 animate-pulse">
-                      <div className="h-12 bg-white rounded-2xl w-2/3" />
-                      <div className="h-12 bg-white rounded-2xl w-1/2 ml-auto" />
-                    </div>
-                  ) : thread.length === 0 ? (
-                    <div className="py-8 px-2">
-                      {supportThread ? (
-                        <div className="max-w-md mx-auto rounded-2xl border border-sun/20 bg-white p-5 text-center shadow-soft">
-                          <div className="mx-auto w-12 h-12 rounded-2xl bg-gradient-to-br from-sun to-lagoon-600 text-white grid place-items-center mb-3">
-                            <Building2 size={20} />
-                          </div>
-                          <div className="font-display font-bold text-ink">
-                            {t("chat.premiumConsultTitle")}
-                          </div>
-                          <p className="text-sm text-ink-400 mt-2 leading-relaxed">
-                            {t("chat.premiumConsultDesc")}
-                          </p>
-                        </div>
-                      ) : (
-                        <div className="text-center text-ink-400">
-                          {t("chat.empty")}
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    groupedThread.map((entry) => {
-                      if (entry.type === "day") {
-                        return (
-                          <div
-                            key={entry.id}
-                            className="flex justify-center py-2"
-                          >
-                            <span className="text-xs font-medium text-ink-400 bg-white/80 border border-ink/10 rounded-full px-3 py-1">
-                              {entry.label}
-                            </span>
-                          </div>
-                        );
-                      }
-
-                      const msg = entry.data;
-                      const mine = String(msg.senderId) === String(myId);
-
-                      return (
-                        <div
-                          key={entry.id}
-                          className={`flex ${mine ? "justify-end" : "justify-start"}`}
-                        >
-                          <div
-                            className={`max-w-[88%] md:max-w-[70%] rounded-2xl px-4 py-2.5 ${
-                              mine
-                                ? "bg-ink-700 text-white shadow-soft"
-                                : "bg-white text-ink border border-ink/10 shadow-soft"
-                            }`}
-                          >
-                            <div className="whitespace-pre-wrap text-[15px] leading-relaxed">
-                              {msg.text}
-                            </div>
-
-                            <div
-                              className={`flex items-center justify-end gap-1 text-[11px] mt-1 ${
-                                mine ? "text-white/55" : "text-ink-300"
-                              }`}
-                            >
-                              <span>{formatTime(msg.createdAt)}</span>
-                              {mine && (
-                                <span
-                                  className="inline-flex"
-                                  title={msg.isRead ? t("chat.read") : t("chat.delivered")}
-                                >
-                              {msg.isRead === true ? (
-                                    <CheckCheck size={14} className="text-sun-300" />
-                                  ) : (
-                                    <Check size={14} />
-                                  )}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })
-                  )}
-
-                  <div ref={chatEndRef} />
-                </div>
-
-                {!isAdmin && (
-                  <div className="border-t border-ink/10 bg-white p-4 space-y-3">
-                    <div className="flex flex-wrap gap-2">
-                      {(supportThread
-                        ? getQuickReplies(t, true)
-                        : getQuickReplies(t)
-                      ).map((reply) => (
-                        <button
-                          key={reply}
-                          type="button"
-                          onClick={() => send(reply)}
-                          disabled={sending}
-                          className="text-xs px-3 py-1.5 rounded-full border border-ink/10 bg-mist hover:bg-sun-50 hover:border-sun/30 transition disabled:opacity-60"
-                        >
-                          {reply}
-                        </button>
-                      ))}
-                    </div>
-
-                    <div className="flex items-end gap-3">
-                      <textarea
-                        value={text}
-                        onChange={(e) => handleTextChange(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" && !e.shiftKey) {
-                            e.preventDefault();
-                            send();
-                          }
-                        }}
-                        rows={1}
-                        placeholder={t("chat.placeholder")}
-                        className="input flex-1 min-h-[52px] max-h-[160px] resize-none py-3"
-                      />
-
-                      <button
-                        type="button"
-                        onClick={() => send()}
-                        disabled={sending || !text.trim()}
-                        className="btn btn-primary h-[52px] px-5 disabled:opacity-60"
-                      >
-                        <Send size={18} />
-                        {sending ? t("chat.sending") : t("chat.send")}
-                      </button>
-                    </div>
-
-                    <div className="text-xs text-ink-400">
-                      {t("chat.sendHint")}
-                    </div>
-                  </div>
-                )}
-
-                {isAdmin && (
-                  <div className="border-t border-ink/10 bg-white p-4 text-sm text-ink-400">
-                    {t("chat.adminReadOnly")}
-                  </div>
-                )}
-              </>
-            )}
-          </main>
         </div>
       </div>
     </div>

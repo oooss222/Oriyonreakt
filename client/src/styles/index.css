@@ -973,3 +973,25 @@
 .shadow-lift {
   box-shadow: 0 8px 24px rgb(28 27 26 / 0.08);
 }
+
+.messages-workspace {
+  @apply overflow-hidden rounded-[1.25rem] border border-ink/10 bg-white shadow-lift;
+  min-height: calc(100vh - 7.5rem);
+}
+
+.messages-layout {
+  @apply grid min-h-[calc(100vh-7.5rem)] grid-cols-1 xl:grid-cols-[360px_minmax(0,1fr)];
+}
+
+.messages-inbox-item.is-active {
+  box-shadow: inset 3px 0 0 0 #ff6a00;
+}
+
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}

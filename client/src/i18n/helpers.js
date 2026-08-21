@@ -90,10 +90,20 @@ export function formatNightsLabel(count, t) {
 
 export function getQuickReplies(t, business = false) {
   if (business) {
-    return [t("chat.bizQuick1"), t("chat.bizQuick2"), t("chat.bizQuick3")];
+    return [
+      t("chat.bizQuick1"),
+      t("chat.bizQuick2"),
+      t("chat.bizQuick3"),
+      t("chat.bizQuick4"),
+    ];
   }
 
-  return [t("chat.quick1"), t("chat.quick2"), t("chat.quick3")];
+  return [
+    t("chat.quick1"),
+    t("chat.quick2"),
+    t("chat.quick3"),
+    t("chat.quick4"),
+  ];
 }
 
 export function getBusinessBenefits(t) {

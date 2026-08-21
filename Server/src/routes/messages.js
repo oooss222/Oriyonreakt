@@ -87,12 +87,13 @@ router.get("/:listingId", async (req, res) => {
       });
     }
 
-    const { messages, markedRead, messageIds } = await Message.getThread({
-      listingId: req.params.listingId,
-      userId: req.user.id,
-      role: req.user.role,
-      peerId,
-    });
+    const { messages, markedRead, messageIds, previouslyUnreadIds } =
+      await Message.getThread({
+        listingId: req.params.listingId,
+        userId: req.user.id,
+        role: req.user.role,
+        peerId,
+      });
 
     emitReadReceipt(req, {
       listingId: req.params.listingId,
@@ -102,7 +103,7 @@ router.get("/:listingId", async (req, res) => {
       messageIds,
     });
 
-    return res.json(messages);
+    return res.json({ messages, previouslyUnreadIds });
   } catch (e) {
     console.error("MESSAGES_THREAD_ERROR:", e?.message);
 

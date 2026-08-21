@@ -131,6 +131,10 @@ class MessageModel {
         0::int AS unread_count,
         l.title AS listing_title,
         l.images->0->>'url' AS listing_image,
+        l.price AS listing_price,
+        l.status AS listing_status,
+        l.created_at AS listing_created_at,
+        l.owner AS listing_owner,
         s.name AS sender_name,
         s.email AS sender_email,
         s.last_seen AS sender_last_seen,
@@ -166,8 +170,24 @@ class MessageModel {
 
     let markedRead = 0;
     let messageIds = [];
+    let previouslyUnreadIds = [];
 
     if (!isAdmin) {
+      const unreadResult = await query(
+        `
+        SELECT id
+        FROM messages
+        WHERE listing_id = $1
+          AND receiver_id = $2::uuid
+          AND sender_id = $3::uuid
+          AND is_read = false
+        ORDER BY created_at ASC
+        `,
+        [listingId, userId, peerId]
+      );
+
+      previouslyUnreadIds = unreadResult.rows.map((row) => String(row.id));
+
       const marked = await this.markThreadRead({
         listingId,
         userId,
@@ -185,6 +205,7 @@ class MessageModel {
       messages: result.rows.map(mapMessage),
       markedRead,
       messageIds,
+      previouslyUnreadIds,
     };
   }
 
@@ -251,6 +272,12 @@ class MessageModel {
         COALESCE(unread.unread_count, 0)::int AS unread_count,
         l.title AS listing_title,
         l.images->0->>'url' AS listing_image,
+        l.price AS listing_price,
+        l.status AS listing_status,
+        l.created_at AS listing_created_at,
+        l.owner AS listing_owner,
+        latest.seller_id,
+        latest.peer_buyer_id,
         s.name AS sender_name,
         s.email AS sender_email,
         s.last_seen AS sender_last_seen,

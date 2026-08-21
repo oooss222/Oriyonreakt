@@ -1033,6 +1033,12 @@ function mapMessage(row) {
 
     listingTitle: row.listing_title || "",
     listingImage: row.listing_image || "",
+    listingPrice: row.listing_price ?? null,
+    listingStatus: row.listing_status || "",
+    listingCreatedAt: row.listing_created_at || null,
+    listingOwner: row.listing_owner || null,
+    sellerId: row.seller_id || null,
+    peerBuyerId: row.peer_buyer_id || null,
 
     senderLastSeen: row.sender_last_seen || null,
     receiverLastSeen: row.receiver_last_seen || null,
