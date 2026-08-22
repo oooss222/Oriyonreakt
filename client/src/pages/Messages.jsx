@@ -20,6 +20,7 @@ import {
 } from "../lib/messagesUtils";
 import ChatInboxPanel from "../components/messages/ChatInboxPanel";
 import ChatThreadPanel from "../components/messages/ChatThreadPanel";
+import ChatReportModal from "../components/messages/ChatReportModal";
 
 const TOKEN_KEY = "auth_token";
 const USER_KEY = "auth_user";
@@ -96,16 +97,27 @@ export default function Messages() {
   const [peerPresence, setPeerPresence] = React.useState({});
   const [listing, setListing] = React.useState(null);
   const [phoneVisible, setPhoneVisible] = React.useState(false);
+  const [threadSettings, setThreadSettings] = React.useState({
+    isArchived: false,
+    isMuted: false,
+  });
+  const [reportOpen, setReportOpen] = React.useState(false);
+  const [reportSending, setReportSending] = React.useState(false);
+  const [pendingAttachment, setPendingAttachment] = React.useState(null);
+  const [uploadingAttachment, setUploadingAttachment] = React.useState(false);
 
   const [loading, setLoading] = React.useState(true);
   const [threadLoading, setThreadLoading] = React.useState(false);
   const [sending, setSending] = React.useState(false);
   const [markingAll, setMarkingAll] = React.useState(false);
+  const [archiving, setArchiving] = React.useState(false);
 
   const chatEndRef = React.useRef(null);
   const deepHandledRef = React.useRef(false);
   const typingEmitRef = React.useRef(null);
   const markThreadAsReadRef = React.useRef(null);
+  const suppressAutoReadRef = React.useRef(false);
+  const imageInputRef = React.useRef(null);
 
   const isAdmin = me?.role === "admin" || me?.role === "super_admin";
   const myId = me?.id || me?._id;
@@ -161,7 +173,9 @@ export default function Messages() {
       if (!token) return;
 
       try {
-        const data = await api.messageInbox(token);
+        const data = await api.messageInbox(token, {
+          archived: filter === "archived",
+        });
         const next = Array.isArray(data) ? data : [];
 
         setItems(next);
@@ -188,11 +202,11 @@ export default function Messages() {
         setLoading(false);
       }
     },
-    [token, me]
+    [token, me, filter]
   );
 
   const loadThread = React.useCallback(
-    async (item, { silent = false } = {}) => {
+    async (item, { silent = false, autoRead = true } = {}) => {
       if (!item || !token) return;
 
       const peerId = getPeerId(item, me);
@@ -201,7 +215,9 @@ export default function Messages() {
       try {
         if (!silent) setThreadLoading(true);
 
-        const data = await api.messageThread(token, item.listingId, peerId);
+        const data = await api.messageThread(token, item.listingId, peerId, {
+          autoRead,
+        });
         const next = Array.isArray(data)
           ? data
           : Array.isArray(data?.messages)
@@ -213,11 +229,24 @@ export default function Messages() {
 
         setThread(next);
         setPreviouslyUnreadIds(unreadBeforeRead);
+        setThreadSettings({
+          isArchived: Boolean(
+            data?.settings?.isArchived ?? item.threadArchived
+          ),
+          isMuted: Boolean(data?.settings?.isMuted ?? item.threadMuted),
+        });
       } catch (e) {
         if (!silent) {
           setThread([]);
           setPreviouslyUnreadIds([]);
-          showToast(getUserFacingErrorMessage(e, t) || t("chat.loadFailed"), "error");
+          setThreadSettings({ isArchived: false, isMuted: false });
+
+          const message = getUserFacingErrorMessage(e, t);
+          if (e?.code === "USER_BLOCKED" || message.includes("blocked")) {
+            showToast(t("chat.blockedHint"), "error");
+          } else {
+            showToast(message || t("chat.loadFailed"), "error");
+          }
         }
       } finally {
         setThreadLoading(false);
@@ -242,11 +271,13 @@ export default function Messages() {
 
   const openThread = React.useCallback(
     async (item) => {
+      suppressAutoReadRef.current = false;
       setSelected(item);
       setMobileView("chat");
       setTypingPeer(false);
       setPhoneVisible(false);
       setListing(null);
+      setPendingAttachment(null);
       await Promise.all([loadThread(item), loadListingContext(item)]);
     },
     [loadThread, loadListingContext]
@@ -288,13 +319,20 @@ export default function Messages() {
   }, [markThreadAsRead]);
 
   React.useEffect(() => {
-    if (!selected || threadLoading || isAdmin) return;
+    if (!selected || threadLoading || isAdmin || suppressAutoReadRef.current) {
+      return;
+    }
 
     const peerId = getPeerId(selected, me);
     if (!peerId) return;
 
     markThreadAsRead(selected.listingId, peerId);
   }, [selected, thread.length, threadLoading, me, isAdmin, markThreadAsRead]);
+
+  React.useEffect(() => {
+    if (!token) return;
+    loadInbox({ silent: true });
+  }, [filter, token, loadInbox]);
 
   React.useEffect(() => {
     if (!token) {
@@ -348,6 +386,8 @@ export default function Messages() {
     const onMessageNew = ({ message }) => {
       if (!message) return;
 
+      let shouldNotify = false;
+
       setItems((prev) => {
         const peerId =
           String(message.senderId) === String(myId)
@@ -363,16 +403,27 @@ export default function Messages() {
         const preview = {
           ...message,
           text: message.text,
+          attachmentUrl: message.attachmentUrl || "",
           createdAt: message.createdAt,
           unreadCount: String(message.receiverId) === String(myId) ? 1 : 0,
         };
 
         if (idx === -1) {
+          if (String(message.receiverId) === String(myId)) {
+            shouldNotify = true;
+          }
           return [preview, ...prev];
         }
 
         const copy = [...prev];
         const existing = copy[idx];
+
+        if (
+          String(message.receiverId) === String(myId) &&
+          !existing.threadMuted
+        ) {
+          shouldNotify = true;
+        }
 
         copy[idx] = {
           ...existing,
@@ -416,7 +467,7 @@ export default function Messages() {
         return current;
       });
 
-      if (String(message.receiverId) === String(myId)) {
+      if (shouldNotify) {
         showToast(t("chat.newMessage"), "info");
       }
     };
@@ -624,7 +675,11 @@ export default function Messages() {
 
   const send = async (presetText) => {
     const value = (presetText ?? text).trim();
-    if (!value || !selected || sending) return;
+    const attachmentUrl = presetText ? "" : pendingAttachment?.url || "";
+
+    if ((!value && !attachmentUrl) || !selected || sending || uploadingAttachment) {
+      return;
+    }
 
     try {
       setSending(true);
@@ -636,7 +691,8 @@ export default function Messages() {
         token,
         selected.listingId,
         value,
-        receiverId
+        receiverId,
+        attachmentUrl
       );
 
       setThread((arr) => {
@@ -649,13 +705,210 @@ export default function Messages() {
 
       if (!presetText) {
         setText("");
+        if (pendingAttachment?.preview?.startsWith("blob:")) {
+          URL.revokeObjectURL(pendingAttachment.preview);
+        }
+        setPendingAttachment(null);
       }
 
       await loadInbox({ silent: true });
     } catch (e) {
-      showToast(getUserFacingErrorMessage(e, t) || t("chat.loadFailed"), "error");
+      const message = getUserFacingErrorMessage(e, t);
+      if (message.includes("blocked") || e?.code === "USER_BLOCKED") {
+        showToast(t("chat.blockedHint"), "error");
+      } else {
+        showToast(message || t("chat.loadFailed"), "error");
+      }
     } finally {
       setSending(false);
+    }
+  };
+
+  const updateThreadSettings = async (patch) => {
+    if (!selected || !token) return null;
+
+    const peerId = getPeerId(selected, me);
+    if (!peerId) return null;
+
+    const settings = await api.updateChatThread(token, selected.listingId, {
+      peerId,
+      ...patch,
+    });
+
+    setThreadSettings({
+      isArchived: Boolean(settings?.isArchived),
+      isMuted: Boolean(settings?.isMuted),
+    });
+
+    await loadInbox({ silent: true });
+    return settings;
+  };
+
+  const archiveSelectedThread = async () => {
+    if (!selected || archiving) return;
+
+    try {
+      setArchiving(true);
+      await updateThreadSettings({ isArchived: true });
+      setSelected(null);
+      setThread([]);
+      setMobileView("list");
+      showToast(t("chat.archivedSuccess"), "success");
+    } catch (e) {
+      showToast(getUserFacingErrorMessage(e, t) || t("chat.loadFailed"), "error");
+    } finally {
+      setArchiving(false);
+    }
+  };
+
+  const handlePickImage = async (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+
+    if (!file || !token) return;
+
+    if (!file.type.startsWith("image/")) {
+      showToast(t("chat.imageOnly"), "error");
+      return;
+    }
+
+    const preview = URL.createObjectURL(file);
+
+    setPendingAttachment({ preview, url: "" });
+
+    try {
+      setUploadingAttachment(true);
+
+      const formData = new FormData();
+      formData.append("images", file);
+
+      const result = await api.uploadImages(token, formData);
+      const url = Array.isArray(result?.urls) ? result.urls[0] : "";
+
+      if (!url) {
+        throw new Error(t("chat.uploadFailed"));
+      }
+
+      setPendingAttachment({ preview, url });
+    } catch (e) {
+      URL.revokeObjectURL(preview);
+      setPendingAttachment(null);
+      showToast(getUserFacingErrorMessage(e, t) || t("chat.uploadFailed"), "error");
+    } finally {
+      setUploadingAttachment(false);
+    }
+  };
+
+  const handleRemoveAttachment = () => {
+    if (pendingAttachment?.preview?.startsWith("blob:")) {
+      URL.revokeObjectURL(pendingAttachment.preview);
+    }
+
+    setPendingAttachment(null);
+  };
+
+  const submitReport = async ({ reason, details }) => {
+    if (!selected?.listingId || !token) return;
+
+    try {
+      setReportSending(true);
+
+      await api.reportListing(token, selected.listingId, {
+        reason,
+        details,
+      });
+
+      setReportOpen(false);
+      showToast(t("report.sent"), "success");
+    } catch (e) {
+      showToast(getUserFacingErrorMessage(e, t) || t("chat.loadFailed"), "error");
+    } finally {
+      setReportSending(false);
+    }
+  };
+
+  const handleThreadAction = async (action) => {
+    if (!selected || !token || isAdmin) return;
+
+    const peerId = getPeerId(selected, me);
+    if (!peerId) return;
+
+    try {
+      if (action === "report" || action === "menu") {
+        setReportOpen(true);
+        return;
+      }
+
+      if (action === "archive") {
+        await updateThreadSettings({ isArchived: true });
+        setSelected(null);
+        setThread([]);
+        setMobileView("list");
+        showToast(t("chat.archivedSuccess"), "success");
+        return;
+      }
+
+      if (action === "unarchive") {
+        await updateThreadSettings({ isArchived: false });
+        if (filter === "archived") {
+          setFilter("all");
+        }
+        showToast(t("chat.unarchivedSuccess"), "success");
+        return;
+      }
+
+      if (action === "mute") {
+        await updateThreadSettings({ isMuted: true });
+        showToast(t("chat.mutedSuccess"), "success");
+        return;
+      }
+
+      if (action === "unmute") {
+        await updateThreadSettings({ isMuted: false });
+        showToast(t("chat.unmutedSuccess"), "success");
+        return;
+      }
+
+      if (action === "unread") {
+        suppressAutoReadRef.current = true;
+        await api.markMessagesUnread(token, selected.listingId, peerId);
+        await loadThread(selected, { silent: true, autoRead: false });
+        setItems((prev) => {
+          const next = prev.map((item) => {
+            if (
+              String(item.listingId) === String(selected.listingId) &&
+              String(getPeerId(item, me)) === String(peerId)
+            ) {
+              return {
+                ...item,
+                unreadCount: Math.max(1, Number(item.unreadCount || 0)),
+              };
+            }
+
+            return item;
+          });
+
+          publishUnreadCount(getUnreadTotal(next));
+          return next;
+        });
+        showToast(t("chat.unreadSuccess"), "success");
+        return;
+      }
+
+      if (action === "block") {
+        const confirmed = window.confirm(t("chat.blockConfirm"));
+
+        if (!confirmed) return;
+
+        await api.blockChatUser(token, peerId);
+        setSelected(null);
+        setThread([]);
+        setMobileView("list");
+        await loadInbox({ silent: true });
+        showToast(t("chat.blockedSuccess"), "success");
+      }
+    } catch (e) {
+      showToast(getUserFacingErrorMessage(e, t) || t("chat.loadFailed"), "error");
     }
   };
 
@@ -683,23 +936,6 @@ export default function Messages() {
     } finally {
       setMarkingAll(false);
     }
-  };
-
-  const handleThreadAction = async (action) => {
-    if (action === "report" && selected?.listingId && token) {
-      try {
-        await api.reportListing(token, selected.listingId, {
-          reason: "other",
-          details: t("chat.actionReport"),
-        });
-        showToast(t("report.sent"), "success");
-      } catch (e) {
-        showToast(getUserFacingErrorMessage(e, t) || t("chat.actionSoon"), "error");
-      }
-      return;
-    }
-
-    showToast(t("chat.actionSoon"), "info");
   };
 
   const revealPhone = () => {
@@ -762,6 +998,14 @@ export default function Messages() {
         closeLabel={t("common.close")}
       />
 
+      <ChatReportModal
+        open={reportOpen}
+        onClose={() => setReportOpen(false)}
+        onSubmit={submitReport}
+        sending={reportSending}
+        t={t}
+      />
+
       <div className="max-w-[1800px] mx-auto px-2 md:px-5 py-4">
         {isAdmin ? (
           <div className="mb-3 inline-flex items-center gap-2 text-xs text-purple-700 bg-purple-50 border border-purple-100 rounded-full px-3 py-1">
@@ -794,11 +1038,9 @@ export default function Messages() {
                 onFilterChange={setFilter}
                 onSelect={openThread}
                 onMarkAllRead={markAllRead}
-                onClearSearch={() => {
-                  setQuery("");
-                  setFilter("all");
-                }}
+                onArchiveSelected={archiveSelectedThread}
                 markingAll={markingAll}
+                archiving={archiving}
               />
             </div>
 
@@ -808,32 +1050,37 @@ export default function Messages() {
               }`}
             >
               <ChatThreadPanel
-              t={t}
-              selected={selected}
-              me={me}
-              thread={thread}
-              groupedThread={groupedThread}
-              threadLoading={threadLoading}
-              typingPeer={typingPeer}
-              peerOnline={peerOnline}
-              selectedPeerLastSeen={selectedPeerLastSeen}
-              peerName={peerName}
-              supportThread={supportThread}
-              listing={listing}
-              phoneVisible={phoneVisible}
-              onRevealPhone={revealPhone}
-              phoneNumber={phoneNumber}
-              text={text}
-              onTextChange={handleTextChange}
-              onSend={send}
-              sending={sending}
-              quickReplies={quickReplies}
-              isAdmin={isAdmin}
-              mobileView={mobileView}
-              onBack={() => setMobileView("list")}
-              onAction={handleThreadAction}
-              chatEndRef={chatEndRef}
-            />
+                t={t}
+                selected={selected}
+                me={me}
+                thread={thread}
+                groupedThread={groupedThread}
+                threadLoading={threadLoading}
+                typingPeer={typingPeer}
+                peerOnline={peerOnline}
+                selectedPeerLastSeen={selectedPeerLastSeen}
+                peerName={peerName}
+                supportThread={supportThread}
+                listing={listing}
+                phoneVisible={phoneVisible}
+                onRevealPhone={revealPhone}
+                phoneNumber={phoneNumber}
+                text={text}
+                onTextChange={handleTextChange}
+                onSend={send}
+                sending={sending}
+                quickReplies={quickReplies}
+                isAdmin={isAdmin}
+                onBack={() => setMobileView("list")}
+                onAction={handleThreadAction}
+                chatEndRef={chatEndRef}
+                threadSettings={threadSettings}
+                pendingAttachment={pendingAttachment}
+                onPickImage={handlePickImage}
+                onRemoveAttachment={handleRemoveAttachment}
+                uploadingAttachment={uploadingAttachment}
+                imageInputRef={imageInputRef}
+              />
             </div>
           </div>
         </div>

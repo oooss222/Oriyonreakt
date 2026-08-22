@@ -614,6 +614,32 @@ async function initDb() {
     CREATE INDEX IF NOT EXISTS idx_messages_created_at
       ON messages(created_at DESC);
 
+    ALTER TABLE messages
+      ADD COLUMN IF NOT EXISTS attachment_url TEXT;
+
+    CREATE TABLE IF NOT EXISTS chat_thread_settings (
+      user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      listing_id UUID NOT NULL REFERENCES listings(id) ON DELETE CASCADE,
+      peer_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      is_archived BOOLEAN NOT NULL DEFAULT false,
+      is_muted BOOLEAN NOT NULL DEFAULT false,
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+      PRIMARY KEY (user_id, listing_id, peer_id)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_chat_thread_settings_user_archived
+      ON chat_thread_settings(user_id, is_archived);
+
+    CREATE TABLE IF NOT EXISTS user_chat_blocks (
+      blocker_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      blocked_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+      PRIMARY KEY (blocker_id, blocked_id)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_user_chat_blocks_blocker
+      ON user_chat_blocks(blocker_id);
+
     CREATE TABLE IF NOT EXISTS listing_reports (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       listing_id UUID NOT NULL REFERENCES listings(id) ON DELETE CASCADE,
@@ -1028,6 +1054,7 @@ function mapMessage(row) {
     receiverId: row.receiver_id,
 
     text: row.text,
+    attachmentUrl: row.attachment_url || "",
     isRead: Boolean(row.is_read),
     unreadCount: Number(row.unread_count || 0),
 

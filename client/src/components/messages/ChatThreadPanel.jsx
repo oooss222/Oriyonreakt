@@ -16,14 +16,12 @@ import {
   Archive,
   Flag,
   Ban,
+  X,
 } from "lucide-react";
 import ChatAvatar from "./ChatAvatar";
 import {
   formatLastSeen,
   formatMessageTime,
-  getMessageId,
-  getPeerName,
-  groupMessagesByDay,
   listingImageUrl,
   listingStatusClass,
   listingStatusLabel,
@@ -31,6 +29,64 @@ import {
 import { isBusinessSupportThread } from "../../lib/openBusinessSupportChat";
 import { formatPrice } from "../../lib/format";
 import { formatListingTimeAgo } from "../../i18n/helpers";
+import { resolveMediaUrl } from "../../lib/media";
+
+function MessageBubble({ msg, mine, t }) {
+  const attachment = msg.attachmentUrl
+    ? resolveMediaUrl(msg.attachmentUrl, { placeholder: "" })
+    : "";
+
+  return (
+    <div
+      className={`max-w-[88%] md:max-w-[68%] rounded-2xl px-4 py-2.5 shadow-soft ${
+        mine
+          ? "bg-sun text-white rounded-br-md"
+          : "bg-white text-ink border border-ink/10 rounded-bl-md"
+      }`}
+    >
+      {attachment ? (
+        <a
+          href={attachment}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block mb-2"
+        >
+          <img
+            src={attachment}
+            alt=""
+            className="max-w-full rounded-xl max-h-64 object-cover"
+          />
+        </a>
+      ) : null}
+
+      {msg.text ? (
+        <div className="whitespace-pre-wrap text-[15px] leading-relaxed">
+          {msg.text}
+        </div>
+      ) : null}
+
+      <div
+        className={`flex items-center justify-end gap-1 text-[11px] mt-1 ${
+          mine ? "text-white/70" : "text-ink-300"
+        }`}
+      >
+        <span>{formatMessageTime(msg.createdAt)}</span>
+        {mine ? (
+          <span
+            className="inline-flex"
+            title={msg.isRead ? t("chat.read") : t("chat.delivered")}
+          >
+            {msg.isRead === true ? (
+              <CheckCheck size={14} className="text-white" />
+            ) : (
+              <Check size={14} />
+            )}
+          </span>
+        ) : null}
+      </div>
+    </div>
+  );
+}
 
 function ListingContextCard({ listing, selected, t }) {
   if (!listing || isBusinessSupportThread(selected)) return null;
@@ -99,11 +155,24 @@ function ListingContextCard({ listing, selected, t }) {
   );
 }
 
-function ThreadActions({ t, onAction }) {
+function ThreadActions({ t, onAction, threadSettings }) {
+  const archived = Boolean(threadSettings?.isArchived);
+  const muted = Boolean(threadSettings?.isMuted);
+
   const actions = [
-    { key: "archive", label: t("chat.actionArchive"), icon: Archive },
+    {
+      key: archived ? "unarchive" : "archive",
+      label: archived ? t("chat.actionUnarchive") : t("chat.actionArchive"),
+      icon: Archive,
+      active: archived,
+    },
     { key: "unread", label: t("chat.actionUnread"), icon: MessageCircle },
-    { key: "mute", label: t("chat.actionMute"), icon: BellOff },
+    {
+      key: muted ? "unmute" : "mute",
+      label: muted ? t("chat.actionUnmute") : t("chat.actionMute"),
+      icon: BellOff,
+      active: muted,
+    },
     { key: "report", label: t("chat.actionReport"), icon: Flag },
     { key: "block", label: t("chat.actionBlock"), icon: Ban },
   ];
@@ -111,12 +180,16 @@ function ThreadActions({ t, onAction }) {
   return (
     <div className="px-4 py-2 border-b border-ink/10 bg-white overflow-x-auto scrollbar-none">
       <div className="flex gap-2 min-w-max">
-        {actions.map(({ key, label, icon: Icon }) => (
+        {actions.map(({ key, label, icon: Icon, active }) => (
           <button
             key={key}
             type="button"
             onClick={() => onAction(key)}
-            className="inline-flex items-center gap-1.5 rounded-full border border-ink/10 bg-mist/60 px-3 py-1.5 text-xs font-medium text-ink-500 hover:bg-white transition"
+            className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition ${
+              active
+                ? "border-orange-200 bg-orange-50 text-orange-700"
+                : "border-ink/10 bg-mist/60 text-ink-500 hover:bg-white"
+            }`}
           >
             <Icon size={14} />
             {label}
@@ -149,10 +222,15 @@ export default function ChatThreadPanel({
   sending,
   quickReplies,
   isAdmin,
-  mobileView,
   onBack,
   onAction,
   chatEndRef,
+  threadSettings,
+  pendingAttachment,
+  onPickImage,
+  onRemoveAttachment,
+  uploadingAttachment,
+  imageInputRef,
 }) {
   const presenceLabel = supportThread
     ? t("chat.supportHours")
@@ -247,7 +325,7 @@ export default function ChatThreadPanel({
           </div>
 
           {!isAdmin && !supportThread ? (
-            <ThreadActions t={t} onAction={onAction} />
+            <ThreadActions t={t} onAction={onAction} threadSettings={threadSettings} />
           ) : null}
 
           {supportThread ? (
@@ -312,37 +390,7 @@ export default function ChatThreadPanel({
                     key={entry.id}
                     className={`flex ${mine ? "justify-end" : "justify-start"}`}
                   >
-                    <div
-                      className={`max-w-[88%] md:max-w-[68%] rounded-2xl px-4 py-2.5 shadow-soft ${
-                        mine
-                          ? "bg-sun text-white rounded-br-md"
-                          : "bg-white text-ink border border-ink/10 rounded-bl-md"
-                      }`}
-                    >
-                      <div className="whitespace-pre-wrap text-[15px] leading-relaxed">
-                        {msg.text}
-                      </div>
-
-                      <div
-                        className={`flex items-center justify-end gap-1 text-[11px] mt-1 ${
-                          mine ? "text-white/70" : "text-ink-300"
-                        }`}
-                      >
-                        <span>{formatMessageTime(msg.createdAt)}</span>
-                        {mine ? (
-                          <span
-                            className="inline-flex"
-                            title={msg.isRead ? t("chat.read") : t("chat.delivered")}
-                          >
-                            {msg.isRead === true ? (
-                              <CheckCheck size={14} className="text-white" />
-                            ) : (
-                              <Check size={14} />
-                            )}
-                          </span>
-                        ) : null}
-                      </div>
-                    </div>
+                    <MessageBubble msg={msg} mine={mine} t={t} />
                   </div>
                 );
               })
@@ -371,7 +419,7 @@ export default function ChatThreadPanel({
                     key={reply}
                     type="button"
                     onClick={() => onSend(reply)}
-                    disabled={sending}
+                    disabled={sending || uploadingAttachment}
                     className="shrink-0 rounded-full border border-ink/10 bg-mist px-3.5 py-1.5 text-xs font-medium text-ink-600 hover:bg-orange-50 hover:border-orange-100 transition disabled:opacity-60"
                   >
                     {reply}
@@ -379,21 +427,52 @@ export default function ChatThreadPanel({
                 ))}
               </div>
 
+              {pendingAttachment ? (
+                <div className="flex items-center gap-3 rounded-2xl border border-ink/10 bg-mist/60 p-2">
+                  <img
+                    src={pendingAttachment.preview}
+                    alt=""
+                    className="w-16 h-16 rounded-xl object-cover"
+                  />
+                  <div className="min-w-0 flex-1 text-sm text-ink-500">
+                    {uploadingAttachment ? t("chat.uploading") : t("chat.attachImage")}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={onRemoveAttachment}
+                    className="btn p-2"
+                    aria-label={t("common.close")}
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+              ) : null}
+
               <div className="flex items-end gap-3">
-                <div className="hidden sm:flex items-center gap-1 shrink-0">
+                <input
+                  ref={imageInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={onPickImage}
+                />
+
+                <div className="flex items-center gap-1 shrink-0">
                   <button
                     type="button"
                     className="btn p-2.5"
-                    title={t("chat.attachSoon")}
-                    onClick={() => onAction("attach")}
+                    title={t("chat.attachImage")}
+                    onClick={() => imageInputRef.current?.click()}
+                    disabled={uploadingAttachment}
                   >
                     <Paperclip size={18} />
                   </button>
                   <button
                     type="button"
                     className="btn p-2.5"
-                    title={t("chat.attachSoon")}
-                    onClick={() => onAction("attach")}
+                    title={t("chat.attachImage")}
+                    onClick={() => imageInputRef.current?.click()}
+                    disabled={uploadingAttachment}
                   >
                     <ImageIcon size={18} />
                   </button>
@@ -416,7 +495,11 @@ export default function ChatThreadPanel({
                 <button
                   type="button"
                   onClick={() => onSend()}
-                  disabled={sending || !text.trim()}
+                  disabled={
+                    sending ||
+                    uploadingAttachment ||
+                    (!text.trim() && !pendingAttachment?.url)
+                  }
                   className="btn btn-primary h-[52px] w-[52px] p-0 rounded-full disabled:opacity-60 shrink-0"
                   aria-label={t("chat.send")}
                 >

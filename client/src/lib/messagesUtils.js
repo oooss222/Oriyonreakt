@@ -170,6 +170,15 @@ export function groupMessagesByDay(messages, t, { previouslyUnreadIds = [] } = {
   return groups;
 }
 
+export function getMessagePreview(message, t) {
+  const text = String(message?.text || "").trim();
+
+  if (text) return text;
+  if (message?.attachmentUrl) return t("chat.imageMessage");
+
+  return "";
+}
+
 export function listingStatusLabel(status, t) {
   const key = String(status || "").toLowerCase();
 

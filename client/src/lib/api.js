@@ -235,18 +235,23 @@ export const api = {
       body,
     }),
 
-  messageInbox: (token) =>
-  request("/messages/inbox", {
-    token,
-  }),
+  messageInbox: (token, { archived = false } = {}) =>
+    request(
+      `/messages/inbox${archived ? "?archived=1" : ""}`,
+      {
+        token,
+      }
+    ),
 
-  messageThread: (token, listingId, peerId) =>
-  request(
-    `/messages/${listingId}${peerId ? `?peerId=${encodeURIComponent(peerId)}` : ""}`,
-    {
-      token,
-    }
-  ),
+  messageThread: (token, listingId, peerId, { autoRead = true } = {}) =>
+    request(
+      `/messages/${listingId}?peerId=${encodeURIComponent(peerId)}${
+        autoRead ? "" : "&autoRead=0"
+      }`,
+      {
+        token,
+      }
+    ),
 
   markMessagesRead: (token, listingId, peerId) =>
     request(
@@ -257,12 +262,44 @@ export const api = {
       }
     ),
 
-  sendMessage: (token, listingId, text, receiverId) =>
-  request(`/messages/${listingId}`, {
-    method: "POST",
-    token,
-    body: { text, receiverId },
-  }),
+  markMessagesUnread: (token, listingId, peerId) =>
+    request(
+      `/messages/${listingId}/unread?peerId=${encodeURIComponent(peerId)}`,
+      {
+        method: "POST",
+        token,
+      }
+    ),
+
+  updateChatThread: (token, listingId, body) =>
+    request(`/messages/threads/${listingId}`, {
+      method: "PATCH",
+      token,
+      body,
+    }),
+
+  blockChatUser: (token, userId) =>
+    request(`/messages/blocks/${userId}`, {
+      method: "POST",
+      token,
+    }),
+
+  unblockChatUser: (token, userId) =>
+    request(`/messages/blocks/${userId}`, {
+      method: "DELETE",
+      token,
+    }),
+
+  sendMessage: (token, listingId, text, receiverId, attachmentUrl = "") =>
+    request(`/messages/${listingId}`, {
+      method: "POST",
+      token,
+      body: {
+        text,
+        receiverId,
+        attachmentUrl: attachmentUrl || undefined,
+      },
+    }),
 
   myListings: (token) =>
     request("/listings/mine", {

@@ -1,11 +1,19 @@
 const { query, mapMessage } = require("../db");
+const ChatThread = require("./ChatThread");
 
 function isAdminRole(role) {
   return role === "admin" || role === "super_admin";
 }
 
 class MessageModel {
-  static async create({ listingId, senderId, text, receiverId }) {
+  static async create({ listingId, senderId, text, receiverId, attachmentUrl }) {
+    const cleanText = String(text || "").trim();
+    const cleanAttachment = String(attachmentUrl || "").trim();
+
+    if (!cleanText && !cleanAttachment) {
+      throw new Error("MESSAGE_EMPTY");
+    }
+
     const listingResult = await query(
       `
       SELECT owner
@@ -50,18 +58,29 @@ class MessageModel {
       throw new Error("CANNOT_MESSAGE_YOURSELF");
     }
 
+    if (await ChatThread.isBlockedEitherWay(senderId, finalReceiverId)) {
+      throw new Error("USER_BLOCKED");
+    }
+
     const result = await query(
       `
       INSERT INTO messages (
         listing_id,
         sender_id,
         receiver_id,
-        text
+        text,
+        attachment_url
       )
-      VALUES ($1, $2, $3, $4)
+      VALUES ($1, $2, $3, $4, $5)
       RETURNING *
       `,
-      [listingId, senderId, finalReceiverId, text]
+      [
+        listingId,
+        senderId,
+        finalReceiverId,
+        cleanText,
+        cleanAttachment || null,
+      ]
     );
 
     return mapMessage(result.rows[0]);
@@ -75,6 +94,10 @@ class MessageModel {
         0::int AS unread_count,
         l.title AS listing_title,
         l.images->0->>'url' AS listing_image,
+        l.price AS listing_price,
+        l.status AS listing_status,
+        l.created_at AS listing_created_at,
+        l.owner AS listing_owner,
         s.name AS sender_name,
         s.email AS sender_email,
         s.last_seen AS sender_last_seen,
@@ -118,11 +141,43 @@ class MessageModel {
     };
   }
 
-  static async getThread({ listingId, userId, role, peerId }) {
+  static async markThreadUnread({ listingId, userId, role, peerId }) {
+    if (isAdminRole(role)) {
+      return { markedUnread: 0 };
+    }
+
+    const updateResult = await query(
+      `
+      UPDATE messages
+      SET is_read = false
+      WHERE id = (
+        SELECT id
+        FROM messages
+        WHERE listing_id = $1
+          AND receiver_id = $2::uuid
+          AND sender_id = $3::uuid
+        ORDER BY created_at DESC
+        LIMIT 1
+      )
+      RETURNING id
+      `,
+      [listingId, userId, peerId]
+    );
+
+    return {
+      markedUnread: updateResult.rowCount || 0,
+    };
+  }
+
+  static async getThread({ listingId, userId, role, peerId, autoRead = true }) {
     const isAdmin = isAdminRole(role);
 
     if (!peerId) {
       throw new Error("PEER_REQUIRED");
+    }
+
+    if (!isAdmin && (await ChatThread.isBlockedEitherWay(userId, peerId))) {
+      throw new Error("USER_BLOCKED");
     }
 
     const selectSql = `
@@ -164,15 +219,13 @@ class MessageModel {
       ORDER BY m.created_at ASC
     `;
 
-    const params = isAdmin
-      ? [listingId, userId, peerId]
-      : [listingId, userId, peerId];
+    const params = [listingId, userId, peerId];
 
     let markedRead = 0;
     let messageIds = [];
     let previouslyUnreadIds = [];
 
-    if (!isAdmin) {
+    if (!isAdmin && autoRead) {
       const unreadResult = await query(
         `
         SELECT id
@@ -200,17 +253,20 @@ class MessageModel {
     }
 
     const result = await query(selectSql, params);
+    const settings = await ChatThread.getSettings(userId, listingId, peerId);
 
     return {
       messages: result.rows.map(mapMessage),
       markedRead,
       messageIds,
       previouslyUnreadIds,
+      settings,
     };
   }
 
-  static async inbox({ userId, role }) {
+  static async inbox({ userId, role, archived = false }) {
     const isAdmin = isAdminRole(role);
+    const wantArchived = archived === true || archived === "true";
 
     const result = await query(
       `
@@ -278,6 +334,8 @@ class MessageModel {
         l.owner AS listing_owner,
         latest.seller_id,
         latest.peer_buyer_id,
+        COALESCE(cts.is_archived, false) AS thread_archived,
+        COALESCE(cts.is_muted, false) AS thread_muted,
         s.name AS sender_name,
         s.email AS sender_email,
         s.last_seen AS sender_last_seen,
@@ -292,12 +350,33 @@ class MessageModel {
       LEFT JOIN listings l ON l.id = latest.listing_id
       LEFT JOIN users s ON s.id = latest.sender_id
       LEFT JOIN users r ON r.id = latest.receiver_id
+      LEFT JOIN chat_thread_settings cts
+        ON cts.user_id = $1
+        AND cts.listing_id = latest.listing_id
+        AND cts.peer_id = CASE
+          WHEN latest.sender_id = $1 THEN latest.receiver_id
+          ELSE latest.sender_id
+        END
+      WHERE COALESCE(cts.is_archived, false) = $2
+        AND NOT EXISTS (
+          SELECT 1
+          FROM user_chat_blocks b
+          WHERE b.blocker_id = $1
+            AND b.blocked_id = CASE
+              WHEN latest.sender_id = $1 THEN latest.receiver_id
+              ELSE latest.sender_id
+            END
+        )
       ORDER BY latest.created_at DESC
       `,
-      [userId]
+      [userId, wantArchived]
     );
 
-    return result.rows.map(mapMessage);
+    return result.rows.map((row) => ({
+      ...mapMessage(row),
+      threadArchived: Boolean(row.thread_archived),
+      threadMuted: Boolean(row.thread_muted),
+    }));
   }
 }
 

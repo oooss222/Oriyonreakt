@@ -8,12 +8,17 @@ import {
   formatInboxTime,
   listingImageUrl,
   roleBadgeMeta,
+  getMessagePreview,
 } from "../../lib/messagesUtils";
 import { isBusinessSupportThread } from "../../lib/openBusinessSupportChat";
 
-const FILTERS = ["all", "unread", "buying", "selling"];
+const FILTERS = ["all", "unread", "buying", "selling", "archived"];
 
 function countByFilter(items, me, filter) {
+  if (filter === "archived") {
+    return items.length;
+  }
+
   if (filter === "unread") {
     return items.filter((item) => Number(item.unreadCount || 0) > 0).length;
   }
@@ -40,18 +45,21 @@ export default function ChatInboxPanel({
   onFilterChange,
   onSelect,
   onMarkAllRead,
-  onClearSearch,
+  onArchiveSelected,
   markingAll,
+  archiving,
 }) {
   const filteredItems = React.useMemo(() => {
     let next = items;
 
-    if (filter === "unread") {
-      next = next.filter((item) => Number(item.unreadCount || 0) > 0);
-    } else if (filter === "buying") {
-      next = next.filter((item) => getThreadRole(item, me) === "buying");
-    } else if (filter === "selling") {
-      next = next.filter((item) => getThreadRole(item, me) === "selling");
+    if (filter !== "archived") {
+      if (filter === "unread") {
+        next = next.filter((item) => Number(item.unreadCount || 0) > 0);
+      } else if (filter === "buying") {
+        next = next.filter((item) => getThreadRole(item, me) === "buying");
+      } else if (filter === "selling") {
+        next = next.filter((item) => getThreadRole(item, me) === "selling");
+      }
     }
 
     const value = query.trim().toLowerCase();
@@ -88,9 +96,10 @@ export default function ChatInboxPanel({
           </button>
           <button
             type="button"
-            onClick={onClearSearch}
-            className="btn p-2.5"
-            title={t("chat.clearSearch")}
+            onClick={onArchiveSelected}
+            disabled={archiving || !selected}
+            className="btn p-2.5 disabled:opacity-40"
+            title={t("chat.actionArchive")}
           >
             <Trash2 size={18} />
           </button>
@@ -206,7 +215,7 @@ export default function ChatInboxPanel({
                     </div>
 
                     <div className="mt-1 text-sm text-ink-400 line-clamp-1">
-                      {item.text}
+                      {getMessagePreview(item, t)}
                     </div>
                   </div>
 
