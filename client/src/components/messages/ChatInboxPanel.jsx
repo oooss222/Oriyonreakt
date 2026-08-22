@@ -80,7 +80,7 @@ export default function ChatInboxPanel({
   const unreadTotal = countByFilter(items, me, "unread");
 
   return (
-    <aside className="messages-inbox flex h-full min-h-0 flex-col border-r border-ink/10 bg-white">
+    <aside className="messages-inbox flex h-full min-h-0 min-w-0 flex-col border-r border-ink/10 bg-white overflow-hidden">
       <div className="flex items-center justify-between gap-2 px-4 py-4 border-b border-ink/10">
         <h2 className="font-display text-xl font-bold text-ink">{t("chat.title")}</h2>
 
@@ -121,30 +121,32 @@ export default function ChatInboxPanel({
         </div>
       </div>
 
-      <div className="px-4 pb-3 flex gap-2 overflow-x-auto scrollbar-none">
-        {FILTERS.map((key) => {
-          const active = filter === key;
-          const count = countByFilter(items, me, key);
-          const label =
-            key === "all" && count > 0
-              ? `${t(`chat.filter.${key}`)} ${count}`
-              : t(`chat.filter.${key}`);
+      <div className="px-4 pb-3 min-w-0">
+        <div className="messages-inbox-filters">
+          {FILTERS.map((key) => {
+            const active = filter === key;
+            const count = countByFilter(items, me, key);
+            const label =
+              key === "all" && count > 0
+                ? `${t(`chat.filter.${key}`)} ${count}`
+                : t(`chat.filter.${key}`);
 
-          return (
-            <button
-              key={key}
-              type="button"
-              onClick={() => onFilterChange(key)}
-              className={`shrink-0 rounded-full px-3.5 py-1.5 text-sm font-semibold transition ${
-                active
-                  ? "bg-ink text-white shadow-soft"
-                  : "bg-mist text-ink-500 hover:bg-mist-100"
-              }`}
-            >
-              {label}
-            </button>
-          );
-        })}
+            return (
+              <button
+                key={key}
+                type="button"
+                onClick={() => onFilterChange(key)}
+                className={`shrink-0 rounded-full px-3 py-1.5 text-xs sm:text-sm font-semibold transition ${
+                  active
+                    ? "bg-ink text-white shadow-soft"
+                    : "bg-mist text-ink-500 hover:bg-mist-100"
+                }`}
+              >
+                {label}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {filteredItems.length === 0 ? (

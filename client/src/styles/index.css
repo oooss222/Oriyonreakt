@@ -983,6 +983,16 @@
   @apply grid min-h-[calc(100vh-7.5rem)] grid-cols-1 xl:grid-cols-[360px_minmax(0,1fr)];
 }
 
+.messages-inbox {
+  min-width: 0;
+}
+
+.messages-inbox-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
 .messages-inbox-item.is-active {
   box-shadow: inset 3px 0 0 0 #ff6a00;
 }
