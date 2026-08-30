@@ -61,12 +61,12 @@ export function getPeerInitials(name) {
 
 export function avatarColorFromName(name) {
   const palette = [
-    "from-orange-400 to-orange-600",
-    "from-sky-400 to-blue-600",
-    "from-emerald-400 to-teal-600",
-    "from-violet-400 to-purple-600",
-    "from-rose-400 to-pink-600",
-    "from-amber-400 to-yellow-600",
+    "from-sun to-sun-600",
+    "from-lagoon to-lagoon-700",
+    "from-sun-500 to-amber-600",
+    "from-lagoon-500 to-slate-700",
+    "from-ink-600 to-ink",
+    "from-sun-600 to-rose-600",
   ];
 
   let hash = 0;
@@ -213,21 +213,21 @@ export function roleBadgeMeta(role, t) {
   if (role === "support") {
     return {
       label: t("chat.roleSupport"),
-      className: "bg-emerald-50 text-emerald-700",
+      className: "bg-lagoon/10 text-lagoon-700",
     };
   }
 
   if (role === "selling") {
     return {
       label: t("chat.roleSelling"),
-      className: "bg-orange-50 text-orange-700",
+      className: "bg-sun/10 text-sun-700",
     };
   }
 
   if (role === "buying") {
     return {
       label: t("chat.roleBuying"),
-      className: "bg-teal-50 text-teal-700",
+      className: "bg-mist-100 text-ink-600",
     };
   }
 

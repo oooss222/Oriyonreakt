@@ -1,5 +1,5 @@
 import React from "react";
-import { CheckCheck, Search, Trash2 } from "lucide-react";
+import { Archive, CheckCheck, Search } from "lucide-react";
 import ChatAvatar from "./ChatAvatar";
 import {
   getPeerId,
@@ -80,16 +80,25 @@ export default function ChatInboxPanel({
   const unreadTotal = countByFilter(items, me, "unread");
 
   return (
-    <aside className="messages-inbox flex h-full min-h-0 min-w-0 flex-col border-r border-ink/10 bg-white overflow-hidden">
-      <div className="flex items-center justify-between gap-2 px-4 py-4 border-b border-ink/10">
-        <h2 className="font-display text-xl font-bold text-ink">{t("chat.title")}</h2>
+    <aside className="messages-inbox flex h-full min-h-0 min-w-0 flex-col border-r border-ink/8 overflow-hidden">
+      <div className="flex items-center justify-between gap-2 px-4 pt-5 pb-3">
+        <div>
+          <h2 className="font-display text-[1.35rem] font-bold tracking-tight text-ink">
+            {t("chat.title")}
+          </h2>
+          {unreadTotal > 0 ? (
+            <p className="mt-0.5 text-xs text-ink-400">
+              {t("chat.filter.unread")} · {unreadTotal}
+            </p>
+          ) : null}
+        </div>
 
         <div className="flex items-center gap-1">
           <button
             type="button"
             onClick={onMarkAllRead}
             disabled={markingAll || unreadTotal === 0}
-            className="btn p-2.5 disabled:opacity-40"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-ink/8 bg-white text-ink-500 transition hover:border-sun/30 hover:bg-sun-50 hover:text-sun-700 disabled:opacity-35"
             title={t("chat.markAllRead")}
           >
             <CheckCheck size={18} />
@@ -98,25 +107,25 @@ export default function ChatInboxPanel({
             type="button"
             onClick={onArchiveSelected}
             disabled={archiving || !selected}
-            className="btn p-2.5 disabled:opacity-40"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-ink/8 bg-white text-ink-500 transition hover:border-ink/15 hover:bg-mist hover:text-ink disabled:opacity-35"
             title={t("chat.actionArchive")}
           >
-            <Trash2 size={18} />
+            <Archive size={17} />
           </button>
         </div>
       </div>
 
-      <div className="px-4 py-3">
+      <div className="px-4 pb-3">
         <div className="relative">
           <Search
-            size={18}
-            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-300"
+            size={17}
+            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-300 pointer-events-none"
           />
           <input
             value={query}
             onChange={(e) => onQueryChange(e.target.value)}
             placeholder={t("chat.searchPlaceholder")}
-            className="input w-full h-11 pl-10 bg-mist/70 border-ink/10"
+            className="input w-full h-11 pl-10 rounded-2xl bg-white/90 border-ink/8 shadow-soft focus:border-sun/40 focus:ring-sun/15"
           />
         </div>
       </div>
@@ -136,10 +145,10 @@ export default function ChatInboxPanel({
                 key={key}
                 type="button"
                 onClick={() => onFilterChange(key)}
-                className={`shrink-0 rounded-full px-3 py-1.5 text-xs sm:text-sm font-semibold transition ${
+                className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold transition ${
                   active
-                    ? "bg-ink text-white shadow-soft"
-                    : "bg-mist text-ink-500 hover:bg-mist-100"
+                    ? "bg-sun text-white shadow-soft"
+                    : "bg-white/80 text-ink-500 border border-ink/8 hover:border-sun/25 hover:text-sun-700"
                 }`}
               >
                 {label}
@@ -150,11 +159,14 @@ export default function ChatInboxPanel({
       </div>
 
       {filteredItems.length === 0 ? (
-        <div className="mx-4 mb-4 rounded-2xl bg-mist p-6 text-center text-sm text-ink-400">
-          {t("chat.empty")}
+        <div className="mx-4 mb-4 rounded-2xl border border-dashed border-ink/10 bg-white/70 p-8 text-center">
+          <div className="mx-auto mb-3 grid h-12 w-12 place-items-center rounded-2xl bg-mist text-ink-300">
+            <Search size={20} />
+          </div>
+          <p className="text-sm font-medium text-ink-500">{t("chat.empty")}</p>
         </div>
       ) : (
-        <div className="flex-1 overflow-y-auto px-2 pb-3">
+        <div className="flex-1 overflow-y-auto px-2.5 pb-4">
           {filteredItems.map((item) => {
             const peerId = getPeerId(item, me);
             const supportItem = isBusinessSupportThread(item);
@@ -168,16 +180,17 @@ export default function ChatInboxPanel({
             const listingTitle = supportItem
               ? t("chat.supportOriyon")
               : item.listingTitle || t("chat.listing");
+            const unread = Number(item.unreadCount || 0) > 0;
 
             return (
               <button
                 key={`${item.listingId}-${peerId}-${item.id || item.createdAt}`}
                 type="button"
                 onClick={() => onSelect(item)}
-                className={`messages-inbox-item w-full text-left rounded-2xl px-3 py-3 mb-1 transition ${
+                className={`messages-inbox-item w-full text-left rounded-2xl px-3 py-3 mb-1 ${
                   active
-                    ? "is-active bg-orange-50/80 border border-orange-100"
-                    : "border border-transparent hover:bg-mist/80"
+                    ? "is-active bg-sun-50 border border-sun/20"
+                    : "border border-transparent hover:bg-white/90 hover:border-ink/6"
                 }`}
               >
                 <div className="flex gap-3 items-start">
@@ -186,7 +199,13 @@ export default function ChatInboxPanel({
                   <div className="min-w-0 flex-1">
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
-                        <div className="font-semibold text-ink truncate">
+                        <div
+                          className={`truncate ${
+                            unread
+                              ? "font-bold text-ink"
+                              : "font-semibold text-ink"
+                          }`}
+                        >
                           {peerName}
                         </div>
                         {badge ? (
@@ -199,11 +218,15 @@ export default function ChatInboxPanel({
                       </div>
 
                       <div className="shrink-0 text-right">
-                        <div className="text-xs text-ink-400">
+                        <div
+                          className={`text-[11px] tabular-nums ${
+                            unread ? "font-semibold text-sun-600" : "text-ink-400"
+                          }`}
+                        >
                           {formatInboxTime(item.createdAt, t)}
                         </div>
-                        {Number(item.unreadCount || 0) > 0 ? (
-                          <div className="mt-1 ml-auto min-w-[20px] h-5 px-1 rounded-full bg-sun text-white text-[11px] font-bold inline-flex items-center justify-center">
+                        {unread ? (
+                          <div className="mt-1.5 ml-auto min-w-[1.25rem] h-5 px-1.5 rounded-full bg-sun text-white text-[10px] font-bold inline-flex items-center justify-center shadow-soft">
                             {Number(item.unreadCount) > 99
                               ? "99+"
                               : item.unreadCount}
@@ -212,11 +235,15 @@ export default function ChatInboxPanel({
                       </div>
                     </div>
 
-                    <div className="mt-1 text-xs font-medium text-ink-500 truncate">
+                    <div className="mt-1.5 text-xs font-medium text-ink-500 truncate">
                       {listingTitle}
                     </div>
 
-                    <div className="mt-1 text-sm text-ink-400 line-clamp-1">
+                    <div
+                      className={`mt-0.5 text-sm line-clamp-1 ${
+                        unread ? "text-ink-600 font-medium" : "text-ink-400"
+                      }`}
+                    >
                       {getMessagePreview(item, t)}
                     </div>
                   </div>
@@ -225,7 +252,7 @@ export default function ChatInboxPanel({
                     <img
                       src={thumb}
                       alt=""
-                      className="w-11 h-11 rounded-xl object-cover bg-mist shrink-0"
+                      className="w-12 h-12 rounded-xl object-cover bg-mist shrink-0 ring-1 ring-ink/5"
                     />
                   ) : null}
                 </div>

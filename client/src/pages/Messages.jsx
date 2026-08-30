@@ -39,13 +39,13 @@ function Toast({ message, type = "info", onClose, closeLabel }) {
     type === "error"
       ? "bg-red-600"
       : type === "success"
-      ? "bg-emerald-600"
+      ? "bg-lagoon"
       : "bg-ink-800";
 
   return (
     <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[120] animate-fade-in-up">
       <div
-        className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-white text-sm shadow-lift ${styles}`}
+        className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-white text-sm shadow-lift backdrop-blur-sm ${styles}`}
       >
         <span>{message}</span>
         <button
@@ -1008,14 +1008,14 @@ export default function Messages() {
 
       <div className="max-w-[1800px] mx-auto px-2 md:px-5 py-4">
         {isAdmin ? (
-          <div className="mb-3 inline-flex items-center gap-2 text-xs text-purple-700 bg-purple-50 border border-purple-100 rounded-full px-3 py-1">
+          <div className="mb-3 inline-flex items-center gap-2 text-xs font-semibold text-lagoon-700 bg-lagoon/10 border border-lagoon/15 rounded-full px-3 py-1.5">
             <Shield size={14} />
             {t("chat.adminSeeAll")}
           </div>
         ) : null}
 
         {socketError ? (
-          <div className="mb-3 text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2">
+          <div className="mb-3 text-xs text-amber-800 bg-amber-50/90 border border-amber-200/80 rounded-xl px-3.5 py-2.5">
             {t("chat.offlinePolling")}
           </div>
         ) : null}
