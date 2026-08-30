@@ -1,5 +1,5 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import {
   Scale,
   Trash2,
@@ -15,13 +15,20 @@ import CompareExternalForm from "../components/CompareExternalForm";
 import CompareSourceBadge from "../components/CompareSourceBadge";
 import ComparePriceInsights from "../components/ComparePriceInsights";
 import CompareVerdict from "../components/CompareVerdict";
+import CompareShareBar from "../components/CompareShareBar";
+import CompareGalleryRow from "../components/CompareGalleryRow";
+import CompareSimilarPanel from "../components/CompareSimilarPanel";
+import CompareMarketContext from "../components/CompareMarketContext";
 import { api } from "../lib/api";
+import { TOKEN_KEY } from "../lib/auth";
 import {
   clearCompare,
   readCompareEntries,
   readCompareCount,
   removeCompareEntry,
   updateExternalCompareEntry,
+  replaceCompareEntries,
+  mergeCompareEntries,
   COMPARE_MAX,
 } from "../lib/compareListings";
 import { getCompareConfig } from "../lib/compareConfig";
@@ -36,6 +43,8 @@ import {
   getDifferingFieldKeys,
   getRowDiffHighlights,
 } from "../lib/compareDiff";
+import { buildCompareTrustFields, isExternalStale } from "../lib/compareTrust";
+import { decodeCompareShare } from "../lib/compareShare";
 import { formatPrice } from "../lib/format";
 import { getListingThumb } from "../lib/media";
 import { usePageMeta } from "../lib/usePageMeta";
@@ -349,8 +358,10 @@ function CompareMobileCard({
 
 export default function ListingCompare({ cat }) {
   const { t, lang } = useI18n();
+  const [searchParams, setSearchParams] = useSearchParams();
   const config = getCompareConfig(cat);
   const categoryLabel = config ? getCategoryLabel(cat, t) : "";
+  const token = typeof window !== "undefined" ? localStorage.getItem(TOKEN_KEY) || "" : "";
 
   const [entries, setEntries] = React.useState(() => readCompareEntries(cat));
   const [items, setItems] = React.useState([]);
@@ -359,6 +370,10 @@ export default function ListingCompare({ cat }) {
   const [refreshingAll, setRefreshingAll] = React.useState(false);
   const [actionError, setActionError] = React.useState("");
   const [diffsOnly, setDiffsOnly] = React.useState(true);
+  const [shareNotice, setShareNotice] = React.useState("");
+  const [syncState, setSyncState] = React.useState("idle");
+  const shareHydrated = React.useRef(false);
+  const skipNextSync = React.useRef(false);
 
   usePageMeta({
     title: config
@@ -378,6 +393,116 @@ export default function ListingCompare({ cat }) {
     window.addEventListener("oriyon:compare-change", syncEntries);
     return () => window.removeEventListener("oriyon:compare-change", syncEntries);
   }, [syncEntries]);
+
+  // Hydrate from ?share=
+  React.useEffect(() => {
+    if (!config || shareHydrated.current) return undefined;
+    const tokenShare = searchParams.get("share");
+    if (!tokenShare) return undefined;
+
+    shareHydrated.current = true;
+    let alive = true;
+
+    async function hydrate() {
+      setLoading(true);
+      setActionError("");
+      const decoded = decodeCompareShare(tokenShare);
+      if (!decoded || decoded.cat !== cat) {
+        setActionError(t("compare.shareInvalid"));
+        setLoading(false);
+        return;
+      }
+
+      const next = [];
+      for (const entry of decoded.entries) {
+        if (entry.source === "oriyon") {
+          next.push(entry);
+          continue;
+        }
+        if (!entry.url) continue;
+        try {
+          const result = await api.compareImport({ url: entry.url, cat });
+          const snapshot = result?.snapshot || {};
+          next.push({
+            source: "external",
+            key: `share_${Date.now().toString(36)}_${next.length}`,
+            cat,
+            platform: result?.platform || entry.platform || "other",
+            url: result?.url || entry.url,
+            fetchedAt: new Date().toISOString(),
+            snapshot: {
+              title: snapshot.title || "",
+              price: snapshot.price || "",
+              location: snapshot.location || "",
+              image: snapshot.image || "",
+              specs: Array.isArray(snapshot.specs) ? snapshot.specs : [],
+            },
+          });
+        } catch {
+          /* skip broken external */
+        }
+      }
+
+      if (!alive) return;
+      skipNextSync.current = true;
+      replaceCompareEntries(next, cat);
+      syncEntries();
+      setShareNotice(t("compare.shareLoaded", { count: next.length }));
+      setSearchParams({}, { replace: true });
+      setLoading(false);
+    }
+
+    hydrate();
+    return () => {
+      alive = false;
+    };
+  }, [cat, config, searchParams, setSearchParams, syncEntries, t]);
+
+  // Account sync: pull on mount
+  React.useEffect(() => {
+    if (!token || !config) return undefined;
+    let alive = true;
+
+    setSyncState("loading");
+    api
+      .getCompareList(token, cat)
+      .then((data) => {
+        if (!alive) return;
+        const serverEntries = Array.isArray(data?.entries) ? data.entries : [];
+        if (serverEntries.length) {
+          skipNextSync.current = true;
+          mergeCompareEntries(serverEntries, cat);
+          syncEntries();
+        }
+        setSyncState("saved");
+      })
+      .catch(() => {
+        if (alive) setSyncState("idle");
+      });
+
+    return () => {
+      alive = false;
+    };
+  }, [token, cat, config, syncEntries]);
+
+  // Account sync: push on change
+  React.useEffect(() => {
+    if (!token || !config) return undefined;
+    if (skipNextSync.current) {
+      skipNextSync.current = false;
+      return undefined;
+    }
+
+    const timer = setTimeout(() => {
+      setSyncState("saving");
+      api
+        .saveCompareList(token, cat, entries)
+        .then(() => setSyncState("saved"))
+        .catch(() => setSyncState("error"));
+    }, 900);
+
+    return () => clearTimeout(timer);
+  }, [entries, token, cat, config]);
 
   React.useEffect(() => {
     let active = true;
@@ -407,6 +532,7 @@ export default function ListingCompare({ cat }) {
   }, [entries, cat]);
 
   const fields = config?.fields || [];
+  const trustFields = React.useMemo(() => buildCompareTrustFields(t), [t]);
   const differingKeys = React.useMemo(
     () => getDifferingFieldKeys(items, fields),
     [items, fields]
@@ -415,6 +541,15 @@ export default function ListingCompare({ cat }) {
     () => (config ? buildCompareVerdict(items, fields, t) : null),
     [items, fields, t, config]
   );
+
+  const handleManualSync = React.useCallback(() => {
+    if (!token) return;
+    setSyncState("saving");
+    api
+      .saveCompareList(token, cat, readCompareEntries(cat))
+      .then(() => setSyncState("saved"))
+      .catch(() => setSyncState("error"));
+  }, [token, cat]);
 
   if (!config) {
     return (
@@ -436,6 +571,7 @@ export default function ListingCompare({ cat }) {
     ? fields.filter((field) => field.key === "price" || differingKeys.has(field.key))
     : fields;
   const externalItems = items.filter((item) => isExternalCompareItem(item) && item._compareUrl);
+  const staleCount = items.filter((item) => isExternalStale(item)).length;
 
   const breadcrumbs =
     cat === "realestate"
@@ -567,6 +703,18 @@ export default function ListingCompare({ cat }) {
 
       <CompareExternalForm cat={cat} onAdded={syncEntries} />
 
+      {shareNotice && (
+        <p className="text-sm text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-xl px-3 py-2">
+          {shareNotice}
+        </p>
+      )}
+
+      {staleCount > 0 && (
+        <p className="text-sm text-amber-800 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2">
+          {t("compare.staleWarning", { count: staleCount })}
+        </p>
+      )}
+
       {actionError && (
         <p className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-xl px-3 py-2">
           {actionError}
@@ -589,8 +737,18 @@ export default function ListingCompare({ cat }) {
 
       {!loading && items.length > 0 && (
         <>
+          <CompareShareBar
+            cat={cat}
+            entries={entries}
+            canSync={Boolean(token)}
+            syncState={syncState}
+            onSync={handleManualSync}
+          />
+
           <ComparePriceInsights insights={priceInsights} t={t} lang={lang} />
           <CompareVerdict verdict={verdict} catalogPath={config.catalogPath} t={t} />
+          <CompareMarketContext cat={cat} items={items} />
+          <CompareGalleryRow items={items} />
 
           <div className="flex flex-wrap items-center justify-between gap-3">
             <label className="inline-flex items-center gap-2 text-sm font-medium text-slate-700 cursor-pointer select-none">
@@ -630,14 +788,14 @@ export default function ListingCompare({ cat }) {
               <CompareMobileCard
                 key={getCompareItemKey(item)}
                 item={item}
-                fields={fields}
+                fields={[...visibleFields, ...trustFields]}
                 onRemove={handleRemove}
                 onRefresh={handleRefresh}
                 refreshing={refreshingKey === getCompareItemKey(item)}
                 priceHint={priceInsights?.priceHighlights?.[index]}
                 isRecommended={verdict?.key === getCompareItemKey(item)}
                 differingKeys={differingKeys}
-                diffsOnly={diffsOnly}
+                diffsOnly={false}
                 t={t}
                 lang={lang}
               />
@@ -682,9 +840,29 @@ export default function ListingCompare({ cat }) {
                     emphasizeDiff={differingKeys.has(field.key) && field.key !== "price"}
                   />
                 ))}
+                <tr>
+                  <td
+                    colSpan={items.length + 1}
+                    className="px-3 pt-4 pb-1 text-[11px] font-bold uppercase tracking-wide text-slate-400 bg-slate-50/80"
+                  >
+                    {t("compare.trustSection")}
+                  </td>
+                </tr>
+                {trustFields.map((field) => (
+                  <CompareRow
+                    key={field.key}
+                    label={field.label}
+                    values={items.map((item) => field.get(item))}
+                    emphasizeDiff={false}
+                  />
+                ))}
               </tbody>
             </table>
           </div>
+
+          {count < COMPARE_MAX && (
+            <CompareSimilarPanel cat={cat} items={items} onAdded={syncEntries} />
+          )}
         </>
       )}
     </div>

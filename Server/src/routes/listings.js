@@ -68,6 +68,34 @@ router.get("/stats", async (req, res) => {
   }
 });
 
+router.get("/market-stats", async (req, res) => {
+  try {
+    const cat = String(req.query.cat || "").trim();
+
+    if (!cat) {
+      return res.status(400).json({
+        error: "cat required",
+      });
+    }
+
+    const stats = await Listing.marketStats({
+      cat,
+      location: req.query.location ? String(req.query.location).trim() : "",
+      subcategory: req.query.subcategory
+        ? String(req.query.subcategory).trim()
+        : "",
+    });
+
+    return res.json(stats);
+  } catch (e) {
+    console.error("LISTINGS_MARKET_STATS_ERROR:", e?.message);
+
+    return res.status(500).json({
+      error: "Failed to load market stats",
+    });
+  }
+});
+
 function listingQueryFromReq(query) {
   const {
     cat,

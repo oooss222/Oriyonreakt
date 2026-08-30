@@ -181,6 +181,30 @@ export const api = {
     return request(`/listings/stats?${params.toString()}`);
   },
 
+  listingMarketStats: ({ cat, location = "", subcategory = "" } = {}) => {
+    const params = new URLSearchParams({ cat });
+    if (location) params.set("location", location);
+    if (subcategory) params.set("subcategory", subcategory);
+    return request(`/listings/market-stats?${params.toString()}`);
+  },
+
+  getCompareLists: (token) =>
+    request("/users/me/compare", {
+      token,
+    }),
+
+  getCompareList: (token, cat) =>
+    request(`/users/me/compare/${encodeURIComponent(cat)}`, {
+      token,
+    }),
+
+  saveCompareList: (token, cat, entries) =>
+    request(`/users/me/compare/${encodeURIComponent(cat)}`, {
+      method: "PUT",
+      token,
+      body: { entries },
+    }),
+
   listingCount: (params = {}) => {
     const q = new URLSearchParams(params).toString();
 

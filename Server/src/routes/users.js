@@ -224,6 +224,49 @@ router.get("/me/analytics", auth, async (req, res) => {
   }
 });
 
+router.get("/me/compare", auth, async (req, res) => {
+  try {
+    const UserCompareList = require("../models/UserCompareList");
+    const buckets = await UserCompareList.getAll(req.user.id);
+    return res.json(buckets);
+  } catch (e) {
+    console.error("USER_COMPARE_GET_ERROR:", e?.message);
+    return res.status(500).json({
+      error: "Failed to load compare lists",
+    });
+  }
+});
+
+router.get("/me/compare/:cat", auth, async (req, res) => {
+  try {
+    const UserCompareList = require("../models/UserCompareList");
+    const data = await UserCompareList.getByCat(req.user.id, req.params.cat);
+    return res.json(data);
+  } catch (e) {
+    console.error("USER_COMPARE_CAT_GET_ERROR:", e?.message);
+    return res.status(500).json({
+      error: "Failed to load compare list",
+    });
+  }
+});
+
+router.put("/me/compare/:cat", auth, async (req, res) => {
+  try {
+    const UserCompareList = require("../models/UserCompareList");
+    const entries = Array.isArray(req.body?.entries) ? req.body.entries : [];
+    const data = await UserCompareList.upsert(req.user.id, req.params.cat, entries);
+    return res.json(data);
+  } catch (e) {
+    if (e?.message === "INVALID_CAT") {
+      return res.status(400).json({ error: "Unsupported category" });
+    }
+    console.error("USER_COMPARE_PUT_ERROR:", e?.message);
+    return res.status(500).json({
+      error: "Failed to save compare list",
+    });
+  }
+});
+
 router.post("/me/business/bump-all", auth, async (req, res) => {
   try {
     const user = await User.findById(req.user.id);

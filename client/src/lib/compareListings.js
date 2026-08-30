@@ -279,6 +279,25 @@ export function clearCompare(cat = "realestate") {
   return writeCompareEntries([], cat);
 }
 
+export function replaceCompareEntries(entries = [], cat = "realestate") {
+  return writeCompareEntries(entries, cat);
+}
+
+export function mergeCompareEntries(incoming = [], cat = "realestate") {
+  const key = normalizeCat(cat);
+  const current = readCompareEntries(key);
+  const map = new Map();
+
+  for (const entry of [...current, ...incoming]) {
+    const normalized = normalizeEntry(entry, key);
+    const entryKey = getEntryKey(normalized);
+    if (!entryKey || !normalized) continue;
+    map.set(entryKey, normalized);
+  }
+
+  return writeCompareEntries([...map.values()], key);
+}
+
 export function isCompareSupported(cat) {
   return COMPARE_SUPPORTED_CATS.includes(String(cat || "").trim());
 }

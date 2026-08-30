@@ -693,7 +693,82 @@ class ListingModel {
     };
   }
 
- static async findById(id) {
+  static async marketStats({
+    cat,
+    location = "",
+    subcategory = "",
+  } = {}) {
+    const conditions = [`status = 'approved'`, `cat = $1`];
+    const values = [String(cat || "").trim()];
+
+    if (location) {
+      values.push(String(location).trim());
+      conditions.push(`location = $${values.length}`);
+    }
+
+    if (subcategory) {
+      values.push(String(subcategory).trim());
+      conditions.push(`subcategory = $${values.length}`);
+    }
+
+    const priceExpr = `
+      NULLIF(
+        replace(
+          regexp_replace(price, '[^0-9,.-]', '', 'g'),
+          ',',
+          '.'
+        ),
+        ''
+      )::numeric
+    `;
+
+    const result = await query(
+      `
+      WITH priced AS (
+        SELECT
+          ${priceExpr} AS price_num,
+          re_price_per_sqm
+        FROM listings
+        WHERE ${conditions.join(" AND ")}
+      )
+      SELECT
+        (SELECT COUNT(*)::int FROM priced WHERE price_num IS NOT NULL AND price_num > 0) AS sample,
+        (
+          SELECT percentile_cont(0.5) WITHIN GROUP (ORDER BY price_num)
+          FROM priced
+          WHERE price_num IS NOT NULL AND price_num > 0
+        ) AS median_price,
+        (
+          SELECT AVG(price_num)
+          FROM priced
+          WHERE price_num IS NOT NULL AND price_num > 0
+        ) AS avg_price,
+        (
+          SELECT percentile_cont(0.5) WITHIN GROUP (ORDER BY re_price_per_sqm)
+          FROM priced
+          WHERE re_price_per_sqm IS NOT NULL AND re_price_per_sqm > 0
+        ) AS median_price_per_sqm
+      `,
+      values
+    );
+
+    const row = result.rows[0] || {};
+
+    return {
+      sample: Number(row.sample || 0),
+      medianPrice: row.median_price != null ? Math.round(Number(row.median_price)) : null,
+      avgPrice: row.avg_price != null ? Math.round(Number(row.avg_price)) : null,
+      medianPricePerSqm:
+        row.median_price_per_sqm != null
+          ? Math.round(Number(row.median_price_per_sqm))
+          : null,
+      location: location || "",
+      subcategory: subcategory || "",
+      cat: String(cat || "").trim(),
+    };
+  }
+
+  static async findById(id) {
   const result = await query(
     `
     SELECT

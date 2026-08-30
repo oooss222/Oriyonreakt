@@ -643,6 +643,17 @@ async function initDb() {
     CREATE INDEX IF NOT EXISTS idx_user_chat_blocks_blocker
       ON user_chat_blocks(blocker_id);
 
+    CREATE TABLE IF NOT EXISTS user_compare_lists (
+      user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      cat TEXT NOT NULL,
+      entries JSONB NOT NULL DEFAULT '[]'::jsonb,
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+      PRIMARY KEY (user_id, cat)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_user_compare_lists_user
+      ON user_compare_lists(user_id, updated_at DESC);
+
     CREATE TABLE IF NOT EXISTS listing_reports (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       listing_id UUID NOT NULL REFERENCES listings(id) ON DELETE CASCADE,
