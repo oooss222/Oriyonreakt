@@ -7,7 +7,7 @@ import {
   ExternalLink,
   RefreshCw,
   Loader2,
-  Sparkles,
+  CheckCircle2,
 } from "lucide-react";
 import Breadcrumbs from "../components/Breadcrumbs";
 import EmptyState from "../components/EmptyState";
@@ -89,7 +89,6 @@ function CompareRow({ label, values, highlights = [], diffMarks = [], emphasizeD
         }`}
       >
         <div className="flex items-center gap-1.5">
-          {emphasizeDiff && <Sparkles size={12} className="text-amber-500 shrink-0" />}
           {label}
         </div>
       </td>
@@ -210,7 +209,7 @@ function ComparePreviewCard({
         <CompareThumb item={item} className="h-36 rounded-none" />
         {isRecommended && (
           <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-sun px-2 py-0.5 text-[10px] font-bold text-white shadow-sm">
-            <Sparkles size={10} />
+            <CheckCircle2 size={10} />
             {t("compare.verdictBest")}
           </span>
         )}
@@ -310,7 +309,7 @@ function CompareMobileCard({
         <CompareThumb item={item} className="h-40 rounded-none" />
         {isRecommended && (
           <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-sun px-2 py-0.5 text-[10px] font-bold text-white">
-            <Sparkles size={10} />
+            <CheckCircle2 size={10} />
             {t("compare.verdictBest")}
           </span>
         )}

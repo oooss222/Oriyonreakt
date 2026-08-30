@@ -2,7 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import {
   Building2,
-  Sparkles,
+  Crown,
   ArrowRight,
   PlusCircle,
   Scale,
@@ -191,7 +191,7 @@ export default function RealEstate() {
       {premium.length > 0 && (
         <section className="space-y-1">
           <RealEstateSectionHeader
-            icon={Sparkles}
+            icon={Crown}
             title={t("realestate.premiumTitle")}
             description={t("realestate.premiumDesc", { city })}
             actionLabel={t("realestate.allPremium")}

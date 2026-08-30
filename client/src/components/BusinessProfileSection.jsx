@@ -7,9 +7,9 @@ import {
   Globe,
   Instagram,
   MapPin,
+  Crown,
   MessageCircle,
   RefreshCw,
-  Sparkles,
   Upload,
 } from "lucide-react";
 import { api } from "../lib/api";
@@ -232,7 +232,7 @@ export default function BusinessProfileSection({ token, me, onUpdated }) {
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <div className="inline-flex items-center gap-2 text-sun-700 font-semibold">
-              <Sparkles size={18} />
+              <Crown size={18} />
               Oriyon Premium
             </div>
             <h2 className="text-xl font-bold mt-2">{t("business.premiumAccount")}</h2>

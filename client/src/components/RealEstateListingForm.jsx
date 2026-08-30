@@ -4,7 +4,7 @@ import {
   MapPin,
   ListChecks,
   Info,
-  Sparkles,
+  PencilLine,
 } from "lucide-react";
 import {
   DEAL_TYPES,
@@ -393,7 +393,7 @@ export default function RealEstateListingForm({
                   onClick={handleSuggestTitle}
                   className="inline-flex items-center gap-1 text-xs font-medium text-sun hover:text-sun-700"
                 >
-                  <Sparkles className="w-3.5 h-3.5" />
+                  <PencilLine className="w-3.5 h-3.5" />
                   Сгенерировать
                 </button>
               </div>

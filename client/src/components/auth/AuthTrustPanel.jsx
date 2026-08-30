@@ -4,7 +4,6 @@ import {
   Clock3,
   MessageCircle,
   ShieldCheck,
-  Sparkles,
   Tag,
   Users,
 } from "lucide-react";
@@ -78,7 +77,7 @@ export default function AuthTrustPanel({ mode = "login" }) {
     <div className="auth-trust-wrap">
       <div className="auth-trust-panel">
         <div className="auth-trust-panel__badge">
-          <Sparkles size={14} className="text-sun" />
+          <ShieldCheck size={14} className="text-sun" />
           {isRegister ? t("auth.trustRegisterBadge") : t("auth.trustLoginBadge")}
         </div>
 

@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import {
   CalendarClock,
   Crown,
-  Sparkles,
   TrendingUp,
   Zap,
   Eye,
@@ -176,7 +175,7 @@ export default function ListingPromotionActions({
         <div>
           <div className="inline-flex items-center gap-2 text-sm font-bold text-ink">
             <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-md">
-              <Sparkles className="w-4 h-4" />
+              <Crown className="w-4 h-4" />
             </span>
             {t("promotion.title")}
           </div>
@@ -286,7 +285,7 @@ export default function ListingPromotionActions({
             <ul className="space-y-1.5">
               <Benefit icon={ArrowUp}>{t("promotion.topRaise")}</Benefit>
               <Benefit icon={TrendingUp}>{t("promotion.topBadge")}</Benefit>
-              <Benefit icon={Sparkles}>{t("promotion.topVisibility")}</Benefit>
+              <Benefit icon={Eye}>{t("promotion.topVisibility")}</Benefit>
             </ul>
 
             <button

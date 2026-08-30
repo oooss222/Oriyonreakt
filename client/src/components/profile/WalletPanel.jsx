@@ -1,5 +1,5 @@
 import React from "react";
-import { Sparkles, Wallet } from "lucide-react";
+import { TrendingUp, Wallet } from "lucide-react";
 import WalletTopUp from "./WalletTopUp";
 import { WALLET_TYPE_LABELS } from "./profileUtils";
 import { useI18n } from "../../i18n";
@@ -32,7 +32,7 @@ export default function WalletPanel({
             onClick={onOpenPromote}
             className="mobile-btn bg-sun text-white hover:bg-sun-600 shrink-0"
           >
-            <Sparkles size={18} />
+            <TrendingUp size={18} />
             Продвижение
           </button>
         </div>

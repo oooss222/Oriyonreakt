@@ -42,7 +42,8 @@ import { buildTransportSuggestedTitle } from "../lib/listingFormTitles";
 import { useI18n } from "../i18n";
 import {
   Info,
-  Sparkles,
+  Tag,
+  PencilLine,
   ListChecks,
   MapPin,
   Pencil,
@@ -563,7 +564,7 @@ export default function ListingForm({
             </>
           ) : (
             <>
-              <Sparkles className="w-4 h-4" />
+              <Tag className="w-4 h-4" />
               {t("listing.newBadge")}
             </>
           )}
@@ -672,7 +673,7 @@ export default function ListingForm({
                       onClick={suggestTransportTitle}
                       className="inline-flex items-center gap-1 text-xs font-medium text-sun hover:text-sun-700"
                     >
-                      <Sparkles className="w-3.5 h-3.5" />
+                      <PencilLine className="w-3.5 h-3.5" />
                       {t("form.generateTitle")}
                     </button>
                   ) : null}

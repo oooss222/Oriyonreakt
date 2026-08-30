@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { PlusCircle, Sparkles } from "lucide-react";
+import { PlusCircle, Zap } from "lucide-react";
 import ListingPromotionActions from "./ListingPromotionActions";
 import { PromotionBadgeGroup } from "./PromotionBadge";
 import { getListingThumb } from "../lib/media";
@@ -56,7 +56,7 @@ export default function ListingPromotionPanel({
     return (
       <div className="rounded-3xl border bg-white p-10 text-center">
         <div className="mx-auto w-14 h-14 rounded-2xl bg-sun-50 grid place-items-center mb-3">
-          <Sparkles className="text-sun" size={26} />
+          <Zap className="text-sun" size={26} />
         </div>
 
         <div className="text-slate-800 font-semibold mb-1">
@@ -85,7 +85,7 @@ export default function ListingPromotionPanel({
       <div className="rounded-3xl border bg-white p-4 md:p-5 space-y-4">
         <div>
           <div className="inline-flex items-center gap-2 text-sm text-sun-700 bg-sun-50 border border-sun-100 rounded-full px-3 py-1 mb-2">
-            <Sparkles size={16} />
+            <Zap size={16} />
             Продвижение
           </div>
 

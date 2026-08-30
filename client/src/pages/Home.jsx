@@ -14,7 +14,7 @@ import { REAL_ESTATE_CAT, DEFAULT_REAL_ESTATE_BROWSE_PATH } from "../data/realEs
 import {
   PlusCircle,
   ShieldCheck,
-  Sparkles,
+  Tag,
   ArrowRight,
   TrendingUp,
   BadgeCheck,
@@ -267,7 +267,7 @@ export default function Home() {
             {listings.length === 0 ? (
               <div className="surface-panel p-8 text-center">
                 <div className="mx-auto w-14 h-14 rounded-2xl bg-sun-50 grid place-items-center mb-3 ring-1 ring-sun/15">
-                  <Sparkles className="text-sun" />
+                  <Tag className="text-sun" />
                 </div>
 
                 <div className="font-display font-semibold text-ink">
@@ -299,7 +299,7 @@ export default function Home() {
 
             <HorizontalSection
               title={personalized ? t("home.pickedForYou") : t("home.hotDeals")}
-              icon={personalized ? Sparkles : Flame}
+              icon={personalized ? Tag : Flame}
               items={hotListings}
               linkTo="/listing"
             />
@@ -365,7 +365,7 @@ export default function Home() {
 
           <div className="surface-panel p-5">
             <div className="w-11 h-11 icon-box-ink mb-3">
-              <Sparkles />
+              <ShieldCheck />
             </div>
 
             <h3 className="font-display font-bold text-lg text-ink">

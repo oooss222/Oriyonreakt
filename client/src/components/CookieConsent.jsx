@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { Cookie, ShieldCheck, Sparkles, X } from "lucide-react";
+import { Cookie, ShieldCheck, X } from "lucide-react";
 import {
   CONSENT_EVENT,
   clearAnalyticsData,
@@ -104,7 +104,7 @@ function SettingsModal({ open, analyticsEnabled, onAnalyticsChange, onClose, onS
           >
             <div className="flex items-start gap-3">
               <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-sun ring-1 ring-sun/10">
-                <Sparkles size={17} />
+                <ShieldCheck size={17} />
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center justify-between gap-3">

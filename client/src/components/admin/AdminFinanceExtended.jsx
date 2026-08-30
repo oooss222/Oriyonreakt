@@ -3,7 +3,7 @@ import {
   FileBarChart,
   ScrollText,
   CreditCard,
-  Sparkles,
+  Crown,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
@@ -549,7 +549,7 @@ export function FinancePromotionsTab({ token }) {
     <div className="rounded-2xl border bg-white p-4 space-y-4">
       <div>
         <div className="inline-flex items-center gap-2 text-sm text-sun-700 bg-sun-50 border border-sun-100 rounded-full px-3 py-1 mb-2">
-          <Sparkles className="w-4 h-4" />
+          <Crown className="w-4 h-4" />
           VIP / TOP
         </div>
         <p className="text-sm text-slate-500">

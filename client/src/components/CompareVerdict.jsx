@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { Sparkles, ExternalLink } from "lucide-react";
+import { CheckCircle2, ExternalLink } from "lucide-react";
 import { getCompareItemKey, isExternalCompareItem } from "../lib/compareResolve";
 import { getPlatformLabel } from "../lib/comparePlatforms";
 
@@ -15,7 +15,7 @@ export default function CompareVerdict({ verdict, catalogPath, t }) {
     <section className="rounded-2xl border border-sun/20 bg-gradient-to-br from-sun/10 via-white to-amber-50/60 p-4 md:p-5 shadow-sm">
       <div className="flex items-start gap-3">
         <div className="w-10 h-10 rounded-xl bg-sun text-white grid place-items-center shrink-0 shadow-sm">
-          <Sparkles size={18} />
+          <CheckCircle2 size={18} />
         </div>
         <div className="min-w-0 flex-1 space-y-2">
           <div className="text-xs font-bold uppercase tracking-wide text-sun">
