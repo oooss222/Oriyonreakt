@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import ListingGridSkeleton from "../ListingGridSkeleton";
 import ProfileListingsGrid from "./ProfileListingsGrid";
-import { getId, parseListingPrice } from "./profileUtils";
+import { parseListingPrice } from "./profileUtils";
 import { CATS } from "../../data/listingCategories";
 import { useI18n } from "../../i18n";
 
