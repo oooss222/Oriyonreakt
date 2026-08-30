@@ -1,7 +1,9 @@
 import React from "react";
 import FavoriteButton from "./FavoriteButton";
+import CompareListingButton from "./CompareListingButton";
 import { PromotionBadgeGroup } from "./PromotionBadge";
 import { formatViewCount } from "../lib/format";
+import { isCompareSupported } from "../lib/compareListings";
 import { Eye } from "lucide-react";
 
 export default function ListingCardOverlays({
@@ -14,10 +16,13 @@ export default function ListingCardOverlays({
   isFavorite = false,
   onFavChange,
   showFavorite = true,
+  showCompare = true,
+  compareCat = "",
   compactBottom = false,
 }) {
   const viewCount = Number(views || 0);
   const photos = Number(photoCount || 0);
+  const canCompare = showCompare && favoriteId && isCompareSupported(compareCat);
 
   return (
     <>
@@ -34,17 +39,27 @@ export default function ListingCardOverlays({
         <PromotionBadgeGroup vip={vip} top={top} size="sm" />
       </div>
 
-      {showFavorite && favoriteId ? (
+      {(showFavorite && favoriteId) || canCompare ? (
         <div
-          className="absolute right-2 top-2 z-10 shrink-0"
+          className="absolute right-2 top-2 z-10 flex flex-col items-end gap-1.5"
           onClick={(e) => e.stopPropagation()}
         >
-          <FavoriteButton
-            id={favoriteId}
-            defaultActive={isFavorite}
-            onChange={onFavChange}
-            overlay
-          />
+          {showFavorite && favoriteId ? (
+            <FavoriteButton
+              id={favoriteId}
+              defaultActive={isFavorite}
+              onChange={onFavChange}
+              overlay
+            />
+          ) : null}
+          {canCompare ? (
+            <CompareListingButton
+              listingId={favoriteId}
+              cat={compareCat}
+              overlay
+              showOpenLink={false}
+            />
+          ) : null}
         </div>
       ) : null}
 

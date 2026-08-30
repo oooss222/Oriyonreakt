@@ -1,6 +1,6 @@
 const LEGACY_RE_KEY = "oriyon_re_compare";
 const STORAGE_KEY = "oriyon_compare";
-const MAX_ITEMS = 3;
+const MAX_ITEMS = 4;
 
 export const COMPARE_SUPPORTED_CATS = [
   "realestate",
@@ -140,26 +140,29 @@ function writeCompareEntries(entries = [], cat = "realestate") {
 }
 
 export function toggleCompareId(id, cat = "realestate") {
-  if (!id) return readCompareEntries(cat);
+  if (!id) {
+    return { entries: readCompareEntries(cat), ok: false, reason: "missing" };
+  }
 
   const key = normalizeCat(cat);
   const current = readCompareEntries(key);
   const entryKey = String(id);
 
   if (current.some((entry) => getEntryKey(entry) === entryKey)) {
-    return writeCompareEntries(
+    const entries = writeCompareEntries(
       current.filter((entry) => getEntryKey(entry) !== entryKey),
       key
     );
+    return { entries, ok: true, reason: "removed", active: false };
+  }
+
+  if (current.length >= MAX_ITEMS) {
+    return { entries: current, ok: false, reason: "full", active: false };
   }
 
   const nextEntry = { source: "oriyon", id: entryKey, cat: key };
-
-  if (current.length >= MAX_ITEMS) {
-    return writeCompareEntries([...current.slice(1), nextEntry], key);
-  }
-
-  return writeCompareEntries([...current, nextEntry], key);
+  const entries = writeCompareEntries([...current, nextEntry], key);
+  return { entries, ok: true, reason: "added", active: true };
 }
 
 export function addExternalCompareEntry(cat, payload = {}) {

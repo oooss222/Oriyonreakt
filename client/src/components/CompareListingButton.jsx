@@ -16,6 +16,7 @@ export default function CompareListingButton({
   cat = "realestate",
   className = "",
   compact = false,
+  overlay = false,
   showOpenLink = true,
 }) {
   const { t } = useI18n();
@@ -26,6 +27,7 @@ export default function CompareListingButton({
   const [count, setCount] = React.useState(() =>
     supported ? readCompareIds(cat).length : 0
   );
+  const [toast, setToast] = React.useState("");
 
   React.useEffect(() => {
     if (!supported) return undefined;
@@ -40,6 +42,12 @@ export default function CompareListingButton({
     return () => window.removeEventListener("oriyon:compare-change", sync);
   }, [listingId, cat, supported]);
 
+  React.useEffect(() => {
+    if (!toast) return undefined;
+    const timer = setTimeout(() => setToast(""), 2200);
+    return () => clearTimeout(timer);
+  }, [toast]);
+
   if (!supported || !listingId) return null;
 
   const comparePath = getComparePath(cat);
@@ -47,31 +55,42 @@ export default function CompareListingButton({
   const toggle = (event) => {
     event.preventDefault();
     event.stopPropagation();
-    toggleCompareId(listingId, cat);
+    const result = toggleCompareId(listingId, cat);
+    if (result?.reason === "full") {
+      setToast(t("compare.listFull", { count: COMPARE_MAX, max: COMPARE_MAX }));
+      return;
+    }
+    setActive(Boolean(result?.active));
   };
 
-  const sizeClass = compact
-    ? "h-10 w-10"
-    : "h-9 w-9";
+  const sizeClass = compact || overlay ? "h-9 w-9" : "h-9 w-9";
+
+  const buttonClass = overlay
+    ? `inline-flex ${sizeClass} items-center justify-center rounded-full border shadow-sm transition backdrop-blur-sm ${
+        active
+          ? "border-sun/40 bg-sun text-white"
+          : "border-white/40 bg-white/90 text-slate-600 hover:bg-white"
+      }`
+    : `inline-flex ${sizeClass} items-center justify-center rounded-full border transition ${
+        active
+          ? "border-sun/40 bg-sun/10 text-sun"
+          : "border-slate-200 bg-white text-slate-500 hover:bg-slate-50 hover:text-slate-600"
+      }`;
 
   return (
-    <div className={`flex items-center gap-2 ${className}`}>
+    <div className={`relative flex items-center gap-2 ${className}`}>
       <button
         type="button"
         onClick={toggle}
         aria-label={active ? t("compare.inCompare") : t("compare.compareAction")}
         aria-pressed={active}
         title={active ? t("compare.inCompare") : t("compare.compareAction")}
-        className={`inline-flex ${sizeClass} items-center justify-center rounded-full border transition ${
-          active
-            ? "border-slate-300 bg-slate-50 text-slate-700"
-            : "border-slate-200 bg-white text-slate-500 hover:bg-slate-50 hover:text-slate-600"
-        }`}
+        className={buttonClass}
       >
-        <Scale className={compact ? "h-4 w-4" : "h-[18px] w-[18px]"} />
+        <Scale className={compact || overlay ? "h-4 w-4" : "h-[18px] w-[18px]"} />
       </button>
 
-      {count > 0 && !compact && showOpenLink && (
+      {count > 0 && !compact && !overlay && showOpenLink && (
         <Link
           to={comparePath}
           onClick={(e) => e.stopPropagation()}
@@ -79,6 +98,12 @@ export default function CompareListingButton({
         >
           {t("compare.openList", { count, max: COMPARE_MAX })}
         </Link>
+      )}
+
+      {toast && (
+        <div className="absolute left-1/2 top-full z-30 mt-2 w-48 -translate-x-1/2 rounded-xl border border-slate-200 bg-white px-2.5 py-2 text-[11px] font-medium text-slate-700 shadow-lg">
+          {toast}
+        </div>
       )}
     </div>
   );

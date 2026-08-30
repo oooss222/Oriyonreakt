@@ -114,6 +114,7 @@ export default function ListingCardMedia({
         favoriteId={favoriteId}
         isFavorite={isFavorite}
         onFavChange={onFavChange}
+        compareCat={item?.cat || ""}
         compactBottom={hasMultiple}
       />
 
