@@ -207,6 +207,9 @@ async function initDb() {
       ADD COLUMN IF NOT EXISTS phone_verified BOOLEAN NOT NULL DEFAULT false;
 
     ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS extra_phones JSONB NOT NULL DEFAULT '[]'::jsonb;
+
+    ALTER TABLE users
       ADD COLUMN IF NOT EXISTS registration_device_type TEXT NOT NULL DEFAULT '';
 
     ALTER TABLE users
@@ -901,6 +904,9 @@ function mapUser(row) {
     phone: row.phone,
     whatsapp: row.whatsapp || "",
     telegram: row.telegram || "",
+    extraPhones: Array.isArray(row.extra_phones)
+      ? row.extra_phones.map((p) => String(p || "").trim()).filter(Boolean)
+      : [],
 
     lastSeen: row.last_seen || null,
 

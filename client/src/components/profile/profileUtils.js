@@ -10,9 +10,17 @@ export const getId = (item) => item?.id || item?._id;
 export function normalizeTab(value) {
   if (value === "favorites") return "fav";
   if (
-    ["fav", "profile", "wallet", "admin", "moderation", "my", "promote", "searches"].includes(
-      value
-    )
+    [
+      "fav",
+      "profile",
+      "wallet",
+      "admin",
+      "moderation",
+      "my",
+      "promote",
+      "searches",
+      "analytics",
+    ].includes(value)
   ) {
     return value;
   }
@@ -84,4 +92,21 @@ export function buildListingUrlFromSavedFilters(filters = {}) {
 
   const query = params.toString();
   return query ? `/listing?${query}` : "/listing";
+}
+
+export function parseListingPrice(value) {
+  const digits = String(value ?? "").replace(/[^\d]/g, "");
+  if (!digits) return null;
+  return Number(digits);
+}
+
+export function formatPhoneDisplay(phone) {
+  const digits = String(phone || "").replace(/\D/g, "");
+  if (digits.length === 12 && digits.startsWith("992")) {
+    return `+${digits.slice(0, 3)} ${digits.slice(3, 5)} ${digits.slice(5, 8)} ${digits.slice(8, 10)} ${digits.slice(10)}`;
+  }
+  if (digits.length === 9) {
+    return `+992 ${digits.slice(0, 2)} ${digits.slice(2, 5)} ${digits.slice(5, 7)} ${digits.slice(7)}`;
+  }
+  return phone || "";
 }

@@ -18,6 +18,7 @@ import WalletPanel from "../components/profile/WalletPanel";
 import MyListingsPanel from "../components/profile/MyListingsPanel";
 import ProfileListingsGrid from "../components/profile/ProfileListingsGrid";
 import SavedSearchesTab from "../components/profile/SavedSearchesTab";
+import SellerAnalyticsPanel from "../components/profile/SellerAnalyticsPanel";
 import { getId, normalizeTab } from "../components/profile/profileUtils";
 import { useI18n } from "../i18n";
 import { getUserFacingErrorMessage } from "../lib/apiError";
@@ -44,6 +45,7 @@ export default function Profile() {
     phone: me?.phone || "",
     whatsapp: me?.whatsapp || "",
     telegram: me?.telegram || "",
+    extraPhones: Array.isArray(me?.extraPhones) ? me.extraPhones : [],
   });
 
   const [emailStatus, setEmailStatus] = React.useState(
@@ -118,6 +120,7 @@ export default function Profile() {
           phone: u.phone || "",
           whatsapp: u.whatsapp || "",
           telegram: u.telegram || "",
+          extraPhones: Array.isArray(u.extraPhones) ? u.extraPhones : [],
         });
         setEmailStatus(u.emailVerified ? "verified" : "unknown");
         localStorage.setItem(USER_KEY, JSON.stringify(u));
@@ -144,12 +147,19 @@ export default function Profile() {
     const oldPhone = currentMe.phone || "";
     const oldWhatsapp = currentMe.whatsapp || "";
     const oldTelegram = currentMe.telegram || "";
+    const oldExtra = JSON.stringify(
+      Array.isArray(currentMe.extraPhones) ? currentMe.extraPhones : []
+    );
+    const nextExtra = JSON.stringify(
+      Array.isArray(form.extraPhones) ? form.extraPhones : []
+    );
 
     if (
       form.name === oldName &&
       form.phone === oldPhone &&
       form.whatsapp === oldWhatsapp &&
-      form.telegram === oldTelegram
+      form.telegram === oldTelegram &&
+      nextExtra === oldExtra
     ) {
       return;
     }
@@ -161,6 +171,7 @@ export default function Profile() {
           phone: form.phone,
           whatsapp: form.whatsapp,
           telegram: form.telegram,
+          extraPhones: form.extraPhones,
         })
         .then((u) => {
           if (!u) return;
@@ -171,7 +182,7 @@ export default function Profile() {
     }, 900);
 
     return () => clearTimeout(h);
-  }, [form.name, form.phone, form.whatsapp, form.telegram, token]);
+  }, [form.name, form.phone, form.whatsapp, form.telegram, form.extraPhones, token]);
 
   React.useEffect(() => {
     if (!token) return;
@@ -516,16 +527,7 @@ export default function Profile() {
   }
 
   return (
-    <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 space-y-5 sm:space-y-6 max-w-6xl">
-      <ProfileHeader
-        me={me}
-        role={role}
-        emailStatus={emailStatus}
-        walletBalance={walletBalance}
-        onOpenWallet={() => setTab("wallet")}
-        onLogout={logout}
-      />
-
+    <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 space-y-5 sm:space-y-6 max-w-7xl">
       <ProfileTabs
         tab={tab}
         setTab={setTab}
@@ -536,6 +538,17 @@ export default function Profile() {
         canAccessAccountant={canAccessAccountant}
         role={role}
       />
+
+      {tab === "profile" && (
+        <ProfileHeader
+          me={me}
+          role={role}
+          emailStatus={emailStatus}
+          walletBalance={walletBalance}
+          onOpenWallet={() => setTab("wallet")}
+          onLogout={logout}
+        />
+      )}
 
       {tab === "moderation" && canOpenModeration && (
         <ModerationListingsPanel token={token} />
@@ -589,11 +602,15 @@ export default function Profile() {
         />
       )}
 
+      {tab === "analytics" && <SellerAnalyticsPanel token={token} />}
+
       {tab === "fav" && (
         <div className="rounded-2xl border bg-white p-4 md:p-5">
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-lg font-semibold">Избранное</h2>
-            <div className="text-sm text-slate-500">Всего: {favItems.length}</div>
+            <h2 className="text-lg font-semibold">{t("profile.favorites")}</h2>
+            <div className="text-sm text-slate-500">
+              {t("profile.totalCount", { count: favItems.length })}
+            </div>
           </div>
 
           {loadingFav ? (

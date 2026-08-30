@@ -141,6 +141,11 @@ export const api = {
       token,
     }),
 
+  sellerAnalytics: (token, period = "7d") =>
+    request(`/users/me/analytics?period=${encodeURIComponent(period)}`, {
+      token,
+    }),
+
   bumpAllListings: (token) =>
     request("/users/me/business/bump-all", {
       method: "POST",

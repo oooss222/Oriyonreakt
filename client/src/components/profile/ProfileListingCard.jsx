@@ -2,10 +2,13 @@ import React from "react";
 import { Link } from "react-router-dom";
 import {
   Archive,
+  BarChart3,
   CheckCircle2,
   Eye,
   EyeOff,
+  MapPin,
   Pencil,
+  Phone,
   RefreshCw,
   Trash2,
 } from "lucide-react";
@@ -17,14 +20,14 @@ import {
   getPromotionCardClass,
   getPromotionMediaClass,
 } from "../../lib/promotionStyles";
-import { getId } from "./profileUtils";
+import { formatPhoneDisplay, getId } from "./profileUtils";
 import { useI18n } from "../../i18n";
 
 function getStatusMap(t) {
   return {
     pending: {
       label: t("profile.statusPending"),
-      className: "bg-amber-500 text-white",
+      className: "bg-amber-400 text-white",
     },
     approved: {
       label: t("profile.statusApproved"),
@@ -36,7 +39,7 @@ function getStatusMap(t) {
     },
     sold: {
       label: t("profile.statusSold"),
-      className: "bg-slate-600 text-white",
+      className: "bg-slate-700 text-white",
     },
     archived: {
       label: t("profile.statusArchived"),
@@ -51,7 +54,8 @@ function CardAction({ as: Component = "button", icon: Icon, children, variant = 
     danger: "border border-red-200 bg-white text-red-600 hover:bg-red-50",
     muted: "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50",
     success: "border border-emerald-200 bg-white text-emerald-700 hover:bg-emerald-50",
-    ghost: "border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100",
+    ghost: "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50",
+    teal: "border border-teal-200 bg-teal-50 text-teal-800",
   };
 
   return (
@@ -89,6 +93,8 @@ export default React.memo(function ProfileListingCard({
   const status = ad.status || "pending";
   const statusMap = getStatusMap(t);
   const statusInfo = statusMap[status] || statusMap.pending;
+  const inactive = status === "sold" || status === "archived";
+  const phone = formatPhoneDisplay(ad.phone);
 
   return (
     <article
@@ -96,6 +102,7 @@ export default React.memo(function ProfileListingCard({
         "group relative flex flex-col overflow-hidden rounded-2xl border bg-white shadow-sm transition-all duration-300 hover:shadow-lg",
         getPromotionCardClass({ vip: ad.vip, top: ad.top }),
         selected ? "ring-2 ring-sun border-sun" : "border-slate-200",
+        inactive ? "opacity-75" : "",
       ].join(" ")}
     >
       {selectable && canManage && (
@@ -114,7 +121,7 @@ export default React.memo(function ProfileListingCard({
         onClick={() => sessionStorage.setItem("ad_preview", JSON.stringify(ad))}
         className="block min-w-0 flex-1"
       >
-        <div className="relative overflow-hidden">
+        <div className={`relative overflow-hidden ${inactive ? "grayscale-[40%]" : ""}`}>
           <img
             src={imgUrl}
             alt={ad.title || "Объявление"}
@@ -148,15 +155,23 @@ export default React.memo(function ProfileListingCard({
           </h3>
 
           <div className="flex items-center justify-between gap-2">
-            <div className="text-base font-extrabold text-sun-700">
+            <div className="text-base font-extrabold text-sun">
               {formatPrice(ad.price, { emptyLabel: "—" })}
             </div>
             {!canManage && <FavoriteButton id={id} defaultActive={isFavorite} compact />}
           </div>
 
-          <div className="line-clamp-1 text-xs text-slate-500">
-            {ad.location || ad.city || "Локация не указана"}
+          <div className="flex items-center gap-1 line-clamp-1 text-xs text-slate-500">
+            <MapPin size={12} className="shrink-0 text-slate-400" />
+            {ad.location || ad.city || t("profile.noLocation")}
           </div>
+
+          {phone && (
+            <div className="flex items-center gap-1 text-xs text-slate-500 tabular-nums">
+              <Phone size={12} className="shrink-0 text-slate-400" />
+              {phone}
+            </div>
+          )}
 
           <div className="flex items-center justify-between gap-2 text-[11px] text-slate-400">
             <span>{formatListingDate(ad, { emptyLabel: "—" })}</span>
@@ -170,40 +185,57 @@ export default React.memo(function ProfileListingCard({
 
       {ad.rejectionReason && (
         <div className="mx-3 mb-2 rounded-xl border border-red-200 bg-red-50 p-2.5 text-xs text-red-700">
-          <b>Причина:</b> {ad.rejectionReason}
+          <b>{t("profile.reason")}:</b> {ad.rejectionReason}
         </div>
       )}
 
       {canManage && status === "rejected" && ad.appealStatus === "pending" && (
-        <div className="mx-3 mb-3 rounded-xl border border-indigo-200 bg-indigo-50 p-2.5 text-xs text-indigo-800">
-          Апелляция на рассмотрении
+        <div className="mx-3 mb-3">
+          <CardAction variant="teal" className="w-full pointer-events-none">
+            {t("profile.appealPending")}
+          </CardAction>
         </div>
       )}
 
       {canManage && (
         <div className="mt-auto border-t border-slate-100 bg-slate-50/60 p-3">
           {status === "rejected" && ad.appealStatus !== "pending" && (
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-[1fr_auto_auto] gap-2">
               <CardAction as={Link} to={`/edit/${id}`} icon={Pencil} variant="primary">
-                Исправить
+                {t("profile.fixListing")}
               </CardAction>
               <CardAction icon={RefreshCw} variant="muted" onClick={() => onAppeal?.(id)}>
-                Оспорить
+                {t("profile.dispute")}
               </CardAction>
+              <CardAction
+                icon={Trash2}
+                variant="danger"
+                className="px-3"
+                aria-label={t("common.delete")}
+                onClick={() => onRemove(id)}
+              />
             </div>
           )}
 
           {status !== "rejected" && (
             <div className="space-y-2">
-              <div className="grid grid-cols-[1fr_auto] gap-2">
+              <div className="grid grid-cols-[1fr_auto_auto] gap-2">
                 <CardAction as={Link} to={`/edit/${id}`} icon={Pencil} variant="primary">
-                  Редактировать
+                  {t("profile.editListing")}
                 </CardAction>
+                <CardAction
+                  as={Link}
+                  to="/profile?tab=analytics"
+                  icon={BarChart3}
+                  variant="muted"
+                  className="px-3"
+                  aria-label={t("profile.analytics")}
+                />
                 <CardAction
                   icon={Trash2}
                   variant="danger"
                   className="px-3"
-                  aria-label="Удалить"
+                  aria-label={t("common.delete")}
                   onClick={() => onRemove(id)}
                 />
               </div>
@@ -215,14 +247,14 @@ export default React.memo(function ProfileListingCard({
                     variant="ghost"
                     onClick={() => onStatusAction?.(id, "sold")}
                   >
-                    Продано
+                    {t("profile.statusSold")}
                   </CardAction>
                   <CardAction
                     icon={EyeOff}
                     variant="ghost"
                     onClick={() => onStatusAction?.(id, "archive")}
                   >
-                    Снять
+                    {t("profile.unpublish")}
                   </CardAction>
                 </div>
               )}
@@ -234,14 +266,8 @@ export default React.memo(function ProfileListingCard({
                   className="w-full"
                   onClick={() => onStatusAction?.(id, "republish")}
                 >
-                  Опубликовать снова
+                  {t("profile.republish")}
                 </CardAction>
-              )}
-
-              {status === "pending" && (
-                <p className="text-center text-[11px] text-slate-500">
-                  Объявление на проверке — редактирование доступно
-                </p>
               )}
             </div>
           )}

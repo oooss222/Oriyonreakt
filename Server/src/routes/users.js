@@ -91,6 +91,12 @@ router.put("/me", auth, async (req, res) => {
         body.telegram !== undefined
           ? normalizeTelegram(body.telegram)
           : undefined,
+      extraPhones:
+        body.extraPhones !== undefined
+          ? Array.isArray(body.extraPhones)
+            ? body.extraPhones
+            : []
+          : undefined,
     };
 
     if (current.sellerType === "company") {
@@ -193,6 +199,27 @@ router.get("/me/business", auth, async (req, res) => {
 
     return res.status(500).json({
       error: "Failed to load business stats",
+    });
+  }
+});
+
+router.get("/me/analytics", auth, async (req, res) => {
+  try {
+    const period = String(req.query.period || "7d");
+    const analytics = await User.getSellerAnalytics(req.user.id, period);
+
+    if (!analytics) {
+      return res.status(404).json({
+        error: "User not found",
+      });
+    }
+
+    return res.json(analytics);
+  } catch (e) {
+    console.error("USER_ANALYTICS_ERROR:", e?.message);
+
+    return res.status(500).json({
+      error: "Failed to load analytics",
     });
   }
 });

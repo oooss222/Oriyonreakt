@@ -8,6 +8,7 @@ import {
   FolderHeart,
   Bookmark,
   LayoutGrid,
+  BarChart3,
 } from "lucide-react";
 import { useI18n } from "../../i18n";
 
@@ -65,7 +66,7 @@ export default function ProfileTabs({
   const { t } = useI18n();
 
   return (
-    <div className="rounded-2xl border bg-white px-1 sm:px-2">
+    <div className="rounded-2xl border border-slate-200/80 bg-white px-1 sm:px-2 shadow-sm">
       <div
         role="tablist"
         className="flex gap-0.5 overflow-x-auto scrollbar-hide snap-x snap-mandatory border-b border-slate-100"
@@ -82,6 +83,14 @@ export default function ProfileTabs({
 
         <TabButton active={tab === "searches"} onClick={() => setTab("searches")} icon={Bookmark}>
           {t("profile.searches")}
+        </TabButton>
+
+        <TabButton
+          active={tab === "analytics"}
+          onClick={() => setTab("analytics")}
+          icon={BarChart3}
+        >
+          {t("profile.analytics")}
         </TabButton>
 
         <TabButton active={tab === "profile"} onClick={() => setTab("profile")} icon={UserIcon}>

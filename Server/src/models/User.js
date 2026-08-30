@@ -407,6 +407,7 @@ class UserModel {
       phone: user.phone,
       whatsapp: user.whatsapp || "",
       telegram: user.telegram || "",
+      extraPhones: Array.isArray(user.extraPhones) ? user.extraPhones : [],
       sellerType: user.sellerType,
       companyName: user.companyName || "",
       companyDescription: user.companyDescription || "",
@@ -485,6 +486,207 @@ class UserModel {
     };
   }
 
+  static async getSellerAnalytics(userId, period = "7d") {
+    const periodKey = ["7d", "30d", "all"].includes(period) ? period : "7d";
+    const dayCount = periodKey === "7d" ? 7 : periodKey === "30d" ? 30 : 90;
+    const intervalClause =
+      periodKey === "all"
+        ? "ue.created_at >= now() - interval '365 days'"
+        : `ue.created_at >= now() - ($2::text || ' days')::interval`;
+
+    const eventValues =
+      periodKey === "all" ? [userId] : [userId, String(dayCount)];
+
+    const [user, listingStats, seriesResult, topResult, prevResult] =
+      await Promise.all([
+        this.findById(userId),
+        query(
+          `
+          SELECT
+            COUNT(*) FILTER (WHERE status = 'approved')::int AS active,
+            COUNT(*)::int AS total,
+            COALESCE(SUM(views), 0)::int AS views
+          FROM listings
+          WHERE owner = $1
+          `,
+          [userId]
+        ),
+        query(
+          `
+          SELECT
+            to_char(date_trunc('day', ue.created_at), 'YYYY-MM-DD') AS day,
+            ue.event_type,
+            COUNT(*)::int AS count
+          FROM user_events ue
+          INNER JOIN listings l ON l.id = ue.listing_id
+          WHERE l.owner = $1
+            AND ue.event_type IN ('listing_view', 'favorite', 'contact_intent')
+            AND ${intervalClause}
+          GROUP BY 1, 2
+          ORDER BY 1 ASC
+          `,
+          eventValues
+        ),
+        query(
+          `
+          SELECT
+            l.id,
+            l.title,
+            l.cat,
+            l.location,
+            l.images,
+            l.views,
+            COALESCE(SUM(CASE WHEN ue.event_type = 'listing_view' THEN 1 ELSE 0 END), 0)::int AS period_views,
+            COALESCE(SUM(CASE WHEN ue.event_type = 'favorite' THEN 1 ELSE 0 END), 0)::int AS favorites,
+            COALESCE(SUM(CASE WHEN ue.event_type = 'contact_intent' THEN 1 ELSE 0 END), 0)::int AS reveals
+          FROM listings l
+          LEFT JOIN user_events ue
+            ON ue.listing_id = l.id
+            AND ue.event_type IN ('listing_view', 'favorite', 'contact_intent')
+            AND ${
+              periodKey === "all"
+                ? "ue.created_at >= now() - interval '365 days'"
+                : "ue.created_at >= now() - ($2::text || ' days')::interval"
+            }
+          WHERE l.owner = $1
+          GROUP BY l.id
+          ORDER BY period_views DESC, l.views DESC
+          LIMIT 8
+          `,
+          eventValues
+        ),
+        query(
+          `
+          SELECT
+            ue.event_type,
+            COUNT(*)::int AS count
+          FROM user_events ue
+          INNER JOIN listings l ON l.id = ue.listing_id
+          WHERE l.owner = $1
+            AND ue.event_type IN ('listing_view', 'favorite', 'contact_intent')
+            AND ue.created_at >= now() - ($2::text || ' days')::interval
+            AND ue.created_at < now() - ($3::text || ' days')::interval
+          GROUP BY ue.event_type
+          `,
+          [
+            userId,
+            String(dayCount * 2),
+            String(dayCount),
+          ]
+        ),
+      ]);
+
+    if (!user) return null;
+
+    const totals = { views: 0, favorites: 0, reveals: 0 };
+    const byDay = {};
+
+    for (const row of seriesResult.rows) {
+      const day = row.day;
+      if (!byDay[day]) {
+        byDay[day] = { day, views: 0, favorites: 0, reveals: 0 };
+      }
+      if (row.event_type === "listing_view") {
+        byDay[day].views += Number(row.count || 0);
+        totals.views += Number(row.count || 0);
+      } else if (row.event_type === "favorite") {
+        byDay[day].favorites += Number(row.count || 0);
+        totals.favorites += Number(row.count || 0);
+      } else if (row.event_type === "contact_intent") {
+        byDay[day].reveals += Number(row.count || 0);
+        totals.reveals += Number(row.count || 0);
+      }
+    }
+
+    const seriesDays = periodKey === "all" ? 14 : dayCount;
+    const series = [];
+    for (let i = seriesDays - 1; i >= 0; i -= 1) {
+      const d = new Date();
+      d.setHours(0, 0, 0, 0);
+      d.setDate(d.getDate() - i);
+      const key = d.toISOString().slice(0, 10);
+      series.push(byDay[key] || { day: key, views: 0, favorites: 0, reveals: 0 });
+    }
+
+    const prev = { views: 0, favorites: 0, reveals: 0 };
+    for (const row of prevResult.rows) {
+      if (row.event_type === "listing_view") prev.views = Number(row.count || 0);
+      if (row.event_type === "favorite") prev.favorites = Number(row.count || 0);
+      if (row.event_type === "contact_intent") prev.reveals = Number(row.count || 0);
+    }
+
+    const pctChange = (curr, previous) => {
+      if (!previous) return curr > 0 ? 100 : 0;
+      return Math.round(((curr - previous) / previous) * 100);
+    };
+
+    const listingRow = listingStats.rows[0] || {};
+    const phones = [
+      user.phone,
+      ...(Array.isArray(user.extraPhones) ? user.extraPhones : []),
+    ].filter(Boolean);
+
+    const phoneReveals = phones.map((phone, index) => ({
+      phone,
+      count: index === 0 ? totals.reveals : 0,
+    }));
+
+    const topListings = topResult.rows.map((row) => {
+      const views = Number(row.period_views || 0) || Number(row.views || 0);
+      const favorites = Number(row.favorites || 0);
+      const reveals = Number(row.reveals || 0);
+      const conversion = views > 0 ? Math.round((reveals / views) * 1000) / 10 : 0;
+      let images = row.images;
+      if (typeof images === "string") {
+        try {
+          images = JSON.parse(images);
+        } catch {
+          images = [];
+        }
+      }
+
+      return {
+        id: row.id,
+        title: row.title,
+        cat: row.cat,
+        location: row.location,
+        images: Array.isArray(images) ? images : [],
+        views,
+        favorites,
+        reveals,
+        conversion,
+      };
+    });
+
+    return {
+      period: periodKey,
+      kpis: {
+        views: totals.views,
+        favorites: totals.favorites,
+        reveals: totals.reveals,
+        activeListings: Number(listingRow.active || 0),
+        totalListings: Number(listingRow.total || 0),
+        viewsChange: pctChange(totals.views, prev.views),
+        favoritesChange: pctChange(totals.favorites, prev.favorites),
+        revealsChange: pctChange(totals.reveals, prev.reveals),
+        avgViewsPerDay:
+          seriesDays > 0 ? Math.round(totals.views / seriesDays) : 0,
+        favoriteConversion:
+          totals.views > 0
+            ? Math.round((totals.favorites / totals.views) * 1000) / 10
+            : 0,
+        revealConversion:
+          totals.views > 0
+            ? Math.round((totals.reveals / totals.views) * 1000) / 10
+            : 0,
+      },
+      series,
+      phoneReveals,
+      topListings,
+      lifetimeViews: Number(listingRow.views || 0),
+    };
+  }
+
   static async assertCanCreateListing(userId) {
     const user = await this.findById(userId);
 
@@ -525,6 +727,14 @@ class UserModel {
       fields.whatsapp !== undefined ? fields.whatsapp : current.whatsapp;
     const telegram =
       fields.telegram !== undefined ? fields.telegram : current.telegram;
+    const extraPhones =
+      fields.extraPhones !== undefined
+        ? (Array.isArray(fields.extraPhones) ? fields.extraPhones : [])
+            .map((p) => String(p || "").trim())
+            .filter(Boolean)
+            .filter((p) => p !== phone)
+            .slice(0, 5)
+        : current.extraPhones || [];
 
     const companyName =
       fields.companyName !== undefined
@@ -583,28 +793,29 @@ class UserModel {
         phone = $3,
         whatsapp = $4,
         telegram = $5,
-        seller_type = $6,
-        company_name = $7,
-        company_description = $8,
-        company_logo = $9,
-        company_address = $10,
-        company_website = $11,
-        company_instagram = $12,
+        extra_phones = $6::jsonb,
+        seller_type = $7,
+        company_name = $8,
+        company_description = $9,
+        company_logo = $10,
+        company_address = $11,
+        company_website = $12,
+        company_instagram = $13,
         listing_auto_bump_enabled = CASE
-          WHEN $6 = 'company' THEN $13
+          WHEN $7 = 'company' THEN $14
           ELSE false
         END,
         listing_auto_bump_interval_hours = CASE
-          WHEN $6 = 'company' THEN $14
+          WHEN $7 = 'company' THEN $15
           ELSE 24
         END,
         listing_auto_bump_last_at = CASE
-          WHEN $6 = 'company' AND $15 THEN now()
-          WHEN $6 = 'company' THEN listing_auto_bump_last_at
+          WHEN $7 = 'company' AND $16 THEN now()
+          WHEN $7 = 'company' THEN listing_auto_bump_last_at
           ELSE NULL
         END,
-        business_verified = CASE WHEN $6 = 'company' THEN business_verified ELSE false END,
-        business_verified_at = CASE WHEN $6 = 'company' THEN business_verified_at ELSE NULL END,
+        business_verified = CASE WHEN $7 = 'company' THEN business_verified ELSE false END,
+        business_verified_at = CASE WHEN $7 = 'company' THEN business_verified_at ELSE NULL END,
         updated_at = now()
       WHERE id = $1
       RETURNING *
@@ -615,6 +826,7 @@ class UserModel {
         phone,
         whatsapp,
         telegram,
+        JSON.stringify(extraPhones),
         nextSellerType,
         nextSellerType === "company" ? companyName || name : "",
         nextSellerType === "company" ? companyDescription : "",
