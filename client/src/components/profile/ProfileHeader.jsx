@@ -29,32 +29,32 @@ export default function ProfileHeader({
     me?.sellerType === "company" ? t("profile.sellerCompany") : t("profile.sellerPrivate");
 
   return (
-    <div className="rounded-2xl border border-slate-200/80 bg-white shadow-sm overflow-hidden">
+    <div className="rounded-2xl border border-ink/8 bg-white shadow-soft overflow-hidden">
       <div className="p-4 md:p-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-start gap-4 min-w-0">
-            <div className="relative w-16 h-16 sm:w-[4.5rem] sm:h-[4.5rem] rounded-2xl bg-sun text-white font-bold text-xl grid place-items-center shrink-0 shadow-sm">
+            <div className="relative w-16 h-16 sm:w-[4.5rem] sm:h-[4.5rem] rounded-2xl bg-sun text-white font-bold text-xl grid place-items-center shrink-0 shadow-soft">
               {initials !== "?" ? initials : <UserIcon size={28} />}
             </div>
 
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2 mb-1.5">
-                <span className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide rounded-md bg-slate-100 text-slate-500">
+                <span className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide rounded-md bg-mist text-ink-400">
                   {sellerLabel}
                 </span>
                 <EmailBadge status={emailStatus} />
                 {showRole && (
-                  <span className="px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide rounded-full bg-slate-100 text-slate-600 border">
+                  <span className="px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide rounded-md bg-mist text-ink-500 border border-ink/8">
                     {role.replace("_", " ")}
                   </span>
                 )}
               </div>
 
-              <h1 className="text-xl sm:text-2xl font-bold leading-tight break-words text-slate-900">
+              <h1 className="font-display text-xl sm:text-2xl font-bold leading-tight break-words text-ink tracking-tight">
                 {me?.name || t("seller.noName")}
               </h1>
 
-              <p className="text-sm text-slate-500 mt-1 truncate">{me?.email}</p>
+              <p className="text-sm text-ink-400 mt-1 truncate">{me?.email}</p>
             </div>
           </div>
 
@@ -62,7 +62,7 @@ export default function ProfileHeader({
             <button
               type="button"
               onClick={onOpenWallet}
-              className="inline-flex items-center gap-2 rounded-xl bg-sun px-4 py-2.5 text-sm font-semibold text-white hover:bg-sun-600 transition shadow-sm"
+              className="inline-flex items-center gap-2 rounded-xl bg-sun px-4 py-2.5 text-sm font-semibold text-white hover:bg-sun-600 transition shadow-soft"
             >
               <Wallet size={16} />
               {t("nav.wallet")}
@@ -74,7 +74,7 @@ export default function ProfileHeader({
             {userId && (
               <Link
                 to={`/seller/${userId}`}
-                className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-700 hover:border-sun/40 hover:text-sun transition"
+                className="inline-flex items-center gap-1.5 rounded-xl border border-ink/10 bg-white px-3.5 py-2.5 text-sm font-medium text-ink-600 hover:border-sun/40 hover:text-sun transition"
               >
                 {t("profile.howOthersSee")}
                 <ExternalLink size={14} />
@@ -83,7 +83,7 @@ export default function ProfileHeader({
 
             <button
               type="button"
-              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-ink/10 bg-white px-3.5 py-2.5 text-sm font-medium text-ink-600 hover:bg-mist transition"
               onClick={onLogout}
             >
               <LogOut size={16} />
@@ -92,9 +92,9 @@ export default function ProfileHeader({
           </div>
         </div>
 
-        <div className="mt-5 rounded-xl border border-slate-100 bg-slate-50/80 p-3 md:p-4">
+        <div className="mt-5 rounded-xl border border-ink/8 bg-mist/50 p-3 md:p-4">
           <div className="flex flex-wrap items-center justify-between gap-2 text-sm mb-2">
-            <span className="font-medium text-slate-700">
+            <span className="font-medium text-ink-600">
               {t("profile.completionLabel", { percent: completion.percent })}
             </span>
             {completion.percent < 100 && completion.hints[0] && (
@@ -108,7 +108,7 @@ export default function ProfileHeader({
             )}
           </div>
 
-          <div className="h-2.5 rounded-full bg-slate-200/80 overflow-hidden">
+          <div className="h-2.5 rounded-full bg-mist-200 overflow-hidden">
             <div
               className="h-full rounded-full bg-sun transition-all duration-500"
               style={{ width: `${completion.percent}%` }}

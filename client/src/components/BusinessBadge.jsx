@@ -20,7 +20,7 @@ export default function BusinessBadge({
   if (businessVerified) {
     return (
       <span
-        className={`inline-flex items-center rounded-full font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 ${sizeClasses} ${className}`}
+        className={`inline-flex items-center rounded-md font-semibold bg-lagoon/10 text-lagoon-700 border border-lagoon/15 ${sizeClasses} ${className}`}
       >
         <BadgeCheck className={size === "lg" ? "w-4 h-4" : "w-3 h-3"} />
         Проверенный премиум
@@ -30,7 +30,7 @@ export default function BusinessBadge({
 
   return (
     <span
-      className={`inline-flex items-center rounded-full font-semibold bg-blue-50 text-blue-700 border border-blue-100 ${sizeClasses} ${className}`}
+      className={`inline-flex items-center rounded-md font-semibold bg-mist text-ink-600 border border-ink/8 ${sizeClasses} ${className}`}
     >
       <Building2 className={size === "lg" ? "w-4 h-4" : "w-3 h-3"} />
       {sellerTypeLabel("company")}

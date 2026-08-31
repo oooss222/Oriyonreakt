@@ -69,12 +69,12 @@ export default function CompareListingButton({
     ? `inline-flex ${sizeClass} items-center justify-center rounded-full border shadow-sm transition backdrop-blur-sm ${
         active
           ? "border-sun/40 bg-sun text-white"
-          : "border-white/40 bg-white/90 text-slate-600 hover:bg-white"
+          : "border-white/40 bg-white/90 text-ink-500 hover:bg-white"
       }`
     : `inline-flex ${sizeClass} items-center justify-center rounded-full border transition ${
         active
           ? "border-sun/40 bg-sun/10 text-sun"
-          : "border-slate-200 bg-white text-slate-500 hover:bg-slate-50 hover:text-slate-600"
+          : "border-ink/10 bg-white text-ink-400 hover:bg-mist/70 hover:text-ink-500"
       }`;
 
   return (
@@ -94,14 +94,14 @@ export default function CompareListingButton({
         <Link
           to={comparePath}
           onClick={(e) => e.stopPropagation()}
-          className="text-xs text-slate-500 hover:text-slate-700"
+          className="text-xs text-ink-400 hover:text-ink-600"
         >
           {t("compare.openList", { count, max: COMPARE_MAX })}
         </Link>
       )}
 
       {toast && (
-        <div className="absolute left-1/2 top-full z-30 mt-2 w-48 -translate-x-1/2 rounded-xl border border-slate-200 bg-white px-2.5 py-2 text-[11px] font-medium text-slate-700 shadow-lg">
+        <div className="absolute left-1/2 top-full z-30 mt-2 w-48 -translate-x-1/2 rounded-xl border border-ink/10 bg-white px-2.5 py-2 text-[11px] font-medium text-ink-600 shadow-lg">
           {toast}
         </div>
       )}

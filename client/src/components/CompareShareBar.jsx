@@ -41,8 +41,8 @@ export default function CompareShareBar({
   };
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-3 sm:p-4 flex flex-wrap items-center gap-2 shadow-sm">
-      <div className="text-sm font-semibold text-slate-800 mr-auto">
+    <div className="rounded-2xl border border-ink/10 bg-white p-3 sm:p-4 flex flex-wrap items-center gap-2 ">
+      <div className="text-sm font-semibold text-ink mr-auto">
         {t("compare.shareTitle")}
       </div>
 
@@ -50,16 +50,16 @@ export default function CompareShareBar({
         type="button"
         onClick={copyLink}
         disabled={busy}
-        className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+        className="inline-flex items-center gap-1.5 rounded-xl border border-ink/10 px-3 py-2 text-sm font-semibold text-ink-600 hover:bg-mist/70 disabled:opacity-50"
       >
-        {copied ? <Check size={15} className="text-emerald-600" /> : <Link2 size={15} />}
+        {copied ? <Check size={15} className="text-lagoon" /> : <Link2 size={15} />}
         {copied ? t("compare.linkCopied") : t("compare.copyLink")}
       </button>
 
       <button
         type="button"
         onClick={copyLink}
-        className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+        className="inline-flex items-center gap-1.5 rounded-xl border border-ink/10 px-3 py-2 text-sm font-semibold text-ink-600 hover:bg-mist/70"
       >
         <Share2 size={15} />
         {t("compare.share")}

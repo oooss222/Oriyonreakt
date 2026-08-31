@@ -88,14 +88,14 @@ export default function CompareMarketContext({ cat, items = [] }) {
   });
 
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-4 md:p-5 shadow-sm space-y-3">
+    <section className="rounded-2xl border border-ink/8 bg-white p-4 md:p-5 space-y-3">
       <div className="flex items-start gap-3">
-        <div className="w-10 h-10 rounded-xl bg-slate-100 grid place-items-center shrink-0">
-          <BarChart3 size={18} className="text-slate-600" />
+        <div className="w-10 h-10 rounded-xl bg-mist grid place-items-center shrink-0">
+          <BarChart3 size={18} className="text-ink-500" />
         </div>
         <div>
-          <h3 className="text-lg font-bold text-slate-900">{t("compare.marketTitle")}</h3>
-          <p className="text-sm text-slate-500 mt-0.5">
+          <h3 className="font-display text-lg font-bold text-ink tracking-tight">{t("compare.marketTitle")}</h3>
+          <p className="text-sm text-ink-400 mt-0.5">
             {t("compare.marketHint", {
               median: formatPrice(median, { emptyLabel: "—" }),
               sample: stats.sample,
@@ -103,7 +103,7 @@ export default function CompareMarketContext({ cat, items = [] }) {
             })}
           </p>
           {medianPpsqm != null && (
-            <p className="text-xs text-slate-400 mt-1">
+            <p className="text-xs text-ink-300 mt-1">
               {t("compare.marketPpsqm", {
                 value: formatPrice(medianPpsqm, { emptyLabel: "—" }),
               })}
@@ -119,12 +119,12 @@ export default function CompareMarketContext({ cat, items = [] }) {
             delta == null ? Minus : delta < 0 ? TrendingDown : delta > 0 ? TrendingUp : Minus;
           const tone =
             delta == null
-              ? "text-slate-500 bg-slate-50 border-slate-100"
+              ? "text-ink-400 bg-mist/70 border-ink/8"
               : delta < 0
-                ? "text-emerald-700 bg-emerald-50 border-emerald-100"
+                ? "text-lagoon-700 bg-lagoon/5 border-lagoon/15"
                 : delta > 0
-                  ? "text-amber-800 bg-amber-50 border-amber-100"
-                  : "text-slate-600 bg-slate-50 border-slate-100";
+                  ? "text-sun-700 bg-sun-50 border-sun/15"
+                  : "text-ink-500 bg-mist/70 border-ink/8";
 
           return (
             <div

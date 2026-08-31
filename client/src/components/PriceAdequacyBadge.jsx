@@ -21,7 +21,7 @@ export default function PriceAdequacyBadge({ item, compact = false }) {
     if (compact) return null;
 
     return (
-      <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 flex items-start gap-2">
+      <div className="rounded-2xl border border-lagoon/15 bg-lagoon/5 px-4 py-3 text-sm text-lagoon-700 flex items-start gap-2">
         <CheckCircle2 size={16} className="shrink-0 mt-0.5" />
         <span>{assessment?.message || "Цена выглядит адекватно для указанных параметров."}</span>
       </div>
@@ -30,8 +30,8 @@ export default function PriceAdequacyBadge({ item, compact = false }) {
 
   const styles =
     assessment.level === "low"
-      ? "border-amber-200 bg-amber-50 text-amber-900"
-      : "border-orange-200 bg-orange-50 text-orange-900";
+      ? "border-sun/20 bg-sun-50 text-sun-700"
+      : "border-sun/30 bg-sun-50 text-sun-800";
 
   const Icon = assessment.level === "low" ? TrendingDown : TrendingUp;
 

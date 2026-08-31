@@ -48,7 +48,7 @@ export default function CompareFloatingBar() {
     <div className="fixed bottom-[calc(4.25rem+env(safe-area-inset-bottom))] inset-x-0 z-[45] px-4 pointer-events-none lg:bottom-6">
       <Link
         to={comparePath}
-        className="pointer-events-auto mx-auto flex max-w-md items-center justify-between gap-3 rounded-2xl border border-slate-900/10 bg-slate-900 px-4 py-3 text-white shadow-lift transition hover:bg-slate-800"
+        className="pointer-events-auto mx-auto flex max-w-md items-center justify-between gap-3 rounded-2xl border border-ink/10 bg-ink px-4 py-3 text-white shadow-lift transition hover:bg-ink-700"
       >
         <span className="inline-flex min-w-0 items-center gap-2 text-sm font-semibold">
           <Scale size={18} className="text-sun shrink-0" />

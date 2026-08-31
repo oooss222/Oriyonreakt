@@ -373,7 +373,7 @@
   }
 
   .listing-card__tag {
-    @apply inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold uppercase text-slate-600;
+    @apply inline-flex rounded-full bg-mist px-2 py-0.5 text-[10px] font-bold uppercase text-ink-500;
   }
 
   .listing-card__details {
@@ -429,34 +429,29 @@
   }
 
   .promotion-card-vip {
-    border: 1.5px solid #e5c04d !important;
+    border: 1.5px solid rgb(255 106 0 / 0.35) !important;
     background: #fff;
-    box-shadow: 0 4px 16px rgb(229 192 77 / 0.18);
+    box-shadow: 0 4px 14px rgb(28 27 26 / 0.06);
     z-index: 1;
   }
 
   .promotion-card-vip:hover {
-    box-shadow: 0 8px 22px rgb(229 192 77 / 0.24);
+    box-shadow: 0 6px 18px rgb(28 27 26 / 0.08);
     transform: translateY(-1px);
   }
 
   .promotion-card-top {
-    border: 1.5px solid #5ecfc6 !important;
+    border: 1.5px solid rgb(14 124 123 / 0.35) !important;
     background: #fff !important;
-    box-shadow: 0 4px 14px rgb(94 207 198 / 0.14);
-    animation: top-entry-pulse 2s ease-out 1;
+    box-shadow: 0 4px 14px rgb(28 27 26 / 0.06);
   }
 
   .promotion-card-top:hover {
-    box-shadow: 0 6px 18px rgb(94 207 198 / 0.2);
+    box-shadow: 0 6px 18px rgb(28 27 26 / 0.08);
     transform: translateY(-1px);
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .promotion-card-top {
-      animation: none;
-    }
-
     .promotion-card-vip:hover,
     .promotion-card-top:hover {
       transform: none;
@@ -464,11 +459,11 @@
   }
 
   .promotion-panel-vip {
-    background: linear-gradient(145deg, rgb(255 251 235) 0%, rgb(255 247 237) 45%, #fff 100%);
+    background: rgb(255 244 235 / 0.7);
   }
 
   .promotion-panel-top {
-    background: linear-gradient(145deg, rgb(236 254 255) 0%, rgb(240 253 250) 45%, #fff 100%);
+    background: rgb(232 246 246 / 0.7);
   }
 
   .scrollbar-hide,
@@ -493,7 +488,7 @@
   }
 
   .listing-form-page {
-    @apply w-full max-w-7xl mx-auto px-4 py-6 space-y-5 text-slate-900;
+    @apply w-full max-w-7xl mx-auto px-4 py-6 space-y-5 text-ink;
   }
 
   .listing-form-header {
@@ -505,15 +500,15 @@
   }
 
   .listing-form-card {
-    @apply rounded-2xl border border-slate-200 bg-white shadow-sm;
+    @apply rounded-2xl border border-ink/10 bg-white shadow-sm;
   }
 
   .listing-form-card__head {
-    @apply flex items-center justify-between gap-3 px-5 py-4 border-b border-slate-100;
+    @apply flex items-center justify-between gap-3 px-5 py-4 border-b border-ink/10;
   }
 
   .listing-form-card__title {
-    @apply flex items-center gap-2 text-lg font-semibold text-slate-900;
+    @apply flex items-center gap-2 text-lg font-semibold text-ink;
   }
 
   .listing-form-card__body {
@@ -521,7 +516,7 @@
   }
 
   .listing-form-label {
-    @apply block text-sm font-medium text-slate-700 mb-1.5;
+    @apply block text-sm font-medium text-ink-600 mb-1.5;
   }
 
   .listing-form-label-required::after {
@@ -532,7 +527,7 @@
   .listing-form-input,
   .listing-form-select,
   .listing-form-textarea {
-    @apply w-full rounded-xl border border-slate-200 bg-slate-50 px-3 outline-none transition focus:border-sun/40 focus:bg-white focus:ring-2 focus:ring-sun/20;
+    @apply w-full rounded-xl border border-ink/10 bg-mist/70 px-3 outline-none transition focus:border-sun/40 focus:bg-white focus:ring-2 focus:ring-sun/20;
   }
 
   .listing-form-input,
@@ -545,11 +540,11 @@
   }
 
   .listing-form-meta {
-    @apply mt-1 text-xs text-slate-500;
+    @apply mt-1 text-xs text-ink-400;
   }
 
   .listing-form-price-wrap {
-    @apply flex items-stretch rounded-xl border border-slate-200 bg-slate-50 overflow-hidden focus-within:border-sun/40 focus-within:bg-white focus-within:ring-2 focus-within:ring-sun/20;
+    @apply flex items-stretch rounded-xl border border-ink/10 bg-mist/70 overflow-hidden focus-within:border-sun/40 focus-within:bg-white focus-within:ring-2 focus-within:ring-sun/20;
   }
 
   .listing-form-price-wrap input {
@@ -557,15 +552,15 @@
   }
 
   .listing-form-price-suffix {
-    @apply inline-flex items-center px-3 text-sm font-medium text-slate-500 border-l border-slate-200 bg-white;
+    @apply inline-flex items-center px-3 text-sm font-medium text-ink-400 border-l border-ink/10 bg-white;
   }
 
   .listing-form-location-segment {
-    @apply inline-flex rounded-xl border border-slate-200 bg-slate-50 p-1 gap-1;
+    @apply inline-flex rounded-xl border border-ink/10 bg-mist/70 p-1 gap-1;
   }
 
   .listing-form-location-btn {
-    @apply inline-flex items-center justify-center gap-1.5 min-w-[7.5rem] h-10 px-4 rounded-lg text-sm font-semibold text-slate-600 transition;
+    @apply inline-flex items-center justify-center gap-1.5 min-w-[7.5rem] h-10 px-4 rounded-lg text-sm font-semibold text-ink-500 transition;
   }
 
   .listing-form-location-btn--active {
@@ -581,7 +576,7 @@
   }
 
   .listing-form-dropzone--idle {
-    @apply border-slate-200 bg-slate-50;
+    @apply border-ink/10 bg-mist/70;
   }
 
   .listing-form-spec-list {
@@ -593,7 +588,7 @@
   }
 
   .listing-form-spec-label {
-    @apply flex items-center px-4 py-3 text-sm font-medium text-slate-700 bg-slate-50 sm:border-r border-slate-100 border-b sm:border-b-0;
+    @apply flex items-center px-4 py-3 text-sm font-medium text-ink-600 bg-mist/70 sm:border-r border-ink/10 border-b sm:border-b-0;
   }
 
   .listing-form-spec-control {
@@ -609,7 +604,7 @@
   }
 
   .listing-form-chip {
-    @apply inline-flex items-center justify-center h-9 px-3.5 rounded-full border border-slate-200 bg-white text-sm font-medium text-slate-700 transition disabled:opacity-50;
+    @apply inline-flex items-center justify-center h-9 px-3.5 rounded-full border border-ink/10 bg-white text-sm font-medium text-ink-600 transition disabled:opacity-50;
   }
 
   .listing-form-chip--active {
@@ -625,11 +620,11 @@
   }
 
   .listing-form-color-swatch__dot {
-    @apply h-5 w-5 rounded-full border border-slate-200;
+    @apply h-5 w-5 rounded-full border border-ink/10;
   }
 
   .listing-form-sidebar {
-    @apply rounded-2xl border border-slate-200 bg-white p-5 space-y-4 sticky top-4 shadow-sm;
+    @apply rounded-2xl border border-ink/10 bg-white p-5 space-y-4 sticky top-4 shadow-sm;
   }
 
   .listing-form-check {
@@ -637,7 +632,7 @@
   }
 
   .listing-form-check--ok {
-    @apply bg-slate-50 text-slate-700;
+    @apply bg-mist/70 text-ink-600;
   }
 
   .listing-form-check--warn {
@@ -653,7 +648,7 @@
   }
 
   .listing-form-publish-btn--disabled {
-    @apply bg-slate-200 text-slate-500 cursor-not-allowed;
+    @apply bg-slate-200 text-ink-400 cursor-not-allowed;
   }
 
   .auth-page {
@@ -673,11 +668,11 @@
   }
 
   .auth-header__title {
-    @apply text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight;
+    @apply text-2xl sm:text-3xl font-bold text-ink tracking-tight;
   }
 
   .auth-header__subtitle {
-    @apply text-sm sm:text-base text-slate-500 leading-relaxed;
+    @apply text-sm sm:text-base text-ink-400 leading-relaxed;
   }
 
   .auth-card {
@@ -729,7 +724,7 @@
   }
 
   .auth-alert--success {
-    @apply bg-emerald-50 text-emerald-700 border-emerald-200;
+    @apply bg-lagoon/5 text-lagoon-700 border-lagoon/20;
   }
 
   .auth-alert__action {
@@ -749,11 +744,11 @@
   }
 
   .auth-method-switch__btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-sm font-semibold text-slate-600 transition;
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-sm font-semibold text-ink-500 transition;
   }
 
   .auth-method-switch__btn--active {
-    @apply bg-white text-slate-900 shadow-soft border border-ink/10;
+    @apply bg-white text-ink shadow-soft border border-ink/10;
   }
 
   .auth-register-steps {
@@ -781,11 +776,11 @@
   }
 
   .auth-register-steps__item--done .auth-register-steps__dot {
-    @apply bg-emerald-50 border-emerald-500 text-emerald-600;
+    @apply bg-lagoon/10 border-lagoon text-lagoon;
   }
 
   .auth-phone-hint {
-    @apply flex items-start gap-3 rounded-xl border border-sun/20 bg-sun-50/70 px-4 py-3 text-sm text-slate-700 leading-relaxed;
+    @apply flex items-start gap-3 rounded-xl border border-sun/20 bg-sun-50/70 px-4 py-3 text-sm text-ink-600 leading-relaxed;
   }
 
   .auth-phone-row {
@@ -805,7 +800,7 @@
   }
 
   .auth-back-link {
-    @apply inline-flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700 transition;
+    @apply inline-flex items-center gap-1 text-sm text-ink-400 hover:text-ink-600 transition;
   }
 
   .auth-code-banner {
@@ -813,11 +808,11 @@
   }
 
   .auth-code-banner__title {
-    @apply text-xs font-semibold uppercase tracking-wide text-slate-500;
+    @apply text-xs font-semibold uppercase tracking-wide text-ink-400;
   }
 
   .auth-code-banner__phone {
-    @apply mt-1 text-lg font-bold text-slate-900;
+    @apply mt-1 text-lg font-bold text-ink;
   }
 
   .auth-otp {
@@ -825,7 +820,7 @@
   }
 
   .auth-otp__box {
-    @apply h-12 rounded-xl border border-ink/15 bg-white text-center text-lg font-bold text-slate-900 focus:ring-2 focus:ring-sun/40 focus:border-sun transition;
+    @apply h-12 rounded-xl border border-ink/15 bg-white text-center text-lg font-bold text-ink focus:ring-2 focus:ring-sun/40 focus:border-sun transition;
   }
 
   .auth-otp__box--filled {
@@ -837,7 +832,7 @@
   }
 
   .auth-policy {
-    @apply flex items-start gap-3 rounded-xl border border-ink/10 bg-white px-3 py-3 text-sm text-slate-700 cursor-pointer transition;
+    @apply flex items-start gap-3 rounded-xl border border-ink/10 bg-white px-3 py-3 text-sm text-ink-600 cursor-pointer transition;
   }
 
   .auth-policy--checked {
@@ -885,7 +880,7 @@
   }
 
   .auth-strength__label {
-    @apply text-xs font-medium text-slate-500;
+    @apply text-xs font-medium text-ink-400;
   }
 
   .auth-password-reqs {
@@ -893,7 +888,7 @@
   }
 
   .auth-password-req {
-    @apply flex items-center gap-2 text-xs text-slate-500;
+    @apply flex items-center gap-2 text-xs text-ink-400;
   }
 
   .auth-password-req--ok {
@@ -901,7 +896,7 @@
   }
 
   .auth-password-req__dot {
-    @apply h-1.5 w-1.5 rounded-full bg-slate-300 shrink-0;
+    @apply h-1.5 w-1.5 rounded-full bg-mist-200 shrink-0;
   }
 
   .auth-password-req--ok .auth-password-req__dot {
@@ -961,7 +956,7 @@
   }
 
   .auth-footer-link {
-    @apply mt-4 text-center text-sm text-slate-600;
+    @apply mt-4 text-center text-sm text-ink-500;
   }
 }
 

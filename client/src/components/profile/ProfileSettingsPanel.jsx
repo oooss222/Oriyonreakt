@@ -19,8 +19,8 @@ import { useI18n } from "../../i18n";
 
 function SectionCard({ icon: Icon, title, description, children, className = "" }) {
   return (
-    <section className={`rounded-2xl border border-slate-200/80 bg-white overflow-hidden shadow-sm ${className}`}>
-      <div className="px-5 py-4 border-b border-slate-100">
+    <section className={`rounded-2xl border border-ink/8 bg-white overflow-hidden shadow-soft ${className}`}>
+      <div className="px-5 py-4 border-b border-ink/8">
         <div className="flex items-start gap-3 min-w-0">
           {Icon && (
             <div className="w-10 h-10 rounded-xl bg-sun/10 grid place-items-center shrink-0">
@@ -28,9 +28,9 @@ function SectionCard({ icon: Icon, title, description, children, className = "" 
             </div>
           )}
           <div className="min-w-0">
-            <h2 className="text-lg font-bold text-slate-900">{title}</h2>
+            <h2 className="font-display text-lg font-bold text-ink tracking-tight">{title}</h2>
             {description && (
-              <p className="text-sm text-slate-500 mt-0.5 leading-relaxed">{description}</p>
+              <p className="text-sm text-ink-400 mt-0.5 leading-relaxed">{description}</p>
             )}
           </div>
         </div>
@@ -44,11 +44,11 @@ function Field({ label, hint, badge, children }) {
   return (
     <label className="block">
       <div className="flex items-center gap-2 mb-1.5">
-        <span className="text-sm font-medium text-slate-700">{label}</span>
+        <span className="text-sm font-medium text-ink-600">{label}</span>
         {badge}
       </div>
       {children}
-      {hint && <p className="text-xs text-slate-400 mt-1.5">{hint}</p>}
+      {hint && <p className="text-xs text-ink-300 mt-1.5">{hint}</p>}
     </label>
   );
 }
@@ -134,7 +134,7 @@ export default function ProfileSettingsPanel({
             label="Email"
             badge={
               emailStatus === "verified" ? (
-                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
+                <span className="inline-flex items-center gap-1 rounded-full bg-lagoon/10 border border-lagoon/15 px-2 py-0.5 text-[11px] font-semibold text-lagoon-700">
                   <CheckCircle2 size={12} />
                   {t("profile.emailVerified")}
                 </span>
@@ -144,7 +144,7 @@ export default function ProfileSettingsPanel({
             }
           >
             <input
-              className="mobile-control bg-slate-50 text-slate-500"
+              className="mobile-control bg-mist text-ink-400"
               type="email"
               value={form.email}
               readOnly
@@ -152,15 +152,15 @@ export default function ProfileSettingsPanel({
           </Field>
         </div>
 
-        <div className="mt-6 pt-5 border-t border-slate-100">
+        <div className="mt-6 pt-5 border-t border-ink/8">
           <div className="flex items-center gap-2 mb-1">
-            <Phone size={16} className="text-slate-400" />
-            <h3 className="text-sm font-semibold text-slate-800">{t("profile.contactMethods")}</h3>
+            <Phone size={16} className="text-ink-300" />
+            <h3 className="text-sm font-semibold text-ink">{t("profile.contactMethods")}</h3>
           </div>
 
           <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-            <div className="text-sm font-medium text-slate-700">{t("profile.phoneNumbers")}</div>
-            <div className="text-xs text-slate-400">{t("profile.phonePerAdHint")}</div>
+            <div className="text-sm font-medium text-ink-600">{t("profile.phoneNumbers")}</div>
+            <div className="text-xs text-ink-300">{t("profile.phonePerAdHint")}</div>
           </div>
 
           <div className="space-y-2.5">
@@ -185,7 +185,7 @@ export default function ProfileSettingsPanel({
                     <button
                       type="button"
                       onClick={() => makePrimary(index)}
-                      className="rounded-full border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50"
+                      className="rounded-full border border-ink/10 px-3 py-2 text-xs font-semibold text-ink-500 hover:bg-mist"
                     >
                       {t("profile.makePrimary")}
                     </button>
@@ -237,19 +237,21 @@ export default function ProfileSettingsPanel({
       </SectionCard>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="rounded-2xl overflow-hidden border border-amber-900/20 bg-gradient-to-br from-[#3d2a14] via-[#4a3218] to-[#2c1e0e] text-amber-50 p-5 shadow-sm">
-          <div className="flex items-center gap-2 text-amber-300 text-xs font-bold uppercase tracking-wider mb-2">
+        <div className="rounded-2xl overflow-hidden border border-ink/10 bg-ink text-white p-5 shadow-soft">
+          <div className="flex items-center gap-2 text-sun text-xs font-bold uppercase tracking-wider mb-2">
             <Crown size={16} />
             Oriyon Premium
           </div>
-          <h3 className="text-xl font-bold text-white mb-2">{t("profile.premiumTitle")}</h3>
-          <p className="text-sm text-amber-100/80 leading-relaxed mb-4">
+          <h3 className="font-display text-xl font-bold text-white mb-2 tracking-tight">
+            {t("profile.premiumTitle")}
+          </h3>
+          <p className="text-sm text-white/70 leading-relaxed mb-4">
             {t("profile.premiumDesc")}
           </p>
-          <div className="text-xs font-semibold uppercase tracking-wide text-amber-300/80 mb-2">
+          <div className="text-xs font-semibold uppercase tracking-wide text-white/50 mb-2">
             {t("profile.premiumBenefits")}
           </div>
-          <ul className="space-y-1.5 text-sm text-amber-50/90 mb-4">
+          <ul className="space-y-1.5 text-sm text-white/85 mb-4">
             {[
               t("profile.premiumBenefit1"),
               t("profile.premiumBenefit2"),
@@ -258,36 +260,36 @@ export default function ProfileSettingsPanel({
               t("profile.premiumBenefit5"),
             ].map((item) => (
               <li key={item} className="flex items-start gap-2">
-                <CheckCircle2 size={14} className="text-amber-300 shrink-0 mt-0.5" />
+                <CheckCircle2 size={14} className="text-sun shrink-0 mt-0.5" />
                 <span>{item}</span>
               </li>
             ))}
           </ul>
-          <p className="text-xs text-amber-200/70 mb-3">{t("profile.premiumAdminHint")}</p>
+          <p className="text-xs text-white/45 mb-3">{t("profile.premiumAdminHint")}</p>
           <a
             href="https://t.me/oriyon_support"
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-2 rounded-xl bg-amber-400 px-4 py-2.5 text-sm font-bold text-amber-950 hover:bg-amber-300 transition"
+            className="inline-flex items-center gap-2 rounded-xl bg-sun px-4 py-2.5 text-sm font-bold text-white hover:bg-sun-600 transition"
           >
             <MessageCircle size={16} />
             {t("profile.writeAdmin")}
           </a>
         </div>
 
-        <div className="rounded-2xl border border-emerald-100 bg-emerald-50/80 p-5 shadow-sm flex flex-col">
+        <div className="rounded-2xl border border-lagoon/15 bg-lagoon/5 p-5 shadow-soft flex flex-col">
           <div className="flex items-start gap-3">
-            <div className="w-11 h-11 rounded-xl bg-white border border-emerald-100 grid place-items-center shrink-0">
-              <ShieldCheck className="text-emerald-600" size={22} />
+            <div className="w-11 h-11 rounded-xl bg-white border border-lagoon/15 grid place-items-center shrink-0">
+              <ShieldCheck className="text-lagoon" size={22} />
             </div>
             <div>
-              <p className="text-sm text-slate-700 leading-relaxed">
-                <span className="font-bold text-slate-900">{t("profile.security")}.</span>{" "}
+              <p className="text-sm text-ink-600 leading-relaxed">
+                <span className="font-bold text-ink">{t("profile.security")}.</span>{" "}
                 {t("profile.securityTip")}
               </p>
               <Link
                 to="/policy"
-                className="mt-3 inline-flex text-sm font-semibold text-emerald-700 hover:text-emerald-800"
+                className="mt-3 inline-flex text-sm font-semibold text-lagoon-700 hover:text-lagoon"
               >
                 {t("profile.scamGuide")}
               </Link>
@@ -314,8 +316,8 @@ export default function ProfileSettingsPanel({
 
           {isStaffRole(role) && (
             <div className="mt-4 flex items-center justify-between gap-3 rounded-xl border bg-white px-4 py-3 text-sm">
-              <span className="text-slate-500">{t("profile.accountRole")}</span>
-              <span className="font-semibold text-slate-900 uppercase tracking-wide text-xs">
+              <span className="text-ink-400">{t("profile.accountRole")}</span>
+              <span className="font-semibold text-ink uppercase tracking-wide text-xs">
                 {role.replace("_", " ")}
               </span>
             </div>

@@ -195,15 +195,15 @@ export function listingStatusClass(status) {
   const key = String(status || "").toLowerCase();
 
   if (key === "approved") {
-    return "bg-emerald-50 text-emerald-700 border-emerald-100";
+    return "bg-lagoon/10 text-lagoon-700 border-lagoon/15";
   }
 
   if (key === "pending") {
-    return "bg-amber-50 text-amber-700 border-amber-100";
+    return "bg-sun-50 text-sun-700 border-sun/20";
   }
 
   if (key === "sold") {
-    return "bg-slate-100 text-slate-600 border-slate-200";
+    return "bg-mist text-ink-500 border-ink/10";
   }
 
   return "bg-mist text-ink-500 border-ink/10";

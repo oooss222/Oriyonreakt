@@ -12,22 +12,24 @@ export default function CompareVerdict({ verdict, catalogPath, t }) {
   const external = isExternalCompareItem(item);
 
   return (
-    <section className="rounded-2xl border border-sun/20 bg-gradient-to-br from-sun/10 via-white to-amber-50/60 p-4 md:p-5 shadow-sm">
+    <section className="rounded-2xl border border-sun/20 bg-sun-50/60 p-4 md:p-5">
       <div className="flex items-start gap-3">
-        <div className="w-10 h-10 rounded-xl bg-sun text-white grid place-items-center shrink-0 shadow-sm">
+        <div className="w-10 h-10 rounded-xl bg-sun text-white grid place-items-center shrink-0">
           <CheckCircle2 size={18} />
         </div>
         <div className="min-w-0 flex-1 space-y-2">
           <div className="text-xs font-bold uppercase tracking-wide text-sun">
             {verdict.label}
           </div>
-          <h3 className="text-lg font-bold text-slate-900 line-clamp-2">{verdict.title}</h3>
+          <h3 className="font-display text-lg font-bold text-ink line-clamp-2 tracking-tight">
+            {verdict.title}
+          </h3>
           {verdict.reasons?.length > 0 && (
             <ul className="flex flex-wrap gap-2">
               {verdict.reasons.map((reason) => (
                 <li
                   key={reason}
-                  className="rounded-full bg-white/80 border border-sun/15 px-2.5 py-1 text-xs font-medium text-slate-700"
+                  className="rounded-md bg-white border border-sun/15 px-2.5 py-1 text-xs font-medium text-ink-600"
                 >
                   {reason}
                 </li>
@@ -58,7 +60,7 @@ export default function CompareVerdict({ verdict, catalogPath, t }) {
             {catalogPath && (
               <Link
                 to={catalogPath}
-                className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition"
+                className="inline-flex items-center gap-1.5 rounded-xl border border-ink/10 bg-white px-3.5 py-2 text-sm font-semibold text-ink-600 hover:bg-mist transition"
               >
                 {t("compare.findMoreOriyon")}
               </Link>

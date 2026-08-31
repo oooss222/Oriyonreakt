@@ -59,11 +59,11 @@ export default function ListingPromotionPanel({
           <Zap className="text-sun" size={26} />
         </div>
 
-        <div className="text-slate-800 font-semibold mb-1">
+        <div className="text-ink font-semibold mb-1">
           Нет объявлений для продвижения
         </div>
 
-        <p className="text-sm text-slate-500 mb-4 max-w-md mx-auto">
+        <p className="text-sm text-ink-400 mb-4 max-w-md mx-auto">
           VIP, TOP и обновление даты доступны только для опубликованных
           объявлений. Сначала подайте объявление и дождитесь одобрения
           модерации.
@@ -91,14 +91,14 @@ export default function ListingPromotionPanel({
 
           <h2 className="text-2xl font-bold">VIP, TOP и обновление даты</h2>
 
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="text-sm text-ink-400 mt-1">
             Выберите объявление и подключите нужную услугу. Кнопки продвижения
             больше не привязаны к карточкам в списке объявлений.
           </p>
         </div>
 
         <label className="block">
-          <span className="text-sm font-medium text-slate-700 mb-1 block">
+          <span className="text-sm font-medium text-ink-600 mb-1 block">
             Объявление для продвижения
           </span>
           <select
@@ -116,7 +116,7 @@ export default function ListingPromotionPanel({
         </label>
 
         {selectedListing && (
-          <div className="rounded-2xl border bg-slate-50 p-3 flex items-center gap-3">
+          <div className="rounded-2xl border bg-mist/70 p-3 flex items-center gap-3">
             <img
               src={getListingThumb(selectedListing)}
               alt=""

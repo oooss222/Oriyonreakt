@@ -159,10 +159,10 @@ export default function CompareExternalForm({ cat, onAdded }) {
     <section className="rounded-2xl border bg-white p-4 md:p-5 space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="text-base font-bold text-slate-900">
+          <h2 className="text-base font-bold text-ink">
             {t("compare.externalTitle")}
           </h2>
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="text-sm text-ink-400 mt-1">
             {t("compare.externalHint")}
           </p>
         </div>
@@ -172,7 +172,7 @@ export default function CompareExternalForm({ cat, onAdded }) {
             type="button"
             onClick={() => setOpen(true)}
             disabled={full}
-            className="inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-semibold hover:bg-slate-50 disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-semibold hover:bg-mist/70 disabled:opacity-50"
           >
             <Plus size={16} />
             {t("compare.add")}
@@ -181,7 +181,7 @@ export default function CompareExternalForm({ cat, onAdded }) {
       </div>
 
       {full && (
-        <p className="text-sm text-amber-700 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2">
+        <p className="text-sm text-sun-700 bg-sun-50 border border-sun/15 rounded-xl px-3 py-2">
           {t("compare.listFull", { count: COMPARE_MAX, max: COMPARE_MAX })}
         </p>
       )}
@@ -190,13 +190,13 @@ export default function CompareExternalForm({ cat, onAdded }) {
         <form onSubmit={submit} className="space-y-4 border-t pt-4">
           <div className="grid md:grid-cols-[1fr_auto] gap-3 items-end">
             <label className="space-y-1.5 block">
-              <span className="text-sm font-medium text-slate-700">
+              <span className="text-sm font-medium text-ink-600">
                 {t("compare.urlLabel")}
               </span>
               <div className="relative">
                 <Link2
                   size={16}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-300"
                 />
                 <input
                   type="url"
@@ -212,7 +212,7 @@ export default function CompareExternalForm({ cat, onAdded }) {
               type="button"
               onClick={importFromUrl}
               disabled={importing || !form.url.trim()}
-              className="inline-flex items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-semibold hover:bg-slate-50 disabled:opacity-50"
+              className="inline-flex items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-semibold hover:bg-mist/70 disabled:opacity-50"
             >
               {importing ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
               {t("compare.import")}
@@ -221,7 +221,7 @@ export default function CompareExternalForm({ cat, onAdded }) {
 
           <div className="grid md:grid-cols-2 gap-3">
             <label className="space-y-1.5 block">
-              <span className="text-sm font-medium text-slate-700">{t("compare.platform")}</span>
+              <span className="text-sm font-medium text-ink-600">{t("compare.platform")}</span>
               <select
                 value={form.platform}
                 onChange={(e) => updateField("platform", e.target.value)}
@@ -236,7 +236,7 @@ export default function CompareExternalForm({ cat, onAdded }) {
             </label>
 
             <label className="space-y-1.5 block">
-              <span className="text-sm font-medium text-slate-700">{t("compare.city")}</span>
+              <span className="text-sm font-medium text-ink-600">{t("compare.city")}</span>
               <input
                 type="text"
                 value={form.location}
@@ -247,7 +247,7 @@ export default function CompareExternalForm({ cat, onAdded }) {
             </label>
 
             <label className="space-y-1.5 block md:col-span-2">
-              <span className="text-sm font-medium text-slate-700">
+              <span className="text-sm font-medium text-ink-600">
                 {t("compare.nameLabel")} <span className="text-red-500">*</span>
               </span>
               <input
@@ -261,7 +261,7 @@ export default function CompareExternalForm({ cat, onAdded }) {
             </label>
 
             <label className="space-y-1.5 block">
-              <span className="text-sm font-medium text-slate-700">
+              <span className="text-sm font-medium text-ink-600">
                 {t("compare.priceLabel")} <span className="text-red-500">*</span>
               </span>
               <input
@@ -279,7 +279,7 @@ export default function CompareExternalForm({ cat, onAdded }) {
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {specFields.map((field) => (
                 <label key={field.name} className="space-y-1.5 block">
-                  <span className="text-sm font-medium text-slate-700">
+                  <span className="text-sm font-medium text-ink-600">
                     {field.label}
                   </span>
                   <input
@@ -294,7 +294,7 @@ export default function CompareExternalForm({ cat, onAdded }) {
           )}
 
           {notice && (
-            <p className="text-sm text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-xl px-3 py-2">
+            <p className="text-sm text-lagoon-700 bg-lagoon/5 border border-lagoon/15 rounded-xl px-3 py-2">
               {notice}
             </p>
           )}
@@ -315,7 +315,7 @@ export default function CompareExternalForm({ cat, onAdded }) {
                 resetForm();
                 setOpen(false);
               }}
-              className="inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-semibold hover:bg-slate-50"
+              className="inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-semibold hover:bg-mist/70"
             >
               {t("common.cancel")}
             </button>

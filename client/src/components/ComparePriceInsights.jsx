@@ -2,9 +2,9 @@ import React from "react";
 import { TrendingDown, TrendingUp, Scale } from "lucide-react";
 
 const TONE_STYLES = {
-  positive: "border-emerald-200 bg-emerald-50 text-emerald-900",
-  warning: "border-amber-200 bg-amber-50 text-amber-900",
-  neutral: "border-slate-200 bg-slate-50 text-slate-800",
+  positive: "border-lagoon/20 bg-lagoon/5 text-lagoon-700",
+  warning: "border-sun/20 bg-sun-50 text-sun-800",
+  neutral: "border-ink/10 bg-mist/70 text-ink",
 };
 
 export default function ComparePriceInsights({ insights, t, lang = "ru" }) {

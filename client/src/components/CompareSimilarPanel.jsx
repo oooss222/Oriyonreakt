@@ -73,21 +73,21 @@ export default function CompareSimilarPanel({ cat, items = [], onAdded }) {
   };
 
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-4 md:p-5 shadow-sm space-y-3">
+    <section className="rounded-2xl border border-ink/10 bg-white p-4 md:p-5 space-y-3">
       <div className="flex flex-wrap items-end justify-between gap-2">
         <div>
-          <h3 className="text-lg font-bold text-slate-900 inline-flex items-center gap-2">
+          <h3 className="font-display text-lg font-bold text-ink tracking-tight inline-flex items-center gap-2">
             <Scale size={18} className="text-sun" />
             {t("compare.similarTitle")}
           </h3>
-          <p className="text-sm text-slate-500 mt-0.5">{t("compare.similarHint")}</p>
+          <p className="text-sm text-ink-400 mt-0.5">{t("compare.similarHint")}</p>
         </div>
       </div>
 
-      {loading && <div className="text-sm text-slate-400">{t("compare.loading")}</div>}
+      {loading && <div className="text-sm text-ink-300">{t("compare.loading")}</div>}
 
       {!loading && suggestions.length === 0 && (
-        <p className="text-sm text-slate-400">{t("compare.similarEmpty")}</p>
+        <p className="text-sm text-ink-300">{t("compare.similarEmpty")}</p>
       )}
 
       {!loading && suggestions.length > 0 && (
@@ -98,13 +98,13 @@ export default function CompareSimilarPanel({ cat, items = [], onAdded }) {
             return (
               <article
                 key={id}
-                className="rounded-xl border border-slate-200 overflow-hidden bg-slate-50/50"
+                className="rounded-xl border border-ink/10 overflow-hidden bg-mist/50"
               >
                 <Link to={`/ad/${id}`} className="block">
                   <img
                     src={getListingThumb(ad)}
                     alt={ad.title || ""}
-                    className="h-28 w-full object-cover bg-slate-100"
+                    className="h-28 w-full object-cover bg-mist"
                     loading="lazy"
                   />
                 </Link>
@@ -114,7 +114,7 @@ export default function CompareSimilarPanel({ cat, items = [], onAdded }) {
                   </div>
                   <Link
                     to={`/ad/${id}`}
-                    className="block text-xs font-medium text-slate-800 line-clamp-2 hover:text-sun"
+                    className="block text-xs font-medium text-ink line-clamp-2 hover:text-sun"
                   >
                     {ad.title}
                   </Link>
@@ -124,7 +124,7 @@ export default function CompareSimilarPanel({ cat, items = [], onAdded }) {
                     onClick={() => addItem(ad)}
                     className={`w-full inline-flex items-center justify-center gap-1 rounded-lg px-2 py-1.5 text-xs font-semibold transition ${
                       active
-                        ? "bg-slate-200 text-slate-600"
+                        ? "bg-mist-200 text-ink-500"
                         : "bg-sun text-white hover:bg-sun-600 disabled:opacity-50"
                     }`}
                   >
