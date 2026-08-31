@@ -1,5 +1,6 @@
 import React from "react";
 import { getDependentOptions } from "../../data/specOptions";
+import { useI18n } from "../../i18n";
 
 const COLOR_SWATCHES = {
   Белый: "#ffffff",
@@ -65,17 +66,31 @@ function ColorSwatches({ value, options, onChange, disabled = false }) {
           </button>
         );
       })}
-      <span className="text-sm text-slate-500">
-        {value || "Выберите цвет"}
-      </span>
+      <span className="text-sm text-ink-400">{value || "Выберите цвет"}</span>
     </div>
   );
 }
 
-export default function ListingFormSpecFields({ specs, onUpdate, onRemove }) {
+export default function ListingFormSpecFields({
+  specs,
+  onUpdate,
+  onRemove,
+  invalid = false,
+}) {
+  const { t } = useI18n();
+  const [showMore, setShowMore] = React.useState(false);
+
+  const locked = specs.filter((row) => row.locked);
+  const unlocked = specs.filter((row) => !row.locked);
+  const primaryLocked = locked.slice(0, 4);
+  const extraLocked = locked.slice(4);
+  const visibleLocked = showMore ? locked : primaryLocked;
+  const visible = [...visibleLocked, ...(showMore ? unlocked : [])];
+
   return (
-    <div className="listing-form-spec-list">
-      {specs.map((spec, index) => {
+    <div className="listing-form-spec-list" data-field="specs">
+      {visible.map((spec) => {
+        const index = specs.findIndex((row) => row === spec);
         const selectOptions = getDependentOptions(spec, specs);
         const needsParent = Boolean(spec.dependsOn);
         const parentSelected = needsParent
@@ -87,16 +102,27 @@ export default function ListingFormSpecFields({ specs, onUpdate, onRemove }) {
           spec.name !== "Цвет" &&
           selectOptions.length > 0 &&
           selectOptions.length <= 5;
+        const emptyRequired = spec.locked && !String(spec.value || "").trim();
 
         return (
-          <div key={`${spec.name}-${index}`} className="listing-form-spec-row">
+          <div
+            key={`${spec.name}-${index}`}
+            className={`listing-form-spec-row ${
+              invalid && emptyRequired ? "ring-1 ring-red-300 bg-red-50/40" : ""
+            }`}
+          >
             <div className="listing-form-spec-label">
-              {spec.locked ? spec.name : (
+              {spec.locked ? (
+                <span className={emptyRequired && invalid ? "text-red-700" : ""}>
+                  {spec.name}
+                  <span className="text-red-500"> *</span>
+                </span>
+              ) : (
                 <input
                   value={spec.name}
                   onChange={(e) => onUpdate(index, "name", e.target.value)}
                   placeholder="Название"
-                  className="w-full bg-transparent outline-none text-sm font-medium text-slate-700"
+                  className="w-full bg-transparent outline-none text-sm font-medium text-ink-600"
                 />
               )}
             </div>
@@ -160,8 +186,24 @@ export default function ListingFormSpecFields({ specs, onUpdate, onRemove }) {
         );
       })}
 
+      {extraLocked.length > 0 || unlocked.length > 0 ? (
+        <div className="px-4 py-3 border-t border-ink/8">
+          <button
+            type="button"
+            onClick={() => setShowMore((v) => !v)}
+            className="text-sm font-semibold text-sun hover:text-sun-700"
+          >
+            {showMore
+              ? t("listing.specsShowLess")
+              : t("listing.specsShowMore", {
+                  count: extraLocked.length + unlocked.length,
+                })}
+          </button>
+        </div>
+      ) : null}
+
       {specs.length === 0 ? (
-        <div className="px-4 py-6 text-sm text-slate-500">
+        <div className="px-4 py-6 text-sm text-ink-400">
           Характеристики не добавлены.
         </div>
       ) : null}

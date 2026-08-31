@@ -28,17 +28,36 @@ import ListingFormSpecFields, {
 } from "./listing/ListingFormSpecFields";
 import ListingFormPhotosSection from "./listing/ListingFormPhotosSection";
 import ListingFormPublicationSidebar from "./listing/ListingFormPublicationSidebar";
+import ListingFormMobilePublishBar from "./listing/ListingFormMobilePublishBar";
+import ListingSubmitResult from "./listing/ListingSubmitResult";
+import ListingCategoryPicker from "./listing/ListingCategoryPicker";
 import {
   validateListingForm,
   buildPublishHintParts,
+  areRealEstateCoreSpecsComplete,
 } from "../lib/listingFormValidation";
 import {
   clearListingDraft,
+  clearRemoteListingDraft,
   formatDraftSavedAt,
   loadListingDraft,
+  loadRemoteListingDraft,
+  pickNewerDraft,
   saveListingDraft,
+  saveRemoteListingDraft,
 } from "../lib/listingFormDraft";
 import { buildTransportSuggestedTitle } from "../lib/listingFormTitles";
+import {
+  mergeUserIntoStorage,
+  readStoredUser,
+  userHasSellerPhone,
+} from "../lib/sellerContact";
+import { compressImageFiles, moveArrayItem } from "../lib/imageCompress";
+import { getListingFormErrorMessage } from "../lib/listingFormErrors";
+import { getListingLimit } from "../lib/businessAccount";
+import ListingGuidedForm, {
+  isGuidedWizardCategory,
+} from "./listing/ListingGuidedForm";
 import { useI18n } from "../i18n";
 import {
   Info,
@@ -49,6 +68,16 @@ import {
   Pencil,
   FileText,
 } from "lucide-react";
+
+const LISTING_FORM_ID = "listing-form";
+
+function scrollToField(field) {
+  if (!field || typeof document === "undefined") return;
+  const el =
+    document.querySelector(`[data-field="${field}"]`) ||
+    document.getElementById(LISTING_FORM_ID);
+  el?.scrollIntoView({ behavior: "smooth", block: "center" });
+}
 
 export default function ListingForm({
   mode = "create",
@@ -87,6 +116,16 @@ export default function ListingForm({
   const [isDragOver, setIsDragOver] = React.useState(false);
   const [geo, setGeo] = React.useState(null);
   const [draftPrompt, setDraftPrompt] = React.useState(null);
+  const [draftSavedAt, setDraftSavedAt] = React.useState(null);
+  const [hasPhone, setHasPhone] = React.useState(() =>
+    userHasSellerPhone(readStoredUser())
+  );
+  const [submitResult, setSubmitResult] = React.useState(null);
+  const [compressing, setCompressing] = React.useState(false);
+  const [invalidField, setInvalidField] = React.useState("");
+  const [categoryPicked, setCategoryPicked] = React.useState(
+    () => Boolean(initialCat && CATS[initialCat]) || isEdit
+  );
   const draftSaveTimerRef = React.useRef(null);
 
   const applyCategorySpecs = React.useCallback(
@@ -150,18 +189,45 @@ export default function ListingForm({
   }, [isEdit, initialData, applyCategorySpecs]);
 
   React.useEffect(() => {
-    if (isEdit) return;
+    if (isEdit) return undefined;
 
-    const draft = loadListingDraft();
-    if (draft) {
-      setDraftPrompt(draft);
-    }
-  }, [isEdit]);
+    let alive = true;
+
+    (async () => {
+      const local = loadListingDraft();
+      const remote = token ? await loadRemoteListingDraft(token) : null;
+      const draft = pickNewerDraft(local, remote);
+      if (alive && draft) {
+        setDraftPrompt(draft);
+        if (draft.savedAt) setDraftSavedAt(draft.savedAt);
+      }
+    })();
+
+    return () => {
+      alive = false;
+    };
+  }, [isEdit, token]);
 
   React.useEffect(() => {
-    if (isEdit || draftPrompt) return;
-    applyCategorySpecs(form.cat, form.subcategory);
-  }, [isEdit, draftPrompt, applyCategorySpecs]);
+    if (!token) return undefined;
+
+    let alive = true;
+
+    api
+      .me(token)
+      .then((user) => {
+        if (!alive || !user) return;
+        mergeUserIntoStorage(user);
+        setHasPhone(userHasSellerPhone(user));
+      })
+      .catch(() => {
+        if (alive) setHasPhone(userHasSellerPhone(readStoredUser()));
+      });
+
+    return () => {
+      alive = false;
+    };
+  }, [token]);
 
   React.useEffect(() => {
     if (isEdit || draftPrompt) return;
@@ -171,7 +237,7 @@ export default function ListingForm({
     }
 
     draftSaveTimerRef.current = setTimeout(() => {
-      saveListingDraft({
+      const payload = {
         form,
         specs: filterSpecsToTemplate(form.cat, form.subcategory, specs),
         geo,
@@ -179,15 +245,24 @@ export default function ListingForm({
           url: img.url,
           alt: img.alt || "",
         })),
-      });
-    }, 12000);
+      };
+
+      const savedAt = saveListingDraft(payload);
+      if (savedAt) setDraftSavedAt(savedAt);
+
+      if (token) {
+        saveRemoteListingDraft(token, payload).then((remoteAt) => {
+          if (remoteAt) setDraftSavedAt(remoteAt);
+        });
+      }
+    }, 1500);
 
     return () => {
       if (draftSaveTimerRef.current) {
         clearTimeout(draftSaveTimerRef.current);
       }
     };
-  }, [form, specs, geo, existingImages, isEdit, draftPrompt]);
+  }, [form, specs, geo, existingImages, isEdit, draftPrompt, token]);
 
   React.useEffect(() => {
     if (!files.length) {
@@ -260,23 +335,79 @@ export default function ListingForm({
     applyCategorySpecs(form.cat, subcategory, currentValues);
   };
 
-  const onFiles = (list) => {
+  const onFiles = async (list) => {
     const photoLimit = getListingPhotoLimit(form.cat);
     const arr = Array.from(list || []).filter((file) =>
-      file.type.startsWith("image/")
+      file.type.startsWith("image/") || /\.heic$/i.test(file.name || "")
     );
 
     const total = existingImages.length + files.length + arr.length;
 
     if (total > photoLimit) {
       setErr(t("form.maxPhotos", { count: photoLimit }));
+      setInvalidField("photos");
       return;
     }
 
     setErr("");
-    setFiles((current) =>
-      [...current, ...arr].slice(0, photoLimit - existingImages.length)
-    );
+    setInvalidField("");
+    setCompressing(true);
+
+    try {
+      const compressed = await compressImageFiles(arr);
+
+      // Create mode + auth: upload early so drafts sync photos across devices
+      if (!isEdit && token && compressed.length) {
+        try {
+          const formData = new FormData();
+          compressed.forEach((file) => formData.append("images", file));
+          const uploaded = await api.uploadImages(token, formData);
+          const urls = (uploaded?.urls || []).map((url) => ({
+            url,
+            alt: form.title.trim(),
+          }));
+
+          if (!urls.length) {
+            throw new Error(t("listing.errorPhotoRejected"));
+          }
+
+          setExistingImages((current) =>
+            [...current, ...urls].slice(0, photoLimit)
+          );
+          return;
+        } catch (uploadError) {
+          // Keep photos locally if upload fails; user can retry on submit
+          setFiles((current) =>
+            [...current, ...compressed].slice(
+              0,
+              photoLimit - existingImages.length
+            )
+          );
+          setErr(
+            getListingFormErrorMessage(
+              uploadError,
+              t,
+              uploadError?.message || t("listing.createError")
+            )
+          );
+          return;
+        }
+      }
+
+      setFiles((current) =>
+        [...current, ...compressed].slice(0, photoLimit - existingImages.length)
+      );
+    } catch (error) {
+      setErr(
+        getListingFormErrorMessage(
+          error,
+          t,
+          error?.message || t("listing.createError")
+        )
+      );
+    } finally {
+      setCompressing(false);
+    }
   };
 
   const onInputFiles = (event) => {
@@ -296,6 +427,32 @@ export default function ListingForm({
   const clearNewFiles = () => {
     setFiles([]);
     setPreviews([]);
+  };
+
+  const moveExistingImage = (from, to) => {
+    setExistingImages((arr) => moveArrayItem(arr, from, to));
+  };
+
+  const moveNewFile = (from, to) => {
+    setFiles((arr) => moveArrayItem(arr, from, to));
+    setPreviews((arr) => moveArrayItem(arr, from, to));
+  };
+
+  const makeCoverExisting = (index) => {
+    if (index <= 0) return;
+    setExistingImages((arr) => moveArrayItem(arr, index, 0));
+  };
+
+  const makeCoverNew = (index) => {
+    if (existingImages.length > 0) {
+      // Move new file into existing slot conceptually: put as first new, but cover is first existing.
+      // Prefer promoting by moving existing empty — for new-only lists, move to 0.
+      setFiles((arr) => moveArrayItem(arr, index, 0));
+      setPreviews((arr) => moveArrayItem(arr, index, 0));
+      return;
+    }
+    setFiles((arr) => moveArrayItem(arr, index, 0));
+    setPreviews((arr) => moveArrayItem(arr, index, 0));
   };
 
   const removeSpecRow = (index) => {
@@ -366,10 +523,12 @@ export default function ListingForm({
     );
     setGeo(draftPrompt.geo || null);
     setDraftPrompt(null);
+    setCategoryPicked(true);
   };
 
   const discardDraft = () => {
     clearListingDraft();
+    clearRemoteListingDraft(token);
     setDraftPrompt(null);
   };
 
@@ -423,6 +582,7 @@ export default function ListingForm({
 
     if (!isEdit) {
       clearListingDraft();
+      clearRemoteListingDraft(token);
     }
   };
 
@@ -435,7 +595,20 @@ export default function ListingForm({
       return;
     }
 
-    const validationError = validateListingForm({
+    if (!isEdit && !hasPhone) {
+      setErr(t("listing.phoneRequired"));
+      setInvalidField("phone");
+      return;
+    }
+
+    const storedUser = readStoredUser();
+    const limit = getListingLimit(storedUser);
+    // Soft client check — server enforces too
+    if (!isEdit && limit != null) {
+      // skip pre-count without API; server returns clear error
+    }
+
+    const validation = validateListingForm({
       form,
       specs,
       existingImages,
@@ -444,10 +617,14 @@ export default function ListingForm({
       t,
     });
 
-    if (validationError) {
-      setErr(validationError);
+    if (validation.message) {
+      setErr(validation.message);
+      setInvalidField(validation.field || "");
+      scrollToField(validation.field);
       return;
     }
+
+    setInvalidField("");
 
     const compactSpecs = compactSpecsForSubmit(specs);
 
@@ -497,17 +674,33 @@ export default function ListingForm({
 
       if (!isEdit) {
         clearListingDraft();
+        clearRemoteListingDraft(token);
+        setDraftSavedAt(null);
+        setSubmitResult(result);
+        return;
       }
 
       onSuccess?.(result);
     } catch (error) {
       setErr(
-        error.message ||
-          (isEdit ? t("listing.saveError") : t("listing.createError"))
+        getListingFormErrorMessage(
+          error,
+          t,
+          isEdit ? t("listing.saveError") : t("listing.createError")
+        )
       );
     } finally {
       setSaving(false);
     }
+  };
+
+  const requestFormSubmit = () => {
+    const el = document.getElementById(LISTING_FORM_ID);
+    if (typeof el?.requestSubmit === "function") {
+      el.requestSubmit();
+      return;
+    }
+    el?.dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }));
   };
 
   const cat = CATS[form.cat];
@@ -516,15 +709,35 @@ export default function ListingForm({
   const photoLimit = getListingPhotoLimit(form.cat);
   const minPhotos = getListingMinPhotos(form.cat);
   const useRealEstateWizard = isRealEstateWizardCategory(form.cat);
-  const specsComplete = areListingSpecsComplete(specs);
+  const useGuidedWizard = isGuidedWizardCategory(form.cat);
+  const specsComplete = useRealEstateWizard
+    ? areRealEstateCoreSpecsComplete(form, specs)
+    : areListingSpecsComplete(specs);
+
+  const previewItem = React.useMemo(
+    () => ({
+      title: form.title,
+      price: form.price,
+      location: form.location,
+      cat: form.cat,
+      images: [
+        ...existingImages,
+        ...previews.map((url) => ({ url })),
+      ],
+      createdAt: new Date().toISOString(),
+    }),
+    [form.title, form.price, form.location, form.cat, existingImages, previews]
+  );
   const hasTitle = Boolean(form.title.trim());
   const hasPrice = Boolean(priceDigits.length);
   const hasPhotos = photosCount >= minPhotos;
+  const phoneOk = isEdit || hasPhone;
   const canPublish =
     hasTitle &&
     hasPrice &&
     hasPhotos &&
-    (useRealEstateWizard || specsComplete) &&
+    specsComplete &&
+    phoneOk &&
     !saving;
 
   const publishHintParts = buildPublishHintParts({
@@ -535,6 +748,7 @@ export default function ListingForm({
     isRealEstate: useRealEstateWizard,
     t,
   });
+  if (!phoneOk) publishHintParts.unshift(t("listing.phoneHintShort"));
   const publishHint = publishHintParts.length
     ? `${t("form.fillPrefix")} ${publishHintParts.join(", ")}`
     : "";
@@ -553,8 +767,21 @@ export default function ListingForm({
     );
   }
 
+  if (submitResult) {
+    return (
+      <ListingSubmitResult
+        listing={submitResult}
+        onEditAgain={() => {
+          const id = submitResult.id || submitResult._id;
+          if (id) nav(`/edit/${id}`);
+          else setSubmitResult(null);
+        }}
+      />
+    );
+  }
+
   return (
-    <div className="listing-form-page bg-slate-50/70 min-h-[calc(100vh-4rem)]">
+    <div className="listing-form-page bg-mist/40 min-h-[calc(100vh-4rem)]">
       <div className="listing-form-header">
         <div className="listing-form-badge">
           {isEdit ? (
@@ -570,31 +797,40 @@ export default function ListingForm({
           )}
         </div>
 
-        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
+        <h1 className="font-display text-2xl md:text-3xl font-bold tracking-tight text-ink">
           {isEdit ? t("listing.editForm") : t("listing.createForm")}
         </h1>
 
-        <p className="text-slate-600 text-sm md:text-base">
+        <p className="text-ink-400 text-sm md:text-base">
           {isEdit ? t("listing.editHint") : t("listing.createHint")}
         </p>
 
-        <Link
-          to={backTo}
-          className="inline-flex text-sm text-slate-500 hover:text-slate-800 transition"
-        >
-          {t("form.back")}
-        </Link>
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+          <Link
+            to={backTo}
+            className="inline-flex text-sm text-ink-400 hover:text-ink transition"
+          >
+            {t("form.back")}
+          </Link>
+          {!isEdit && draftSavedAt ? (
+            <span className="text-xs text-lagoon-700 font-medium">
+              {t("listing.draftAutosaved", {
+                time: formatDraftSavedAt(draftSavedAt),
+              })}
+            </span>
+          ) : null}
+        </div>
       </div>
 
       {draftPrompt ? (
-        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="rounded-2xl border border-sun/20 bg-sun-50 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex items-start gap-3">
-            <FileText className="w-5 h-5 text-amber-700 mt-0.5 shrink-0" />
+            <FileText className="w-5 h-5 text-sun-700 mt-0.5 shrink-0" />
             <div>
-              <div className="font-semibold text-amber-900">
+              <div className="font-semibold text-sun-800">
                 {t("listing.draftContinue")}
               </div>
-              <div className="text-sm text-amber-800 mt-1">
+              <div className="text-sm text-sun-700 mt-1">
                 {t("listing.draftContinueDesc", {
                   time:
                     formatDraftSavedAt(draftPrompt.savedAt) ||
@@ -614,7 +850,7 @@ export default function ListingForm({
             <button
               type="button"
               onClick={discardDraft}
-              className="rounded-xl border bg-white px-4 py-2 text-sm font-medium hover:bg-slate-50"
+              className="rounded-xl border border-ink/10 bg-white px-4 py-2 text-sm font-medium hover:bg-mist"
             >
               {t("listing.startOver")}
             </button>
@@ -623,12 +859,30 @@ export default function ListingForm({
       ) : null}
 
       {err && (
-        <div className="rounded-2xl border border-red-200 bg-red-50 text-red-700 p-4">
-          {err}
+        <div className="rounded-2xl border border-red-200 bg-red-50 text-red-700 p-4 space-y-2">
+          <p>{err}</p>
+          {!hasPhone && !isEdit ? (
+            <Link
+              to="/profile?tab=profile"
+              className="inline-flex text-sm font-semibold text-sun-700 hover:underline"
+            >
+              {t("listing.goAddPhone")}
+            </Link>
+          ) : null}
         </div>
       )}
 
-      {useRealEstateWizard ? (
+      {!isEdit && !categoryPicked ? (
+        <ListingCategoryPicker
+          selected={form.cat}
+          onSelect={(catKey) => {
+            handleCatChange(catKey);
+            setCategoryPicked(true);
+          }}
+        />
+      ) : null}
+
+      {(!isEdit && !categoryPicked) ? null : useRealEstateWizard ? (
         <RealEstateListingWizard
           form={form}
           setForm={setForm}
@@ -644,16 +898,72 @@ export default function ListingForm({
           removeFile={removeFile}
           removeExistingImage={removeExistingImage}
           clearNewFiles={clearNewFiles}
+          onMoveExisting={moveExistingImage}
+          onMoveNew={moveNewFile}
+          onMakeCoverExisting={makeCoverExisting}
+          onMakeCoverNew={makeCoverNew}
+          compressing={compressing}
           photoLimit={photoLimit}
           onSubmit={submit}
           saving={saving}
           isEdit={isEdit}
           onReset={resetForm}
+          formId={LISTING_FORM_ID}
+          requirePhone={!isEdit}
+          hasPhone={hasPhone}
+          previewItem={previewItem}
+        />
+      ) : useGuidedWizard ? (
+        <ListingGuidedForm
+          form={form}
+          setForm={setForm}
+          specs={specs}
+          onUpdateSpec={updateSpec}
+          onRemoveSpec={removeSpecRow}
+          onSubcategoryChange={handleSubcategoryChange}
+          files={files}
+          previews={previews}
+          existingImages={existingImages}
+          onFiles={onFiles}
+          onInputFiles={onInputFiles}
+          removeFile={removeFile}
+          removeExistingImage={removeExistingImage}
+          clearNewFiles={clearNewFiles}
+          onMoveExisting={moveExistingImage}
+          onMoveNew={moveNewFile}
+          onMakeCoverExisting={makeCoverExisting}
+          onMakeCoverNew={makeCoverNew}
+          compressing={compressing}
+          isDragOver={isDragOver}
+          onDragOver={(e) => {
+            e.preventDefault();
+            setIsDragOver(true);
+          }}
+          onDragLeave={() => setIsDragOver(false)}
+          onDrop={(e) => {
+            e.preventDefault();
+            setIsDragOver(false);
+            onFiles(e.dataTransfer.files);
+          }}
+          photoLimit={photoLimit}
+          onSubmit={submit}
+          saving={saving}
+          isEdit={isEdit}
+          onReset={resetForm}
+          formId={LISTING_FORM_ID}
+          requirePhone={!isEdit}
+          hasPhone={hasPhone}
+          invalidField={invalidField}
+          previewItem={previewItem}
         />
       ) : (
-      <form onSubmit={submit} className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_20rem] xl:grid-cols-[minmax(0,1fr)_22rem] gap-5">
+      <form
+        id={LISTING_FORM_ID}
+        onSubmit={submit}
+        className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_20rem] xl:grid-cols-[minmax(0,1fr)_22rem] gap-5"
+      >
         <section className="space-y-5 min-w-0">
-          <div className="listing-form-card">
+          <div className="listing-form-card" data-field="title">
             <div className="listing-form-card__head">
               <div className="listing-form-card__title">
                 <Info className="w-5 h-5 text-sun" />
@@ -793,6 +1103,7 @@ export default function ListingForm({
             existingImages={existingImages}
             previews={previews}
             isDragOver={isDragOver}
+            compressing={compressing}
             onDragOver={(e) => {
               e.preventDefault();
               setIsDragOver(true);
@@ -807,9 +1118,13 @@ export default function ListingForm({
             onRemoveExisting={removeExistingImage}
             onRemoveNew={removeFile}
             onClearNew={clearNewFiles}
+            onMoveExisting={moveExistingImage}
+            onMoveNew={moveNewFile}
+            onMakeCoverExisting={makeCoverExisting}
+            onMakeCoverNew={makeCoverNew}
           />
 
-          <div className="listing-form-card overflow-hidden">
+          <div className="listing-form-card overflow-hidden" data-field="specs">
             <div className="listing-form-card__head">
               <div className="listing-form-card__title">
                 <ListChecks className="w-5 h-5 text-sun" />
@@ -821,6 +1136,7 @@ export default function ListingForm({
               specs={specs}
               onUpdate={updateSpec}
               onRemove={removeSpecRow}
+              invalid={invalidField === "specs"}
             />
           </div>
         </section>
@@ -855,6 +1171,10 @@ export default function ListingForm({
           saving={saving}
           isEdit={isEdit}
           onReset={resetForm}
+          requirePhone={!isEdit}
+          hasPhone={hasPhone}
+          previewItem={previewItem}
+          moderationHint={!isEdit ? t("listing.moderationLikelyHint") : null}
           footerNote={
             isEdit
               ? t("listing.editModerationHint")
@@ -863,6 +1183,15 @@ export default function ListingForm({
         />
       </form>
       )}
+
+      <ListingFormMobilePublishBar
+        canPublish={canPublish}
+        saving={saving}
+        isEdit={isEdit}
+        publishHint={publishHint}
+        onPublish={requestFormSubmit}
+        visible={isEdit || categoryPicked}
+      />
     </div>
   );
 }

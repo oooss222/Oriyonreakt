@@ -488,7 +488,7 @@
   }
 
   .listing-form-page {
-    @apply w-full max-w-7xl mx-auto px-4 py-6 space-y-5 text-ink;
+    @apply w-full max-w-7xl mx-auto px-4 py-6 space-y-5 text-ink pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] lg:pb-6;
   }
 
   .listing-form-header {
@@ -624,7 +624,7 @@
   }
 
   .listing-form-sidebar {
-    @apply rounded-2xl border border-ink/10 bg-white p-5 space-y-4 sticky top-4 shadow-sm;
+    @apply rounded-2xl border border-ink/10 bg-white p-5 space-y-4 sticky top-4 shadow-soft;
   }
 
   .listing-form-check {
@@ -648,7 +648,28 @@
   }
 
   .listing-form-publish-btn--disabled {
-    @apply bg-slate-200 text-ink-400 cursor-not-allowed;
+    @apply bg-mist-200 text-ink-400 cursor-not-allowed;
+  }
+
+  .listing-form-mobile-bar {
+    @apply fixed inset-x-0 z-40 border-t border-ink/10 bg-white/95 backdrop-blur-md shadow-lift;
+    bottom: calc(4rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .listing-form-mobile-bar__inner {
+    @apply mx-auto flex max-w-7xl items-center gap-3 px-4 py-2.5;
+  }
+
+  .listing-form-mobile-bar__hint {
+    @apply min-w-0 flex-1 text-[11px] leading-snug text-ink-400 line-clamp-2;
+  }
+
+  .listing-form-mobile-bar__hint--ok {
+    @apply text-lagoon-700 font-medium;
+  }
+
+  .listing-form-mobile-bar .listing-form-publish-btn {
+    @apply w-auto shrink-0 min-w-[9.5rem] py-2.5;
   }
 
   .auth-page {

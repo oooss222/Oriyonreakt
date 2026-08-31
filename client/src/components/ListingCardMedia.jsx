@@ -15,6 +15,8 @@ export default function ListingCardMedia({
   views = 0,
   className = "listing-card__media",
   photoCount = 0,
+  showFavorite = true,
+  showCompare = true,
 }) {
   const { t } = useI18n();
   const listingId = item?.id || item?._id;
@@ -114,6 +116,8 @@ export default function ListingCardMedia({
         favoriteId={favoriteId}
         isFavorite={isFavorite}
         onFavChange={onFavChange}
+        showFavorite={showFavorite}
+        showCompare={showCompare}
         compareCat={item?.cat || ""}
         compactBottom={hasMultiple}
       />

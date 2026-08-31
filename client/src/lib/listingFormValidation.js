@@ -91,28 +91,30 @@ export function validateListingForm({
 }) {
   const tr = (key, vars) => (t ? t(key, vars) : key);
 
+  const fail = (message, field) => ({ message, field });
+
   if (!form.title?.trim() || !form.cat?.trim() || !form.subcategory?.trim()) {
-    return tr("form.validationTitle");
+    return fail(tr("form.validationTitle"), form.title?.trim() ? "category" : "title");
   }
 
   if (form.title.trim().length > TITLE_MAX) {
-    return tr("form.validationTitleMax", { max: TITLE_MAX });
+    return fail(tr("form.validationTitleMax", { max: TITLE_MAX }), "title");
   }
 
   if (getPriceDigits(form.price).length > PRICE_MAX_DIGITS) {
-    return tr("form.validationPriceMax", { max: PRICE_MAX_DIGITS });
+    return fail(tr("form.validationPriceMax", { max: PRICE_MAX_DIGITS }), "price");
   }
 
   if ((form.description || "").length > DESC_MAX) {
-    return tr("form.validationDescMax", { max: DESC_MAX });
+    return fail(tr("form.validationDescMax", { max: DESC_MAX }), "description");
   }
 
   if (!form.location?.trim()) {
-    return tr("form.validationLocation");
+    return fail(tr("form.validationLocation"), "location");
   }
 
   if (!getPriceDigits(form.price)) {
-    return tr("form.validationPrice");
+    return fail(tr("form.validationPrice"), "price");
   }
 
   const photoLimit = getListingPhotoLimit(form.cat);
@@ -120,24 +122,27 @@ export function validateListingForm({
   const totalPhotos = existingImages.length + files.length;
 
   if (totalPhotos > photoLimit) {
-    return tr("form.validationPhotoMax", { max: photoLimit });
+    return fail(tr("form.validationPhotoMax", { max: photoLimit }), "photos");
   }
 
   if (totalPhotos < minPhotos) {
-    return minPhotos === 1
-      ? tr("form.validationPhotoMin1")
-      : tr("form.validationPhotoMin", { min: minPhotos });
+    return fail(
+      minPhotos === 1
+        ? tr("form.validationPhotoMin1")
+        : tr("form.validationPhotoMin", { min: minPhotos }),
+      "photos"
+    );
   }
 
   if (isRealEstate || form.cat === REAL_ESTATE_CAT) {
     if (!areRealEstateCoreSpecsComplete(form, specs)) {
-      return tr("form.validationReCore");
+      return fail(tr("form.validationReCore"), "specs");
     }
   } else if (!areListingSpecsComplete(specs)) {
-    return tr("form.validationSpecs");
+    return fail(tr("form.validationSpecs"), "specs");
   }
 
-  return "";
+  return { message: "", field: "" };
 }
 
 export function buildPublishHintParts({

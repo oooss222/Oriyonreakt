@@ -434,6 +434,7 @@ router.post("/:id/republish", auth, async (req, res) => {
         if (e?.message === "LISTING_LIMIT_REACHED") {
           return res.status(403).json({
             error: "Listing limit reached",
+            code: "LISTING_LIMIT_REACHED",
             limit: e.limit,
             activeListings: e.activeListings,
             sellerType: e.sellerType,
@@ -557,6 +558,7 @@ router.post("/", auth, async (req, res) => {
       if (e?.message === "LISTING_LIMIT_REACHED") {
         return res.status(403).json({
           error: "Listing limit reached",
+          code: "LISTING_LIMIT_REACHED",
           limit: e.limit,
           activeListings: e.activeListings,
           sellerType: e.sellerType,

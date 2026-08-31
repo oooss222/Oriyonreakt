@@ -1,3 +1,5 @@
+import { api } from "./api";
+
 const DRAFT_STORAGE_KEY = "oriyon_listing_draft_v1";
 const DRAFT_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -18,6 +20,21 @@ function hasMeaningfulDraft(payload) {
   return specs.some((row) => String(row?.value || "").trim());
 }
 
+function normalizeDraft(payload) {
+  if (!payload || typeof payload !== "object") return null;
+  if (!hasMeaningfulDraft(payload)) return null;
+
+  return {
+    form: payload.form || {},
+    specs: Array.isArray(payload.specs) ? payload.specs : [],
+    geo: payload.geo || null,
+    existingImages: Array.isArray(payload.existingImages)
+      ? payload.existingImages
+      : [],
+    savedAt: Number(payload.savedAt) || Date.now(),
+  };
+}
+
 export function loadListingDraft() {
   if (!isBrowser()) return null;
 
@@ -33,26 +50,29 @@ export function loadListingDraft() {
       return null;
     }
 
-    return hasMeaningfulDraft(parsed) ? parsed : null;
+    return normalizeDraft(parsed);
   } catch {
     return null;
   }
 }
 
 export function saveListingDraft(payload) {
-  if (!isBrowser()) return;
-  if (!hasMeaningfulDraft(payload)) return;
+  if (!isBrowser()) return null;
+  if (!hasMeaningfulDraft(payload)) return null;
+
+  const savedAt = Date.now();
 
   try {
     localStorage.setItem(
       DRAFT_STORAGE_KEY,
       JSON.stringify({
         ...payload,
-        savedAt: Date.now(),
+        savedAt,
       })
     );
+    return savedAt;
   } catch {
-    // ignore quota / private mode errors
+    return null;
   }
 }
 
@@ -79,4 +99,53 @@ export function formatDraftSavedAt(savedAt) {
   } catch {
     return "";
   }
+}
+
+export async function loadRemoteListingDraft(token) {
+  if (!token) return null;
+
+  try {
+    const res = await api.getListingDraft(token);
+    return normalizeDraft(res?.draft);
+  } catch {
+    return null;
+  }
+}
+
+export async function saveRemoteListingDraft(token, payload) {
+  if (!token || !hasMeaningfulDraft(payload)) return null;
+
+  try {
+    const res = await api.saveListingDraftRemote(token, {
+      form: payload.form,
+      specs: payload.specs,
+      geo: payload.geo,
+      existingImages: payload.existingImages,
+    });
+    const draft = normalizeDraft(res?.draft);
+    return draft?.savedAt || Date.now();
+  } catch {
+    return null;
+  }
+}
+
+export async function clearRemoteListingDraft(token) {
+  if (!token) return;
+
+  try {
+    await api.clearListingDraftRemote(token);
+  } catch {
+    // ignore network failures on clear
+  }
+}
+
+/** Prefer newer of local vs server draft. */
+export function pickNewerDraft(localDraft, remoteDraft) {
+  const local = normalizeDraft(localDraft);
+  const remote = normalizeDraft(remoteDraft);
+
+  if (!local) return remote;
+  if (!remote) return local;
+
+  return (remote.savedAt || 0) >= (local.savedAt || 0) ? remote : local;
 }

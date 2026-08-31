@@ -25,7 +25,7 @@ export default function AddListing() {
   if (!allowed) {
     return (
       <div className="w-full max-w-7xl mx-auto px-4 py-6">
-        <div className="rounded-2xl border bg-white p-6 text-center text-slate-600">
+        <div className="rounded-2xl border border-ink/8 bg-white p-6 text-center text-ink-400">
           Перенаправление на вход...
         </div>
       </div>

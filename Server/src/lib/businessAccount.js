@@ -1,18 +1,22 @@
 const ACTIVE_LISTING_STATUSES = ["approved", "pending"];
 
-function getListingLimit() {
-  return null;
-}
-
-function hasListingLimit() {
-  return false;
-}
+/** Active listing cap for private sellers. Company accounts are unlimited. */
+const PRIVATE_LISTING_LIMIT = 30;
 
 function isCompanyAccount(user = {}) {
   return user.sellerType === "company";
 }
 
-function canSwitchToPrivate() {
+function getListingLimit(user = {}) {
+  if (isCompanyAccount(user)) return null;
+  return PRIVATE_LISTING_LIMIT;
+}
+
+function hasListingLimit(user = {}) {
+  return getListingLimit(user) != null;
+}
+
+function canSwitchToPrivate(user = {}) {
   return true;
 }
 
@@ -34,6 +38,7 @@ function normalizeAutoBumpIntervalHours(value) {
 
 module.exports = {
   ACTIVE_LISTING_STATUSES,
+  PRIVATE_LISTING_LIMIT,
   getListingLimit,
   hasListingLimit,
   isCompanyAccount,

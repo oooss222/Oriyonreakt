@@ -267,6 +267,45 @@ router.put("/me/compare/:cat", auth, async (req, res) => {
   }
 });
 
+router.get("/me/listing-draft", auth, async (req, res) => {
+  try {
+    const ListingDraft = require("../models/ListingDraft");
+    const draft = await ListingDraft.get(req.user.id);
+    return res.json({ draft });
+  } catch (e) {
+    console.error("LISTING_DRAFT_GET_ERROR:", e?.message);
+    return res.status(500).json({
+      error: "Failed to load listing draft",
+    });
+  }
+});
+
+router.put("/me/listing-draft", auth, async (req, res) => {
+  try {
+    const ListingDraft = require("../models/ListingDraft");
+    const draft = await ListingDraft.upsert(req.user.id, req.body || {});
+    return res.json({ draft });
+  } catch (e) {
+    console.error("LISTING_DRAFT_PUT_ERROR:", e?.message);
+    return res.status(500).json({
+      error: "Failed to save listing draft",
+    });
+  }
+});
+
+router.delete("/me/listing-draft", auth, async (req, res) => {
+  try {
+    const ListingDraft = require("../models/ListingDraft");
+    await ListingDraft.clear(req.user.id);
+    return res.json({ ok: true });
+  } catch (e) {
+    console.error("LISTING_DRAFT_DELETE_ERROR:", e?.message);
+    return res.status(500).json({
+      error: "Failed to clear listing draft",
+    });
+  }
+});
+
 router.post("/me/business/bump-all", auth, async (req, res) => {
   try {
     const user = await User.findById(req.user.id);

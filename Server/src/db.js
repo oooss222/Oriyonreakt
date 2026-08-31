@@ -654,6 +654,15 @@ async function initDb() {
     CREATE INDEX IF NOT EXISTS idx_user_compare_lists_user
       ON user_compare_lists(user_id, updated_at DESC);
 
+    CREATE TABLE IF NOT EXISTS listing_drafts (
+      user_id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+      payload JSONB NOT NULL DEFAULT '{}'::jsonb,
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_listing_drafts_updated
+      ON listing_drafts(updated_at DESC);
+
     CREATE TABLE IF NOT EXISTS listing_reports (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       listing_id UUID NOT NULL REFERENCES listings(id) ON DELETE CASCADE,

@@ -695,8 +695,17 @@ class UserModel {
     }
 
     const activeListings = await this.countActiveListings(userId);
+    const limit = getListingLimit(user);
 
-    return { user, activeListings, limit: getListingLimit(user) };
+    if (limit != null && activeListings >= limit) {
+      const err = new Error("LISTING_LIMIT_REACHED");
+      err.limit = limit;
+      err.activeListings = activeListings;
+      err.sellerType = user.sellerType || "private";
+      throw err;
+    }
+
+    return { user, activeListings, limit };
   }
 
   static async updateProfile(id, fields = {}) {

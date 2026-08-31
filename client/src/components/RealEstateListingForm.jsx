@@ -11,6 +11,7 @@ import {
   ALL_RE_SUBCATEGORIES,
   REAL_ESTATE_CITIES,
   getDistrictsForCity,
+  getCityCoordinates,
 } from "../data/realEstate";
 import { formatPriceInput, getPriceDigits } from "../data/specOptions";
 import { TITLE_MAX, DESC_MAX } from "../data/listingCategories";
@@ -26,6 +27,7 @@ import PriceAdequacyBadge from "./PriceAdequacyBadge";
 import ListingFormPhotosSection from "./listing/ListingFormPhotosSection";
 import ListingFormPublicationSidebar from "./listing/ListingFormPublicationSidebar";
 import RealEstateListingSpecFields from "./realestate/RealEstateListingSpecFields";
+import RealEstateMapPin from "./realestate/RealEstateMapPin";
 import { api } from "../lib/api";
 import { useI18n } from "../i18n";
 
@@ -50,11 +52,20 @@ export default function RealEstateListingForm({
   removeFile,
   removeExistingImage,
   clearNewFiles,
+  onMoveExisting,
+  onMoveNew,
+  onMakeCoverExisting,
+  onMakeCoverNew,
+  compressing = false,
   photoLimit,
   onSubmit,
   saving,
   isEdit = false,
   onReset,
+  formId = "listing-form",
+  requirePhone = false,
+  hasPhone = true,
+  previewItem = null,
 }) {
   const { t } = useI18n();
   const [isDragOver, setIsDragOver] = React.useState(false);
@@ -91,7 +102,7 @@ export default function RealEstateListingForm({
     setField("title", buildRealEstateSuggestedTitle(form, specs));
   };
 
-  const previewListing = React.useMemo(
+  const pricePreviewListing = React.useMemo(
     () => ({
       price: form.price,
       location: form.location,
@@ -100,6 +111,20 @@ export default function RealEstateListingForm({
     }),
     [form.price, form.location, specs]
   );
+
+  const cardPreview =
+    previewItem ||
+    {
+      title: form.title,
+      price: form.price,
+      location: form.location,
+      cat: "realestate",
+      images: [
+        ...existingImages,
+        ...previews.map((url) => ({ url })),
+      ],
+      createdAt: new Date().toISOString(),
+    };
 
   const hasDealType = Boolean(dealType);
   const hasSubcategory = Boolean(form.subcategory?.trim());
@@ -120,6 +145,7 @@ export default function RealEstateListingForm({
     hasTitle &&
     hasPrice &&
     hasPhotos &&
+    (!requirePhone || hasPhone) &&
     !saving;
 
   const publishHintParts = buildPublishHintParts({
@@ -130,6 +156,9 @@ export default function RealEstateListingForm({
     isRealEstate: true,
     t,
   });
+  if (requirePhone && !hasPhone) {
+    publishHintParts.unshift(t("listing.phoneHintShort"));
+  }
   const publishHint = publishHintParts.length
     ? `${t("form.fillPrefix")} ${publishHintParts.join(", ")}`
     : "";
@@ -183,6 +212,7 @@ export default function RealEstateListingForm({
 
   return (
     <form
+      id={formId}
       onSubmit={handleSubmit}
       className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_20rem] xl:grid-cols-[minmax(0,1fr)_22rem] gap-5"
     >
@@ -264,9 +294,11 @@ export default function RealEstateListingForm({
                 <select
                   value={form.location}
                   onChange={(e) => {
-                    setField("location", e.target.value);
+                    const city = e.target.value;
+                    setField("location", city);
                     updateSpecByName(setSpecs, "Район", "");
-                    setGeo(null);
+                    const center = getCityCoordinates(city);
+                    setGeo({ lat: center.lat, lng: center.lng });
                   }}
                   className="listing-form-select"
                 >
@@ -313,6 +345,12 @@ export default function RealEstateListingForm({
               />
             </div>
 
+            <RealEstateMapPin
+              city={form.location}
+              geo={geo}
+              setGeo={setGeo}
+            />
+
             {form.subcategory === "Новостройки" && developments.length > 0 ? (
               <div>
                 <label className="listing-form-label">Жилой комплекс</label>
@@ -358,6 +396,7 @@ export default function RealEstateListingForm({
           existingImages={existingImages}
           previews={previews}
           isDragOver={isDragOver}
+          compressing={compressing}
           onDragOver={(e) => {
             e.preventDefault();
             setIsDragOver(true);
@@ -372,6 +411,10 @@ export default function RealEstateListingForm({
           onRemoveExisting={removeExistingImage}
           onRemoveNew={removeFile}
           onClearNew={clearNewFiles}
+          onMoveExisting={onMoveExisting}
+          onMoveNew={onMoveNew}
+          onMakeCoverExisting={onMakeCoverExisting}
+          onMakeCoverNew={onMakeCoverNew}
         />
 
         <div className="listing-form-card">
@@ -435,7 +478,7 @@ export default function RealEstateListingForm({
               </div>
             </div>
 
-            <PriceAdequacyBadge item={previewListing} />
+            <PriceAdequacyBadge item={pricePreviewListing} />
 
             <div>
               <label className="listing-form-label">Описание</label>
@@ -464,6 +507,10 @@ export default function RealEstateListingForm({
         saving={saving}
         isEdit={isEdit}
         onReset={onReset}
+        requirePhone={requirePhone}
+        hasPhone={hasPhone}
+        previewItem={cardPreview}
+        moderationHint={!isEdit ? t("listing.moderationLikelyHint") : null}
         footerNote={
           isEdit ? t("listing.editModerationHint") : t("listing.publishHint")
         }

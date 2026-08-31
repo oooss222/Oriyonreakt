@@ -59,6 +59,7 @@ async function request(
     let msg = `HTTP ${res.status}`;
 
     let code = "";
+    let details = {};
 
     try {
       const err = await res.json();
@@ -67,6 +68,11 @@ async function request(
         err.error ||
         JSON.stringify(err);
       code = String(err.code || "");
+      details = err && typeof err === "object" ? err : {};
+
+      if (/listing limit reached/i.test(String(msg))) {
+        code = code || "LISTING_LIMIT_REACHED";
+      }
     } catch {}
 
     if (res.status === 401 && token) {
@@ -77,7 +83,11 @@ async function request(
       msg = "Сервер временно недоступен. Попробуйте через минуту.";
     }
 
-    throw new ApiError(msg, { kind: "http", status: res.status, code });
+    const error = new ApiError(msg, { kind: "http", status: res.status, code });
+    error.details = details;
+    error.limit = details.limit;
+    error.activeListings = details.activeListings;
+    throw error;
   }
 
   const text = await res.text();
@@ -195,6 +205,24 @@ export const api = {
 
   getCompareList: (token, cat) =>
     request(`/users/me/compare/${encodeURIComponent(cat)}`, {
+      token,
+    }),
+
+  getListingDraft: (token) =>
+    request("/users/me/listing-draft", {
+      token,
+    }),
+
+  saveListingDraftRemote: (token, payload) =>
+    request("/users/me/listing-draft", {
+      method: "PUT",
+      token,
+      body: payload,
+    }),
+
+  clearListingDraftRemote: (token) =>
+    request("/users/me/listing-draft", {
+      method: "DELETE",
       token,
     }),
 

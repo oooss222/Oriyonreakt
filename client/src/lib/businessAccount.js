@@ -9,8 +9,15 @@ export const BUSINESS_BENEFITS = [
   "Бейдж «Премиум» и верификация модератором",
 ];
 
-export function getListingLimit() {
-  return null;
+export const PRIVATE_LISTING_LIMIT = 30;
+
+export function getListingLimit(user) {
+  if (isCompanyAccount(user)) return null;
+  return PRIVATE_LISTING_LIMIT;
+}
+
+export function hasListingLimit(user) {
+  return getListingLimit(user) != null;
 }
 
 export function isCompanyAccount(user) {
