@@ -1,4 +1,5 @@
 const express = require("express");
+const compression = require("compression");
 const cors = require("cors");
 const fs = require("fs");
 const path = require("path");
@@ -38,6 +39,7 @@ const PORT = Number(process.env.PORT || 4000);
 const IS_PRODUCTION = process.env.NODE_ENV === "production";
 
 app.use(securityHeaders);
+app.use(compression({ threshold: 1024 }));
 
 const ALLOWED_ORIGINS = getAllowedOrigins();
 
@@ -68,17 +70,28 @@ app.use(rlsContextMiddleware);
 
 app.use(
   "/uploads",
-  express.static(
-    path.join(__dirname, "..", "uploads")
-  )
-);
-
-app.get("/api/health", (req, res) =>
-  res.json({
-    ok: true,
-    db: "postgresql",
+  express.static(path.join(__dirname, "..", "uploads"), {
+    maxAge: "30d",
   })
 );
+
+app.get("/api/health", async (req, res) => {
+  try {
+    await pool.query("SELECT 1");
+
+    return res.json({
+      ok: true,
+      db: "postgresql",
+    });
+  } catch (e) {
+    console.error("HEALTH_DB_ERROR:", e?.message);
+
+    return res.status(503).json({
+      ok: false,
+      db: "unavailable",
+    });
+  }
+});
 
 app.use("/api/auth/check-identity", authLoginLimiter);
 app.use("/api/auth/login", authLoginLimiter);
@@ -152,9 +165,22 @@ if (clientDist) {
     Listing,
   });
 
-  app.use(express.static(clientDist));
+  // Vite emits content-hashed filenames under /assets, so those are immutable.
+  // index.html must stay uncached or clients pin an old asset manifest.
+  app.use(
+    express.static(clientDist, {
+      maxAge: "365d",
+      immutable: true,
+      setHeaders(res, filePath) {
+        if (filePath.endsWith("index.html")) {
+          res.setHeader("Cache-Control", "no-cache");
+        }
+      },
+    })
+  );
 
   app.get(/^(?!\/api).*/, (req, res) => {
+    res.setHeader("Cache-Control", "no-cache");
     res.sendFile(path.join(clientDist, "index.html"));
   });
 } else {
@@ -206,5 +232,32 @@ async function start() {
     process.exit(1);
   }
 }
+
+let shuttingDown = false;
+
+async function shutdown(signal) {
+  if (shuttingDown) return;
+  shuttingDown = true;
+
+  console.log(`Received ${signal}, shutting down`);
+
+  const forceExit = setTimeout(() => {
+    console.warn("Shutdown timed out, exiting");
+    process.exit(1);
+  }, 15000);
+  forceExit.unref();
+
+  try {
+    io.close();
+    await new Promise((resolve) => server.close(resolve));
+    await pool.end().catch(() => {});
+  } finally {
+    clearTimeout(forceExit);
+    process.exit(0);
+  }
+}
+
+process.on("SIGTERM", () => shutdown("SIGTERM"));
+process.on("SIGINT", () => shutdown("SIGINT"));
 
 start();
