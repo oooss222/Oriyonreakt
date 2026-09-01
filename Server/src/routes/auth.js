@@ -63,9 +63,9 @@ router.post("/register", async (req, res) => {
       });
     }
 
-    if (password.length < 6) {
+    if (password.length < 8) {
       return res.status(400).json({
-        error: "Пароль должен быть не короче 6 символов",
+        error: "Пароль должен быть не короче 8 символов",
         code: "WEAK_PASSWORD",
       });
     }

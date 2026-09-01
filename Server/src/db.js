@@ -10,6 +10,8 @@ const { setupRowLevelSecurity } = require("./lib/rowLevelSecurity");
 const DATABASE_URL =
   process.env.DATABASE_URL || process.env.POSTGRES_URL;
 
+const IS_PRODUCTION = process.env.NODE_ENV === "production";
+
 const USER_ROLES = [
   "user",
   "moderator",
@@ -49,20 +51,29 @@ const PAYMENT_ORDER_STATUSES = [
 
 function getPoolConfig() {
   const poolDefaults = {
-    connectionTimeoutMillis: 5000,
-    idleTimeoutMillis: 30000,
-    query_timeout: 10000,
-    statement_timeout: 10000,
+    // Render runs a single small instance, so a large pool only queues work
+    // inside Postgres instead of the app.
+    max: Number(process.env.PGPOOL_MAX || 8),
+    connectionTimeoutMillis: Number(
+      process.env.PGCONNECT_TIMEOUT_MS || 10000
+    ),
+    idleTimeoutMillis: 60000,
+    query_timeout: 15000,
+    statement_timeout: 15000,
   };
 
   if (!DATABASE_URL) {
+    if (IS_PRODUCTION) {
+      throw new Error("DATABASE_URL is required in production");
+    }
+
     return {
       ...poolDefaults,
       host: process.env.PGHOST || "localhost",
       port: Number(process.env.PGPORT || 5432),
       database: process.env.PGDATABASE || "oriyon",
       user: process.env.PGUSER || "postgres",
-      password: process.env.PGPASSWORD || "password",
+      password: process.env.PGPASSWORD || "postgres",
     };
   }
 
