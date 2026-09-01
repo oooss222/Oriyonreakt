@@ -3,10 +3,12 @@ import { useNavigate, useParams } from "react-router-dom";
 import { api } from "../lib/api";
 import ListingForm from "../components/ListingForm";
 import { goToAuth, TOKEN_KEY, USER_KEY } from "../lib/auth";
+import { useI18n } from "../i18n";
 
 export default function EditListing() {
   const { id } = useParams();
   const nav = useNavigate();
+  const { t } = useI18n();
   const token = localStorage.getItem(TOKEN_KEY) || "";
 
   const [initialData, setInitialData] = React.useState(null);
@@ -43,13 +45,13 @@ export default function EditListing() {
         setInitialData(ad);
       })
       .catch((e) => {
-        if (alive) setErr(e.message || "Ошибка загрузки объявления");
+        if (alive) setErr(e.message || t("listing.saveError"));
       });
 
     return () => {
       alive = false;
     };
-  }, [id, token, nav]);
+  }, [id, token, nav, t]);
 
   if (err) {
     const forbidden = err === "forbidden" || /forbidden/i.test(err);
@@ -58,16 +60,14 @@ export default function EditListing() {
       <div className="w-full max-w-7xl mx-auto px-4 py-6">
         <div className="rounded-2xl border border-red-200 bg-red-50 text-red-700 p-6 text-center space-y-4">
           <p>
-            {forbidden
-              ? "Вы можете редактировать только свои объявления."
-              : err}
+            {forbidden ? t("listing.editForbidden") : err}
           </p>
           <button
             type="button"
             onClick={() => nav("/profile?tab=my")}
             className="inline-flex items-center justify-center rounded-xl border border-ink/10 bg-white px-4 py-2 hover:bg-mist text-ink-600"
           >
-            К моим объявлениям
+            {t("listing.backToMine")}
           </button>
         </div>
       </div>
@@ -78,7 +78,7 @@ export default function EditListing() {
     return (
       <div className="w-full max-w-7xl mx-auto px-4 py-6">
         <div className="rounded-2xl border border-ink/8 bg-white p-6 text-center text-ink-400">
-          Загрузка...
+          {t("common.loading")}
         </div>
       </div>
     );

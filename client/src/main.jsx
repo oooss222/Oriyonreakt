@@ -4,6 +4,7 @@ import { createBrowserRouter, RouterProvider, useParams, Navigate } from "react-
 
 import App from "./shell/App.jsx";
 import { DEFAULT_REAL_ESTATE_BROWSE_PATH } from "./lib/realestateSeo.js";
+import { useI18n } from "./i18n";
 
 // Routes are split so a visitor landing on the catalogue does not download the
 // admin panel, chat, compare and listing-form code they may never open.
@@ -50,19 +51,21 @@ function CategoryListingRoute() {
 }
 
 function NotFound() {
+  const { t } = useI18n();
+
   return (
     <div className="page-container py-10">
       <div className="surface-panel p-8 space-y-3 text-center">
         <h1 className="font-display text-2xl font-bold text-ink">
-          Страница не найдена (404)
+          {t("notFound.title")}
         </h1>
 
         <p className="text-ink-400">
-          Проверьте адрес или вернитесь на главную.
+          {t("notFound.body")}
         </p>
 
         <a className="btn btn-primary mt-4" href="/">
-          На главную
+          {t("notFound.home")}
         </a>
       </div>
     </div>
