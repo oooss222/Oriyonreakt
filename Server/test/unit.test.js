@@ -142,3 +142,24 @@ test("compare import only accepts the supported marketplaces", () => {
   assert.equal(normalizeUrl("file:///etc/passwd"), null);
   assert.equal(normalizeUrl(""), null);
 });
+
+const {
+  CATEGORY_PHOTO_LIMITS,
+  getListingPhotoLimit,
+} = require("../src/lib/listingPhotoLimits");
+const sharedPhotoLimits = require("../../shared/listingPhotoLimits.json");
+const { VIP_PLANS, getPromotionPlan } = require("../src/lib/promotionPlans");
+const sharedPlans = require("../../shared/promotionPlans.json");
+
+test("listing photo limits are shared with the client", () => {
+  assert.deepEqual(CATEGORY_PHOTO_LIMITS, sharedPhotoLimits.CATEGORY_PHOTO_LIMITS);
+  assert.equal(getListingPhotoLimit("realestate"), 8);
+  assert.equal(getListingPhotoLimit("unknown-cat"), 6);
+});
+
+test("promotion plans are shared with the client", () => {
+  assert.deepEqual(VIP_PLANS, sharedPlans.VIP_PLANS);
+  assert.equal(getPromotionPlan("vip", 7)?.price, 15);
+  assert.equal(getPromotionPlan("top", 30)?.price, 40);
+  assert.equal(getPromotionPlan("vip", 99), null);
+});

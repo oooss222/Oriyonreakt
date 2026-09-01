@@ -20,6 +20,7 @@ const {
   ANON_CONTEXT,
 } = require("../src/lib/rlsContext");
 const Listing = require("../src/models/Listing");
+const UserEvent = require("../src/models/UserEvent");
 
 const asUser = (id) => ({ userId: id, role: "user" });
 const suffix = Date.now().toString(36);
@@ -45,6 +46,9 @@ test.before(async () => {
 
 test.after(async () => {
   await runWithRlsContext(SYSTEM_CONTEXT, async () => {
+    await query(`DELETE FROM user_events WHERE session_id LIKE $1`, [
+      `evt-${suffix}%`,
+    ]);
     await query(`DELETE FROM users WHERE id = ANY($1::uuid[])`, [
       [state.alice, state.bob],
     ]);
@@ -222,4 +226,52 @@ test("listing results carry owner details from the join", async () => {
 
   assert.equal(first.ownerSellerType, "company");
   assert.equal(first.ownerCompanyName, "Тест");
+});
+
+test("anonymous visitors cannot attach events to another user", async () => {
+  const inserted = await runWithRlsContext(ANON_CONTEXT, () =>
+    UserEvent.insertBatch([{ type: "search", meta: { q: "phone" } }], {
+      userId: null,
+      sessionId: `evt-${suffix}-anon`,
+      city: "Душанбе",
+    })
+  );
+
+  assert.equal(inserted, 1);
+
+  await assert.rejects(
+    () =>
+      runWithRlsContext(ANON_CONTEXT, () =>
+        UserEvent.insertBatch([{ type: "search" }], {
+          userId: state.alice,
+          sessionId: `evt-${suffix}-anon-spoof`,
+          city: "Душанбе",
+        })
+      ),
+    /row-level security/i
+  );
+});
+
+test("a signed-in user cannot attribute events to someone else", async () => {
+  const inserted = await runWithRlsContext(asUser(state.alice), () =>
+    UserEvent.insertBatch([{ type: "listing_view" }], {
+      userId: state.alice,
+      sessionId: `evt-${suffix}-alice`,
+      city: "Душанбе",
+    })
+  );
+
+  assert.equal(inserted, 1);
+
+  await assert.rejects(
+    () =>
+      runWithRlsContext(asUser(state.alice), () =>
+        UserEvent.insertBatch([{ type: "listing_view" }], {
+          userId: state.bob,
+          sessionId: `evt-${suffix}-alice-spoof`,
+          city: "Душанбе",
+        })
+      ),
+    /row-level security/i
+  );
 });
