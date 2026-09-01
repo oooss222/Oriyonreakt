@@ -82,6 +82,14 @@ function getPoolConfig() {
     process.env.DATABASE_CA ||
     process.env.CA_CERT ||
     process.env.PGSSLROOTCERT;
+  const allowInsecure =
+    String(process.env.DATABASE_SSL_INSECURE || "").toLowerCase() === "true";
+
+  if (IS_PRODUCTION && DATABASE_URL && !ca && !allowInsecure) {
+    throw new Error(
+      "DATABASE_CA (or CA_CERT / PGSSLROOTCERT) is required in production"
+    );
+  }
 
   // Newer pg treats sslmode=require in the URL as strict cert verification.
   // Strip it and configure SSL explicitly for managed Postgres (DigitalOcean).

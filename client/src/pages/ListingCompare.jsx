@@ -420,7 +420,7 @@ export default function ListingCompare({ cat }) {
         }
         if (!entry.url) continue;
         try {
-          const result = await api.compareImport({ url: entry.url, cat });
+          const result = await api.compareImport({ url: entry.url, cat }, token);
           const snapshot = result?.snapshot || {};
           next.push({
             source: "external",
@@ -601,7 +601,7 @@ export default function ListingCompare({ cat }) {
       const result = await api.compareImport({
         url: item._compareUrl,
         cat,
-      });
+      }, token);
       const snapshot = result?.snapshot || {};
       updateExternalCompareEntry(itemKey, cat, {
         platform: result?.platform || item._compareSource,
@@ -634,7 +634,7 @@ export default function ListingCompare({ cat }) {
         const result = await api.compareImport({
           url: item._compareUrl,
           cat,
-        });
+        }, token);
         const snapshot = result?.snapshot || {};
         updateExternalCompareEntry(itemKey, cat, {
           platform: result?.platform || item._compareSource,

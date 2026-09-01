@@ -709,30 +709,21 @@ class ListingModel {
 
     const result = await query(
       `
-      WITH priced AS (
-        SELECT
-          price_num,
-          re_price_per_sqm
-        FROM listings
-        WHERE ${conditions.join(" AND ")}
-      )
       SELECT
-        (SELECT COUNT(*)::int FROM priced WHERE price_num IS NOT NULL AND price_num > 0) AS sample,
-        (
-          SELECT percentile_cont(0.5) WITHIN GROUP (ORDER BY price_num)
-          FROM priced
+        COUNT(*) FILTER (
           WHERE price_num IS NOT NULL AND price_num > 0
-        ) AS median_price,
-        (
-          SELECT AVG(price_num)
-          FROM priced
+        )::int AS sample,
+        percentile_cont(0.5) WITHIN GROUP (ORDER BY price_num)
+          FILTER (WHERE price_num IS NOT NULL AND price_num > 0) AS median_price,
+        AVG(price_num) FILTER (
           WHERE price_num IS NOT NULL AND price_num > 0
         ) AS avg_price,
-        (
-          SELECT percentile_cont(0.5) WITHIN GROUP (ORDER BY re_price_per_sqm)
-          FROM priced
-          WHERE re_price_per_sqm IS NOT NULL AND re_price_per_sqm > 0
-        ) AS median_price_per_sqm
+        percentile_cont(0.5) WITHIN GROUP (ORDER BY re_price_per_sqm)
+          FILTER (
+            WHERE re_price_per_sqm IS NOT NULL AND re_price_per_sqm > 0
+          ) AS median_price_per_sqm
+      FROM listings
+      WHERE ${conditions.join(" AND ")}
       `,
       values
     );

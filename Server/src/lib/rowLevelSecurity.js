@@ -293,7 +293,10 @@ async function setupRowLevelSecurity(query) {
     );
 
     DROP POLICY IF EXISTS user_events_insert ON user_events;
-    CREATE POLICY user_events_insert ON user_events FOR INSERT WITH CHECK (true);
+    CREATE POLICY user_events_insert ON user_events FOR INSERT WITH CHECK (
+      app.is_system()
+      OR user_id IS NOT DISTINCT FROM app.current_user_id()
+    );
 
     DROP POLICY IF EXISTS user_events_select ON user_events;
     CREATE POLICY user_events_select ON user_events FOR SELECT USING (

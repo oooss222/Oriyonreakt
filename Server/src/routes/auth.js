@@ -1,5 +1,6 @@
 const router = require("express").Router();
 const jwt = require("jsonwebtoken");
+const bcrypt = require("bcryptjs");
 const User = require("../models/User");
 const SiteSettings = require("../models/SiteSettings");
 const { requestOtp, verifyOtp } = require("../lib/phoneOtp");
@@ -30,6 +31,17 @@ function isValidEmail(email = "") {
 
 function safeUser(user) {
   return User.sanitize(user);
+}
+
+// Same cost as real hashes so a missing account is not faster to probe.
+const DUMMY_PASSWORD_HASH =
+  "$2b$10$IhtAsk1Aiy307Oy6ZmTaV.IiXn5qAvNdEWiTdG0qtEQEQ9KXAl69S";
+
+function invalidCredentials(res) {
+  return res.status(401).json({
+    error: "Неверный email или пароль.",
+    code: "INVALID_CREDENTIALS",
+  });
 }
 
 router.post("/register", async (req, res) => {
@@ -147,28 +159,19 @@ router.post("/login", async (req, res) => {
     }
 
     const user = await User.findByEmail(email);
+    const passwordOk = await bcrypt.compare(
+      password,
+      user?.password || DUMMY_PASSWORD_HASH
+    );
 
-    if (!user) {
-      return res.status(404).json({
-        error:
-          "Аккаунт с таким email не найден. Зарегистрируйтесь или проверьте адрес.",
-        code: "EMAIL_NOT_FOUND",
-      });
+    if (!user || !passwordOk) {
+      return invalidCredentials(res);
     }
 
     if (user.isBlocked) {
       return res.status(403).json({
         error: "Аккаунт заблокирован",
         code: "USER_BLOCKED",
-      });
-    }
-
-    const ok = await User.comparePassword(user, password);
-
-    if (!ok) {
-      return res.status(401).json({
-        error: "Неверный пароль. Проверьте раскладку и Caps Lock.",
-        code: "WRONG_PASSWORD",
       });
     }
 
@@ -257,14 +260,10 @@ router.post("/check-identity", async (req, res) => {
         });
       }
 
-      if (intent === "login" && !user) {
+      if (intent === "login") {
         return res.json({
-          ok: false,
+          ok: true,
           field: "email",
-          exists: false,
-          code: "EMAIL_NOT_FOUND",
-          message:
-            "Аккаунт с таким email не найден. Зарегистрируйтесь или проверьте адрес.",
         });
       }
 
@@ -297,13 +296,10 @@ router.post("/check-identity", async (req, res) => {
         });
       }
 
-      if (intent === "login" && !user) {
+      if (intent === "login") {
         return res.json({
-          ok: false,
+          ok: true,
           field: "phone",
-          exists: false,
-          code: "USER_NOT_FOUND",
-          message: PHONE_ERRORS.USER_NOT_FOUND,
         });
       }
 
@@ -343,9 +339,13 @@ router.post("/phone/send-code", async (req, res) => {
       const existing = await User.findByPhone(phone);
 
       if (!existing) {
-        return res.status(404).json({
-          error: PHONE_ERRORS.USER_NOT_FOUND,
-          code: "USER_NOT_FOUND",
+        const normalized = normalizePhone(phone);
+        return res.json({
+          ok: true,
+          phone: normalized,
+          phoneDisplay: formatPhoneDisplay(normalized),
+          expiresInSec: 300,
+          retryAfterSec: 60,
         });
       }
 
@@ -417,9 +417,9 @@ router.post("/phone/verify", async (req, res) => {
         });
       }
     } else if (mode === "login") {
-      return res.status(404).json({
-        error: PHONE_ERRORS.USER_NOT_FOUND,
-        code: "USER_NOT_FOUND",
+      return res.status(401).json({
+        error: "Неверный код или номер.",
+        code: "INVALID_CREDENTIALS",
       });
     } else {
       if (!registrationEnabled) {
