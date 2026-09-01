@@ -1,6 +1,7 @@
 import React from "react";
 import { api } from "./api";
 import { TOKEN_KEY } from "./auth";
+import { connectChatSocket } from "./chatSocket";
 
 const POLL_INTERVAL_MS = 15000;
 
@@ -49,7 +50,11 @@ function refreshUnread() {
 
   inFlight = api
     .messageInbox(token)
-    .then((data) => setCount(getUnreadTotal(data)))
+    .then((data) => {
+      const total = getUnreadTotal(data);
+      setCount(total);
+      if (total > 0) connectChatSocket(token);
+    })
     .catch(() => setCount(0))
     .finally(() => {
       inFlight = null;

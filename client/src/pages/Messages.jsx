@@ -374,8 +374,7 @@ export default function Messages() {
   React.useEffect(() => {
     if (!token) return undefined;
 
-    const socket = connectChatSocket(token);
-    if (!socket) return undefined;
+    let cancelled = false;
 
     const onConnect = () => {
       setSocketReady(true);
@@ -544,22 +543,32 @@ export default function Messages() {
       });
     };
 
-    socket.on("connect", onConnect);
-    socket.on("disconnect", onDisconnect);
-    socket.on("connect_error", onConnectError);
-    socket.on("message:new", onMessageNew);
-    socket.on("messages:read", onMessagesRead);
-    socket.on("typing:start", onTypingStart);
-    socket.on("typing:stop", onTypingStop);
-    socket.on("presence:update", onPresenceUpdate);
-    socket.on("presence:snapshot", onPresenceSnapshot);
+    connectChatSocket(token).then((socket) => {
+      if (cancelled || !socket) return;
 
-    if (socket.connected) {
-      setSocketReady(true);
-      socket.emit("presence:heartbeat");
-    }
+      socket.on("connect", onConnect);
+      socket.on("disconnect", onDisconnect);
+      socket.on("connect_error", onConnectError);
+      socket.on("message:new", onMessageNew);
+      socket.on("messages:read", onMessagesRead);
+      socket.on("typing:start", onTypingStart);
+      socket.on("typing:stop", onTypingStop);
+      socket.on("presence:update", onPresenceUpdate);
+      socket.on("presence:snapshot", onPresenceSnapshot);
+
+      if (socket.connected) {
+        setSocketReady(true);
+        socket.emit("presence:heartbeat");
+      }
+    });
 
     return () => {
+      cancelled = true;
+      const socket = getChatSocket();
+      if (!socket) {
+        setSocketReady(false);
+        return;
+      }
       socket.off("connect", onConnect);
       socket.off("disconnect", onDisconnect);
       socket.off("connect_error", onConnectError);

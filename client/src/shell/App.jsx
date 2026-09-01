@@ -5,7 +5,7 @@ import Footer from "../components/Footer";
 import MobileNav from "../components/MobileNav";
 import CompareFloatingBar from "../components/CompareFloatingBar";
 import CookieConsent from "../components/CookieConsent";
-import { connectChatSocket, disconnectChatSocket, getChatSocket } from "../lib/chatSocket";
+import { disconnectChatSocket, getChatSocket } from "../lib/chatSocket";
 import { TOKEN_KEY } from "../lib/auth";
 import { useLayoutConfig } from "../lib/useLayoutConfig";
 
@@ -29,20 +29,14 @@ export default function App() {
   const layout = useLayoutConfig();
 
   React.useEffect(() => {
-    const connect = () => {
+    const heartbeat = setInterval(() => {
       const token = localStorage.getItem(TOKEN_KEY) || "";
 
       if (!token) {
         disconnectChatSocket();
-        return null;
+        return;
       }
 
-      return connectChatSocket(token);
-    };
-
-    connect();
-
-    const heartbeat = setInterval(() => {
       const activeSocket = getChatSocket();
 
       if (activeSocket?.connected) {
