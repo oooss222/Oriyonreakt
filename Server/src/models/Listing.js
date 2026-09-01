@@ -22,35 +22,47 @@ const REGION_CITIES = {
   Худжанд: ["Худжанд"],
 };
 
+// Columns are table-qualified because these clauses run against queries that
+// join users, where created_at would otherwise be ambiguous.
 const PROMOTION_ORDER =
-  "(vip_until > now()) DESC, (top_until > now()) DESC";
+  "(listings.vip_until > now()) DESC, (listings.top_until > now()) DESC";
+
+// Selects the owner columns the listing cards need. A join keeps this to one
+// lookup per row instead of one per column.
+const OWNER_JOIN_SELECT = `
+        owner_user.seller_type AS owner_seller_type,
+        owner_user.business_verified AS owner_business_verified,
+        owner_user.company_name AS owner_company_name`;
+
+const OWNER_JOIN = `
+      LEFT JOIN users owner_user ON owner_user.id = listings.owner`;
 
 function buildListingOrderBy(sort, priceExpr) {
   if (sort === "old") {
-    return "created_at ASC";
+    return "listings.created_at ASC";
   }
 
   if (sort === "price_asc") {
-    return `${PROMOTION_ORDER}, ${priceExpr} ASC NULLS LAST, created_at DESC`;
+    return `${PROMOTION_ORDER}, ${priceExpr} ASC NULLS LAST, listings.created_at DESC`;
   }
 
   if (sort === "price_desc") {
-    return `${PROMOTION_ORDER}, ${priceExpr} DESC NULLS LAST, created_at DESC`;
+    return `${PROMOTION_ORDER}, ${priceExpr} DESC NULLS LAST, listings.created_at DESC`;
   }
 
   if (sort === "views_desc") {
-    return `${PROMOTION_ORDER}, COALESCE(views, 0) DESC, created_at DESC`;
+    return `${PROMOTION_ORDER}, COALESCE(listings.views, 0) DESC, listings.created_at DESC`;
   }
 
   if (sort === "price_per_sqm_asc") {
-    return `${PROMOTION_ORDER}, re_price_per_sqm ASC NULLS LAST, created_at DESC`;
+    return `${PROMOTION_ORDER}, listings.re_price_per_sqm ASC NULLS LAST, listings.created_at DESC`;
   }
 
   if (sort === "price_per_sqm_desc") {
-    return `${PROMOTION_ORDER}, re_price_per_sqm DESC NULLS LAST, created_at DESC`;
+    return `${PROMOTION_ORDER}, listings.re_price_per_sqm DESC NULLS LAST, listings.created_at DESC`;
   }
 
-  return `${PROMOTION_ORDER}, COALESCE(bumped_at, created_at) DESC, created_at DESC`;
+  return `${PROMOTION_ORDER}, COALESCE(listings.bumped_at, listings.created_at) DESC, listings.created_at DESC`;
 }
 
 function parseGuestCapacity(value) {
@@ -552,23 +564,8 @@ class ListingModel {
 
     let sql = `
       SELECT
-        listings.*,
-        (
-          SELECT seller_type
-          FROM users
-          WHERE id = listings.owner
-        ) AS owner_seller_type,
-        (
-          SELECT business_verified
-          FROM users
-          WHERE id = listings.owner
-        ) AS owner_business_verified,
-        (
-          SELECT company_name
-          FROM users
-          WHERE id = listings.owner
-        ) AS owner_company_name
-      FROM listings
+        listings.*,${OWNER_JOIN_SELECT}
+      FROM listings${OWNER_JOIN}
     `;
 
     if (conditions.length) {
@@ -1640,25 +1637,10 @@ class ListingModel {
     const result = await query(
       `
       SELECT
-        listings.*,
-        (
-          SELECT seller_type
-          FROM users
-          WHERE id = listings.owner
-        ) AS owner_seller_type,
-        (
-          SELECT business_verified
-          FROM users
-          WHERE id = listings.owner
-        ) AS owner_business_verified,
-        (
-          SELECT company_name
-          FROM users
-          WHERE id = listings.owner
-        ) AS owner_company_name
-      FROM listings
-      WHERE status = 'approved'
-        AND id = ANY($1::uuid[])
+        listings.*,${OWNER_JOIN_SELECT}
+      FROM listings${OWNER_JOIN}
+      WHERE listings.status = 'approved'
+        AND listings.id = ANY($1::uuid[])
       `,
       [clean]
     );
@@ -1730,23 +1712,8 @@ class ListingModel {
     const result = await query(
       `
       SELECT
-        listings.*,
-        (
-          SELECT seller_type
-          FROM users
-          WHERE id = listings.owner
-        ) AS owner_seller_type,
-        (
-          SELECT business_verified
-          FROM users
-          WHERE id = listings.owner
-        ) AS owner_business_verified,
-        (
-          SELECT company_name
-          FROM users
-          WHERE id = listings.owner
-        ) AS owner_company_name
-      FROM listings
+        listings.*,${OWNER_JOIN_SELECT}
+      FROM listings${OWNER_JOIN}
       WHERE ${conditions.join(" AND ")}
       ORDER BY ${PROMOTION_ORDER}, COALESCE(listings.bumped_at, listings.created_at) DESC, listings.created_at DESC
       LIMIT $${values.length}

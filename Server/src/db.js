@@ -762,10 +762,72 @@ async function initDb() {
       ON user_events(event_type, created_at DESC);
   `);
 
+  await createOptionalIndexes();
   await backfillRealEstateMeta();
   await migrateServiceCategories();
   await seedRealEstateDevelopments();
   await setupRowLevelSecurity(query);
+}
+
+/**
+ * Indexes matching the catalogue's real access patterns. They are applied one
+ * by one and failures are logged rather than thrown: a missing index only
+ * costs speed, while a failed statement here would stop the server booting
+ * (trigram search, for instance, needs an extension the DB role may not be
+ * allowed to create).
+ */
+async function createOptionalIndexes() {
+  const statements = [
+    `CREATE EXTENSION IF NOT EXISTS pg_trgm`,
+
+    // Category pages: approved rows of one category, newest first.
+    `CREATE INDEX IF NOT EXISTS idx_listings_approved_cat_created
+       ON listings (cat, created_at DESC)
+       WHERE status = 'approved'`,
+
+    // Home and city pages sort promoted first, then by bump date.
+    `CREATE INDEX IF NOT EXISTS idx_listings_approved_feed
+       ON listings (cat, location, bumped_at DESC NULLS LAST, created_at DESC)
+       WHERE status = 'approved'`,
+
+    // Location filter had no index at all.
+    `CREATE INDEX IF NOT EXISTS idx_listings_approved_location
+       ON listings (location, created_at DESC)
+       WHERE status = 'approved'`,
+
+    // Seller profile and "my listings".
+    `CREATE INDEX IF NOT EXISTS idx_listings_owner_status_created
+       ON listings (owner, status, created_at DESC)`,
+
+    // Popularity sort.
+    `CREATE INDEX IF NOT EXISTS idx_listings_approved_views
+       ON listings (views DESC NULLS LAST, created_at DESC)
+       WHERE status = 'approved'`,
+
+    // Search runs ILIKE '%text%', which only a trigram index can serve.
+    `CREATE INDEX IF NOT EXISTS idx_listings_title_trgm
+       ON listings USING gin (title gin_trgm_ops)`,
+
+    `CREATE INDEX IF NOT EXISTS idx_listings_description_trgm
+       ON listings USING gin (description gin_trgm_ops)`,
+
+    // Spec filters read the JSONB column on every row.
+    `CREATE INDEX IF NOT EXISTS idx_listings_specs_gin
+       ON listings USING gin (specs jsonb_path_ops)`,
+
+    // Seller-type filter resolves through users.
+    `CREATE INDEX IF NOT EXISTS idx_users_seller_type_active
+       ON users (seller_type)
+       WHERE is_blocked = false`,
+  ];
+
+  for (const statement of statements) {
+    try {
+      await query(statement);
+    } catch (e) {
+      console.warn("INDEX_SKIPPED:", e?.message);
+    }
+  }
 }
 
 async function migrateServiceCategories() {
