@@ -25,6 +25,8 @@ const { validateEnv } = require("./lib/env");
 const {
   rlsContextMiddleware,
   systemRlsMiddleware,
+  runWithRlsContext,
+  SYSTEM_CONTEXT,
 } = require("./lib/rlsContext");
 const Listing = require("./models/Listing");
 
@@ -205,7 +207,9 @@ app.use((err, req, res, next) => {
 async function start() {
   try {
     validateEnv();
-    await initDb();
+    // Migrations and backfills touch every owner's rows, and queries now
+    // default to the anonymous role.
+    await runWithRlsContext(SYSTEM_CONTEXT, initDb);
 
     server.listen(PORT, "0.0.0.0", () => {
       console.log(`API running on port ${PORT}`);

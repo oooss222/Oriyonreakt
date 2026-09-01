@@ -1,6 +1,7 @@
 const { query } = require("../db");
 const SiteSettings = require("../models/SiteSettings");
 const SavedSearch = require("../models/SavedSearch");
+const { runWithRlsContext, SYSTEM_CONTEXT } = require("./rlsContext");
 const { runPremiumListingAutoBump } = require("./premiumListingAutoBump");
 const {
   isMailConfigured,
@@ -154,17 +155,15 @@ async function runListingMaintenance() {
 function startListingMaintenanceScheduler() {
   const intervalMs = Number(process.env.LISTING_MAINTENANCE_INTERVAL_MS || 3600000);
 
-  setInterval(() => {
-    runListingMaintenance().catch((error) => {
+  // Maintenance spans every owner's listings, so it needs the system role
+  // explicitly now that queries default to anonymous.
+  const run = () =>
+    runWithRlsContext(SYSTEM_CONTEXT, runListingMaintenance).catch((error) => {
       console.error("LISTING_MAINTENANCE_ERROR:", error?.message);
     });
-  }, intervalMs);
 
-  setTimeout(() => {
-    runListingMaintenance().catch((error) => {
-      console.error("LISTING_MAINTENANCE_ERROR:", error?.message);
-    });
-  }, 15000);
+  setInterval(run, intervalMs);
+  setTimeout(run, 15000);
 }
 
 module.exports = {

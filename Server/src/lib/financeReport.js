@@ -1,5 +1,6 @@
 const Wallet = require("../models/Wallet");
 const SiteSettings = require("../models/SiteSettings");
+const { runWithRlsContext, SYSTEM_CONTEXT } = require("./rlsContext");
 const { buildTransactionsCsv, sendFinanceReportEmail } = require("./mailer");
 
 function monthBounds(date = new Date()) {
@@ -84,8 +85,10 @@ async function maybeSendMonthlyReport() {
 }
 
 function startMonthlyReportScheduler() {
+  // Reads wallet transactions across all users, so it runs as system now that
+  // queries default to anonymous.
   const tick = () => {
-    maybeSendMonthlyReport().catch((e) => {
+    runWithRlsContext(SYSTEM_CONTEXT, maybeSendMonthlyReport).catch((e) => {
       console.error("MONTHLY_FINANCE_REPORT_ERROR:", e?.message);
     });
   };
