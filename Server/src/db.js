@@ -104,6 +104,31 @@ pool.on("error", (err) => {
   console.error("POSTGRES_POOL_ERROR:", err);
 });
 
+function rlsContextKey(ctx) {
+  return `${ctx.role || "anon"}\u0000${ctx.userId || ""}`;
+}
+
+/**
+ * Applies the RLS context at session scope and remembers it on the pooled
+ * client. A connection is held exclusively between connect() and release(),
+ * so a cached context can never be observed by another request, and repeat
+ * queries under the same identity skip the round trip entirely.
+ */
+async function applyRlsContext(client, ctx) {
+  const key = rlsContextKey(ctx);
+
+  if (client._rlsContextKey === key) {
+    return;
+  }
+
+  await client.query(
+    `SELECT set_config('app.user_id', $1, false), set_config('app.role', $2, false)`,
+    [ctx.userId ? String(ctx.userId) : "", ctx.role || "anon"]
+  );
+
+  client._rlsContextKey = key;
+}
+
 async function query(text, params = []) {
   validateQueryArgs(text, params);
 
@@ -115,18 +140,11 @@ async function query(text, params = []) {
   const client = await pool.connect();
 
   try {
-    await client.query("BEGIN");
-    await client.query(`SELECT set_config('app.user_id', $1, true)`, [
-      ctx.userId ? String(ctx.userId) : "",
-    ]);
-    await client.query(`SELECT set_config('app.role', $1, true)`, [
-      ctx.role || "anon",
-    ]);
-    const result = await client.query(text, params);
-    await client.query("COMMIT");
-    return result;
+    await applyRlsContext(client, ctx);
+    return await client.query(text, params);
   } catch (error) {
-    await client.query("ROLLBACK").catch(() => {});
+    // Never trust the cached identity after a failure on this connection.
+    client._rlsContextKey = null;
     throw error;
   } finally {
     client.release();
