@@ -2,6 +2,7 @@ const router = require("express").Router();
 const auth = require("../middleware/auth");
 const User = require("../models/User");
 const Wallet = require("../models/Wallet");
+const { walletTopUpLimiter } = require("../middleware/rateLimit");
 
 router.get("/:id/public", async (req, res) => {
   try {
@@ -367,12 +368,14 @@ router.get("/me/wallet/transactions", auth, async (req, res) => {
   }
 });
 
-router.post("/me/wallet/top-up", auth, async (req, res) => {
+// Credits the wallet with no payment proof, so it is a local development
+// shortcut only: production always rejects it regardless of gateway state.
+router.post("/me/wallet/top-up", auth, walletTopUpLimiter, async (req, res) => {
   try {
     const { getConfig } = require("../lib/alifPay");
     const alifConfig = getConfig();
 
-    if (alifConfig.enabled && !alifConfig.allowDirectTopUp) {
+    if (!alifConfig.allowDirectTopUp) {
       return res.status(403).json({
         error: "Direct top-up is disabled. Use Alif payment gateway.",
       });

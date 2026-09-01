@@ -1,8 +1,8 @@
 const crypto = require("crypto");
 
-const TEST_DEFAULTS = {
-  key: "722796",
-  password: "sEAXlBgMYY0GPIxHPYy6",
+// Terminal credentials are never defaulted: without them the gateway stays off
+// instead of silently falling back to a shared sandbox terminal.
+const DEFAULTS = {
   apiUrl: "https://test-web.alif.tj/v2",
   gate: "korti_milli",
 };
@@ -21,15 +21,13 @@ function resolveAlifEndpoints(apiUrl = "") {
 }
 
 function getConfig() {
-  const key = String(process.env.ALIF_TERMINAL_KEY || TEST_DEFAULTS.key).trim();
-  const password = String(
-    process.env.ALIF_TERMINAL_PASSWORD || TEST_DEFAULTS.password
-  ).trim();
-  const apiUrl = String(process.env.ALIF_API_URL || TEST_DEFAULTS.apiUrl).replace(
+  const key = String(process.env.ALIF_TERMINAL_KEY || "").trim();
+  const password = String(process.env.ALIF_TERMINAL_PASSWORD || "").trim();
+  const apiUrl = String(process.env.ALIF_API_URL || DEFAULTS.apiUrl).replace(
     /\/$/,
     ""
   );
-  const gate = String(process.env.ALIF_GATE || TEST_DEFAULTS.gate).trim();
+  const gate = String(process.env.ALIF_GATE || DEFAULTS.gate).trim();
   const enabled =
     process.env.ALIF_ENABLED !== "false" && Boolean(key && password);
 
@@ -47,7 +45,9 @@ function getConfig() {
       process.env.ALIF_CHECKOUT_MODE ||
         (apiUrl.includes("/v2") ? "v2" : "legacy")
     ).toLowerCase(),
-    allowDirectTopUp: process.env.ALIF_ALLOW_DIRECT_TOPUP === "true",
+    allowDirectTopUp:
+      process.env.NODE_ENV !== "production" &&
+      process.env.ALIF_ALLOW_DIRECT_TOPUP === "true",
   };
 }
 
