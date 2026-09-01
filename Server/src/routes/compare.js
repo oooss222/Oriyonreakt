@@ -1,5 +1,6 @@
 const router = require("express").Router();
 const { importCompareListing } = require("../lib/compareImport");
+const { compareImportLimiter } = require("../middleware/rateLimit");
 
 const SUPPORTED_CATS = new Set([
   "realestate",
@@ -10,7 +11,7 @@ const SUPPORTED_CATS = new Set([
   "furniture",
 ]);
 
-router.post("/import", async (req, res) => {
+router.post("/import", compareImportLimiter, async (req, res) => {
   try {
     const url = String(req.body?.url || "").trim();
     const cat = String(req.body?.cat || "realestate").trim();

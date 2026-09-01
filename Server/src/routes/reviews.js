@@ -1,6 +1,7 @@
 const router = require("express").Router();
 const auth = require("../middleware/auth");
 const Review = require("../models/Review");
+const { reviewLimiter } = require("../middleware/rateLimit");
 
 router.get("/seller/:sellerId", async (req, res) => {
   try {
@@ -25,7 +26,7 @@ router.get("/seller/:sellerId", async (req, res) => {
   }
 });
 
-router.post("/", auth, async (req, res) => {
+router.post("/", auth, reviewLimiter, async (req, res) => {
   try {
     const sellerId = String(req.body?.sellerId || "").trim();
     const listingId = String(req.body?.listingId || "").trim() || null;
