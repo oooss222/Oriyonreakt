@@ -88,7 +88,7 @@ export default React.memo(function ProfileListingCard({
 }) {
   const { t } = useI18n();
   const id = getId(ad);
-  const imgUrl = getListingThumb(ad);
+  const imgUrl = getListingThumb(ad, { width: 400 });
   const more = Math.max(0, (ad.images?.length || 0) - 1);
   const status = ad.status || "pending";
   const statusMap = getStatusMap(t);

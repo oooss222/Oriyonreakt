@@ -258,17 +258,23 @@ export default function AdDetails() {
       .catch(() => setIsFav(false));
   }, [token, ad]);
 
-  const images = React.useMemo(() => {
-    if (!ad) return ["/img/placeholder.jpg"];
+  const buildImages = React.useCallback(
+    (width) => {
+      if (!ad) return ["/img/placeholder.jpg"];
 
-    if (ad.images?.length) {
-      return ad.images.map((i) => resolveMediaUrl(i.url || i));
-    }
+      if (ad.images?.length) {
+        return ad.images.map((i) => resolveMediaUrl(i.url || i, { width }));
+      }
 
-    if (ad.img) return [resolveMediaUrl(ad.img)];
+      if (ad.img) return [resolveMediaUrl(ad.img, { width })];
 
-    return ["/img/placeholder.jpg"];
-  }, [ad]);
+      return ["/img/placeholder.jpg"];
+    },
+    [ad]
+  );
+
+  const images = React.useMemo(() => buildImages(1200), [buildImages]);
+  const thumbImages = React.useMemo(() => buildImages(160), [buildImages]);
 
   usePageMeta({
     enabled: Boolean(ad),
@@ -698,7 +704,7 @@ export default function AdDetails() {
                     ref={desktopThumbsRef}
                     className="hidden md:flex max-h-[520px] w-[88px] shrink-0 flex-col gap-2 overflow-y-auto border-r border-slate-100 p-3 scrollbar-hide"
                   >
-                    {images.map((src, index) => (
+                    {thumbImages.map((src, index) => (
                       <button
                         key={`${src}-${index}`}
                         type="button"
@@ -713,6 +719,8 @@ export default function AdDetails() {
                         <img
                           src={src}
                           alt=""
+                          loading="lazy"
+                          decoding="async"
                           className="w-full h-16 object-cover bg-slate-50"
                           onError={(e) => {
                             e.currentTarget.src =
@@ -738,6 +746,8 @@ export default function AdDetails() {
                     <img
                       src={images[activeImageIndex] || images[0]}
                       alt={ad.title || t("listing.photoAlt")}
+                      fetchpriority="high"
+                      decoding="async"
                       className="w-full aspect-[4/3] object-contain bg-slate-50"
                       onError={(e) => {
                         e.currentTarget.src =
@@ -796,7 +806,7 @@ export default function AdDetails() {
                   ref={mobileThumbsRef}
                   className="flex md:hidden gap-2 p-3 overflow-x-auto scrollbar-hide snap-x snap-mandatory border-t border-slate-100"
                 >
-                  {images.map((src, index) => (
+                  {thumbImages.map((src, index) => (
                     <button
                       key={`mob-${src}-${index}`}
                       type="button"
@@ -811,6 +821,8 @@ export default function AdDetails() {
                       <img
                         src={src}
                         alt=""
+                        loading="lazy"
+                        decoding="async"
                         className="w-20 h-16 object-cover bg-slate-50"
                         onError={(e) => {
                           e.currentTarget.src =

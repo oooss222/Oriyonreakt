@@ -64,7 +64,7 @@ function formatFetchedAt(value = "", lang = "ru") {
 }
 
 function CompareThumb({ item, className = "h-28" }) {
-  const src = getListingThumb(item);
+  const src = getListingThumb(item, { width: 400 });
   return (
     <div className={`relative overflow-hidden rounded-xl bg-mist ${className}`}>
       <img
