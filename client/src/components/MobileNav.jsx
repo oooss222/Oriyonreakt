@@ -7,13 +7,8 @@ import {
   MessageCircle,
   User,
 } from "lucide-react";
-import { api } from "../lib/api";
 import { TOKEN_KEY } from "../lib/auth";
-import {
-  getUnreadTotal,
-  subscribeUnreadCount,
-  subscribeUnreadRefresh,
-} from "../lib/unread";
+import { useUnreadCount } from "../lib/unread";
 import { useI18n } from "../i18n";
 
 export default function MobileNav({ showPolicyLink = false }) {
@@ -21,7 +16,7 @@ export default function MobileNav({ showPolicyLink = false }) {
   const [searchParams] = useSearchParams();
   const tab = searchParams.get("tab") || "my";
   const token = localStorage.getItem(TOKEN_KEY) || "";
-  const [unreadCount, setUnreadCount] = React.useState(0);
+  const unreadCount = useUnreadCount(Boolean(token));
   const { t } = useI18n();
 
   const navItems = React.useMemo(
@@ -58,29 +53,6 @@ export default function MobileNav({ showPolicyLink = false }) {
     ],
     [t]
   );
-
-  const loadUnread = React.useCallback(async () => {
-    if (!token) {
-      setUnreadCount(0);
-      return;
-    }
-
-    try {
-      const data = await api.messageInbox(token);
-      setUnreadCount(getUnreadTotal(data));
-    } catch {
-      setUnreadCount(0);
-    }
-  }, [token]);
-
-  React.useEffect(() => {
-    loadUnread();
-    const timer = setInterval(loadUnread, 15000);
-    return () => clearInterval(timer);
-  }, [loadUnread]);
-
-  React.useEffect(() => subscribeUnreadCount(setUnreadCount), []);
-  React.useEffect(() => subscribeUnreadRefresh(loadUnread), [loadUnread]);
 
   return (
     <nav
