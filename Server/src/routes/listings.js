@@ -4,6 +4,11 @@ const auth = require("../middleware/auth");
 const Listing = require("../models/Listing");
 const Report = require("../models/Report");
 const { assertImagesWithinLimit } = require("../lib/listingPhotoLimits");
+const { reportLimiter } = require("../middleware/rateLimit");
+const {
+  assertListingFields,
+  ListingValidationError,
+} = require("../lib/listingValidation");
 
 function normalizeArray(value) {
   if (Array.isArray(value)) return value;
@@ -257,7 +262,7 @@ router.post("/:id/view", async (req, res) => {
   }
 });
 
-router.post("/:id/report", auth, async (req, res) => {
+router.post("/:id/report", auth, reportLimiter, async (req, res) => {
   try {
     const listing = await Listing.findById(req.params.id);
 
@@ -590,7 +595,7 @@ router.post("/", auth, async (req, res) => {
       throw e;
     }
 
-    const listing = await Listing.create({
+    const fields = {
       title,
       price: String(body.price || "").trim(),
       description: String(body.description || "").trim(),
@@ -599,6 +604,12 @@ router.post("/", auth, async (req, res) => {
       subcategory: String(body.subcategory || "").trim(),
       images,
       specs: normalizeArray(body.specs),
+    };
+
+    assertListingFields(fields);
+
+    const listing = await Listing.create({
+      ...fields,
       owner: req.user.id,
       lat: body.lat ?? body.reLat,
       lng: body.lng ?? body.reLng,
@@ -611,6 +622,13 @@ router.post("/", auth, async (req, res) => {
 
     return res.status(201).json(moderated || listing);
   } catch (e) {
+    if (e instanceof ListingValidationError) {
+      return res.status(400).json({
+        error: e.message,
+        field: e.field,
+      });
+    }
+
     console.error("LISTING_CREATE_ERROR:", e?.message);
 
     return res.status(500).json({
@@ -661,7 +679,7 @@ router.put("/:id", auth, async (req, res) => {
       }
     }
 
-    const listing = await Listing.update(req.params.id, req.user.id, {
+    const updates = {
       title: body.title ? String(body.title).trim() : undefined,
       price: body.price ? String(body.price).trim() : undefined,
       description: body.description
@@ -674,6 +692,12 @@ router.put("/:id", auth, async (req, res) => {
         : undefined,
       images,
       specs: body.specs ? normalizeArray(body.specs) : undefined,
+    };
+
+    assertListingFields(updates);
+
+    const listing = await Listing.update(req.params.id, req.user.id, {
+      ...updates,
       lat: body.lat ?? body.reLat,
       lng: body.lng ?? body.reLng,
     });
@@ -691,6 +715,13 @@ router.put("/:id", auth, async (req, res) => {
 
     return res.json(moderated || listing);
   } catch (e) {
+    if (e instanceof ListingValidationError) {
+      return res.status(400).json({
+        error: e.message,
+        field: e.field,
+      });
+    }
+
     if (e?.message === "FORBIDDEN") {
       return res.status(403).json({
         error: "Forbidden",
