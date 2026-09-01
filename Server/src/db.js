@@ -1,3 +1,4 @@
+const crypto = require("crypto");
 const { Pool } = require("pg");
 const { validateQueryArgs } = require("./lib/sqlSafety");
 const {
@@ -152,7 +153,7 @@ async function query(text, params = []) {
 }
 
 async function initDb() {
-  await query(`
+  const schemaSql = `
     CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
     CREATE TABLE IF NOT EXISTS users (
@@ -771,14 +772,67 @@ async function initDb() {
     UPDATE listings
     SET subcategory = TRIM(subcategory)
     WHERE subcategory <> TRIM(subcategory);
-  `);
+  `;
 
-  await createOptionalIndexes();
+  // Re-applying ~130 DDL statements and recreating every RLS policy on each
+  // boot delayed startup and made deploys briefly unreliable. The fingerprint
+  // covers the schema text and the source of the functions that shape it, so
+  // any change to either re-runs the migration automatically.
+  const fingerprint = schemaFingerprint(schemaSql);
+  const alreadyApplied = await isSchemaApplied(fingerprint);
+
+  if (!alreadyApplied) {
+    await query(schemaSql);
+    await createOptionalIndexes();
+    await setupRowLevelSecurity(query);
+    await markSchemaApplied(fingerprint);
+  } else {
+    console.log("Schema already current, skipping migrations");
+  }
+
+  // Cheap and self-limiting: these read nothing once there is nothing to fix.
   await backfillPriceNum();
   await backfillRealEstateMeta();
   await migrateServiceCategories();
   await seedRealEstateDevelopments();
-  await setupRowLevelSecurity(query);
+}
+
+function schemaFingerprint(schemaSql) {
+  return crypto
+    .createHash("sha256")
+    .update(schemaSql)
+    .update(String(createOptionalIndexes))
+    .update(String(setupRowLevelSecurity))
+    .digest("hex");
+}
+
+async function isSchemaApplied(fingerprint) {
+  await query(`
+    CREATE TABLE IF NOT EXISTS schema_state (
+      id SMALLINT PRIMARY KEY DEFAULT 1 CHECK (id = 1),
+      fingerprint TEXT NOT NULL,
+      applied_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
+  `);
+
+  const result = await query(
+    `SELECT fingerprint FROM schema_state WHERE id = 1`
+  );
+
+  return result.rows[0]?.fingerprint === fingerprint;
+}
+
+async function markSchemaApplied(fingerprint) {
+  await query(
+    `
+    INSERT INTO schema_state (id, fingerprint, applied_at)
+    VALUES (1, $1, now())
+    ON CONFLICT (id) DO UPDATE
+      SET fingerprint = EXCLUDED.fingerprint,
+          applied_at = now()
+    `,
+    [fingerprint]
+  );
 }
 
 /**
