@@ -3,6 +3,7 @@
   "private": true,
   "scripts": {
     "build": "npm --prefix client ci --include=dev && npm --prefix client run build && node scripts/copy-client-dist.js && npm --prefix Server ci",
-    "start": "node Server/src/index.js"
+    "start": "node Server/src/index.js",
+    "test": "npm --prefix Server test"
   }
 }

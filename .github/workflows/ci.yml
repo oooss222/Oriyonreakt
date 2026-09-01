@@ -1,0 +1,79 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  server:
+    name: Server tests
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: oriyon_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: Server/package-lock.json
+
+      - name: Install dependencies
+        run: npm --prefix Server ci
+
+      # Row level security is bypassed by superusers, so tests must connect as
+      # an ordinary role or they would pass without exercising any policy.
+      - name: Create application role
+        env:
+          PGPASSWORD: postgres
+        run: |
+          psql -h localhost -U postgres -d postgres -v ON_ERROR_STOP=1 \
+            -c "CREATE ROLE oriyon_app LOGIN PASSWORD 'apppass' NOSUPERUSER NOBYPASSRLS;" \
+            -c "ALTER DATABASE oriyon_ci OWNER TO oriyon_app;"
+
+      - name: Run tests
+        env:
+          DATABASE_URL: postgres://oriyon_app:apppass@localhost:5432/oriyon_ci
+          JWT_SECRET: ci-secret-that-is-long-enough-for-validation
+          NODE_ENV: test
+        run: npm --prefix Server test
+
+      - name: Audit production dependencies
+        run: npm --prefix Server audit --omit=dev --audit-level=high
+
+  client:
+    name: Client build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+
+      - name: Install dependencies
+        run: npm --prefix client ci
+
+      - name: Build
+        env:
+          NODE_ENV: production
+        run: npm --prefix client run build
