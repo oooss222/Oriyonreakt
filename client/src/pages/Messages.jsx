@@ -43,7 +43,11 @@ function Toast({ message, type = "info", onClose, closeLabel }) {
       : "bg-ink-800";
 
   return (
-    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[120] animate-fade-in-up">
+    <div
+      role={type === "error" ? "alert" : "status"}
+      aria-live={type === "error" ? "assertive" : "polite"}
+      className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[120] animate-fade-in-up"
+    >
       <div
         className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-white text-sm shadow-lift backdrop-blur-sm ${styles}`}
       >

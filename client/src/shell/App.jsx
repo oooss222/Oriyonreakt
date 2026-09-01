@@ -1,5 +1,5 @@
 import React from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, ScrollRestoration } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import MobileNav from "../components/MobileNav";
@@ -57,6 +57,8 @@ export default function App() {
 
   return (
     <div className="page-shell min-h-screen flex flex-col overflow-x-clip">
+      {/* Returns to the previous scroll position on Back instead of jumping. */}
+      <ScrollRestoration />
       <Header variant={layout.headerVariant} />
 
       <main

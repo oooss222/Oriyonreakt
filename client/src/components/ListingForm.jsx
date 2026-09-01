@@ -859,7 +859,11 @@ export default function ListingForm({
       ) : null}
 
       {err && (
-        <div className="rounded-2xl border border-red-200 bg-red-50 text-red-700 p-4 space-y-2">
+        <div
+          role="alert"
+          aria-live="assertive"
+          className="rounded-2xl border border-red-200 bg-red-50 text-red-700 p-4 space-y-2"
+        >
           <p>{err}</p>
           {!hasPhone && !isEdit ? (
             <Link
