@@ -10,6 +10,7 @@ function buildContentSecurityPolicy() {
     "font-src 'self' https://fonts.gstatic.com data:",
     "img-src 'self' data: blob: https: http:",
     "connect-src 'self' https: wss:",
+    "frame-src 'self' https://www.openstreetmap.org",
     "frame-ancestors 'none'",
     "base-uri 'self'",
     "form-action 'self'",
