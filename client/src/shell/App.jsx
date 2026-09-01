@@ -9,6 +9,22 @@ import { connectChatSocket, disconnectChatSocket, getChatSocket } from "../lib/c
 import { TOKEN_KEY } from "../lib/auth";
 import { useLayoutConfig } from "../lib/useLayoutConfig";
 
+function RouteFallback() {
+  return (
+    <div className="page-container py-10" aria-busy="true">
+      <div className="h-8 w-48 rounded-xl bg-mist animate-pulse" />
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {Array.from({ length: 8 }).map((_, index) => (
+          <div
+            key={index}
+            className="h-48 rounded-2xl bg-mist animate-pulse"
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   const layout = useLayoutConfig();
 
@@ -50,7 +66,9 @@ export default function App() {
             : ""
         }`}
       >
-        <Outlet />
+        <React.Suspense fallback={<RouteFallback />}>
+          <Outlet />
+        </React.Suspense>
       </main>
 
       {layout.showFooter && (

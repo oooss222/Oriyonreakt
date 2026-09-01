@@ -3,21 +3,29 @@ import { createRoot } from "react-dom/client";
 import { createBrowserRouter, RouterProvider, useParams, Navigate } from "react-router-dom";
 
 import App from "./shell/App.jsx";
-import Messages from "./pages/Messages.jsx";
-import Home from "./pages/Home.jsx";
-import Listing from "./pages/Listing.jsx";
-import Auth from "./pages/Auth.jsx";
-import Policy from "./pages/Policy.jsx";
-import AdDetails from "./pages/AdDetails.jsx";
-import Profile from "./pages/Profile.jsx";
-import AddListing from "./pages/AddListing.jsx";
-import EditListing from "./pages/EditListing.jsx";
-import Seller from "./pages/Seller.jsx";
-import Admin from "./pages/Admin.jsx";
-import RealEstateCompare from "./pages/RealEstateCompare.jsx";
-import ListingCompare from "./pages/ListingCompare.jsx";
-import RealEstateDevelopment from "./pages/RealEstateDevelopment.jsx";
 import { DEFAULT_REAL_ESTATE_BROWSE_PATH } from "./lib/realestateSeo.js";
+
+// Routes are split so a visitor landing on the catalogue does not download the
+// admin panel, chat, compare and listing-form code they may never open.
+// App renders the shared Suspense boundary.
+const Home = React.lazy(() => import("./pages/Home.jsx"));
+const Listing = React.lazy(() => import("./pages/Listing.jsx"));
+const AdDetails = React.lazy(() => import("./pages/AdDetails.jsx"));
+const Seller = React.lazy(() => import("./pages/Seller.jsx"));
+const Auth = React.lazy(() => import("./pages/Auth.jsx"));
+const Policy = React.lazy(() => import("./pages/Policy.jsx"));
+const Profile = React.lazy(() => import("./pages/Profile.jsx"));
+const Messages = React.lazy(() => import("./pages/Messages.jsx"));
+const AddListing = React.lazy(() => import("./pages/AddListing.jsx"));
+const EditListing = React.lazy(() => import("./pages/EditListing.jsx"));
+const Admin = React.lazy(() => import("./pages/Admin.jsx"));
+const ListingCompare = React.lazy(() => import("./pages/ListingCompare.jsx"));
+const RealEstateCompare = React.lazy(
+  () => import("./pages/RealEstateCompare.jsx")
+);
+const RealEstateDevelopment = React.lazy(
+  () => import("./pages/RealEstateDevelopment.jsx")
+);
 
 import "./styles/index.css";
 import { I18nProvider } from "./i18n/index.jsx";
