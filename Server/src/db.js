@@ -765,6 +765,12 @@ async function initDb() {
 
     CREATE INDEX IF NOT EXISTS idx_user_events_type_created
       ON user_events(event_type, created_at DESC);
+
+    -- Subcategory is compared directly so the index can be used; older rows may
+    -- still carry stray whitespace from earlier imports.
+    UPDATE listings
+    SET subcategory = TRIM(subcategory)
+    WHERE subcategory <> TRIM(subcategory);
   `);
 
   await createOptionalIndexes();

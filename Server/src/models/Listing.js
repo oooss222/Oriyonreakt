@@ -255,8 +255,10 @@ function buildListingFilters({
   }
 
   if (subcategory) {
+    // Values are trimmed on write and existing rows are normalised at startup,
+    // so this compares the raw column and can use idx_listings_subcategory.
     values.push(String(subcategory).trim());
-    conditions.push(`TRIM(subcategory) = $${values.length}`);
+    conditions.push(`subcategory = $${values.length}`);
   }
 
   if (search) {
@@ -1048,15 +1050,16 @@ class ListingModel {
     return true;
   }
 
-  static async findByOwner(ownerId) {
+  static async findByOwner(ownerId, { limit = 200 } = {}) {
     const result = await query(
       `
       SELECT *
       FROM listings
       WHERE owner = $1
       ORDER BY created_at DESC
+      LIMIT $2
       `,
-      [ownerId]
+      [ownerId, Math.min(Math.max(Number(limit) || 200, 1), 500)]
     );
 
     return result.rows.map(mapListing);
@@ -1620,19 +1623,32 @@ class ListingModel {
     return result.rows.map(mapListing);
   }
 
-  static async findByIds(ids = []) {
+  /**
+   * @param {string[]} ids
+   * @param {{status?: string|null}} options `status: null` returns any status
+   *   the caller is allowed to see, which favourites rely on so a sold listing
+   *   does not silently vanish from the list.
+   */
+  static async findByIds(ids = [], { status = "approved" } = {}) {
     const clean = [...new Set(ids.map((id) => String(id || "").trim()).filter(Boolean))];
     if (!clean.length) return [];
+
+    const values = [clean];
+    const conditions = ["listings.id = ANY($1::uuid[])"];
+
+    if (status) {
+      values.push(status);
+      conditions.push(`listings.status = $${values.length}`);
+    }
 
     const result = await query(
       `
       SELECT
         listings.*,${OWNER_JOIN_SELECT}
       FROM listings${OWNER_JOIN}
-      WHERE listings.status = 'approved'
-        AND listings.id = ANY($1::uuid[])
+      WHERE ${conditions.join(" AND ")}
       `,
-      [clean]
+      values
     );
 
     const mapped = new Map(

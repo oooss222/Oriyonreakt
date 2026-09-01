@@ -43,11 +43,11 @@ class FavoriteModel {
 
     const ids = result.rows.map((r) => r.listing_id);
 
-    const listings = await Promise.all(
-      ids.map((id) => ListingModel.findById(id))
-    );
+    if (!ids.length) return [];
 
-    return listings.filter(Boolean);
+    // One query for the whole set instead of one per favourite. Status is left
+    // open so sold or archived favourites stay visible, as before.
+    return ListingModel.findByIds(ids, { status: null });
   }
 
   static async isFavorite(userId, listingId) {
