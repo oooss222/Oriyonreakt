@@ -382,6 +382,11 @@ async function initDb() {
     ALTER TABLE listings
       ADD COLUMN IF NOT EXISTS re_price_per_sqm NUMERIC;
 
+    -- Numeric mirror of the free-form price column, written by the app so that
+    -- range filters and price sorting can use an index.
+    ALTER TABLE listings
+      ADD COLUMN IF NOT EXISTS price_num NUMERIC;
+
     CREATE INDEX IF NOT EXISTS idx_listings_re_area
       ON listings(re_area_sqm)
       WHERE cat = 'realestate';
@@ -763,6 +768,7 @@ async function initDb() {
   `);
 
   await createOptionalIndexes();
+  await backfillPriceNum();
   await backfillRealEstateMeta();
   await migrateServiceCategories();
   await seedRealEstateDevelopments();
@@ -819,6 +825,11 @@ async function createOptionalIndexes() {
     `CREATE INDEX IF NOT EXISTS idx_users_seller_type_active
        ON users (seller_type)
        WHERE is_blocked = false`,
+
+    // Price range filter and price sorting.
+    `CREATE INDEX IF NOT EXISTS idx_listings_approved_price_num
+       ON listings (price_num)
+       WHERE status = 'approved' AND price_num IS NOT NULL`,
   ];
 
   for (const statement of statements) {
@@ -941,6 +952,61 @@ async function seedRealEstateDevelopments() {
         item.lng,
       ]
     );
+  }
+}
+
+/**
+ * Fills price_num for rows written before the column existed. Parsing happens
+ * in JS so a malformed price yields null instead of aborting the statement,
+ * and rows are updated in one batched statement per chunk.
+ */
+async function backfillPriceNum() {
+  const { parsePriceValue } = require("./lib/priceValue");
+  const BATCH_SIZE = 500;
+
+  for (;;) {
+    const result = await query(
+      `
+      SELECT id, price
+      FROM listings
+      WHERE price_num IS NULL
+        AND price <> ''
+      LIMIT $1
+      `,
+      [BATCH_SIZE]
+    );
+
+    if (!result.rows.length) return;
+
+    const ids = [];
+    const values = [];
+
+    for (const row of result.rows) {
+      const parsed = parsePriceValue(row.price);
+
+      if (parsed === null) continue;
+
+      ids.push(row.id);
+      values.push(parsed);
+    }
+
+    if (ids.length) {
+      await query(
+        `
+        UPDATE listings AS l
+        SET price_num = v.price_num
+        FROM (
+          SELECT unnest($1::uuid[]) AS id, unnest($2::numeric[]) AS price_num
+        ) AS v
+        WHERE l.id = v.id
+        `,
+        [ids, values]
+      );
+    }
+
+    // Rows whose price cannot be parsed would be re-read forever otherwise.
+    if (ids.length < result.rows.length) return;
+    if (result.rows.length < BATCH_SIZE) return;
   }
 }
 

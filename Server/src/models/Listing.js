@@ -1,5 +1,6 @@
 const { query, mapListing, LISTING_STATUSES } = require("../db");
 const { extractRealEstateMeta } = require("../lib/realEstateMeta");
+const { parsePriceValue } = require("../lib/priceValue");
 const {
   assertEnumValue,
   bindLike,
@@ -222,16 +223,9 @@ function buildListingFilters({
   const minPrice = toNumberOrNull(priceFrom);
   const maxPrice = toNumberOrNull(priceTo);
 
-  const priceExpr = `
-    NULLIF(
-      replace(
-        regexp_replace(price, '[^0-9,.-]', '', 'g'),
-        ',',
-        '.'
-      ),
-      ''
-    )::numeric
-  `;
+  // Written by the app on every insert and update, so the range filter and the
+  // price sort can use an index instead of casting text per row.
+  const priceExpr = "listings.price_num";
 
   if (status) {
     values.push(status);
@@ -445,7 +439,8 @@ class ListingModel {
       re_district,
       re_lat,
       re_lng,
-      re_price_per_sqm
+      re_price_per_sqm,
+      price_num
     )
     VALUES (
       FLOOR(10000000 + RANDOM() * 90000000),
@@ -468,7 +463,8 @@ class ListingModel {
       $15,
       $16,
       $17,
-      $18
+      $18,
+      $19
     )
     RETURNING *
     `,
@@ -491,6 +487,7 @@ class ListingModel {
         reMeta.re_lat ?? null,
         reMeta.re_lng ?? null,
         reMeta.re_price_per_sqm ?? null,
+        parsePriceValue(data.price),
       ]
     );
 
@@ -708,22 +705,11 @@ class ListingModel {
       conditions.push(`subcategory = $${values.length}`);
     }
 
-    const priceExpr = `
-      NULLIF(
-        replace(
-          regexp_replace(price, '[^0-9,.-]', '', 'g'),
-          ',',
-          '.'
-        ),
-        ''
-      )::numeric
-    `;
-
     const result = await query(
       `
       WITH priced AS (
         SELECT
-          ${priceExpr} AS price_num,
+          price_num,
           re_price_per_sqm
         FROM listings
         WHERE ${conditions.join(" AND ")}
@@ -880,6 +866,9 @@ class ListingModel {
         re_lat = COALESCE($18, re_lat),
         re_lng = COALESCE($19, re_lng),
         re_price_per_sqm = COALESCE($20, re_price_per_sqm),
+        -- Only rewrite when a new price was supplied; an unparseable price must
+        -- clear the numeric mirror rather than leave a stale value behind.
+        price_num = CASE WHEN $4::text IS NULL THEN price_num ELSE $21 END,
         updated_at = now()
       WHERE id = $1 AND owner = $2
       RETURNING *
@@ -905,6 +894,7 @@ class ListingModel {
         reMeta?.re_lat ?? null,
         reMeta?.re_lng ?? null,
         reMeta?.re_price_per_sqm ?? null,
+        data.price == null ? null : parsePriceValue(data.price),
       ]
     );
 
@@ -1683,16 +1673,7 @@ class ListingModel {
       conditions.push(`listings.location = $${values.length}`);
     }
 
-    const priceExpr = `
-      NULLIF(
-        replace(
-          regexp_replace(listings.price, '[^0-9,.-]', '', 'g'),
-          ',',
-          '.'
-        ),
-        ''
-      )::numeric
-    `;
+    const priceExpr = "listings.price_num";
 
     const minPrice = toNumberOrNull(priceFrom);
     const maxPrice = toNumberOrNull(priceTo);
