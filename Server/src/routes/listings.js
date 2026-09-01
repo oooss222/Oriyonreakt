@@ -9,6 +9,10 @@ const {
   assertListingFields,
   ListingValidationError,
 } = require("../lib/listingValidation");
+const {
+  toPublicListing,
+  toPublicListings,
+} = require("../lib/publicListing");
 
 function normalizeArray(value) {
   if (Array.isArray(value)) return value;
@@ -199,7 +203,7 @@ router.get("/", async (req, res) => {
       offset: Number(offset || 0),
     });
 
-    return res.json(listings);
+    return res.json(toPublicListings(listings));
   } catch (e) {
     console.error("LISTINGS_GET_ERROR:", e?.message);
 
@@ -216,7 +220,7 @@ router.get("/suggest", async (req, res) => {
 
     const items = await Listing.suggest(q, limit);
 
-    return res.json(items);
+    return res.json(toPublicListings(items));
   } catch (e) {
     console.error("LISTINGS_SUGGEST_ERROR:", e?.message);
 
@@ -534,7 +538,7 @@ router.get("/:id", async (req, res) => {
       });
     }
 
-    return res.json(listing);
+    return res.json(toPublicListing(listing));
   } catch (e) {
     console.error("LISTING_GET_ONE_ERROR:", e?.message);
 
