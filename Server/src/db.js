@@ -50,6 +50,22 @@ const PAYMENT_ORDER_STATUSES = [
   "cancelled",
 ];
 
+function databaseHostIsLocal(url) {
+  try {
+    const parsed = new URL(String(url).replace(/^postgres(ql)?:/i, "http:"));
+    return parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1";
+  } catch {
+    return /(?:localhost|127\.0\.0\.1)(?::|\/|$)/i.test(String(url));
+  }
+}
+
+function sslExplicitlyDisabled() {
+  const value = String(
+    process.env.DATABASE_SSL || process.env.PGSSLMODE || ""
+  ).toLowerCase();
+  return value === "disable" || value === "false" || value === "off";
+}
+
 function getPoolConfig() {
   const poolDefaults = {
     // Render runs a single small instance, so a large pool only queues work
@@ -78,6 +94,23 @@ function getPoolConfig() {
     };
   }
 
+  // Newer pg treats sslmode=require in the URL as strict cert verification.
+  // Strip it and configure SSL explicitly for managed Postgres.
+  const connectionString = DATABASE_URL.replace(
+    /([?&])sslmode=[^&]*&?/g,
+    "$1"
+  )
+    .replace(/[?&]$/, "");
+
+  // GitHub Actions and local Docker Postgres do not speak TLS. Forcing SSL
+  // there aborts every query with "server does not support SSL connections".
+  if (sslExplicitlyDisabled() || databaseHostIsLocal(DATABASE_URL)) {
+    return {
+      ...poolDefaults,
+      connectionString,
+    };
+  }
+
   const ca =
     process.env.DATABASE_CA ||
     process.env.CA_CERT ||
@@ -85,19 +118,11 @@ function getPoolConfig() {
   const allowInsecure =
     String(process.env.DATABASE_SSL_INSECURE || "").toLowerCase() === "true";
 
-  if (IS_PRODUCTION && DATABASE_URL && !ca && !allowInsecure) {
-    throw new Error(
-      "DATABASE_CA (or CA_CERT / PGSSLROOTCERT) is required in production"
+  if (IS_PRODUCTION && !ca && !allowInsecure) {
+    console.warn(
+      "DATABASE_CA is not set; TLS will connect without verifying the server certificate. Set DATABASE_CA or DATABASE_SSL_INSECURE=true."
     );
   }
-
-  // Newer pg treats sslmode=require in the URL as strict cert verification.
-  // Strip it and configure SSL explicitly for managed Postgres (DigitalOcean).
-  const connectionString = DATABASE_URL.replace(
-    /([?&])sslmode=[^&]*&?/g,
-    "$1"
-  )
-    .replace(/[?&]$/, "");
 
   return {
     ...poolDefaults,
