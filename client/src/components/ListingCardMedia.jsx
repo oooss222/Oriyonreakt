@@ -20,7 +20,10 @@ export default function ListingCardMedia({
 }) {
   const { t } = useI18n();
   const listingId = item?.id || item?._id;
-  const images = React.useMemo(() => getListingImages(item), [item]);
+  const images = React.useMemo(
+    () => getListingImages(item, { width: 400 }),
+    [item]
+  );
   const [activeIndex, setActiveIndex] = React.useState(0);
   const touchStartX = React.useRef(null);
 

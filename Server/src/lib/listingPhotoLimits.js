@@ -1,22 +1,11 @@
-const CATEGORY_PHOTO_LIMITS = {
-  phones: 5,
-  electronics: 5,
-  transport: 6,
-  computers: 6,
-  services: 5,
-  repair: 3,
-  realestate: 8,
-  furniture: 6,
-};
+const {
+  CATEGORY_PHOTO_LIMITS,
+  CATEGORY_MIN_PHOTOS,
+} = require("../../../shared/listingPhotoLimits.json");
 
-const CATEGORY_MIN_PHOTOS = {
-  transport: 3,
-  realestate: 3,
-  services: 1,
-  repair: 1,
-};
-
-const MAX_LISTING_PHOTO_LIMIT = Math.max(...Object.values(CATEGORY_PHOTO_LIMITS));
+const MAX_LISTING_PHOTO_LIMIT = Math.max(
+  ...Object.values(CATEGORY_PHOTO_LIMITS)
+);
 
 function getListingPhotoLimit(cat) {
   return CATEGORY_PHOTO_LIMITS[cat] ?? 6;

@@ -1,8 +1,41 @@
 import { API_BASE } from "./api";
 
 const PLACEHOLDER = "/img/placeholder.jpg";
+const CLOUDINARY_UPLOAD = "/upload/";
 
-export function resolveMediaUrl(src, { placeholder = PLACEHOLDER, allowEmpty = false } = {}) {
+// A transformation segment looks like "w_400,q_auto/" or "c_limit/".
+const EXISTING_TRANSFORM = /^[a-z]{1,3}_[^/]*\//;
+
+/**
+ * Requests a resized, auto-format copy from Cloudinary instead of the original
+ * upload. Grid cards otherwise download full-resolution photos, which is by far
+ * the largest transfer on listing pages.
+ */
+export function withImageWidth(url, width) {
+  if (!width || !url || !url.includes("res.cloudinary.com")) {
+    return url;
+  }
+
+  const marker = url.indexOf(CLOUDINARY_UPLOAD);
+
+  if (marker === -1) {
+    return url;
+  }
+
+  const prefixEnd = marker + CLOUDINARY_UPLOAD.length;
+  const rest = url.slice(prefixEnd);
+
+  if (EXISTING_TRANSFORM.test(rest)) {
+    return url;
+  }
+
+  return `${url.slice(0, prefixEnd)}f_auto,q_auto,c_limit,w_${width}/${rest}`;
+}
+
+export function resolveMediaUrl(
+  src,
+  { placeholder = PLACEHOLDER, allowEmpty = false, width = 0 } = {}
+) {
   if (!src) {
     return allowEmpty ? "" : placeholder;
   }
@@ -14,7 +47,7 @@ export function resolveMediaUrl(src, { placeholder = PLACEHOLDER, allowEmpty = f
     value.startsWith("/img/") ||
     value.startsWith("data:")
   ) {
-    return value;
+    return withImageWidth(value, width);
   }
 
   const server = API_BASE.replace(/\/api$/, "");

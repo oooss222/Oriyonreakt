@@ -1,20 +1,24 @@
 import React from "react";
 import ru from "./locales/ru.js";
-import en from "./locales/en.js";
-import tg from "./locales/tg.js";
 import ruExtra from "./locales/extra/ru.js";
-import enExtra from "./locales/extra/en.js";
-import tgExtra from "./locales/extra/tg.js";
 import { mergeLocale } from "./helpers.js";
 
 export const LANG_STORAGE_KEY = "oriyon_lang";
 export const SUPPORTED_LANGS = ["ru", "tg", "en"];
 
-const MESSAGES = {
-  ru: mergeLocale(ru, ruExtra),
-  tg: mergeLocale(tg, tgExtra),
-  en: mergeLocale(en, enExtra),
+// Russian stays in the main bundle because it is both the default and the
+// fallback for missing keys. The other two are fetched when selected, so most
+// visitors never download translations they cannot read.
+const BASE_MESSAGES = mergeLocale(ru, ruExtra);
+
+const LOCALE_LOADERS = {
+  tg: () =>
+    Promise.all([import("./locales/tg.js"), import("./locales/extra/tg.js")]),
+  en: () =>
+    Promise.all([import("./locales/en.js"), import("./locales/extra/en.js")]),
 };
+
+const loadedMessages = { ru: BASE_MESSAGES };
 
 function resolvePath(obj, path) {
   return String(path || "")
@@ -49,6 +53,33 @@ const I18nContext = React.createContext({
 
 export function I18nProvider({ children }) {
   const [lang, setLangState] = React.useState(readStoredLang);
+  const [messages, setMessages] = React.useState(
+    () => loadedMessages[readStoredLang()] || BASE_MESSAGES
+  );
+
+  React.useEffect(() => {
+    if (loadedMessages[lang]) {
+      setMessages(loadedMessages[lang]);
+      return undefined;
+    }
+
+    let active = true;
+
+    LOCALE_LOADERS[lang]?.()
+      .then(([base, extra]) => {
+        const merged = mergeLocale(base.default, extra.default);
+        loadedMessages[lang] = merged;
+
+        if (active) setMessages(merged);
+      })
+      .catch(() => {
+        // Keep showing the fallback rather than blanking the interface.
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [lang]);
 
   const setLang = React.useCallback((nextLang) => {
     const normalized = normalizeLang(nextLang);
@@ -69,12 +100,12 @@ export function I18nProvider({ children }) {
 
   const t = React.useCallback(
     (key, vars) => {
-      const primary = resolvePath(MESSAGES[lang], key);
-      const fallback = resolvePath(MESSAGES.ru, key);
+      const primary = resolvePath(messages, key);
+      const fallback = resolvePath(BASE_MESSAGES, key);
       const value = primary ?? fallback ?? key;
       return typeof value === "string" ? interpolate(value, vars) : value;
     },
-    [lang]
+    [messages]
   );
 
   const value = React.useMemo(

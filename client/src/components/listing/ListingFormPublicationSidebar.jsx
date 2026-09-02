@@ -2,6 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { Tag, CheckCircle2, RotateCcw, Phone, ShieldAlert } from "lucide-react";
 import ListingFormPreview from "./ListingFormPreview";
+import { useI18n } from "../../i18n";
 
 export default function ListingFormPublicationSidebar({
   categoryTitle,
@@ -18,25 +19,27 @@ export default function ListingFormPublicationSidebar({
   previewItem = null,
   moderationHint = null,
 }) {
+  const { t } = useI18n();
+
   return (
     <aside className="hidden lg:block">
       <div className="listing-form-sidebar">
         <div className="flex items-center gap-2">
           <Tag className="w-5 h-5 text-sun" />
           <h2 className="font-display text-lg font-semibold text-ink tracking-tight">
-            Публикация
+            {t("listing.publication")}
           </h2>
         </div>
 
         <div className="rounded-xl border border-ink/8 bg-mist/50 p-3 space-y-2 text-sm">
           <div className="flex items-center justify-between gap-3">
-            <span className="text-ink-400">Категория</span>
+            <span className="text-ink-400">{t("listing.category")}</span>
             <span className="font-semibold text-ink text-right">
               {categoryTitle || "—"}
             </span>
           </div>
           <div className="flex items-center justify-between gap-3">
-            <span className="text-ink-400">Подкатегория</span>
+            <span className="text-ink-400">{t("listing.subcategory")}</span>
             <span className="font-semibold text-ink text-right">
               {subcategory || "—"}
             </span>
@@ -66,10 +69,10 @@ export default function ListingFormPublicationSidebar({
             >
               <span className="inline-flex items-center gap-1.5">
                 <Phone size={14} />
-                Телефон
+                {t("listing.phone")}
               </span>
               <span className="font-medium">
-                {hasPhone ? "Указан" : "Нужен в профиле"}
+                {hasPhone ? t("listing.phoneSet") : t("listing.phoneNeeded")}
               </span>
             </div>
           ) : null}
@@ -80,7 +83,7 @@ export default function ListingFormPublicationSidebar({
             to="/profile?tab=profile"
             className="block rounded-xl border border-sun/20 bg-sun-50 px-3 py-2.5 text-xs font-medium text-sun-800 hover:bg-sun-50/80"
           >
-            Добавьте телефон в профиле, чтобы покупатели могли связаться с вами.
+            {t("listing.addPhoneHint")}
           </Link>
         ) : null}
 
@@ -103,11 +106,11 @@ export default function ListingFormPublicationSidebar({
           <CheckCircle2 className="w-5 h-5" />
           {saving
             ? isEdit
-              ? "Сохранение..."
-              : "Публикация..."
+              ? t("listing.savingShort")
+              : t("listing.publishingShort")
             : isEdit
-              ? "Сохранить изменения"
-              : "Опубликовать"}
+              ? t("listing.saveChanges")
+              : t("listing.publishShort")}
         </button>
 
         {!canPublish && publishHint ? (
@@ -120,7 +123,7 @@ export default function ListingFormPublicationSidebar({
           className="w-full inline-flex items-center justify-center gap-2 rounded-xl border border-ink/10 px-4 py-2.5 text-sm font-medium text-ink-600 hover:bg-mist transition"
         >
           <RotateCcw className="w-4 h-4" />
-          Сбросить
+          {t("listing.resetForm")}
         </button>
 
         {footerNote ? (

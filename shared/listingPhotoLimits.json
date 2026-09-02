@@ -1,0 +1,18 @@
+{
+  "CATEGORY_PHOTO_LIMITS": {
+    "phones": 5,
+    "electronics": 5,
+    "transport": 6,
+    "computers": 6,
+    "services": 5,
+    "repair": 3,
+    "realestate": 8,
+    "furniture": 6
+  },
+  "CATEGORY_MIN_PHOTOS": {
+    "transport": 3,
+    "realestate": 3,
+    "services": 1,
+    "repair": 1
+  }
+}

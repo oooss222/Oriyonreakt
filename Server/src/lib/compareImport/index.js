@@ -315,24 +315,60 @@ function parseGeneric(html, url, cat, platform = "other") {
   };
 }
 
+const MAX_REDIRECTS = 3;
+const MAX_HTML_BYTES = 2_000_000;
+
 async function fetchPage(url) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 12000);
 
   try {
-    const res = await fetch(url, {
-      signal: controller.signal,
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (compatible; OriyonCompareBot/1.0; +https://oriyon.store)",
-        Accept: "text/html,application/xhtml+xml",
-        "Accept-Language": "ru-RU,ru;q=0.9,en;q=0.8",
-      },
-      redirect: "follow",
-    });
+    let currentUrl = url;
+    let res;
+
+    // Follow redirects manually so every hop is re-checked against the host
+    // allowlist; an open redirect on a partner site must not reach internal IPs.
+    for (let hop = 0; hop <= MAX_REDIRECTS; hop += 1) {
+      res = await fetch(currentUrl, {
+        signal: controller.signal,
+        headers: {
+          "User-Agent":
+            "Mozilla/5.0 (compatible; OriyonCompareBot/1.0; +https://oriyon.store)",
+          Accept: "text/html,application/xhtml+xml",
+          "Accept-Language": "ru-RU,ru;q=0.9,en;q=0.8",
+        },
+        redirect: "manual",
+      });
+
+      if (res.status < 300 || res.status >= 400) {
+        break;
+      }
+
+      const location = res.headers.get("location");
+      if (!location) {
+        break;
+      }
+
+      const nextUrl = normalizeUrl(new URL(location, currentUrl).toString());
+
+      if (!nextUrl) {
+        throw new Error("Ссылка ведёт за пределы поддерживаемых площадок");
+      }
+
+      if (hop === MAX_REDIRECTS) {
+        throw new Error("Слишком много перенаправлений");
+      }
+
+      currentUrl = nextUrl;
+    }
 
     if (!res.ok) {
       throw new Error(`Сайт вернул ошибку ${res.status}`);
+    }
+
+    const declaredLength = Number(res.headers.get("content-length") || 0);
+    if (declaredLength > MAX_HTML_BYTES) {
+      throw new Error("Страница слишком большая для импорта");
     }
 
     const html = await res.text();
@@ -340,7 +376,7 @@ async function fetchPage(url) {
       throw new Error("Пустой ответ от сайта");
     }
 
-    if (html.length > 2_000_000) {
+    if (html.length > MAX_HTML_BYTES) {
       throw new Error("Страница слишком большая для импорта");
     }
 

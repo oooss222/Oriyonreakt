@@ -7,7 +7,7 @@ import { useListingViewed } from "../lib/viewedListings";
 import { getPromotionCardClass } from "../lib/promotionStyles";
 import { useI18n } from "../i18n";
 
-export default function ListingCard({
+function ListingCard({
   item,
   onFav,
   listings,
@@ -78,3 +78,7 @@ export default function ListingCard({
     </article>
   );
 }
+
+// Grids render dozens of these; without memo a filter or sort change re-renders
+// every card even though its listing has not changed.
+export default React.memo(ListingCard);

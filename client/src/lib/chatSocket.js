@@ -1,8 +1,7 @@
-import { io } from "socket.io-client";
-
 const TOKEN_KEY = "auth_token";
 
 let socket = null;
+let connecting = null;
 
 function getSocketUrl() {
   const apiBase =
@@ -34,25 +33,35 @@ export function getChatSocket() {
 export function connectChatSocket(token = localStorage.getItem(TOKEN_KEY) || "") {
   if (!token) {
     disconnectChatSocket();
-    return null;
+    return Promise.resolve(null);
   }
 
   if (socket?.connected && socket.auth?.token === token) {
-    return socket;
+    return Promise.resolve(socket);
   }
 
-  disconnectChatSocket();
+  if (connecting) return connecting;
 
-  socket = io(getSocketUrl(), {
-    auth: { token },
-    path: "/socket.io",
-    transports: ["websocket", "polling"],
-    autoConnect: true,
-    reconnection: true,
-    reconnectionAttempts: Infinity,
-  });
+  connecting = import("socket.io-client")
+    .then(({ io }) => {
+      disconnectChatSocket();
 
-  return socket;
+      socket = io(getSocketUrl(), {
+        auth: { token },
+        path: "/socket.io",
+        transports: ["websocket", "polling"],
+        autoConnect: true,
+        reconnection: true,
+        reconnectionAttempts: Infinity,
+      });
+
+      return socket;
+    })
+    .finally(() => {
+      connecting = null;
+    });
+
+  return connecting;
 }
 
 export function disconnectChatSocket() {

@@ -43,7 +43,11 @@ function Toast({ message, type = "info", onClose, closeLabel }) {
       : "bg-ink-800";
 
   return (
-    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[120] animate-fade-in-up">
+    <div
+      role={type === "error" ? "alert" : "status"}
+      aria-live={type === "error" ? "assertive" : "polite"}
+      className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[120] animate-fade-in-up"
+    >
       <div
         className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-white text-sm shadow-lift backdrop-blur-sm ${styles}`}
       >
@@ -370,8 +374,7 @@ export default function Messages() {
   React.useEffect(() => {
     if (!token) return undefined;
 
-    const socket = connectChatSocket(token);
-    if (!socket) return undefined;
+    let cancelled = false;
 
     const onConnect = () => {
       setSocketReady(true);
@@ -540,22 +543,32 @@ export default function Messages() {
       });
     };
 
-    socket.on("connect", onConnect);
-    socket.on("disconnect", onDisconnect);
-    socket.on("connect_error", onConnectError);
-    socket.on("message:new", onMessageNew);
-    socket.on("messages:read", onMessagesRead);
-    socket.on("typing:start", onTypingStart);
-    socket.on("typing:stop", onTypingStop);
-    socket.on("presence:update", onPresenceUpdate);
-    socket.on("presence:snapshot", onPresenceSnapshot);
+    connectChatSocket(token).then((socket) => {
+      if (cancelled || !socket) return;
 
-    if (socket.connected) {
-      setSocketReady(true);
-      socket.emit("presence:heartbeat");
-    }
+      socket.on("connect", onConnect);
+      socket.on("disconnect", onDisconnect);
+      socket.on("connect_error", onConnectError);
+      socket.on("message:new", onMessageNew);
+      socket.on("messages:read", onMessagesRead);
+      socket.on("typing:start", onTypingStart);
+      socket.on("typing:stop", onTypingStop);
+      socket.on("presence:update", onPresenceUpdate);
+      socket.on("presence:snapshot", onPresenceSnapshot);
+
+      if (socket.connected) {
+        setSocketReady(true);
+        socket.emit("presence:heartbeat");
+      }
+    });
 
     return () => {
+      cancelled = true;
+      const socket = getChatSocket();
+      if (!socket) {
+        setSocketReady(false);
+        return;
+      }
       socket.off("connect", onConnect);
       socket.off("disconnect", onDisconnect);
       socket.off("connect_error", onConnectError);

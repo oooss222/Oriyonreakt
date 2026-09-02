@@ -1,3 +1,4 @@
+const crypto = require("crypto");
 const { Pool } = require("pg");
 const { validateQueryArgs } = require("./lib/sqlSafety");
 const {
@@ -9,6 +10,8 @@ const { setupRowLevelSecurity } = require("./lib/rowLevelSecurity");
 
 const DATABASE_URL =
   process.env.DATABASE_URL || process.env.POSTGRES_URL;
+
+const IS_PRODUCTION = process.env.NODE_ENV === "production";
 
 const USER_ROLES = [
   "user",
@@ -47,22 +50,64 @@ const PAYMENT_ORDER_STATUSES = [
   "cancelled",
 ];
 
+function databaseHostIsLocal(url) {
+  try {
+    const parsed = new URL(String(url).replace(/^postgres(ql)?:/i, "http:"));
+    return parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1";
+  } catch {
+    return /(?:localhost|127\.0\.0\.1)(?::|\/|$)/i.test(String(url));
+  }
+}
+
+function sslExplicitlyDisabled() {
+  const value = String(
+    process.env.DATABASE_SSL || process.env.PGSSLMODE || ""
+  ).toLowerCase();
+  return value === "disable" || value === "false" || value === "off";
+}
+
 function getPoolConfig() {
   const poolDefaults = {
-    connectionTimeoutMillis: 5000,
-    idleTimeoutMillis: 30000,
-    query_timeout: 10000,
-    statement_timeout: 10000,
+    // Render runs a single small instance, so a large pool only queues work
+    // inside Postgres instead of the app.
+    max: Number(process.env.PGPOOL_MAX || 8),
+    connectionTimeoutMillis: Number(
+      process.env.PGCONNECT_TIMEOUT_MS || 10000
+    ),
+    idleTimeoutMillis: 60000,
+    query_timeout: 15000,
+    statement_timeout: 15000,
   };
 
   if (!DATABASE_URL) {
+    if (IS_PRODUCTION) {
+      throw new Error("DATABASE_URL is required in production");
+    }
+
     return {
       ...poolDefaults,
       host: process.env.PGHOST || "localhost",
       port: Number(process.env.PGPORT || 5432),
       database: process.env.PGDATABASE || "oriyon",
       user: process.env.PGUSER || "postgres",
-      password: process.env.PGPASSWORD || "password",
+      password: process.env.PGPASSWORD || "postgres",
+    };
+  }
+
+  // Newer pg treats sslmode=require in the URL as strict cert verification.
+  // Strip it and configure SSL explicitly for managed Postgres.
+  const connectionString = DATABASE_URL.replace(
+    /([?&])sslmode=[^&]*&?/g,
+    "$1"
+  )
+    .replace(/[?&]$/, "");
+
+  // GitHub Actions and local Docker Postgres do not speak TLS. Forcing SSL
+  // there aborts every query with "server does not support SSL connections".
+  if (sslExplicitlyDisabled() || databaseHostIsLocal(DATABASE_URL)) {
+    return {
+      ...poolDefaults,
+      connectionString,
     };
   }
 
@@ -70,14 +115,14 @@ function getPoolConfig() {
     process.env.DATABASE_CA ||
     process.env.CA_CERT ||
     process.env.PGSSLROOTCERT;
+  const allowInsecure =
+    String(process.env.DATABASE_SSL_INSECURE || "").toLowerCase() === "true";
 
-  // Newer pg treats sslmode=require in the URL as strict cert verification.
-  // Strip it and configure SSL explicitly for managed Postgres (DigitalOcean).
-  const connectionString = DATABASE_URL.replace(
-    /([?&])sslmode=[^&]*&?/g,
-    "$1"
-  )
-    .replace(/[?&]$/, "");
+  if (IS_PRODUCTION && !ca && !allowInsecure) {
+    console.warn(
+      "DATABASE_CA is not set; TLS will connect without verifying the server certificate. Set DATABASE_CA or DATABASE_SSL_INSECURE=true."
+    );
+  }
 
   return {
     ...poolDefaults,
@@ -93,6 +138,31 @@ pool.on("error", (err) => {
   console.error("POSTGRES_POOL_ERROR:", err);
 });
 
+function rlsContextKey(ctx) {
+  return `${ctx.role || "anon"}\u0000${ctx.userId || ""}`;
+}
+
+/**
+ * Applies the RLS context at session scope and remembers it on the pooled
+ * client. A connection is held exclusively between connect() and release(),
+ * so a cached context can never be observed by another request, and repeat
+ * queries under the same identity skip the round trip entirely.
+ */
+async function applyRlsContext(client, ctx) {
+  const key = rlsContextKey(ctx);
+
+  if (client._rlsContextKey === key) {
+    return;
+  }
+
+  await client.query(
+    `SELECT set_config('app.user_id', $1, false), set_config('app.role', $2, false)`,
+    [ctx.userId ? String(ctx.userId) : "", ctx.role || "anon"]
+  );
+
+  client._rlsContextKey = key;
+}
+
 async function query(text, params = []) {
   validateQueryArgs(text, params);
 
@@ -104,18 +174,11 @@ async function query(text, params = []) {
   const client = await pool.connect();
 
   try {
-    await client.query("BEGIN");
-    await client.query(`SELECT set_config('app.user_id', $1, true)`, [
-      ctx.userId ? String(ctx.userId) : "",
-    ]);
-    await client.query(`SELECT set_config('app.role', $1, true)`, [
-      ctx.role || "anon",
-    ]);
-    const result = await client.query(text, params);
-    await client.query("COMMIT");
-    return result;
+    await applyRlsContext(client, ctx);
+    return await client.query(text, params);
   } catch (error) {
-    await client.query("ROLLBACK").catch(() => {});
+    // Never trust the cached identity after a failure on this connection.
+    client._rlsContextKey = null;
     throw error;
   } finally {
     client.release();
@@ -123,7 +186,7 @@ async function query(text, params = []) {
 }
 
 async function initDb() {
-  await query(`
+  const schemaSql = `
     CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
     CREATE TABLE IF NOT EXISTS users (
@@ -352,6 +415,11 @@ async function initDb() {
 
     ALTER TABLE listings
       ADD COLUMN IF NOT EXISTS re_price_per_sqm NUMERIC;
+
+    -- Numeric mirror of the free-form price column, written by the app so that
+    -- range filters and price sorting can use an index.
+    ALTER TABLE listings
+      ADD COLUMN IF NOT EXISTS price_num NUMERIC;
 
     CREATE INDEX IF NOT EXISTS idx_listings_re_area
       ON listings(re_area_sqm)
@@ -731,12 +799,139 @@ async function initDb() {
 
     CREATE INDEX IF NOT EXISTS idx_user_events_type_created
       ON user_events(event_type, created_at DESC);
-  `);
 
+    -- Subcategory is compared directly so the index can be used; older rows may
+    -- still carry stray whitespace from earlier imports.
+    UPDATE listings
+    SET subcategory = TRIM(subcategory)
+    WHERE subcategory <> TRIM(subcategory);
+  `;
+
+  // Re-applying ~130 DDL statements and recreating every RLS policy on each
+  // boot delayed startup and made deploys briefly unreliable. The fingerprint
+  // covers the schema text and the source of the functions that shape it, so
+  // any change to either re-runs the migration automatically.
+  const fingerprint = schemaFingerprint(schemaSql);
+  const alreadyApplied = await isSchemaApplied(fingerprint);
+
+  if (!alreadyApplied) {
+    await query(schemaSql);
+    await createOptionalIndexes();
+    await setupRowLevelSecurity(query);
+    await markSchemaApplied(fingerprint);
+  } else {
+    console.log("Schema already current, skipping migrations");
+  }
+
+  // Cheap and self-limiting: these read nothing once there is nothing to fix.
+  await backfillPriceNum();
   await backfillRealEstateMeta();
   await migrateServiceCategories();
   await seedRealEstateDevelopments();
-  await setupRowLevelSecurity(query);
+}
+
+function schemaFingerprint(schemaSql) {
+  return crypto
+    .createHash("sha256")
+    .update(schemaSql)
+    .update(String(createOptionalIndexes))
+    .update(String(setupRowLevelSecurity))
+    .digest("hex");
+}
+
+async function isSchemaApplied(fingerprint) {
+  await query(`
+    CREATE TABLE IF NOT EXISTS schema_state (
+      id SMALLINT PRIMARY KEY DEFAULT 1 CHECK (id = 1),
+      fingerprint TEXT NOT NULL,
+      applied_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
+  `);
+
+  const result = await query(
+    `SELECT fingerprint FROM schema_state WHERE id = 1`
+  );
+
+  return result.rows[0]?.fingerprint === fingerprint;
+}
+
+async function markSchemaApplied(fingerprint) {
+  await query(
+    `
+    INSERT INTO schema_state (id, fingerprint, applied_at)
+    VALUES (1, $1, now())
+    ON CONFLICT (id) DO UPDATE
+      SET fingerprint = EXCLUDED.fingerprint,
+          applied_at = now()
+    `,
+    [fingerprint]
+  );
+}
+
+/**
+ * Indexes matching the catalogue's real access patterns. They are applied one
+ * by one and failures are logged rather than thrown: a missing index only
+ * costs speed, while a failed statement here would stop the server booting
+ * (trigram search, for instance, needs an extension the DB role may not be
+ * allowed to create).
+ */
+async function createOptionalIndexes() {
+  const statements = [
+    `CREATE EXTENSION IF NOT EXISTS pg_trgm`,
+
+    // Category pages: approved rows of one category, newest first.
+    `CREATE INDEX IF NOT EXISTS idx_listings_approved_cat_created
+       ON listings (cat, created_at DESC)
+       WHERE status = 'approved'`,
+
+    // Home and city pages sort promoted first, then by bump date.
+    `CREATE INDEX IF NOT EXISTS idx_listings_approved_feed
+       ON listings (cat, location, bumped_at DESC NULLS LAST, created_at DESC)
+       WHERE status = 'approved'`,
+
+    // Location filter had no index at all.
+    `CREATE INDEX IF NOT EXISTS idx_listings_approved_location
+       ON listings (location, created_at DESC)
+       WHERE status = 'approved'`,
+
+    // Seller profile and "my listings".
+    `CREATE INDEX IF NOT EXISTS idx_listings_owner_status_created
+       ON listings (owner, status, created_at DESC)`,
+
+    // Popularity sort.
+    `CREATE INDEX IF NOT EXISTS idx_listings_approved_views
+       ON listings (views DESC NULLS LAST, created_at DESC)
+       WHERE status = 'approved'`,
+
+    // Search runs ILIKE '%text%', which only a trigram index can serve.
+    `CREATE INDEX IF NOT EXISTS idx_listings_title_trgm
+       ON listings USING gin (title gin_trgm_ops)`,
+
+    `CREATE INDEX IF NOT EXISTS idx_listings_description_trgm
+       ON listings USING gin (description gin_trgm_ops)`,
+
+    // Spec filters read the JSONB column on every row.
+    `CREATE INDEX IF NOT EXISTS idx_listings_specs_gin
+       ON listings USING gin (specs jsonb_path_ops)`,
+
+    // Seller-type filter resolves through users.
+    `CREATE INDEX IF NOT EXISTS idx_users_seller_type_active
+       ON users (seller_type)
+       WHERE is_blocked = false`,
+
+    // Price range filter and price sorting.
+    `CREATE INDEX IF NOT EXISTS idx_listings_approved_price_num
+       ON listings (price_num)
+       WHERE status = 'approved' AND price_num IS NOT NULL`,
+  ];
+
+  for (const statement of statements) {
+    try {
+      await query(statement);
+    } catch (e) {
+      console.warn("INDEX_SKIPPED:", e?.message);
+    }
+  }
 }
 
 async function migrateServiceCategories() {
@@ -850,6 +1045,61 @@ async function seedRealEstateDevelopments() {
         item.lng,
       ]
     );
+  }
+}
+
+/**
+ * Fills price_num for rows written before the column existed. Parsing happens
+ * in JS so a malformed price yields null instead of aborting the statement,
+ * and rows are updated in one batched statement per chunk.
+ */
+async function backfillPriceNum() {
+  const { parsePriceValue } = require("./lib/priceValue");
+  const BATCH_SIZE = 500;
+
+  for (;;) {
+    const result = await query(
+      `
+      SELECT id, price
+      FROM listings
+      WHERE price_num IS NULL
+        AND price <> ''
+      LIMIT $1
+      `,
+      [BATCH_SIZE]
+    );
+
+    if (!result.rows.length) return;
+
+    const ids = [];
+    const values = [];
+
+    for (const row of result.rows) {
+      const parsed = parsePriceValue(row.price);
+
+      if (parsed === null) continue;
+
+      ids.push(row.id);
+      values.push(parsed);
+    }
+
+    if (ids.length) {
+      await query(
+        `
+        UPDATE listings AS l
+        SET price_num = v.price_num
+        FROM (
+          SELECT unnest($1::uuid[]) AS id, unnest($2::numeric[]) AS price_num
+        ) AS v
+        WHERE l.id = v.id
+        `,
+        [ids, values]
+      );
+    }
+
+    // Rows whose price cannot be parsed would be re-read forever otherwise.
+    if (ids.length < result.rows.length) return;
+    if (result.rows.length < BATCH_SIZE) return;
   }
 }
 

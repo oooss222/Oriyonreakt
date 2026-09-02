@@ -1,19 +1,7 @@
-export const VIP_PLANS = [
-  { days: 1, price: 3 },
-  { days: 3, price: 7 },
-  { days: 5, price: 10 },
-  { days: 7, price: 15 },
-];
+import data from "@shared/promotionPlans.json";
 
-export const TOP_PLANS = [
-  { days: 1, price: 2 },
-  { days: 3, price: 4 },
-  { days: 5, price: 7 },
-  { days: 7, price: 11 },
-  { days: 10, price: 16 },
-  { days: 20, price: 25 },
-  { days: 30, price: 40 },
-];
+export const VIP_PLANS = data.VIP_PLANS;
+export const TOP_PLANS = data.TOP_PLANS;
 
 export function getPromotionPlans(type) {
   return type === "vip" ? VIP_PLANS : type === "top" ? TOP_PLANS : [];

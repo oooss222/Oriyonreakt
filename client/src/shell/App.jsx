@@ -1,32 +1,42 @@
 import React from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, ScrollRestoration } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import MobileNav from "../components/MobileNav";
 import CompareFloatingBar from "../components/CompareFloatingBar";
 import CookieConsent from "../components/CookieConsent";
-import { connectChatSocket, disconnectChatSocket, getChatSocket } from "../lib/chatSocket";
+import { disconnectChatSocket, getChatSocket } from "../lib/chatSocket";
 import { TOKEN_KEY } from "../lib/auth";
 import { useLayoutConfig } from "../lib/useLayoutConfig";
+
+function RouteFallback() {
+  return (
+    <div className="page-container py-10" aria-busy="true">
+      <div className="h-8 w-48 rounded-xl bg-mist animate-pulse" />
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {Array.from({ length: 8 }).map((_, index) => (
+          <div
+            key={index}
+            className="h-48 rounded-2xl bg-mist animate-pulse"
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export default function App() {
   const layout = useLayoutConfig();
 
   React.useEffect(() => {
-    const connect = () => {
+    const heartbeat = setInterval(() => {
       const token = localStorage.getItem(TOKEN_KEY) || "";
 
       if (!token) {
         disconnectChatSocket();
-        return null;
+        return;
       }
 
-      return connectChatSocket(token);
-    };
-
-    connect();
-
-    const heartbeat = setInterval(() => {
       const activeSocket = getChatSocket();
 
       if (activeSocket?.connected) {
@@ -41,6 +51,8 @@ export default function App() {
 
   return (
     <div className="page-shell min-h-screen flex flex-col overflow-x-clip">
+      {/* Returns to the previous scroll position on Back instead of jumping. */}
+      <ScrollRestoration />
       <Header variant={layout.headerVariant} />
 
       <main
@@ -50,7 +62,9 @@ export default function App() {
             : ""
         }`}
       >
-        <Outlet />
+        <React.Suspense fallback={<RouteFallback />}>
+          <Outlet />
+        </React.Suspense>
       </main>
 
       {layout.showFooter && (

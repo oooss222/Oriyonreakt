@@ -1,3 +1,5 @@
+@import "./fonts.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -31,6 +33,26 @@
   ::selection {
     background: rgb(255 106 0 / 0.2);
     color: var(--ink);
+  }
+
+  /* Keyboard users had no visible focus indicator beyond the browser default,
+     which several components suppressed. */
+  :focus-visible {
+    @apply outline-none ring-2 ring-sun/50 ring-offset-2 ring-offset-white rounded-lg;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 
   h1,

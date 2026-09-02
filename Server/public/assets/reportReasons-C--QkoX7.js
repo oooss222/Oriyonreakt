@@ -1,0 +1,1 @@
+const l=[{id:"fraud",label:"Мошенничество"},{id:"spam",label:"Спам"},{id:"prohibited",label:"Запрещённый товар"},{id:"wrong_category",label:"Неверная категория"},{id:"duplicate",label:"Дубликат"},{id:"other",label:"Другое"}],e=Object.fromEntries(l.map(a=>[a.id,a.label]));export{l as R,e as a};

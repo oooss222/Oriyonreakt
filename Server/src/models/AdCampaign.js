@@ -1,5 +1,7 @@
 const { query } = require("../db");
 const { assertEnumValue } = require("../lib/sqlSafety");
+const { sanitizeAdHtml, assertAdUrls } = require("../lib/adContent");
+const { isAllowedLinkUrl } = require("../lib/mediaUrl");
 
 const PLACEMENTS = [
   "home_mid",
@@ -22,11 +24,13 @@ function mapAdCampaign(row) {
     advertiser: row.advertiser || "",
     placement: row.placement,
     format: row.format || "banner",
-    imageUrl: row.image_url || "",
-    linkUrl: row.link_url || "",
+    imageUrl: isAllowedLinkUrl(row.image_url) ? row.image_url : "",
+    linkUrl: isAllowedLinkUrl(row.link_url) ? row.link_url : "",
     headline: row.headline || "",
     description: row.description || "",
-    htmlCode: row.html_code || "",
+    // Sanitized on read as well so campaigns stored before validation existed
+    // cannot inject script into visitors' pages.
+    htmlCode: sanitizeAdHtml(row.html_code),
     cat: row.cat || "",
     priority: Number(row.priority || 0),
     impressions: Number(row.impressions || 0),
@@ -118,6 +122,8 @@ class AdCampaignModel {
   }
 
   static async create(data, createdBy = null) {
+    assertAdUrls(data);
+
     const result = await query(
       `
       INSERT INTO ad_campaigns (
@@ -149,7 +155,7 @@ class AdCampaignModel {
         String(data.linkUrl || "").trim(),
         String(data.headline || "").trim(),
         String(data.description || "").trim(),
-        String(data.htmlCode || "").trim(),
+        sanitizeAdHtml(data.htmlCode),
         String(data.cat || "").trim(),
         Number(data.priority || 0),
         data.active !== false,
@@ -163,6 +169,8 @@ class AdCampaignModel {
   }
 
   static async update(id, data) {
+    assertAdUrls(data);
+
     const result = await query(
       `
       UPDATE ad_campaigns
@@ -195,7 +203,7 @@ class AdCampaignModel {
         String(data.linkUrl || "").trim(),
         String(data.headline || "").trim(),
         String(data.description || "").trim(),
-        String(data.htmlCode || "").trim(),
+        sanitizeAdHtml(data.htmlCode),
         String(data.cat || "").trim(),
         Number(data.priority || 0),
         data.active !== false,

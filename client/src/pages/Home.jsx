@@ -10,6 +10,7 @@ import { useI18n } from "../i18n";
 import { getDefaultCity } from "../lib/recommendationProfile";
 import { CONSENT_EVENT } from "../lib/cookieConsent";
 import { sortListingsByPromotion } from "../lib/listingSort";
+import { usePageMeta } from "../lib/usePageMeta";
 import { REAL_ESTATE_CAT, DEFAULT_REAL_ESTATE_BROWSE_PATH } from "../data/realEstate";
 import {
   PlusCircle,
@@ -146,6 +147,12 @@ export default function Home() {
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState("");
   const [reloadKey, setReloadKey] = React.useState(0);
+
+  usePageMeta({
+    title: t("home.metaTitle"),
+    description: t("home.metaDescription"),
+    url: typeof window !== "undefined" ? `${window.location.origin}/` : "",
+  });
 
   React.useEffect(() => {
     const handleConsent = () => setReloadKey((value) => value + 1);

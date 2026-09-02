@@ -189,6 +189,7 @@ export default {
     NAME_REQUIRED: "Номи худро ворид кунед",
     INVALID_EMAIL: "Email нодуруст",
     IDENTITY_REQUIRED: "Email ё рақами телефонро ворид кунед",
+    INVALID_CREDENTIALS: "Email ё парол нодуруст аст.",
     network: "Пайвастшавӣ ба сервер нест. Интернетро санҷед.",
   },
   compare: {

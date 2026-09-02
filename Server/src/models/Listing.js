@@ -1,5 +1,6 @@
 const { query, mapListing, LISTING_STATUSES } = require("../db");
 const { extractRealEstateMeta } = require("../lib/realEstateMeta");
+const { parsePriceValue } = require("../lib/priceValue");
 const {
   assertEnumValue,
   bindLike,
@@ -22,35 +23,47 @@ const REGION_CITIES = {
   Худжанд: ["Худжанд"],
 };
 
+// Columns are table-qualified because these clauses run against queries that
+// join users, where created_at would otherwise be ambiguous.
 const PROMOTION_ORDER =
-  "(vip_until > now()) DESC, (top_until > now()) DESC";
+  "(listings.vip_until > now()) DESC, (listings.top_until > now()) DESC";
+
+// Selects the owner columns the listing cards need. A join keeps this to one
+// lookup per row instead of one per column.
+const OWNER_JOIN_SELECT = `
+        owner_user.seller_type AS owner_seller_type,
+        owner_user.business_verified AS owner_business_verified,
+        owner_user.company_name AS owner_company_name`;
+
+const OWNER_JOIN = `
+      LEFT JOIN users owner_user ON owner_user.id = listings.owner`;
 
 function buildListingOrderBy(sort, priceExpr) {
   if (sort === "old") {
-    return "created_at ASC";
+    return "listings.created_at ASC";
   }
 
   if (sort === "price_asc") {
-    return `${PROMOTION_ORDER}, ${priceExpr} ASC NULLS LAST, created_at DESC`;
+    return `${PROMOTION_ORDER}, ${priceExpr} ASC NULLS LAST, listings.created_at DESC`;
   }
 
   if (sort === "price_desc") {
-    return `${PROMOTION_ORDER}, ${priceExpr} DESC NULLS LAST, created_at DESC`;
+    return `${PROMOTION_ORDER}, ${priceExpr} DESC NULLS LAST, listings.created_at DESC`;
   }
 
   if (sort === "views_desc") {
-    return `${PROMOTION_ORDER}, COALESCE(views, 0) DESC, created_at DESC`;
+    return `${PROMOTION_ORDER}, COALESCE(listings.views, 0) DESC, listings.created_at DESC`;
   }
 
   if (sort === "price_per_sqm_asc") {
-    return `${PROMOTION_ORDER}, re_price_per_sqm ASC NULLS LAST, created_at DESC`;
+    return `${PROMOTION_ORDER}, listings.re_price_per_sqm ASC NULLS LAST, listings.created_at DESC`;
   }
 
   if (sort === "price_per_sqm_desc") {
-    return `${PROMOTION_ORDER}, re_price_per_sqm DESC NULLS LAST, created_at DESC`;
+    return `${PROMOTION_ORDER}, listings.re_price_per_sqm DESC NULLS LAST, listings.created_at DESC`;
   }
 
-  return `${PROMOTION_ORDER}, COALESCE(bumped_at, created_at) DESC, created_at DESC`;
+  return `${PROMOTION_ORDER}, COALESCE(listings.bumped_at, listings.created_at) DESC, listings.created_at DESC`;
 }
 
 function parseGuestCapacity(value) {
@@ -210,16 +223,9 @@ function buildListingFilters({
   const minPrice = toNumberOrNull(priceFrom);
   const maxPrice = toNumberOrNull(priceTo);
 
-  const priceExpr = `
-    NULLIF(
-      replace(
-        regexp_replace(price, '[^0-9,.-]', '', 'g'),
-        ',',
-        '.'
-      ),
-      ''
-    )::numeric
-  `;
+  // Written by the app on every insert and update, so the range filter and the
+  // price sort can use an index instead of casting text per row.
+  const priceExpr = "listings.price_num";
 
   if (status) {
     values.push(status);
@@ -249,8 +255,10 @@ function buildListingFilters({
   }
 
   if (subcategory) {
+    // Values are trimmed on write and existing rows are normalised at startup,
+    // so this compares the raw column and can use idx_listings_subcategory.
     values.push(String(subcategory).trim());
-    conditions.push(`TRIM(subcategory) = $${values.length}`);
+    conditions.push(`subcategory = $${values.length}`);
   }
 
   if (search) {
@@ -433,7 +441,8 @@ class ListingModel {
       re_district,
       re_lat,
       re_lng,
-      re_price_per_sqm
+      re_price_per_sqm,
+      price_num
     )
     VALUES (
       FLOOR(10000000 + RANDOM() * 90000000),
@@ -456,7 +465,8 @@ class ListingModel {
       $15,
       $16,
       $17,
-      $18
+      $18,
+      $19
     )
     RETURNING *
     `,
@@ -470,15 +480,16 @@ class ListingModel {
         JSON.stringify(data.images || []),
         JSON.stringify(data.specs || []),
         data.owner,
-        reMeta.re_deal_type,
-        reMeta.re_rooms,
-        reMeta.re_area_sqm,
-        reMeta.re_floor,
-        reMeta.re_floors_total,
-        reMeta.re_district,
-        reMeta.re_lat,
-        reMeta.re_lng,
-        reMeta.re_price_per_sqm,
+        reMeta.re_deal_type ?? null,
+        reMeta.re_rooms ?? null,
+        reMeta.re_area_sqm ?? null,
+        reMeta.re_floor ?? null,
+        reMeta.re_floors_total ?? null,
+        reMeta.re_district ?? null,
+        reMeta.re_lat ?? null,
+        reMeta.re_lng ?? null,
+        reMeta.re_price_per_sqm ?? null,
+        parsePriceValue(data.price),
       ]
     );
 
@@ -552,23 +563,8 @@ class ListingModel {
 
     let sql = `
       SELECT
-        listings.*,
-        (
-          SELECT seller_type
-          FROM users
-          WHERE id = listings.owner
-        ) AS owner_seller_type,
-        (
-          SELECT business_verified
-          FROM users
-          WHERE id = listings.owner
-        ) AS owner_business_verified,
-        (
-          SELECT company_name
-          FROM users
-          WHERE id = listings.owner
-        ) AS owner_company_name
-      FROM listings
+        listings.*,${OWNER_JOIN_SELECT}
+      FROM listings${OWNER_JOIN}
     `;
 
     if (conditions.length) {
@@ -711,43 +707,23 @@ class ListingModel {
       conditions.push(`subcategory = $${values.length}`);
     }
 
-    const priceExpr = `
-      NULLIF(
-        replace(
-          regexp_replace(price, '[^0-9,.-]', '', 'g'),
-          ',',
-          '.'
-        ),
-        ''
-      )::numeric
-    `;
-
     const result = await query(
       `
-      WITH priced AS (
-        SELECT
-          ${priceExpr} AS price_num,
-          re_price_per_sqm
-        FROM listings
-        WHERE ${conditions.join(" AND ")}
-      )
       SELECT
-        (SELECT COUNT(*)::int FROM priced WHERE price_num IS NOT NULL AND price_num > 0) AS sample,
-        (
-          SELECT percentile_cont(0.5) WITHIN GROUP (ORDER BY price_num)
-          FROM priced
+        COUNT(*) FILTER (
           WHERE price_num IS NOT NULL AND price_num > 0
-        ) AS median_price,
-        (
-          SELECT AVG(price_num)
-          FROM priced
+        )::int AS sample,
+        percentile_cont(0.5) WITHIN GROUP (ORDER BY price_num)
+          FILTER (WHERE price_num IS NOT NULL AND price_num > 0) AS median_price,
+        AVG(price_num) FILTER (
           WHERE price_num IS NOT NULL AND price_num > 0
         ) AS avg_price,
-        (
-          SELECT percentile_cont(0.5) WITHIN GROUP (ORDER BY re_price_per_sqm)
-          FROM priced
-          WHERE re_price_per_sqm IS NOT NULL AND re_price_per_sqm > 0
-        ) AS median_price_per_sqm
+        percentile_cont(0.5) WITHIN GROUP (ORDER BY re_price_per_sqm)
+          FILTER (
+            WHERE re_price_per_sqm IS NOT NULL AND re_price_per_sqm > 0
+          ) AS median_price_per_sqm
+      FROM listings
+      WHERE ${conditions.join(" AND ")}
       `,
       values
     );
@@ -883,6 +859,9 @@ class ListingModel {
         re_lat = COALESCE($18, re_lat),
         re_lng = COALESCE($19, re_lng),
         re_price_per_sqm = COALESCE($20, re_price_per_sqm),
+        -- Only rewrite when a new price was supplied; an unparseable price must
+        -- clear the numeric mirror rather than leave a stale value behind.
+        price_num = CASE WHEN $4::text IS NULL THEN price_num ELSE $21 END,
         updated_at = now()
       WHERE id = $1 AND owner = $2
       RETURNING *
@@ -908,6 +887,7 @@ class ListingModel {
         reMeta?.re_lat ?? null,
         reMeta?.re_lng ?? null,
         reMeta?.re_price_per_sqm ?? null,
+        data.price == null ? null : parsePriceValue(data.price),
       ]
     );
 
@@ -1061,15 +1041,16 @@ class ListingModel {
     return true;
   }
 
-  static async findByOwner(ownerId) {
+  static async findByOwner(ownerId, { limit = 200 } = {}) {
     const result = await query(
       `
       SELECT *
       FROM listings
       WHERE owner = $1
       ORDER BY created_at DESC
+      LIMIT $2
       `,
-      [ownerId]
+      [ownerId, Math.min(Math.max(Number(limit) || 200, 1), 500)]
     );
 
     return result.rows.map(mapListing);
@@ -1633,34 +1614,32 @@ class ListingModel {
     return result.rows.map(mapListing);
   }
 
-  static async findByIds(ids = []) {
+  /**
+   * @param {string[]} ids
+   * @param {{status?: string|null}} options `status: null` returns any status
+   *   the caller is allowed to see, which favourites rely on so a sold listing
+   *   does not silently vanish from the list.
+   */
+  static async findByIds(ids = [], { status = "approved" } = {}) {
     const clean = [...new Set(ids.map((id) => String(id || "").trim()).filter(Boolean))];
     if (!clean.length) return [];
+
+    const values = [clean];
+    const conditions = ["listings.id = ANY($1::uuid[])"];
+
+    if (status) {
+      values.push(status);
+      conditions.push(`listings.status = $${values.length}`);
+    }
 
     const result = await query(
       `
       SELECT
-        listings.*,
-        (
-          SELECT seller_type
-          FROM users
-          WHERE id = listings.owner
-        ) AS owner_seller_type,
-        (
-          SELECT business_verified
-          FROM users
-          WHERE id = listings.owner
-        ) AS owner_business_verified,
-        (
-          SELECT company_name
-          FROM users
-          WHERE id = listings.owner
-        ) AS owner_company_name
-      FROM listings
-      WHERE status = 'approved'
-        AND id = ANY($1::uuid[])
+        listings.*,${OWNER_JOIN_SELECT}
+      FROM listings${OWNER_JOIN}
+      WHERE ${conditions.join(" AND ")}
       `,
-      [clean]
+      values
     );
 
     const mapped = new Map(
@@ -1701,16 +1680,7 @@ class ListingModel {
       conditions.push(`listings.location = $${values.length}`);
     }
 
-    const priceExpr = `
-      NULLIF(
-        replace(
-          regexp_replace(listings.price, '[^0-9,.-]', '', 'g'),
-          ',',
-          '.'
-        ),
-        ''
-      )::numeric
-    `;
+    const priceExpr = "listings.price_num";
 
     const minPrice = toNumberOrNull(priceFrom);
     const maxPrice = toNumberOrNull(priceTo);
@@ -1730,23 +1700,8 @@ class ListingModel {
     const result = await query(
       `
       SELECT
-        listings.*,
-        (
-          SELECT seller_type
-          FROM users
-          WHERE id = listings.owner
-        ) AS owner_seller_type,
-        (
-          SELECT business_verified
-          FROM users
-          WHERE id = listings.owner
-        ) AS owner_business_verified,
-        (
-          SELECT company_name
-          FROM users
-          WHERE id = listings.owner
-        ) AS owner_company_name
-      FROM listings
+        listings.*,${OWNER_JOIN_SELECT}
+      FROM listings${OWNER_JOIN}
       WHERE ${conditions.join(" AND ")}
       ORDER BY ${PROMOTION_ORDER}, COALESCE(listings.bumped_at, listings.created_at) DESC, listings.created_at DESC
       LIMIT $${values.length}
