@@ -1,4 +1,6 @@
 import React from "react";
+import { useI18n } from "../../i18n";
+import { Chip } from "../../ui";
 
 function PresetRow({ presets = [], activeFrom = "", activeTo = "", onSelect }) {
   if (!presets.length) return null;
@@ -13,21 +15,19 @@ function PresetRow({ presets = [], activeFrom = "", activeTo = "", onSelect }) {
           String(activeTo || "") === String(preset.to || "");
 
         return (
-          <button
+          <Chip
             key={preset.label}
-            type="button"
+            active={active}
+            className="filter-chip text-xs"
             onClick={() =>
               onSelect?.({
                 from: preset.from ? String(preset.from) : "",
                 to: preset.to ? String(preset.to) : "",
               })
             }
-            className={`h-9 px-3 rounded-full border text-xs font-medium transition chip ${
-              active ? "chip-active" : ""
-            }`}
           >
             {preset.label}
-          </button>
+          </Chip>
         );
       })}
     </div>
@@ -35,33 +35,38 @@ function PresetRow({ presets = [], activeFrom = "", activeTo = "", onSelect }) {
 }
 
 export default function RangeFilter({
+  label = "",
   from = "",
   to = "",
   onChange,
   presets = [],
-  fromPlaceholder = "от",
-  toPlaceholder = "до",
+  fromPlaceholder,
+  toPlaceholder,
   inputMode = "numeric",
   suffix = "",
   selectOptions = [],
 }) {
+  const { t } = useI18n();
+  const fromLabel = fromPlaceholder || t("filter.from");
+  const toLabel = toPlaceholder || t("filter.to");
   const handleFrom = (value) => onChange?.({ from: value, to });
   const handleTo = (value) => onChange?.({ from, to: value });
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2.5">
       <div className="grid grid-cols-2 gap-2">
         {selectOptions.length > 0 ? (
           <>
             <select
               value={from}
               onChange={(e) => handleFrom(e.target.value)}
-              className="mobile-control"
+              aria-label={`${label} ${fromLabel}`.trim()}
+              className="select"
             >
-              <option value="">Любая</option>
+              <option value="">{t("filter.any")}</option>
               {selectOptions.map((item) => (
                 <option key={`from-${item}`} value={item}>
-                  {fromPlaceholder} {item}
+                  {fromLabel} {item}
                   {suffix}
                 </option>
               ))}
@@ -69,12 +74,13 @@ export default function RangeFilter({
             <select
               value={to}
               onChange={(e) => handleTo(e.target.value)}
-              className="mobile-control"
+              aria-label={`${label} ${toLabel}`.trim()}
+              className="select"
             >
-              <option value="">Любая</option>
+              <option value="">{t("filter.any")}</option>
               {selectOptions.map((item) => (
                 <option key={`to-${item}`} value={item}>
-                  {toPlaceholder} {item}
+                  {toLabel} {item}
                   {suffix}
                 </option>
               ))}
@@ -93,8 +99,9 @@ export default function RangeFilter({
                     : e.target.value
                 )
               }
-              placeholder={fromPlaceholder}
-              className="mobile-control"
+              placeholder={fromLabel}
+              aria-label={`${label} ${fromLabel}`.trim()}
+              className="input"
             />
             <input
               type="text"
@@ -107,8 +114,9 @@ export default function RangeFilter({
                     : e.target.value
                 )
               }
-              placeholder={toPlaceholder}
-              className="mobile-control"
+              placeholder={toLabel}
+              aria-label={`${label} ${toLabel}`.trim()}
+              className="input"
             />
           </>
         )}

@@ -6,14 +6,20 @@ import { cn } from "./cn";
  * Checkbox drawn as a styled box over a real `<input>`, so keyboard, form
  * submission and assistive tech all keep working.
  */
+// `boxed` turns the row into a selectable card, which is what option lists
+// (report reasons, delivery options, plans) need to hit a comfortable target.
+const BOXED =
+  "min-h-[2.75rem] rounded-xl border border-ink-200 px-3 py-2.5 transition-colors hover:bg-mist-50 has-[:checked]:border-sun-400 has-[:checked]:bg-sun-50";
+
 const Checkbox = React.forwardRef(function Checkbox(
-  { label, description, className = "", labelClassName = "", ...rest },
+  { label, description, boxed = false, className = "", labelClassName = "", ...rest },
   ref
 ) {
   return (
     <label
       className={cn(
         "flex cursor-pointer items-start gap-2.5 text-sm text-ink-700",
+        boxed && BOXED,
         rest.disabled && "cursor-not-allowed opacity-60",
         className
       )}
@@ -41,13 +47,14 @@ const Checkbox = React.forwardRef(function Checkbox(
 export default Checkbox;
 
 export const Radio = React.forwardRef(function Radio(
-  { label, description, className = "", ...rest },
+  { label, description, boxed = false, className = "", ...rest },
   ref
 ) {
   return (
     <label
       className={cn(
         "flex cursor-pointer items-start gap-2.5 text-sm text-ink-700",
+        boxed && BOXED,
         rest.disabled && "cursor-not-allowed opacity-60",
         className
       )}

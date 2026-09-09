@@ -19,7 +19,8 @@ import MyListingsPanel from "../components/profile/MyListingsPanel";
 import ProfileListingsGrid from "../components/profile/ProfileListingsGrid";
 import SavedSearchesTab from "../components/profile/SavedSearchesTab";
 import SellerAnalyticsPanel from "../components/profile/SellerAnalyticsPanel";
-import { getId, normalizeTab } from "../components/profile/profileUtils";
+import { getId, normalizeTab, summarizeListings } from "../components/profile/profileUtils";
+import { EmptyState } from "../ui";
 import { useI18n } from "../i18n";
 import { getUserFacingErrorMessage } from "../lib/apiError";
 
@@ -507,6 +508,7 @@ export default function Profile() {
   );
 
   const walletBalance = Number(me?.walletBalance || 0);
+  const listingStats = React.useMemo(() => summarizeListings(myItems), [myItems]);
   const role = me?.role || "user";
   const canOpenAdmin = canAccessAdminPanel(role);
   const canOpenModeration =
@@ -514,20 +516,38 @@ export default function Profile() {
 
   if (!token) {
     return (
-      <div className="container mx-auto px-4 py-10">
-        <div className="rounded-2xl border bg-white p-6 text-center space-y-3">
-          <h1 className="text-2xl font-bold">Личный кабинет</h1>
-          <p className="text-slate-600">Вы не авторизованы.</p>
-          <Link to="/auth" className="btn btn-primary">
-            Войти / Зарегистрироваться
-          </Link>
-        </div>
+      <div className="page-container py-10">
+        <EmptyState
+          title={t("profile.needAuth")}
+          description={t("profile.needAuthDesc")}
+          actionLabel={t("auth.loginTab")}
+          actionTo="/auth"
+        />
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 space-y-5 sm:space-y-6 max-w-7xl">
+    <div className="page-container stack-page">
+      <ProfileHeader
+        me={me}
+        role={role}
+        emailStatus={emailStatus}
+        walletBalance={walletBalance}
+        stats={listingStats}
+        favCount={favItems.length}
+        activeStatus={tab === "my" ? undefined : tab === "fav" ? "favorites" : undefined}
+        onSelectStatus={(status) => {
+          setTab("my");
+          window.dispatchEvent(
+            new CustomEvent("oriyon:profile-status-filter", { detail: status })
+          );
+        }}
+        onOpenFavorites={() => setTab("fav")}
+        onOpenWallet={() => setTab("wallet")}
+        onLogout={logout}
+      />
+
       <ProfileTabs
         tab={tab}
         setTab={setTab}
@@ -538,17 +558,6 @@ export default function Profile() {
         canAccessAccountant={canAccessAccountant}
         role={role}
       />
-
-      {tab === "profile" && (
-        <ProfileHeader
-          me={me}
-          role={role}
-          emailStatus={emailStatus}
-          walletBalance={walletBalance}
-          onOpenWallet={() => setTab("wallet")}
-          onLogout={logout}
-        />
-      )}
 
       {tab === "moderation" && canOpenModeration && (
         <ModerationListingsPanel token={token} />

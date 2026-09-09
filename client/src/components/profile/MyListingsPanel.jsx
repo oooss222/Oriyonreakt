@@ -40,6 +40,17 @@ export default function MyListingsPanel({
   const [priceTo, setPriceTo] = React.useState("");
   const [selectMode, setSelectMode] = React.useState(false);
   const [selectedIds, setSelectedIds] = React.useState(() => new Set());
+  React.useEffect(() => {
+    const onStatus = (event) => {
+      const next = event.detail || "all";
+      setStatusFilter(next);
+      setApplied((current) => ({ ...current, statusFilter: next }));
+    };
+
+    window.addEventListener("oriyon:profile-status-filter", onStatus);
+    return () => window.removeEventListener("oriyon:profile-status-filter", onStatus);
+  }, []);
+
   const [applied, setApplied] = React.useState({
     sort: "newest",
     statusFilter: "all",

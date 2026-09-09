@@ -1,18 +1,11 @@
 import React from "react";
-import {
-  ChevronDown,
-  ChevronUp,
-  Search,
-  SlidersHorizontal,
-  X,
-  ArrowUpDown,
-} from "lucide-react";
+import { ChevronDown, Search, SlidersHorizontal, X } from "lucide-react";
 import { getListingFilterGrid } from "../data/filterGrids";
 import { LOCATIONS, formatPriceInput, getPriceDigits, COMMON_SPEC_OPTIONS } from "../data/specOptions";
 import RangeFilter from "./filters/RangeFilter";
 import { getDistrictsForCity } from "../data/realEstate";
-import { getSellerFilterOptions } from "../lib/filterConflicts";
 import { useI18n } from "../i18n";
+import { Checkbox, Chip, Field, Input, Radio, Select, cn } from "../ui";
 
 function commitDraft(setDraft, onApply, updater, current) {
   const next = updater(current);
@@ -20,107 +13,81 @@ function commitDraft(setDraft, onApply, updater, current) {
   onApply?.(next);
 }
 
-function FilterSection({ title, defaultOpen = true, children }) {
+function FilterGroup({ title, defaultOpen = true, collapsible = true, children }) {
   const [open, setOpen] = React.useState(defaultOpen);
+  const baseId = React.useId();
+  const labelId = `${baseId}-label`;
+  const bodyId = `${baseId}-body`;
 
   return (
-    <section className="border-b border-ink/10 py-4 last:border-b-0">
-      <button
-        type="button"
-        onClick={() => setOpen((value) => !value)}
-        className="flex w-full items-center justify-between gap-3 text-left"
-      >
-        <span className="label-caps">{title}</span>
-        {open ? (
-          <ChevronUp size={16} className="shrink-0 text-ink-300" />
-        ) : (
-          <ChevronDown size={16} className="shrink-0 text-ink-300" />
-        )}
-      </button>
+    <section className="filter-group" role="group" aria-labelledby={labelId}>
+      {collapsible ? (
+        <button
+          type="button"
+          onClick={() => setOpen((value) => !value)}
+          className="filter-group__toggle"
+          aria-expanded={open}
+          aria-controls={bodyId}
+        >
+          <span id={labelId} className="label-caps">
+            {title}
+          </span>
+          <ChevronDown
+            size={16}
+            aria-hidden="true"
+            className={cn("filter-group__chevron", open && "filter-group__chevron--open")}
+          />
+        </button>
+      ) : (
+        <span id={labelId} className="label-caps">
+          {title}
+        </span>
+      )}
 
-      {open ? <div className="mt-3 space-y-3">{children}</div> : null}
+      <div id={bodyId} className="filter-group__body" hidden={collapsible && !open}>
+        {children}
+      </div>
     </section>
   );
 }
 
-function RadioOption({ active, label, count, onSelect }) {
+function RadioOption({ name, active, label, count, onSelect }) {
   return (
-    <button
-      type="button"
-      onClick={onSelect}
-      className="flex w-full items-center justify-between gap-3 rounded-xl px-1 py-1.5 text-left transition hover:bg-mist/70"
-    >
-      <span className="flex min-w-0 items-center gap-2.5">
-        <span
-          className={`grid h-4 w-4 shrink-0 place-items-center rounded-full border-2 transition ${
-            active ? "border-sun" : "border-ink/20"
-          }`}
-        >
-          {active ? <span className="h-2 w-2 rounded-full bg-sun" /> : null}
-        </span>
-        <span
-          className={`truncate text-sm ${
-            active ? "font-semibold text-ink" : "text-ink-600"
-          }`}
-        >
-          {label}
-        </span>
-      </span>
+    <div className="filter-option">
+      <Radio
+        name={name}
+        checked={active}
+        onChange={onSelect}
+        label={label}
+        className="min-w-0 flex-1"
+      />
+
       {typeof count === "number" ? (
-        <span className="shrink-0 text-xs font-medium text-ink-300">
-          {count.toLocaleString("ru-RU")}
-        </span>
+        <span className="filter-option__count">{count.toLocaleString("ru-RU")}</span>
       ) : null}
-    </button>
-  );
-}
-
-function PillGroup({ value, options, onChange }) {
-  return (
-    <div className="flex flex-wrap gap-2">
-      {options.map((option) => {
-        const active = value === option.value;
-
-        return (
-          <button
-            key={option.value || "__all__"}
-            type="button"
-            onClick={() => onChange(option.value)}
-            className={`rounded-full border px-3.5 py-1.5 text-sm font-medium transition ${
-              active
-                ? "border-ink bg-ink text-white"
-                : "border-ink/12 bg-white text-ink-600 hover:border-ink/25"
-            }`}
-          >
-            {option.label}
-          </button>
-        );
-      })}
     </div>
   );
 }
 
-function SidebarSelect({ value, placeholder, options, onChange }) {
+function ChipGroup({ label, value, options, onChange }) {
+  const labelId = React.useId();
+
   return (
-    <div className="relative">
-      <select
-        value={value || ""}
-        onChange={(event) => onChange(event.target.value)}
-        className={`filter-sidebar__select ${
-          value ? "text-ink font-medium" : "text-ink-400"
-        }`}
-      >
-        <option value="">{placeholder}</option>
-        {options.map((option) => (
-          <option key={option} value={option}>
-            {option}
-          </option>
-        ))}
-      </select>
-      <ChevronDown
-        size={16}
-        className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-ink-300"
-      />
+    <div role="group" aria-labelledby={labelId} className="flex flex-wrap gap-2">
+      <span id={labelId} className="sr-only">
+        {label}
+      </span>
+
+      {options.map((option) => (
+        <Chip
+          key={option.value || "__all__"}
+          active={value === option.value}
+          className="filter-chip"
+          onClick={() => onChange(option.value)}
+        >
+          {option.label}
+        </Chip>
+      ))}
     </div>
   );
 }
@@ -137,8 +104,10 @@ export default function ListingFiltersSidebar({
   previewTotal = 0,
   previewLoading = false,
   hasActiveFilters = false,
+  activeFilterCount = 0,
 }) {
   const { t } = useI18n();
+  const subcategoryName = React.useId();
   const grid = React.useMemo(
     () => getListingFilterGrid(activeCat, draft.subcategory),
     [activeCat, draft.subcategory]
@@ -159,14 +128,6 @@ export default function ListingFiltersSidebar({
 
     return fields;
   }, [grid]);
-
-  const sortField = flatFields.find((field) => field.type === "sort");
-  const sortLabels = grid?.sortOptions || {
-    new: t("filter.sortNew"),
-    views_desc: t("filter.sortPopular"),
-    price_asc: t("filter.sortPriceAsc"),
-    price_desc: t("filter.sortPriceDesc"),
-  };
 
   const extraSpecFields = flatFields.filter(
     (field) =>
@@ -205,133 +166,116 @@ export default function ListingFiltersSidebar({
     ? "…"
     : (previewTotal || categoryTotal || 0).toLocaleString("ru-RU");
 
+  const setSpec = (specKey, value, extra = {}) =>
+    commitDraft(
+      setDraft,
+      onApply,
+      (current) => {
+        const nextSpecs = { ...current.specs };
+
+        if (value) {
+          nextSpecs[specKey] = value;
+        } else {
+          delete nextSpecs[specKey];
+        }
+
+        if (specKey === "Марка" || specKey === "Марка авто" || specKey === "Производитель") {
+          delete nextSpecs.Модель;
+        }
+
+        return { ...current, specs: nextSpecs, ...extra };
+      },
+      draft
+    );
+
+  const selectSubcategory = (value) =>
+    commitDraft(
+      setDraft,
+      onApply,
+      (current) => ({
+        ...current,
+        subcategory: value,
+        specs: {},
+        areaFrom: "",
+        areaTo: "",
+        floorFrom: "",
+        floorTo: "",
+        floorNotFirst: false,
+        floorNotLast: false,
+      }),
+      draft
+    );
+
+  const hasMoreFilters =
+    extraSpecFields.length > 0 ||
+    dependentSpecFields.length > 0 ||
+    rangeFields.length > 0 ||
+    Boolean(regionField) ||
+    Boolean(districtField) ||
+    sellerOptions.length > 0 ||
+    toggleFields.length > 0;
+
   return (
     <div className="filter-sidebar">
       <div className="filter-sidebar__header">
-        <SlidersHorizontal size={18} className="text-ink-500" />
-        <h2 className="text-base font-bold text-ink">{t("filter.title")}</h2>
+        <SlidersHorizontal size={18} className="text-ink-500" aria-hidden="true" />
+        <h2 className="text-base font-bold text-ink-900">{t("filter.title")}</h2>
+        {activeFilterCount > 0 && (
+          <span className="filter-sidebar__count">{activeFilterCount}</span>
+        )}
       </div>
 
       <div className="filter-sidebar__body">
-        <FilterSection title="Ключевые слова">
-          <label className="relative block">
-            <Search
-              size={16}
-              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-300"
-            />
-            <input
-              value={draft.search}
-              onChange={(event) =>
-                setDraft((current) => ({
-                  ...current,
-                  search: event.target.value,
-                }))
+        <FilterGroup title={t("filter.keywords")}>
+          <Input
+            iconLeft={Search}
+            value={draft.search}
+            onChange={(event) =>
+              setDraft((current) => ({ ...current, search: event.target.value }))
+            }
+            onKeyDown={(event) => {
+              if (event.key === "Enter") {
+                event.preventDefault();
+                onApply?.(draft);
               }
-              placeholder="Например: iPhone 13 Pro"
-              className="filter-sidebar__input pl-9"
-            />
-          </label>
-        </FilterSection>
-
-        {sortField ? (
-          <FilterSection title={t("filter.sort")}>
-            <div className="relative">
-              <ArrowUpDown
-                size={16}
-                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-300"
-              />
-              <select
-                value={draft.sort || "new"}
-                onChange={(event) =>
-                  commitDraft(
-                    setDraft,
-                    onApply,
-                    (current) => ({
-                      ...current,
-                      sort: event.target.value,
-                    }),
-                    draft
-                  )
-                }
-                className="filter-sidebar__select pl-9"
-              >
-                {Object.entries(sortLabels).map(([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown
-                size={16}
-                className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-ink-300"
-              />
-            </div>
-          </FilterSection>
-        ) : null}
+            }}
+            placeholder={t("filter.keywordsPlaceholder")}
+            aria-label={t("filter.keywords")}
+          />
+        </FilterGroup>
 
         {availableSubcategories.length > 0 ? (
-          <FilterSection title="Категория">
-            <div className="space-y-0.5">
+          <FilterGroup title={t("filter.category")}>
+            <div className="-mx-1">
               <RadioOption
+                name={subcategoryName}
                 active={!draft.subcategory}
-                label="Все категории"
+                label={t("filter.allCategories")}
                 count={categoryTotal}
-                onSelect={() =>
-                  commitDraft(
-                    setDraft,
-                    onApply,
-                    (current) => ({
-                      ...current,
-                      subcategory: "",
-                      specs: {},
-                      areaFrom: "",
-                      areaTo: "",
-                      floorFrom: "",
-                      floorTo: "",
-                      floorNotFirst: false,
-                      floorNotLast: false,
-                    }),
-                    draft
-                  )
-                }
+                onSelect={() => selectSubcategory("")}
               />
 
               {availableSubcategories.map((sub) => (
                 <RadioOption
                   key={sub}
+                  name={subcategoryName}
                   active={draft.subcategory === sub}
                   label={sub}
                   count={statsBySubcategory[sub] || 0}
-                  onSelect={() =>
-                    commitDraft(
-                      setDraft,
-                      onApply,
-                      (current) => ({
-                        ...current,
-                        subcategory: sub,
-                        specs: {},
-                        areaFrom: "",
-                        areaTo: "",
-                        floorFrom: "",
-                        floorTo: "",
-                        floorNotFirst: false,
-                        floorNotLast: false,
-                      }),
-                      draft
-                    )
-                  }
+                  onSelect={() => selectSubcategory(sub)}
                 />
               ))}
             </div>
-          </FilterSection>
+          </FilterGroup>
         ) : null}
 
-        <FilterSection title="Цена">
+        <FilterGroup title={t("filter.price")}>
           <div className="grid grid-cols-2 gap-2">
-            <input
+            <Input
               type="text"
               inputMode="numeric"
-              placeholder="от"
+              placeholder={t("filter.from")}
+              aria-label={`${t("filter.price")}, ${t("filter.from")}`}
               value={draft.priceFrom ? formatPriceInput(draft.priceFrom) : ""}
               onChange={(event) =>
                 setDraft((current) => ({
@@ -339,12 +283,12 @@ export default function ListingFiltersSidebar({
                   priceFrom: getPriceDigits(event.target.value),
                 }))
               }
-              className="filter-sidebar__input"
             />
-            <input
+            <Input
               type="text"
               inputMode="numeric"
-              placeholder="до"
+              placeholder={t("filter.to")}
+              aria-label={`${t("filter.price")}, ${t("filter.to")}`}
               value={draft.priceTo ? formatPriceInput(draft.priceTo) : ""}
               onChange={(event) =>
                 setDraft((current) => ({
@@ -352,16 +296,16 @@ export default function ListingFiltersSidebar({
                   priceTo: getPriceDigits(event.target.value),
                 }))
               }
-              className="filter-sidebar__input"
             />
           </div>
-        </FilterSection>
+        </FilterGroup>
 
-        <FilterSection title="Город">
-          <PillGroup
+        <FilterGroup title={t("filter.city")}>
+          <ChipGroup
+            label={t("filter.city")}
             value={draft.location || ""}
             options={[
-              { value: "", label: "Все" },
+              { value: "", label: t("filter.all") },
               ...LOCATIONS.map((city) => ({ value: city, label: city })),
             ]}
             onChange={(value) =>
@@ -388,135 +332,78 @@ export default function ListingFiltersSidebar({
               )
             }
           />
-        </FilterSection>
+        </FilterGroup>
 
-        <FilterSection title="Состояние">
-          <PillGroup
+        <FilterGroup title={t("filter.condition")} defaultOpen={false}>
+          <ChipGroup
+            label={t("filter.condition")}
             value={conditionValue}
             options={[
-              { value: "", label: "Все" },
+              { value: "", label: t("filter.all") },
               ...COMMON_SPEC_OPTIONS.condition.map((option) => ({
                 value: option,
                 label: option === "Новый" ? "Новое" : option,
               })),
             ]}
-            onChange={(value) =>
-              commitDraft(
-                setDraft,
-                onApply,
-                (current) => {
-                  const nextSpecs = { ...current.specs };
-
-                  if (value) {
-                    nextSpecs["Состояние"] = value;
-                  } else {
-                    delete nextSpecs["Состояние"];
-                  }
-
-                  return {
-                    ...current,
-                    specs: nextSpecs,
-                  };
-                },
-                draft
-              )
-            }
+            onChange={(value) => setSpec("Состояние", value)}
           />
-        </FilterSection>
+        </FilterGroup>
 
-        {(extraSpecFields.length > 0 ||
-          dependentSpecFields.length > 0 ||
-          rangeFields.length > 0 ||
-          regionField ||
-          districtField ||
-          sellerOptions.length > 0 ||
-          toggleFields.length > 0) && (
-          <FilterSection title="Дополнительно" defaultOpen={false}>
+        {hasMoreFilters && (
+          <FilterGroup title={t("filter.more")} defaultOpen={false}>
             {regionField ? (
-              <SidebarSelect
-                value={draft.region}
-                placeholder={regionField.label}
-                options={regionField.options || []}
-                onChange={(value) =>
-                  commitDraft(
-                    setDraft,
-                    onApply,
-                    (current) => ({
-                      ...current,
-                      region: value,
-                      location: value ? "" : current.location,
-                    }),
-                    draft
-                  )
-                }
-              />
+              <Field label={regionField.label}>
+                {(props) => (
+                  <Select
+                    {...props}
+                    value={draft.region || ""}
+                    placeholder={t("filter.any")}
+                    options={regionField.options || []}
+                    onChange={(event) =>
+                      commitDraft(
+                        setDraft,
+                        onApply,
+                        (current) => ({
+                          ...current,
+                          region: event.target.value,
+                          location: event.target.value ? "" : current.location,
+                        }),
+                        draft
+                      )
+                    }
+                  />
+                )}
+              </Field>
             ) : null}
 
             {districtField ? (
-              <SidebarSelect
-                value={draft.specs?.[districtField.specKey] || ""}
-                placeholder={districtField.label}
-                options={getDistrictsForCity(draft.location || "Душанбе")}
-                onChange={(value) =>
-                  commitDraft(
-                    setDraft,
-                    onApply,
-                    (current) => {
-                      const nextSpecs = { ...current.specs };
-
-                      if (value) {
-                        nextSpecs[districtField.specKey] = value;
-                      } else {
-                        delete nextSpecs[districtField.specKey];
-                      }
-
-                      return {
-                        ...current,
-                        specs: nextSpecs,
-                      };
-                    },
-                    draft
-                  )
-                }
-              />
+              <Field label={districtField.label}>
+                {(props) => (
+                  <Select
+                    {...props}
+                    value={draft.specs?.[districtField.specKey] || ""}
+                    placeholder={t("filter.any")}
+                    options={getDistrictsForCity(draft.location || "Душанбе")}
+                    onChange={(event) =>
+                      setSpec(districtField.specKey, event.target.value)
+                    }
+                  />
+                )}
+              </Field>
             ) : null}
 
             {extraSpecFields.map((field) => (
-              <SidebarSelect
-                key={field.id}
-                value={draft.specs?.[field.specKey] || ""}
-                placeholder={field.label}
-                options={field.options || []}
-                onChange={(value) =>
-                  commitDraft(
-                    setDraft,
-                    onApply,
-                    (current) => {
-                      const nextSpecs = { ...current.specs };
-
-                      if (value) {
-                        nextSpecs[field.specKey] = value;
-                      } else {
-                        delete nextSpecs[field.specKey];
-                      }
-
-                      if (field.specKey === "Марка" || field.specKey === "Марка авто") {
-                        delete nextSpecs.Модель;
-                      }
-
-                      if (field.specKey === "Производитель") {
-                        delete nextSpecs.Модель;
-                      }
-
-                      return {
-                        ...current,
-                        specs: nextSpecs,
-                      };
-                    },
-                    draft
-                  )
-                }
-              />
+              <Field key={field.id} label={field.label}>
+                {(props) => (
+                  <Select
+                    {...props}
+                    value={draft.specs?.[field.specKey] || ""}
+                    placeholder={t("filter.any")}
+                    options={field.options || []}
+                    onChange={(event) => setSpec(field.specKey, event.target.value)}
+                  />
+                )}
+              </Field>
             ))}
 
             {dependentSpecFields.map((field) => {
@@ -524,42 +411,26 @@ export default function ListingFiltersSidebar({
               const options = field.optionsFrom?.[parentValue] || [];
 
               return (
-                <SidebarSelect
-                  key={field.id}
-                  value={draft.specs?.[field.specKey] || ""}
-                  placeholder={field.label}
-                  options={options}
-                  onChange={(value) =>
-                    commitDraft(
-                      setDraft,
-                      onApply,
-                      (current) => {
-                        const nextSpecs = { ...current.specs };
-
-                        if (value) {
-                          nextSpecs[field.specKey] = value;
-                        } else {
-                          delete nextSpecs[field.specKey];
-                        }
-
-                        return {
-                          ...current,
-                          specs: nextSpecs,
-                        };
-                      },
-                      draft
-                    )
-                  }
-                />
+                <Field key={field.id} label={field.label}>
+                  {(props) => (
+                    <Select
+                      {...props}
+                      value={draft.specs?.[field.specKey] || ""}
+                      placeholder={t("filter.any")}
+                      options={options}
+                      disabled={!parentValue}
+                      onChange={(event) => setSpec(field.specKey, event.target.value)}
+                    />
+                  )}
+                </Field>
               );
             })}
 
             {rangeFields.map((field) => (
               <div key={field.id}>
-                <div className="mb-2 text-xs font-medium text-ink-400">
-                  {field.label}
-                </div>
+                <span className="field-label">{field.label}</span>
                 <RangeFilter
+                  label={field.label}
                   from={draft[field.rangeFromKey] || ""}
                   to={draft[field.rangeToKey] || ""}
                   onChange={({ from, to }) =>
@@ -578,87 +449,58 @@ export default function ListingFiltersSidebar({
             ))}
 
             {sellerOptions.length > 0 ? (
-              <div className="space-y-2">
-                {sellerOptions.map((option) => {
-                  const active = draft.sellerType === option.value;
-
-                  return (
-                    <label
-                      key={option.value}
-                      className="flex cursor-pointer items-center justify-between gap-3 rounded-xl px-1 py-1.5 hover:bg-mist/70"
-                    >
-                      <span className="flex items-center gap-2.5">
-                        <input
-                          type="checkbox"
-                          checked={active}
-                          onChange={() =>
-                            commitDraft(
-                              setDraft,
-                              onApply,
-                              (current) => ({
-                                ...current,
-                                sellerType:
-                                  current.sellerType === option.value
-                                    ? ""
-                                    : option.value,
-                              }),
-                              draft
-                            )
-                          }
-                          className="h-4 w-4 rounded border-ink/20 text-sun focus:ring-sun/30"
-                        />
-                        <span className="text-sm text-ink-700">{option.label}</span>
-                      </span>
-                    </label>
-                  );
-                })}
+              <div role="group" aria-label={t("filter.seller")} className="-mx-1">
+                {sellerOptions.map((option) => (
+                  <div key={option.value} className="filter-option">
+                    <Checkbox
+                      label={option.label}
+                      checked={draft.sellerType === option.value}
+                      onChange={() =>
+                        commitDraft(
+                          setDraft,
+                          onApply,
+                          (current) => ({
+                            ...current,
+                            sellerType:
+                              current.sellerType === option.value ? "" : option.value,
+                          }),
+                          draft
+                        )
+                      }
+                    />
+                  </div>
+                ))}
               </div>
             ) : null}
 
-            {toggleFields.map((field) => {
-              const active = Boolean(draft[field.toggleKey]);
-
-              return (
-                <label
-                  key={field.id}
-                  className="flex cursor-pointer items-center gap-2.5 rounded-xl px-1 py-1.5 hover:bg-mist/70"
-                >
-                  <input
-                    type="checkbox"
-                    checked={active}
-                    onChange={() =>
-                      commitDraft(
-                        setDraft,
-                        onApply,
-                        (current) => ({
-                          ...current,
-                          [field.toggleKey]: !current[field.toggleKey],
-                        }),
-                        draft
-                      )
-                    }
-                    className="h-4 w-4 rounded border-ink/20 text-sun focus:ring-sun/30"
-                  />
-                  <span className="text-sm text-ink-700">{field.label}</span>
-                </label>
-              );
-            })}
-          </FilterSection>
+            {toggleFields.length > 0 ? (
+              <div className="-mx-1">
+                {toggleFields.map((field) => (
+                  <div key={field.id} className="filter-option">
+                    <Checkbox
+                      label={field.label}
+                      checked={Boolean(draft[field.toggleKey])}
+                      onChange={() =>
+                        commitDraft(
+                          setDraft,
+                          onApply,
+                          (current) => ({
+                            ...current,
+                            [field.toggleKey]: !current[field.toggleKey],
+                          }),
+                          draft
+                        )
+                      }
+                    />
+                  </div>
+                ))}
+              </div>
+            ) : null}
+          </FilterGroup>
         )}
-
-        {hasActiveFilters ? (
-          <button
-            type="button"
-            onClick={onReset}
-            className="inline-flex items-center gap-1.5 text-sm text-ink-400 transition hover:text-ink-600"
-          >
-            <X size={15} />
-            {t("filter.reset")}
-          </button>
-        ) : null}
       </div>
 
-      <div className="filter-sidebar__footer">
+      <div className="filter-sidebar__footer space-y-1.5">
         <button
           type="button"
           onClick={() => onApply()}
@@ -666,6 +508,13 @@ export default function ListingFiltersSidebar({
         >
           {previewLoading ? t("filter.showLoading") : t("filter.showCount", { count: showCount })}
         </button>
+
+        {hasActiveFilters ? (
+          <button type="button" onClick={onReset} className="filter-reset w-full justify-center">
+            <X size={15} aria-hidden="true" />
+            {t("filter.reset")}
+          </button>
+        ) : null}
       </div>
     </div>
   );

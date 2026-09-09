@@ -8,6 +8,7 @@ import { formatRegistrationDate } from "../../lib/format";
 import { isCompareSupported } from "../../lib/compareListings";
 import { isRealEstateListing } from "../../lib/realEstate";
 import { StarRating } from "../SellerReviewsPanel";
+import { useI18n } from "../../i18n";
 
 function getInitials(name) {
   const parts = String(name || "")
@@ -42,6 +43,7 @@ export default function AdPurchasePanel({
   copied,
   onReport,
 }) {
+  const { t } = useI18n();
   const compareCat = isRealEstateListing(ad) ? "realestate" : ad?.cat;
   const showCompare = isCompareSupported(compareCat);
   const registeredLabel = formatRegistrationDate(sellerRegisteredAt);
@@ -50,11 +52,11 @@ export default function AdPurchasePanel({
     <div className="space-y-5">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <div className="text-3xl font-extrabold text-slate-900 tracking-tight">
+          <div className="font-display text-3xl font-extrabold tracking-tight text-ink-900">
             {price}
           </div>
           {realEstatePricePerSqm && (
-            <div className="text-sm font-semibold text-sun-700 mt-1">
+            <div className="mt-1 text-sm font-semibold text-sun-700">
               {realEstatePricePerSqm}
             </div>
           )}
@@ -65,11 +67,12 @@ export default function AdPurchasePanel({
             type="button"
             className={`inline-flex h-10 w-10 items-center justify-center rounded-full border transition ${
               isFav
-                ? "border-red-200 bg-red-50 text-red-500"
-                : "border-slate-200 bg-white text-slate-500 hover:text-red-500"
+                ? "border-danger-200 bg-danger-50 text-danger-500"
+                : "border-ink-200 bg-white text-ink-400 hover:text-danger-500"
             }`}
             onClick={onToggleFav}
-            aria-label={isFav ? "В избранном" : "В избранное"}
+            aria-pressed={isFav}
+            aria-label={t(isFav ? "favorites.remove" : "favorites.add")}
           >
             <Heart className={`h-4 w-4 ${isFav ? "fill-current" : ""}`} />
           </button>
@@ -85,12 +88,12 @@ export default function AdPurchasePanel({
 
           <button
             type="button"
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 hover:bg-slate-50 transition"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-ink-200 bg-white text-ink-400 transition hover:bg-mist-100 hover:text-ink-700"
             onClick={onShare}
-            aria-label="Поделиться"
+            aria-label={t("listing.share")}
           >
             {copied ? (
-              <Check className="h-4 w-4 text-emerald-600" />
+              <Check className="h-4 w-4 text-success-600" />
             ) : (
               <Share2 className="h-4 w-4" />
             )}
@@ -98,12 +101,12 @@ export default function AdPurchasePanel({
         </div>
       </div>
 
-      <div className="border-t border-slate-100 pt-5 space-y-4">
+      <div className="space-y-4 border-t border-ink-200 pt-5">
         <div className="flex items-center gap-3">
           {ad.owner ? (
             <Link
               to={`/seller/${ad.owner}`}
-              className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-sm font-bold text-white hover:opacity-90 transition overflow-hidden"
+              className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-lagoon-500 text-sm font-bold text-white transition hover:opacity-90"
             >
               {ad.ownerCompanyLogo ? (
                 <img
@@ -116,7 +119,7 @@ export default function AdPurchasePanel({
               )}
             </Link>
           ) : (
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-sm font-bold text-white">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-lagoon-500 text-sm font-bold text-white">
               {getInitials(sellerName)}
             </div>
           )}
@@ -125,25 +128,25 @@ export default function AdPurchasePanel({
             {ad.owner ? (
               <Link
                 to={`/seller/${ad.owner}`}
-                className="block truncate font-bold text-slate-900 hover:text-sun transition"
+                className="block truncate font-bold text-ink-900 transition hover:text-sun-700"
               >
                 {sellerName}
               </Link>
             ) : (
-              <div className="truncate font-bold text-slate-900">{sellerName}</div>
+              <div className="truncate font-bold text-ink-900">{sellerName}</div>
             )}
-            <div className="text-sm text-slate-500">
+            <div className="text-sm text-ink-400">
               {sellerTypeLabel(ad.ownerSellerType || "private")}
             </div>
             {registeredLabel && (
-              <div className="text-xs text-slate-400 mt-0.5">
-                Зарегистрирован {registeredLabel}
+              <div className="mt-0.5 text-xs text-ink-400">
+                {t("seller.registeredOn", { date: registeredLabel })}
               </div>
             )}
             {sellerReviews.summary.count > 0 && (
               <div className="mt-1 flex items-center gap-2">
                 <StarRating value={sellerReviews.summary.average} size={14} />
-                <span className="text-xs text-slate-500">
+                <span className="text-xs text-ink-400">
                   {Number(sellerReviews.summary.average).toFixed(1)} (
                   {sellerReviews.summary.count})
                 </span>
@@ -152,9 +155,9 @@ export default function AdPurchasePanel({
           </div>
         </div>
 
-        <div className="flex items-start gap-2 rounded-2xl border border-emerald-100 bg-emerald-50 px-3 py-2.5 text-xs text-emerald-800">
-          <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
-          <span>Встречайтесь лично и проверяйте товар перед оплатой</span>
+        <div className="flex items-start gap-2 rounded-xl border border-success-200 bg-success-50 px-3 py-2.5 text-xs leading-relaxed text-success-800">
+          <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-success-600" aria-hidden />
+          <span>{t("listing.safetyTip")}</span>
         </div>
       </div>
 
@@ -170,18 +173,18 @@ export default function AdPurchasePanel({
           layout="ad"
         />
       ) : isInactive ? (
-        <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-          Связаться с продавцом по этому объявлению нельзя.
+        <div className="rounded-xl border border-ink-200 bg-mist-50 px-4 py-3 text-sm text-ink-500">
+          {t("listing.contactUnavailable")}
         </div>
       ) : null}
 
       <button
         type="button"
-        className="inline-flex items-center gap-1.5 text-sm text-slate-500 transition hover:text-red-600"
+        className="inline-flex min-h-[2.25rem] items-center gap-1.5 text-sm text-ink-400 transition hover:text-danger-600"
         onClick={onReport}
       >
-        <Flag className="h-3.5 w-3.5" />
-        Пожаловаться
+        <Flag className="h-3.5 w-3.5" aria-hidden />
+        {t("report.action")}
       </button>
     </div>
   );

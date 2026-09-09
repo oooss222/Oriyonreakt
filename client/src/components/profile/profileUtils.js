@@ -27,6 +27,54 @@ export function normalizeTab(value) {
   return "my";
 }
 
+/** Lifecycle states a listing can be in, in the order the dashboard shows them. */
+export const LISTING_STATUSES = ["approved", "pending", "rejected", "sold", "archived"];
+
+const STATUS_META = {
+  approved: { tone: "success", labelKey: "profile.statusApproved" },
+  pending: { tone: "warning", labelKey: "profile.statusPending" },
+  rejected: { tone: "danger", labelKey: "profile.statusRejected" },
+  sold: { tone: "neutral", labelKey: "profile.statusSold" },
+  archived: { tone: "neutral", labelKey: "profile.statusArchived" },
+};
+
+export function getListingStatus(listing) {
+  const status = listing?.status || "pending";
+  return STATUS_META[status] ? status : "pending";
+}
+
+export function getListingStatusMeta(status, t) {
+  const meta = STATUS_META[status] || STATUS_META.pending;
+  return { tone: meta.tone, label: t(meta.labelKey) };
+}
+
+export function summarizeListings(items = []) {
+  return items.reduce(
+    (acc, ad) => {
+      const status = getListingStatus(ad);
+      acc.total += 1;
+      acc[status] += 1;
+      if (ad.vip) acc.vip += 1;
+      if (ad.top) acc.top += 1;
+      if (ad.bumpedAt || ad.bumped_at) acc.bump += 1;
+      if (!ad.vip && !ad.top) acc.none += 1;
+      return acc;
+    },
+    {
+      total: 0,
+      approved: 0,
+      pending: 0,
+      rejected: 0,
+      sold: 0,
+      archived: 0,
+      vip: 0,
+      top: 0,
+      bump: 0,
+      none: 0,
+    }
+  );
+}
+
 export function calculateProfileCompletion(me, emailStatus) {
   const checks = [
     Boolean(String(me?.name || "").trim()),
@@ -41,14 +89,15 @@ export function calculateProfileCompletion(me, emailStatus) {
   const completed = checks.filter(Boolean).length;
   const percent = Math.round((completed / checks.length) * 100);
 
-  const hints = [];
-  if (!checks[0]) hints.push("Укажите имя");
-  if (!checks[1]) hints.push("Добавьте телефон");
-  if (!checks[2]) hints.push("Укажите WhatsApp или Telegram");
-  if (!checks[3]) hints.push("Подтвердите email");
-  if (!checks[4]) hints.push("Заполните описание или название компании");
+  const hintKeys = [
+    "profile.hintName",
+    "profile.hintPhone",
+    "profile.hintMessenger",
+    "profile.hintEmail",
+    "profile.hintCompany",
+  ].filter((_, index) => !checks[index]);
 
-  return { percent, hints, completed, total: checks.length };
+  return { percent, hintKeys, completed, total: checks.length };
 }
 
 export function getUserInitials(name) {

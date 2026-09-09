@@ -1,5 +1,6 @@
 import React from "react";
 import { parseMultiSpecValue, toggleMultiSpecValue } from "../../lib/specMultiValue";
+import { Chip } from "../../ui";
 
 export default function MultiPillGroup({
   values = "",
@@ -11,28 +12,24 @@ export default function MultiPillGroup({
 
   return (
     <div className="flex flex-wrap gap-2">
-      <button
-        type="button"
+      <Chip
+        active={selected.length === 0}
+        className="filter-chip"
         onClick={() => onChange?.("")}
-        className={`chip ${selected.length === 0 ? "chip-active" : ""}`}
       >
         {anyLabel}
-      </button>
+      </Chip>
 
-      {options.map((option) => {
-        const active = selected.includes(option);
-
-        return (
-          <button
-            key={option}
-            type="button"
-            onClick={() => onChange?.(toggleMultiSpecValue(values, option))}
-            className={`chip ${active ? "chip-active" : ""}`}
-          >
-            {option}
-          </button>
-        );
-      })}
+      {options.map((option) => (
+        <Chip
+          key={option}
+          active={selected.includes(option)}
+          className="filter-chip"
+          onClick={() => onChange?.(toggleMultiSpecValue(values, option))}
+        >
+          {option}
+        </Chip>
+      ))}
     </div>
   );
 }

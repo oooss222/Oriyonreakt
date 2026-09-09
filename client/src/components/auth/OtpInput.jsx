@@ -3,7 +3,15 @@ import { useI18n } from "../../i18n";
 
 const BOX_COUNT = 6;
 
-export default function OtpInput({ value, onChange, disabled = false, inputRef }) {
+export default function OtpInput({
+  value,
+  onChange,
+  disabled = false,
+  inputRef,
+  id,
+  describedBy,
+  invalid = false,
+}) {
   const { t } = useI18n();
   const boxesRef = React.useRef([]);
   const digits = String(value || "")
@@ -90,18 +98,22 @@ export default function OtpInput({ value, onChange, disabled = false, inputRef }
       {Array.from({ length: BOX_COUNT }).map((_, index) => (
         <input
           key={index}
+          id={index === 0 ? id : undefined}
           ref={(node) => {
             boxesRef.current[index] = node;
           }}
           type="text"
           inputMode="numeric"
+          enterKeyHint="done"
           autoComplete={index === 0 ? "one-time-code" : "off"}
           maxLength={1}
           value={digits[index] || ""}
           disabled={disabled}
+          aria-describedby={describedBy}
+          aria-invalid={invalid || undefined}
           className={`auth-otp__box ${
             digits[index] ? "auth-otp__box--filled" : ""
-          }`}
+          } ${invalid ? "auth-otp__box--invalid" : ""}`}
           onChange={(e) => handleChange(index, e.target.value)}
           onKeyDown={(e) => handleKeyDown(index, e)}
           onFocus={(e) => e.target.select()}

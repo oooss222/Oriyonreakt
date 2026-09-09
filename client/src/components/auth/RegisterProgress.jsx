@@ -1,42 +1,34 @@
 import React from "react";
-import { CheckCircle2 } from "lucide-react";
+import { Check } from "lucide-react";
 import { useI18n } from "../../i18n";
 
-export default function RegisterProgress({ authMethod, phoneStep }) {
+export default function RegisterProgress({ step }) {
   const { t } = useI18n();
-
-  const phoneSteps = [
-    { id: "phone", label: t("auth.progressPhone") },
-    { id: "code", label: t("auth.progressCode") },
-  ];
-
-  const emailSteps = [{ id: "form", label: t("auth.progressAccount") }];
-
-  const steps = authMethod === "phone" ? phoneSteps : emailSteps;
-  const activeIndex =
-    authMethod === "phone" ? (phoneStep === "code" ? 1 : 0) : 0;
+  const steps = [t("auth.progressPhone"), t("auth.progressCode")];
+  const activeIndex = step === "code" ? 1 : 0;
 
   return (
-    <ol className="auth-register-steps" aria-label={t("auth.progressAria")}>
-      {steps.map((step, index) => {
+    <ol className="auth-steps" aria-label={t("auth.progressAria")}>
+      {steps.map((label, index) => {
         const done = index < activeIndex;
         const active = index === activeIndex;
 
         return (
           <li
-            key={step.id}
-            className={`auth-register-steps__item ${
+            key={label}
+            aria-current={active ? "step" : undefined}
+            className={`auth-steps__item ${
               done
-                ? "auth-register-steps__item--done"
+                ? "auth-steps__item--done"
                 : active
-                  ? "auth-register-steps__item--active"
+                  ? "auth-steps__item--active"
                   : ""
             }`}
           >
-            <span className="auth-register-steps__dot">
-              {done ? <CheckCircle2 size={14} /> : index + 1}
+            <span className="auth-steps__dot">
+              {done ? <Check size={13} strokeWidth={3} aria-hidden="true" /> : index + 1}
             </span>
-            <span className="auth-register-steps__label">{step.label}</span>
+            {label}
           </li>
         );
       })}

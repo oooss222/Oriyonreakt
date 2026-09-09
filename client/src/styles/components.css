@@ -317,10 +317,6 @@
     }
   }
 
-  .listing-card:focus-within {
-    @apply border-sun-300;
-  }
-
   .listing-card__media {
     @apply relative aspect-[4/3] overflow-hidden bg-mist-200;
   }

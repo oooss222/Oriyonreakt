@@ -191,6 +191,16 @@ export function listingStatusLabel(status, t) {
   return t("chat.listingActive");
 }
 
+export function listingStatusTone(status) {
+  const key = String(status || "").toLowerCase();
+
+  if (key === "approved") return "success";
+  if (key === "pending") return "warning";
+  if (key === "rejected") return "danger";
+
+  return "neutral";
+}
+
 export function listingStatusClass(status) {
   const key = String(status || "").toLowerCase();
 

@@ -59,6 +59,8 @@ import { getListingLimit } from "../lib/businessAccount";
 import ListingGuidedForm, {
   isGuidedWizardCategory,
 } from "./listing/ListingGuidedForm";
+import ListingFormProgress from "./listing/ListingFormProgress";
+import { Alert, Skeleton } from "../ui";
 import { useI18n } from "../i18n";
 import {
   Info,
@@ -790,11 +792,44 @@ export default function ListingForm({
     setField("title", buildTransportSuggestedTitle(specs));
   };
 
+  const composerSections = [
+    {
+      id: "listing-section-basics",
+      title: t("form.basicInfo"),
+      complete: Boolean(form.title?.trim() && form.price),
+    },
+    {
+      id: "listing-section-description",
+      title: t("form.description"),
+      complete: Boolean(form.description?.trim()),
+      optional: true,
+    },
+    {
+      id: "listing-section-specs",
+      title: t("form.specs"),
+      complete: areListingSpecsComplete(specs),
+    },
+    {
+      id: "listing-section-photos",
+      title: t("form.photos"),
+      complete: photosCount > 0,
+    },
+    {
+      id: "listing-section-location",
+      title: t("form.location"),
+      complete: Boolean(form.location?.trim()),
+    },
+  ];
+
   if (loading) {
     return (
-      <div className="w-full max-w-7xl mx-auto px-4 py-6">
-        <div className="rounded-2xl border bg-white p-6 text-center">
-          {t("common.loading")}
+      <div className="listing-form-page" aria-busy="true">
+        <Skeleton className="h-8 w-56" />
+        <Skeleton className="h-4 w-80" />
+        <div className="card space-y-3 p-5">
+          <Skeleton className="h-11 w-full" />
+          <Skeleton className="h-11 w-full" />
+          <Skeleton className="h-32 w-full" />
         </div>
       </div>
     );
@@ -834,9 +869,11 @@ export default function ListingForm({
           {isEdit ? t("listing.editForm") : t("listing.createForm")}
         </h1>
 
-        <p className="text-ink-400 text-sm md:text-base">
+        <p className="text-sm text-ink-400 md:text-base">
           {isEdit ? t("listing.editHint") : t("listing.createHint")}
         </p>
+
+        {categoryPicked ? <ListingFormProgress sections={composerSections} /> : null}
 
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
           <Link
@@ -892,21 +929,18 @@ export default function ListingForm({
       ) : null}
 
       {err && (
-        <div
-          role="alert"
-          aria-live="assertive"
-          className="rounded-2xl border border-red-200 bg-red-50 text-red-700 p-4 space-y-2"
+        <Alert
+          tone="danger"
+          action={
+            !hasPhone && !isEdit ? (
+              <Link to="/profile?tab=profile" className="btn btn-sm">
+                {t("listing.goAddPhone")}
+              </Link>
+            ) : null
+          }
         >
-          <p>{err}</p>
-          {!hasPhone && !isEdit ? (
-            <Link
-              to="/profile?tab=profile"
-              className="inline-flex text-sm font-semibold text-sun-700 hover:underline"
-            >
-              {t("listing.goAddPhone")}
-            </Link>
-          ) : null}
-        </div>
+          {err}
+        </Alert>
       )}
 
       {!isEdit && !categoryPicked ? (
@@ -1000,7 +1034,7 @@ export default function ListingForm({
         className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_20rem] xl:grid-cols-[minmax(0,1fr)_22rem] gap-5"
       >
         <section className="space-y-5 min-w-0">
-          <div className="listing-form-card" data-field="title">
+          <div id="listing-section-basics" className="listing-form-card" data-field="title">
             <div className="listing-form-card__head">
               <div className="listing-form-card__title">
                 <Info className="w-5 h-5 text-sun" />
@@ -1161,7 +1195,7 @@ export default function ListingForm({
             onMakeCoverNew={makeCoverNew}
           />
 
-          <div className="listing-form-card overflow-hidden" data-field="specs">
+          <div id="listing-section-specs" className="listing-form-card overflow-hidden" data-field="specs">
             <div className="listing-form-card__head">
               <div className="listing-form-card__title">
                 <ListChecks className="w-5 h-5 text-sun" />

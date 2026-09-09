@@ -42,12 +42,19 @@ import {
 } from "../lib/categoryRoutes";
 import Pagination from "../components/Pagination";
 import { LISTING_PAGE_SIZE, getPageFromSearchParams, getTotalPages } from "../lib/pagination";
+import { FilterToken, Modal, Select } from "../ui";
 import {
   Search,
   SlidersHorizontal,
-  X,
   PackageSearch,
 } from "lucide-react";
+
+const SORT_OPTIONS = [
+  { value: "new", key: "filter.sortNew" },
+  { value: "views_desc", key: "filter.sortPopular" },
+  { value: "price_asc", key: "filter.sortPriceAsc" },
+  { value: "price_desc", key: "filter.sortPriceDesc" },
+];
 
 function buildListingParams(draft, urlCat = "") {
   const next = {};
@@ -706,6 +713,47 @@ export default function Listing() {
     }
   }, [currentPage, totalPages, searchParams, setSearchParams]);
 
+  const filterTokens = React.useMemo(() => {
+    const tokens = [];
+    const push = (id, label, value, patch) => {
+      if (!value) return;
+      tokens.push({ id, label, value, patch });
+    };
+
+    push("search", t("listing.search"), appliedDraft.search, { search: "" });
+    push("subcategory", t("form.subcategory"), appliedDraft.subcategory, {
+      subcategory: "",
+    });
+    if (appliedDraft.priceFrom || appliedDraft.priceTo) {
+      push(
+        "price",
+        t("form.price"),
+        [appliedDraft.priceFrom, appliedDraft.priceTo].filter(Boolean).join(" – "),
+        { priceFrom: "", priceTo: "" }
+      );
+    }
+    push(
+      "location",
+      t("form.location"),
+      appliedDraft.location || appliedDraft.region,
+      { location: "", region: "" }
+    );
+    if (appliedDraft.sort && appliedDraft.sort !== "new") {
+      const sortKey = SORT_OPTIONS.find((option) => option.value === appliedDraft.sort);
+      push("sort", t("a11y.sortBy"), sortKey ? t(sortKey.key) : appliedDraft.sort, {
+        sort: "new",
+      });
+    }
+    Object.entries(appliedDraft.specs || {}).forEach(([name, value]) => {
+      if (!String(value || "").trim()) return;
+      const nextSpecs = { ...appliedDraft.specs };
+      delete nextSpecs[name];
+      push(`spec-${name}`, name, value, { specs: nextSpecs });
+    });
+
+    return tokens;
+  }, [appliedDraft, t]);
+
   const goToPage = React.useCallback(
     (page) => {
       const nextPage = Math.max(1, Math.min(page, totalPages || 1));
@@ -724,7 +772,7 @@ export default function Listing() {
   );
 
   return (
-    <div className="container mx-auto px-4 py-6">
+    <div className="page-container stack-page">
       {isRealEstate && (
         <div className="mb-5 space-y-5 lg:hidden">
           <Breadcrumbs items={breadcrumbItems} />
@@ -806,13 +854,13 @@ export default function Listing() {
             <Breadcrumbs items={breadcrumbItems} />
           </div>
 
-          <div className="flex flex-col gap-4 px-1 lg:flex-row lg:items-end lg:justify-between">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div className="min-w-0">
-              <h1 className="text-2xl font-bold text-ink">{pageTitle}</h1>
+              <h1 className="section-title">{pageTitle}</h1>
 
-              <p className="mt-1 text-sm text-ink-400">
+              <p className="mt-1 text-sm text-ink-400" aria-live="polite">
                 {loading
-                  ? "…"
+                  ? t("common.loading")
                   : t("listing.count", {
                       count: total.toLocaleString("ru-RU"),
                     })}
@@ -859,7 +907,25 @@ export default function Listing() {
               )}
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <label className="sr-only" htmlFor="listing-sort">
+              {t("a11y.sortBy")}
+            </label>
+            <Select
+              id="listing-sort"
+              value={appliedDraft.sort || "new"}
+              onChange={(event) =>
+                applyFilters({ ...appliedDraft, sort: event.target.value })
+              }
+              className="h-11 min-w-[11rem] flex-1 sm:flex-none"
+            >
+              {SORT_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {t(option.key)}
+                </option>
+              ))}
+            </Select>
+
             {isRealEstate ? (
               <>
                 <button
@@ -906,6 +972,27 @@ export default function Listing() {
             )}
           </div>
         </div>
+
+        {filterTokens.length > 0 && (
+          <div className="flex flex-wrap items-center gap-2">
+            {filterTokens.map((token) => (
+              <FilterToken
+                key={token.id}
+                label={token.label}
+                value={token.value}
+                removeLabel={t("a11y.removeFilter")}
+                onRemove={() => applyFilters({ ...appliedDraft, ...token.patch })}
+              />
+            ))}
+            <button
+              type="button"
+              onClick={resetFilters}
+              className="btn btn-ghost btn-sm"
+            >
+              {t("empty.resetFilters")}
+            </button>
+          </div>
+        )}
 
         {showSubcategoryChips && (
           <div className="lg:hidden sticky top-0 z-20 -mx-4 px-4 py-2 bg-mist/95 backdrop-blur border-b border-ink/10">
@@ -996,48 +1083,27 @@ export default function Listing() {
         </div>
       </div>
 
-      {mobileFiltersOpen && !isRealEstate && (
-        <div className="lg:hidden fixed inset-0 z-[70]">
-          <button
-            type="button"
-            aria-label={t("a11y.closeFilters")}
-            className="absolute inset-0 bg-black/40"
-            onClick={() => setMobileFiltersOpen(false)}
-          />
-
-          <div className="absolute inset-x-0 bottom-0 flex max-h-[92vh] flex-col rounded-t-3xl bg-mist shadow-2xl">
-            <div className="flex shrink-0 items-center justify-between gap-3 border-b border-ink/10 px-4 py-3">
-              <h2 className="text-lg font-semibold">{t("listing.filters")}</h2>
-
-              <button
-                type="button"
-                onClick={() => setMobileFiltersOpen(false)}
-                className="p-2 rounded-xl border bg-white hover:bg-mist"
-                aria-label={t("common.close")}
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            <div className="min-h-0 flex-1 overflow-y-auto px-3 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
-              <ListingFiltersPanel
-                draft={draft}
-                setDraft={setDraft}
-                activeCat={activeCat}
-                availableSubcategories={availableSubcategories}
-                showCategorySelect={!cat}
-                onApply={applyFilters}
-                onReset={resetFilters}
-                previewTotal={draftIsDirty ? previewTotal : total}
-                previewLoading={previewLoading}
-                hasActiveFilters={hasActiveFilters}
-                hideSubcategoryField={showSubcategoryChips}
-                compact
-              />
-            </div>
-          </div>
-        </div>
-      )}
+      <Modal
+        open={mobileFiltersOpen && !isRealEstate}
+        onClose={() => setMobileFiltersOpen(false)}
+        title={t("listing.filters")}
+        size="lg"
+      >
+        <ListingFiltersPanel
+          draft={draft}
+          setDraft={setDraft}
+          activeCat={activeCat}
+          availableSubcategories={availableSubcategories}
+          showCategorySelect={!cat}
+          onApply={applyFilters}
+          onReset={resetFilters}
+          previewTotal={draftIsDirty ? previewTotal : total}
+          previewLoading={previewLoading}
+          hasActiveFilters={hasActiveFilters}
+          hideSubcategoryField={showSubcategoryChips}
+          compact
+        />
+      </Modal>
 
       {isRealEstate && (
         <RealEstateMoreFiltersModal

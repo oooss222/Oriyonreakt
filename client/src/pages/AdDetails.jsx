@@ -1,15 +1,20 @@
 import React from "react";
-import { createPortal } from "react-dom";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import {
+  Archive,
+  CalendarClock,
+  Check,
+  Crown,
+  FileText,
+  RotateCcw,
+  ListTree,
   MapPin,
   MessageCircle,
+  Phone,
   ChevronLeft,
   ChevronRight,
-  X,
   ZoomIn,
   Pencil,
-  Check,
   PackageSearch,
 } from "lucide-react";
 import { api } from "../lib/api";
@@ -31,11 +36,24 @@ import Breadcrumbs from "../components/Breadcrumbs";
 import EmptyState from "../components/EmptyState";
 import AdSlot from "../components/AdSlot";
 import { PromotionBadgeGroup } from "../components/PromotionBadge";
+import {
+  Modal,
+  Radio,
+  useConfirm,
+  Textarea,
+  SectionCard,
+  Alert,
+  StatusBadge,
+  Skeleton,
+  SkeletonText,
+  useToast,
+} from "../ui";
 import { CAT_LABELS } from "../data/listingCategories";
 import { enrichRealEstateListing, getSpecValue, isRealEstateListing } from "../lib/realEstate";
 import { REPORT_REASONS } from "../data/reportReasons";
 import { useI18n } from "../i18n";
 import { getUserFacingErrorMessage } from "../lib/apiError";
+import { listingStatusLabel, listingStatusTone } from "../lib/messagesUtils";
 
 const TOKEN_KEY = "auth_token";
 
@@ -73,58 +91,32 @@ function getSellerName(ad) {
 
 function PageSkeleton() {
   return (
-    <div className="container-x py-6 space-y-6 animate-pulse">
-      <div className="h-4 bg-slate-200 rounded w-64" />
+    <div className="page-container py-6 space-y-6" aria-busy="true">
+      <Skeleton className="h-4 w-64" />
 
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
-        <div className="xl:col-span-7 space-y-5">
-          <div className="rounded-3xl bg-slate-200 aspect-[4/3]" />
+      <div className="flex flex-col gap-6 xl:flex-row xl:gap-8">
+        <div className="min-w-0 space-y-5 xl:flex-[7]">
+          <Skeleton className="aspect-[4/3] w-full rounded-3xl" />
           <div className="flex gap-2">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="w-20 h-16 rounded-xl bg-slate-200" />
+              <Skeleton key={i} className="h-16 w-20 rounded-xl" />
             ))}
           </div>
-          <div className="card p-6 space-y-3">
-            <div className="h-8 bg-slate-200 rounded w-3/4" />
-            <div className="h-4 bg-slate-200 rounded w-1/2" />
-            <div className="h-24 bg-slate-200 rounded" />
+          <div className="card space-y-3 p-5">
+            <Skeleton className="h-7 w-3/4" />
+            <Skeleton className="h-4 w-1/2" />
+            <SkeletonText lines={4} />
           </div>
         </div>
 
-        <div className="xl:col-span-5">
-          <div className="card p-6 space-y-4 rounded-3xl">
-            <div className="h-10 bg-slate-200 rounded w-1/2" />
-            <div className="h-12 bg-slate-200 rounded" />
-            <div className="h-16 bg-slate-200 rounded-xl" />
-            <div className="h-11 bg-slate-200 rounded-xl" />
-            <div className="h-11 bg-slate-200 rounded-xl" />
+        <div className="xl:flex-[5] xl:min-w-[320px]">
+          <div className="card space-y-4 p-5">
+            <Skeleton className="h-9 w-1/2" />
+            <Skeleton className="h-14 w-full rounded-xl" />
+            <Skeleton className="h-11 w-full rounded-xl" />
+            <Skeleton className="h-11 w-full rounded-xl" />
           </div>
         </div>
-      </div>
-    </div>
-  );
-}
-
-function Toast({ message, onClose }) {
-  React.useEffect(() => {
-    if (!message) return;
-
-    const t = setTimeout(onClose, 2800);
-
-    return () => clearTimeout(t);
-  }, [message, onClose]);
-
-  if (!message) return null;
-
-  return (
-    <div
-      role="status"
-      aria-live="polite"
-      className="fixed bottom-24 xl:bottom-8 left-1/2 -translate-x-1/2 z-[110] animate-fade-in-up"
-    >
-      <div className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-slate-900 text-white text-sm shadow-lg">
-        <Check className="w-4 h-4 text-emerald-400 shrink-0" />
-        {message}
       </div>
     </div>
   );
@@ -134,6 +126,8 @@ export default function AdDetails() {
   const { id } = useParams();
   const nav = useNavigate();
   const { t } = useI18n();
+  const { showToast } = useToast();
+  const confirm = useConfirm();
   const token = localStorage.getItem(TOKEN_KEY) || "";
 
   const [ad, setAd] = React.useState(null);
@@ -145,7 +139,7 @@ export default function AdDetails() {
   const [loading, setLoading] = React.useState(true);
   const [isFav, setIsFav] = React.useState(false);
   const [phoneVisible, setPhoneVisible] = React.useState(false);
-  const [toast, setToast] = React.useState("");
+  const [reportError, setReportError] = React.useState("");
   const [copied, setCopied] = React.useState(false);
   const [currentUserId, setCurrentUserId] = React.useState(null);
   const [reportOpen, setReportOpen] = React.useState(false);
@@ -389,11 +383,11 @@ export default function AdDetails() {
       if (isFav) {
         await api.removeFavorite(token, adId);
         setIsFav(false);
-        setToast(t("favorites.removed"));
+        showToast(t("favorites.removed"), "success");
       } else {
         await api.addFavorite(token, adId);
         setIsFav(true);
-        setToast(t("favorites.added"));
+        showToast(t("favorites.added"), "success");
       }
     } catch (e) {
       console.error("Favorite toggle failed:", e);
@@ -407,7 +401,7 @@ export default function AdDetails() {
     }
 
     if (!ad?.owner) {
-      setToast(t("seller.unavailable"));
+      showToast(t("seller.unavailable"), "error");
       return;
     }
 
@@ -433,6 +427,7 @@ export default function AdDetails() {
 
     setReportReason("fraud");
     setReportDetails("");
+    setReportError("");
     setReportOpen(true);
   };
 
@@ -443,7 +438,7 @@ export default function AdDetails() {
     }
 
     if (reportReason === "other" && reportDetails.trim().length < 5) {
-      setToast(t("report.describe"));
+      setReportError(t("report.describe"));
       return;
     }
 
@@ -456,12 +451,12 @@ export default function AdDetails() {
       });
 
       setReportOpen(false);
-      setToast(t("report.sent"));
+      showToast(t("report.sent"), "success");
     } catch (e) {
       const message = e.message || t("errors.sendReport");
 
       if (message.includes("already reported") || message.includes("409")) {
-        setToast(t("errors.reportDuplicate"));
+        showToast(t("errors.reportDuplicate"), "error");
         setReportOpen(false);
         return;
       }
@@ -471,7 +466,7 @@ export default function AdDetails() {
         return;
       }
 
-      setToast(getUserFacingErrorMessage(e, t));
+      setReportError(getUserFacingErrorMessage(e, t));
     } finally {
       setReportSending(false);
     }
@@ -489,9 +484,12 @@ export default function AdDetails() {
       republish: t("listing.confirmRepublish"),
     };
 
-    if (!confirm(prompts[action] || t("listing.confirmStatus"))) {
-      return;
-    }
+    const confirmed = await confirm({
+      message: prompts[action] || t("listing.confirmStatus"),
+      tone: action === "republish" ? "primary" : "danger",
+    });
+
+    if (!confirmed) return;
 
     try {
       const listingId = ad._id || ad.id;
@@ -506,15 +504,16 @@ export default function AdDetails() {
       }
 
       setAd((current) => ({ ...current, ...updated }));
-      setToast(
+      showToast(
         action === "sold"
           ? t("listing.statusSold")
           : action === "archive"
           ? t("listing.statusArchived")
-          : t("listing.statusRepublished")
+          : t("listing.statusRepublished"),
+        "success"
       );
     } catch (e) {
-      setToast(getUserFacingErrorMessage(e, t) || t("listing.statusUpdateFailed"));
+      showToast(getUserFacingErrorMessage(e, t) || t("listing.statusUpdateFailed"), "error");
     }
   };
 
@@ -530,7 +529,7 @@ export default function AdDetails() {
 
       await navigator.clipboard.writeText(url);
       setCopied(true);
-      setToast(t("listing.linkCopied"));
+      showToast(t("listing.linkCopied"), "success");
       setTimeout(() => setCopied(false), 2000);
     } catch {
       /* user cancelled share */
@@ -567,26 +566,19 @@ export default function AdDetails() {
 
   if (!ad) {
     return (
-      <div className="container-x py-16">
-        <div className="max-w-md mx-auto text-center space-y-5 animate-fade-in-up">
-          <div className="w-20 h-20 mx-auto rounded-3xl bg-slate-100 grid place-items-center text-4xl">
-            🔍
-          </div>
-          <h1 className="text-2xl font-bold text-slate-900">
-            {t("errors.loadFailed")}
-          </h1>
-          <p className="text-slate-500">
-            {t("seller.notFoundDesc")}
-          </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Link to="/listing" className="btn">
-              {t("empty.goCatalog")}
-            </Link>
-            <Link to="/" className="btn btn-primary">
+      <div className="page-container py-12">
+        <EmptyState
+          icon={PackageSearch}
+          title={t("errors.loadFailed")}
+          description={t("seller.notFoundDesc")}
+          actionLabel={t("empty.goCatalog")}
+          actionTo="/listing"
+          secondaryAction={
+            <Link to="/" className="btn">
               {t("empty.goHome")}
             </Link>
-          </div>
-        </div>
+          }
+        />
       </div>
     );
   }
@@ -656,58 +648,47 @@ export default function AdDetails() {
   ];
 
   return (
-    <div className="min-h-screen bg-mist pb-10">
-      <Toast message={toast} onClose={() => setToast("")} />
-
-      <div className="container-x py-4">
+    <div className="min-h-screen pb-16 lg:pb-10">
+      <div className="page-container py-4">
         <Breadcrumbs items={breadcrumbItems} />
       </div>
 
-      <div className="container-x pb-6">
+      <div className="page-container pb-6">
         {(moderationStatus === "pending" || moderationStatus === "rejected") && (
-          <div
-            className={`mb-6 rounded-2xl border p-4 ${
-              moderationStatus === "rejected"
-                ? "border-red-200 bg-red-50 text-red-800"
-                : "border-amber-200 bg-amber-50 text-amber-900"
-            }`}
+          <Alert
+            tone={moderationStatus === "rejected" ? "danger" : "warning"}
+            className="mb-6"
           >
-            {moderationStatus === "pending" ? (
-              <p>
-                {isOwner
-                  ? t("listing.moderationPending")
-                  : t("listing.moderationReview")}
-              </p>
-            ) : (
-              <p>
-                {isOwner
-                  ? `${t("listing.moderationRejected")}${ad.rejectionReason ? `: ${ad.rejectionReason}` : ""}`
-                  : t("listing.moderationRejected")}
-              </p>
-            )}
-          </div>
+            {moderationStatus === "pending"
+              ? isOwner
+                ? t("listing.moderationPending")
+                : t("listing.moderationReview")
+              : isOwner
+                ? `${t("listing.moderationRejected")}${ad.rejectionReason ? `: ${ad.rejectionReason}` : ""}`
+                : t("listing.moderationRejected")}
+          </Alert>
         )}
 
         {(isSold || isArchived) && (
-          <div className="mb-6 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-slate-700">
+          <Alert tone="info" icon={PackageSearch} className="mb-6">
             {isSold
               ? isOwner
                 ? t("listing.soldOwner")
                 : t("listing.soldOther")
               : t("listing.archived")}
-          </div>
+          </Alert>
         )}
 
         <div className="flex flex-col xl:flex-row xl:items-stretch gap-6 xl:gap-8">
           {/* Left column */}
           <div className="xl:flex-[7] min-w-0 space-y-5">
             {/* Gallery */}
-            <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+            <section className="overflow-hidden rounded-2xl border border-ink-200 bg-white shadow-xs">
               <div className="flex flex-col md:flex-row">
                 {images.length > 1 && (
                   <div
                     ref={desktopThumbsRef}
-                    className="hidden md:flex max-h-[520px] w-[88px] shrink-0 flex-col gap-2 overflow-y-auto border-r border-slate-100 p-3 scrollbar-hide"
+                    className="hidden md:flex max-h-[520px] w-[88px] shrink-0 flex-col gap-2 overflow-y-auto border-r border-ink-200 p-3 scrollbar-hide"
                   >
                     {thumbImages.map((src, index) => (
                       <button
@@ -715,9 +696,14 @@ export default function AdDetails() {
                         type="button"
                         data-active={activeImageIndex === index ? "true" : "false"}
                         onClick={() => setActiveImageIndex(index)}
-                        className={`rounded-xl overflow-hidden border-2 transition-all ${
+                        aria-current={activeImageIndex === index}
+                        aria-label={t("a11y.photoOf", {
+                          index: index + 1,
+                          total: thumbImages.length,
+                        })}
+                        className={`overflow-hidden rounded-lg border-2 transition ${
                           activeImageIndex === index
-                            ? "border-sun ring-2 ring-sun/20"
+                            ? "border-sun-500"
                             : "border-transparent opacity-70 hover:opacity-100"
                         }`}
                       >
@@ -726,7 +712,7 @@ export default function AdDetails() {
                           alt=""
                           loading="lazy"
                           decoding="async"
-                          className="w-full h-16 object-cover bg-slate-50"
+                          className="h-16 w-full bg-mist-100 object-cover"
                           onError={(e) => {
                             e.currentTarget.src =
                               "https://placehold.co/120x80?text=—";
@@ -739,8 +725,24 @@ export default function AdDetails() {
 
                 <div
                   className="relative flex-1 group"
+                  role="group"
+                  aria-roledescription={t("a11y.gallery")}
+                  aria-label={t("a11y.photoOf", {
+                    index: activeImageIndex + 1,
+                    total: images.length,
+                  })}
                   onTouchStart={onGalleryTouchStart}
                   onTouchEnd={onGalleryTouchEnd}
+                  onKeyDown={(event) => {
+                    if (images.length <= 1) return;
+                    if (event.key === "ArrowLeft") {
+                      event.preventDefault();
+                      goPrev();
+                    } else if (event.key === "ArrowRight") {
+                      event.preventDefault();
+                      goNext();
+                    }
+                  }}
                 >
                   <button
                     type="button"
@@ -753,7 +755,7 @@ export default function AdDetails() {
                       alt={ad.title || t("listing.photoAlt")}
                       fetchpriority="high"
                       decoding="async"
-                      className="w-full aspect-[4/3] object-contain bg-slate-50"
+                      className="aspect-[4/3] w-full bg-mist-100 object-contain"
                       onError={(e) => {
                         e.currentTarget.src =
                           "https://placehold.co/900x600?text=No+Image";
@@ -769,7 +771,10 @@ export default function AdDetails() {
                   />
 
                   {images.length > 1 && (
-                    <span className="absolute bottom-3 right-3 z-10 rounded-full bg-black/60 px-2.5 py-1 text-xs font-semibold text-white">
+                    <span
+                      className="absolute bottom-3 right-3 z-10 rounded-full bg-ink-900/65 px-2.5 py-1 text-xs font-semibold text-white backdrop-blur-sm"
+                      aria-hidden
+                    >
                       {activeImageIndex + 1} / {images.length}
                     </span>
                   )}
@@ -777,10 +782,10 @@ export default function AdDetails() {
                   <button
                     type="button"
                     onClick={() => setLightboxOpen(true)}
-                    className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-black/60 px-2.5 py-1 text-xs text-white transition hover:bg-black/70"
+                    className="absolute right-3 top-3 inline-flex h-9 items-center gap-1.5 rounded-full bg-ink-900/65 px-3 text-xs font-semibold text-white backdrop-blur-sm transition hover:bg-ink-900/80"
                   >
-                    <ZoomIn className="h-3.5 w-3.5" />
-                    Увеличить
+                    <ZoomIn className="h-3.5 w-3.5" aria-hidden />
+                    {t("listing.zoom")}
                   </button>
 
                   {images.length > 1 && (
@@ -788,7 +793,7 @@ export default function AdDetails() {
                       <button
                         type="button"
                         onClick={goPrev}
-                        className="absolute left-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/95 shadow-md transition hover:bg-white"
+                        className="absolute left-3 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/95 text-ink-700 shadow-md backdrop-blur-sm transition hover:bg-white active:scale-95"
                         aria-label={t("a11y.photoPrev")}
                       >
                         <ChevronLeft className="h-5 w-5" />
@@ -796,7 +801,7 @@ export default function AdDetails() {
                       <button
                         type="button"
                         onClick={goNext}
-                        className="absolute right-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/95 shadow-md transition hover:bg-white"
+                        className="absolute right-3 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/95 text-ink-700 shadow-md backdrop-blur-sm transition hover:bg-white active:scale-95"
                         aria-label={t("a11y.photoNext")}
                       >
                         <ChevronRight className="h-5 w-5" />
@@ -809,7 +814,7 @@ export default function AdDetails() {
               {images.length > 1 && (
                 <div
                   ref={mobileThumbsRef}
-                  className="flex md:hidden gap-2 p-3 overflow-x-auto scrollbar-hide snap-x snap-mandatory border-t border-slate-100"
+                  className="flex md:hidden gap-2 p-3 overflow-x-auto scrollbar-hide snap-x snap-mandatory border-t border-ink-200"
                 >
                   {thumbImages.map((src, index) => (
                     <button
@@ -817,9 +822,14 @@ export default function AdDetails() {
                       type="button"
                       data-active={activeImageIndex === index ? "true" : "false"}
                       onClick={() => setActiveImageIndex(index)}
-                      className={`snap-start shrink-0 rounded-xl overflow-hidden border-2 transition ${
+                      aria-current={activeImageIndex === index}
+                      aria-label={t("a11y.photoOf", {
+                        index: index + 1,
+                        total: thumbImages.length,
+                      })}
+                      className={`shrink-0 snap-start overflow-hidden rounded-lg border-2 transition ${
                         activeImageIndex === index
-                          ? "border-sun ring-2 ring-sun/20"
+                          ? "border-sun-500"
                           : "border-transparent opacity-80"
                       }`}
                     >
@@ -828,7 +838,7 @@ export default function AdDetails() {
                         alt=""
                         loading="lazy"
                         decoding="async"
-                        className="w-20 h-16 object-cover bg-slate-50"
+                        className="h-16 w-20 bg-mist-100 object-cover"
                         onError={(e) => {
                           e.currentTarget.src =
                             "https://placehold.co/120x80?text=—";
@@ -840,7 +850,7 @@ export default function AdDetails() {
               )}
             </section>
 
-            <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm xl:hidden">
+            <section className="card p-4 sm:p-5 xl:hidden">
               <AdListingHeader
                 title={ad.title}
                 publicId={publicId}
@@ -851,7 +861,7 @@ export default function AdDetails() {
             </section>
 
             {!isOwner && (
-              <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm xl:hidden">
+              <section className="card p-4 sm:p-5 xl:hidden">
                 <AdPurchasePanel
                   price={price}
                   realEstatePricePerSqm={realEstatePricePerSqm}
@@ -878,17 +888,13 @@ export default function AdDetails() {
             {isRealEstateListing(ad) && <PriceAdequacyBadge item={ad} />}
 
             {isRealEstateListing(ad) && (
-              <section className="rounded-3xl border border-slate-200 bg-white p-5 md:p-6 shadow-sm space-y-2">
-                <h2 className="text-lg font-bold text-slate-900">Расположение</h2>
-                <p className="text-slate-700 flex items-start gap-2">
-                  <MapPin className="w-4 h-4 text-sun shrink-0 mt-1" />
-                  <span>
-                    {[ad.location || t("location.dushanbe"), getSpecValue(ad.specs, "Район"), getSpecValue(ad.specs, "Адрес")]
-                      .filter(Boolean)
-                      .join(", ")}
-                  </span>
+              <SectionCard title={t("listing.locationSection")} icon={MapPin}>
+                <p className="text-sm leading-relaxed text-ink-700">
+                  {[ad.location || t("location.dushanbe"), getSpecValue(ad.specs, "Район"), getSpecValue(ad.specs, "Адрес")]
+                    .filter(Boolean)
+                    .join(", ")}
                 </p>
-              </section>
+              </SectionCard>
             )}
 
             {isRealEstateListing(ad) &&
@@ -899,24 +905,21 @@ export default function AdDetails() {
 
             {/* Specs */}
             {filteredSpecs.length > 0 && (
-              <section className="rounded-3xl border border-slate-200 bg-white p-5 md:p-6 shadow-sm">
-                <h2 className="mb-4 text-lg font-bold text-slate-900">
-                  {t("form.specs")}
-                </h2>
-                <div className="divide-y divide-slate-100">
+              <SectionCard title={t("form.specs")} icon={ListTree} bodyClassName="p-0">
+                <dl className="divide-y divide-ink-200">
                   {filteredSpecs.map((spec, index) => (
                     <div
                       key={`${spec.name}-${index}`}
-                      className="grid grid-cols-1 gap-1 py-3 text-sm sm:grid-cols-2 sm:gap-4"
+                      className="grid grid-cols-1 gap-0.5 px-4 py-3 text-sm sm:grid-cols-2 sm:gap-4 sm:px-5"
                     >
-                      <span className="text-slate-500">{spec.name}</span>
-                      <span className="font-semibold text-slate-900 sm:text-right">
+                      <dt className="text-ink-400">{spec.name}</dt>
+                      <dd className="font-semibold text-ink-900 sm:text-right">
                         {String(spec.value)}
-                      </span>
+                      </dd>
                     </div>
                   ))}
-                </div>
-              </section>
+                </dl>
+              </SectionCard>
             )}
 
             <AdSlot
@@ -926,12 +929,11 @@ export default function AdDetails() {
             />
 
             {/* Description */}
-            <section className="rounded-3xl border border-slate-200 bg-white p-5 md:p-6 shadow-sm">
-              <h2 className="mb-4 text-lg font-bold text-slate-900">Описание</h2>
-              <p className="text-slate-700 whitespace-pre-wrap leading-7 text-base">
+            <SectionCard title={t("listing.descriptionSection")} icon={FileText}>
+              <p className="whitespace-pre-wrap break-anywhere leading-7 text-ink-700">
                 {ad.description || t("listing.noDescription")}
               </p>
-            </section>
+            </SectionCard>
 
             <AdRelatedListings
               ad={ad}
@@ -946,7 +948,7 @@ export default function AdDetails() {
               isOwner ? "" : "hidden xl:block"
             }`}
           >
-              <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+              <section className="card space-y-4 p-5">
                 <div className="hidden xl:block space-y-5">
                   <AdListingHeader
                     title={ad.title}
@@ -978,170 +980,209 @@ export default function AdDetails() {
                   )}
                 </div>
 
-                {isOwner && ad.expiresAt && (
-                  <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
-                    Объявление активно до{" "}
-                    {new Date(ad.expiresAt).toLocaleDateString("ru-RU")}. После этой
-                    даты оно будет автоматически снято — опубликуйте снова или{" "}
-                    <Link to="/profile?tab=promote" className="font-semibold underline">
-                      подключите VIP/TOP
-                    </Link>
-                    .
-                  </div>
-                )}
+                {isOwner && (
+                  <>
+                    <div className="flex items-center justify-between gap-2 xl:border-b xl:border-ink-200 xl:pb-4">
+                      <h2 className="text-base font-bold text-ink-900">
+                        {t("listing.ownerPanel")}
+                      </h2>
+                      <StatusBadge
+                        tone={listingStatusTone(moderationStatus)}
+                        label={listingStatusLabel(moderationStatus, t)}
+                      />
+                    </div>
 
-                {isOwner ? (
-                    <>
-                      {moderationStatus === "approved" && (
+                    {ad.expiresAt && (
+                      <Alert tone="warning" icon={CalendarClock}>
+                        {t("listing.expiresOn", {
+                          date: new Date(ad.expiresAt).toLocaleDateString("ru-RU"),
+                        })}{" "}
                         <Link
-                          to={`/profile?tab=promote&listing=${listingId}`}
-                          className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-amber-200 bg-gradient-to-r from-amber-50 to-teal-50 px-4 py-3 text-sm font-semibold text-ink hover:brightness-[0.98] transition"
+                          to="/profile?tab=promote"
+                          className="font-semibold underline"
                         >
-                          Продвинуть объявление (VIP, TOP)
+                          {t("listing.connectPromotion")}
                         </Link>
-                      )}
+                      </Alert>
+                    )}
 
-                      {moderationStatus === "approved" && (
-                        <div className="grid grid-cols-1 gap-2">
-                          <button
-                            type="button"
-                            className="btn w-full py-3 rounded-2xl"
-                            onClick={() => updateListingStatus("sold")}
-                          >
-                            Отметить как проданное
-                          </button>
-
-                          <button
-                            type="button"
-                            className="btn w-full py-3 rounded-2xl"
-                            onClick={() => updateListingStatus("archive")}
-                          >
-                            Снять с публикации
-                          </button>
-                        </div>
-                      )}
-
-                      {(isSold || isArchived) && (
-                        <button
-                          type="button"
-                          className="btn w-full py-3 rounded-2xl border-emerald-200 text-emerald-700 hover:bg-emerald-50"
-                          onClick={() => updateListingStatus("republish")}
-                        >
-                          Опубликовать снова
-                        </button>
-                      )}
-
-                      <Link
-                        to="/messages"
-                        className="btn w-full py-3 rounded-2xl"
-                      >
-                        <MessageCircle className="w-5 h-5" />
-                        Сообщения покупателей
-                      </Link>
-                    </>
-                  ) : null}
-
-                  {isOwner && (
                     <Link
                       to={`/edit/${ad._id || ad.id}`}
-                      className="btn w-full py-3 rounded-2xl border-sun-200 bg-sun-50 text-sun-700 hover:bg-sun-100"
+                      className="btn btn-primary btn-block"
                     >
-                      <Pencil className="w-5 h-5" />
+                      <Pencil className="h-[18px] w-[18px]" aria-hidden />
                       {t("listing.editForm")}
                     </Link>
-                  )}
 
+                    {moderationStatus === "approved" && (
+                      <Link
+                        to={`/profile?tab=promote&listing=${listingId}`}
+                        className="btn btn-block border-sun-200 bg-sun-50 text-sun-800 hover:bg-sun-100"
+                      >
+                        <Crown className="h-[18px] w-[18px]" aria-hidden />
+                        {t("listing.promoteAction")}
+                      </Link>
+                    )}
+
+                    {moderationStatus === "approved" && (
+                      <div className="grid gap-2">
+                        <button
+                          type="button"
+                          className="btn btn-block"
+                          onClick={() => updateListingStatus("sold")}
+                        >
+                          <Check className="h-[18px] w-[18px]" aria-hidden />
+                          {t("listing.markSold")}
+                        </button>
+
+                        <button
+                          type="button"
+                          className="btn btn-block"
+                          onClick={() => updateListingStatus("archive")}
+                        >
+                          <Archive className="h-[18px] w-[18px]" aria-hidden />
+                          {t("listing.unpublishAction")}
+                        </button>
+                      </div>
+                    )}
+
+                    {(isSold || isArchived) && (
+                      <button
+                        type="button"
+                        className="btn btn-block border-success-200 bg-success-50 text-success-700 hover:bg-success-100"
+                        onClick={() => updateListingStatus("republish")}
+                      >
+                        <RotateCcw className="h-[18px] w-[18px]" aria-hidden />
+                        {t("listing.republishAction")}
+                      </button>
+                    )}
+
+                    <Link to="/messages" className="btn btn-block">
+                      <MessageCircle className="h-[18px] w-[18px]" aria-hidden />
+                      {t("listing.buyerMessages")}
+                    </Link>
+                  </>
+                )}
               </section>
           </AdStickyAside>
         </div>
       </div>
 
-      {reportOpen &&
-        createPortal(
-          <div className="fixed inset-0 z-[120] flex items-end sm:items-center justify-center p-0 sm:p-4">
+      {!isOwner && canContact ? (
+        <div
+          className="fixed inset-x-0 border-t border-ink-200 bg-white/95 backdrop-blur-md lg:hidden"
+          style={{
+            zIndex: "var(--z-sticky-bar)",
+            bottom: "var(--mobile-nav-height)",
+          }}
+        >
+          <div className="page-container flex items-center gap-3 py-2.5">
+            <div className="min-w-0 flex-1">
+              <div className="truncate font-display text-lg font-extrabold leading-none tracking-tight text-ink-900">
+                {price}
+              </div>
+              {realEstatePricePerSqm ? (
+                <div className="mt-0.5 truncate text-2xs font-medium text-ink-400">
+                  {realEstatePricePerSqm}
+                </div>
+              ) : null}
+            </div>
+
             <button
               type="button"
-              aria-label={t("common.close")}
-              className="absolute inset-0 bg-black/40"
+              onClick={openSellerChat}
+              className="btn btn-icon shrink-0"
+              aria-label={t("seller.writeSeller")}
+            >
+              <MessageCircle className="h-[18px] w-[18px]" aria-hidden />
+            </button>
+
+            {ad.phone ? (
+              phoneVisible ? (
+                <a href={`tel:${ad.phone}`} className="btn btn-primary shrink-0">
+                  <Phone className="h-[18px] w-[18px]" aria-hidden />
+                  {t("seller.call")}
+                </a>
+              ) : (
+                <button
+                  type="button"
+                  onClick={revealPhone}
+                  className="btn btn-primary shrink-0"
+                >
+                  <Phone className="h-[18px] w-[18px]" aria-hidden />
+                  {t("seller.showPhone")}
+                </button>
+              )
+            ) : (
+              <button
+                type="button"
+                onClick={openSellerChat}
+                className="btn btn-primary shrink-0"
+              >
+                {t("seller.write")}
+              </button>
+            )}
+          </div>
+        </div>
+      ) : null}
+
+      <Modal
+        open={reportOpen}
+        onClose={() => setReportOpen(false)}
+        title={t("report.title")}
+        description={t("report.subtitle")}
+        footer={
+          <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+            <button
+              type="button"
               onClick={() => setReportOpen(false)}
+              className="btn"
+            >
+              {t("common.cancel")}
+            </button>
+            <button
+              type="button"
+              onClick={submitReport}
+              disabled={reportSending}
+              className="btn btn-primary"
+            >
+              {reportSending ? t("report.sending") : t("report.send")}
+            </button>
+          </div>
+        }
+      >
+        <fieldset className="space-y-2">
+          <legend className="field-label">{t("report.reasonLegend")}</legend>
+          {REPORT_REASONS.map((item) => (
+            <Radio
+              key={item.id}
+              name="report-reason"
+              value={item.id}
+              checked={reportReason === item.id}
+              onChange={() => setReportReason(item.id)}
+              label={item.label}
+              boxed
             />
+          ))}
+        </fieldset>
 
-            <div className="relative w-full sm:max-w-lg rounded-t-3xl sm:rounded-2xl bg-white shadow-xl border p-5 space-y-4">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <h3 className="text-lg font-bold">{t("report.title")}</h3>
-                  <p className="text-sm text-slate-500 mt-1">
-                    Расскажите, что не так с этим объявлением.
-                  </p>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => setReportOpen(false)}
-                  className="p-2 rounded-xl border hover:bg-slate-50"
-                  aria-label={t("common.close")}
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-
-              <div className="space-y-2">
-                {REPORT_REASONS.map((item) => (
-                  <label
-                    key={item.id}
-                    className={`flex items-center gap-3 rounded-xl border px-3 py-2.5 cursor-pointer transition ${
-                      reportReason === item.id
-                        ? "border-sun bg-sun-50"
-                        : "border-slate-200 hover:border-slate-300"
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="report-reason"
-                      value={item.id}
-                      checked={reportReason === item.id}
-                      onChange={() => setReportReason(item.id)}
-                      className="accent-sun"
-                    />
-                    <span className="text-sm font-medium text-slate-800">
-                      {item.label}
-                    </span>
-                  </label>
-                ))}
-              </div>
-
-              {reportReason === "other" && (
-                <textarea
-                  value={reportDetails}
-                  onChange={(e) => setReportDetails(e.target.value)}
-                  rows={4}
-                  placeholder={t("report.placeholder")}
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-sun/40 resize-y"
-                />
-              )}
-
-              <div className="flex flex-col-reverse sm:flex-row justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setReportOpen(false)}
-                  className="btn rounded-xl"
-                >
-                  {t("common.cancel")}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={submitReport}
-                  disabled={reportSending}
-                  className="btn btn-primary rounded-xl disabled:opacity-60"
-                >
-                  {reportSending ? t("report.sending") : t("report.send")}
-                </button>
-              </div>
-            </div>
-          </div>,
-          document.body
+        {reportReason === "other" && (
+          <Textarea
+            className="mt-3"
+            value={reportDetails}
+            onChange={(e) => setReportDetails(e.target.value)}
+            rows={4}
+            placeholder={t("report.placeholder")}
+            aria-label={t("report.placeholder")}
+          />
         )}
+
+        {reportError && (
+          <Alert tone="danger" className="mt-3">
+            {reportError}
+          </Alert>
+        )}
+      </Modal>
 
       <ListingImageLightbox
         open={lightboxOpen}

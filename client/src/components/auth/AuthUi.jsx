@@ -1,49 +1,51 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { AlertTriangle, CheckCircle2, Eye, EyeOff } from "lucide-react";
 import {
-  AlertTriangle,
-  CheckCircle2,
-  Eye,
-  EyeOff,
-} from "lucide-react";
+  Button,
+  Checkbox,
+  Field as UiField,
+  IconButton,
+  Input as UiInput,
+  Spinner,
+  cn,
+} from "../../ui";
 import { useI18n } from "../../i18n";
 
-export const Field = ({ label, hint, icon: Icon, right, children }) => (
-  <div className="space-y-1.5">
-    {label && (
-      <label className="text-sm font-medium text-slate-700">{label}</label>
-    )}
-    <div className="relative">
-      {Icon && (
-        <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
-          <Icon size={18} />
-        </span>
-      )}
-      {children}
-      {right && (
-        <span className="absolute inset-y-0 right-0 flex items-center pr-3">
-          {right}
-        </span>
-      )}
+// The phone and email flows still compose a labelled row with an optional
+// leading icon and a trailing control, so this wrapper keeps that contract.
+export function Field({ label, hint, icon: Icon, right, error, children }) {
+  return (
+    <div className="space-y-1.5">
+      {label && <label className="field-label">{label}</label>}
+      <div className="relative">
+        {Icon && (
+          <span className="pointer-events-none absolute inset-y-0 left-0 z-[1] flex items-center pl-3 text-ink-400">
+            <Icon size={18} aria-hidden="true" />
+          </span>
+        )}
+        {children}
+        {right && (
+          <span className="absolute inset-y-0 right-0 flex items-center pr-1.5">
+            {right}
+          </span>
+        )}
+      </div>
+      {error && <p className="field-error">{error}</p>}
+      {hint}
     </div>
-    {hint}
-  </div>
-);
+  );
+}
 
 export const Input = React.forwardRef(function AuthInput(
   { className = "", withIcon, withToggle, ...props },
   ref
 ) {
   return (
-    <input
+    <UiInput
       ref={ref}
+      className={cn(withIcon && "pl-10", withToggle && "pr-11", className)}
       {...props}
-      className={[
-        "auth-input",
-        withIcon ? "auth-input--icon" : "",
-        withToggle ? "auth-input--toggle" : "",
-        className,
-      ].join(" ")}
     />
   );
 });
@@ -51,19 +53,27 @@ export const Input = React.forwardRef(function AuthInput(
 export function Alert({ type = "error", children, actionLabel, onAction }) {
   if (!children) return null;
 
-  const styles =
-    type === "success"
-      ? "auth-alert auth-alert--success"
-      : "auth-alert auth-alert--error";
   const Icon = type === "success" ? CheckCircle2 : AlertTriangle;
 
   return (
-    <div className={styles}>
-      <Icon size={18} className="mt-0.5 shrink-0" />
-      <div className="text-sm space-y-2">
+    <div
+      role={type === "error" ? "alert" : "status"}
+      className={cn(
+        "flex items-start gap-2.5 rounded-xl border p-3 text-sm",
+        type === "success"
+          ? "border-success-200 bg-success-50 text-success-800"
+          : "border-danger-200 bg-danger-50 text-danger-800"
+      )}
+    >
+      <Icon size={18} className="mt-0.5 shrink-0" aria-hidden="true" />
+      <div className="min-w-0 flex-1 space-y-2">
         <div>{children}</div>
         {actionLabel && onAction ? (
-          <button type="button" className="auth-alert__action" onClick={onAction}>
+          <button
+            type="button"
+            className="text-sm font-semibold underline underline-offset-2"
+            onClick={onAction}
+          >
             {actionLabel}
           </button>
         ) : null}
@@ -76,58 +86,114 @@ export function PasswordToggle({ visible, onToggle, label }) {
   const { t } = useI18n();
 
   return (
-    <button
-      type="button"
+    <IconButton
+      icon={visible ? EyeOff : Eye}
+      variant="ghost"
       onClick={onToggle}
-      className="text-slate-400 hover:text-slate-600 transition"
-      aria-label={
-        visible ? t("auth.hideField", { field: label }) : t("auth.showField", { field: label })
+      label={
+        label ||
+        (visible ? t("auth.hidePassword") : t("auth.showPassword"))
       }
-    >
-      {visible ? <EyeOff size={18} /> : <Eye size={18} />}
-    </button>
+    />
   );
 }
 
-export function PolicyCheckbox({ checked, onChange, id = "auth-policy" }) {
+export const PasswordField = React.forwardRef(function PasswordField(
+  {
+    label,
+    toggleLabel,
+    error,
+    hint,
+    visible,
+    onToggleVisible,
+    required = true,
+    ...inputProps
+  },
+  ref
+) {
   const { t } = useI18n();
 
   return (
-    <label
-      htmlFor={id}
-      className={`auth-policy ${checked ? "auth-policy--checked" : ""}`}
-    >
-      <input
-        id={id}
-        type="checkbox"
-        checked={checked}
-        onChange={(e) => onChange(e.target.checked)}
-        className="auth-policy__input"
-      />
-      <span className="auth-policy__box" aria-hidden="true">
-        {checked ? "✓" : ""}
-      </span>
-      <span>
-        {t("auth.policyPrefix")}{" "}
-        <Link to="/policy" className="text-sun font-medium hover:underline">
-          {t("auth.policyLink")}
-        </Link>{" "}
-        {t("auth.policySuffix")}
-      </span>
-    </label>
+    <UiField label={label} error={error} hint={hint} required={required}>
+      {({ id, invalid, "aria-describedby": describedBy }) => (
+        <UiInput
+          ref={ref}
+          id={id}
+          type={visible ? "text" : "password"}
+          invalid={invalid}
+          aria-describedby={describedBy}
+          addonRight={
+            <IconButton
+              icon={visible ? EyeOff : Eye}
+              variant="ghost"
+              onClick={onToggleVisible}
+              label={
+                visible
+                  ? t("auth.hideField", { field: toggleLabel })
+                  : t("auth.showField", { field: toggleLabel })
+              }
+            />
+          }
+          {...inputProps}
+        />
+      )}
+    </UiField>
+  );
+});
+
+export function PolicyCheckbox({ id, checked, onChange, error }) {
+  const { t } = useI18n();
+
+  return (
+    <UiField error={error} htmlFor={id}>
+      {({ "aria-describedby": describedBy }) => (
+        <Checkbox
+          id={id}
+          checked={checked}
+          onChange={(e) => onChange(e.target.checked)}
+          aria-describedby={describedBy}
+          aria-invalid={error ? true : undefined}
+          label={
+            <>
+              {t("auth.policyPrefix")}{" "}
+              <Link
+                to="/policy"
+                target="_blank"
+                rel="noreferrer"
+                className="font-medium text-sun-700 underline underline-offset-2"
+              >
+                {t("auth.policyLink")}
+              </Link>{" "}
+              {t("auth.policySuffix")}
+            </>
+          }
+        />
+      )}
+    </UiField>
   );
 }
 
-export function SubmitButton({ loading, loadingLabel, children, disabled }) {
-  const { t } = useI18n();
-
+/**
+ * The label keeps its box while the request is in flight, so the button never
+ * changes size or reflows the form.
+ */
+export function SubmitButton({ loading, loadingLabel, disabled, children }) {
   return (
-    <button
+    <Button
       type="submit"
-      className="auth-submit"
-      disabled={loading || disabled}
+      variant="primary"
+      size="lg"
+      block
+      className="relative"
+      disabled={disabled || loading}
+      aria-busy={loading || undefined}
     >
-      {loading ? loadingLabel || t("common.loading") : children}
-    </button>
+      <span className={cn(loading && "invisible")}>{children}</span>
+      {loading && (
+        <span className="absolute inset-0 grid place-items-center">
+          <Spinner size="lg" label={loadingLabel} />
+        </span>
+      )}
+    </Button>
   );
 }

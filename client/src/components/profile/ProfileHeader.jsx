@@ -1,121 +1,229 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import {
-  User as UserIcon,
-  LogOut,
-  Wallet,
+  AlertTriangle,
+  Archive,
+  CheckCircle2,
+  Clock3,
   ExternalLink,
-  ChevronRight,
+  Heart,
+  LogOut,
+  Plus,
+  Wallet,
 } from "lucide-react";
 import EmailBadge from "./EmailBadge";
 import { calculateProfileCompletion, getUserInitials, isStaffRole } from "./profileUtils";
+import { Avatar, Badge, Button, cn } from "../../ui";
 import { useI18n } from "../../i18n";
-import { formatMoney } from "../../lib/format";
+import { formatMoney, formatRegistrationDate } from "../../lib/format";
+
+function CounterTile({ icon: Icon, label, value, tone, active, onClick }) {
+  const tones = {
+    success: "text-success-600",
+    warning: "text-warning-600",
+    danger: "text-danger-600",
+    neutral: "text-ink-400",
+    sun: "text-sun-600",
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={cn(
+        "flex min-h-[4.25rem] flex-col justify-between rounded-xl border px-3 py-2.5 text-left transition-colors",
+        active
+          ? "border-ink-900 bg-mist-50"
+          : "border-ink-200 bg-white hover:border-ink-300 hover:bg-mist-50"
+      )}
+    >
+      <span className="flex items-center gap-1.5 text-xs font-medium text-ink-500">
+        <Icon size={14} className={cn("shrink-0", tones[tone])} aria-hidden="true" />
+        <span className="truncate">{label}</span>
+      </span>
+
+      <span className="font-display text-xl font-extrabold tabular-nums text-ink-900">
+        {value}
+      </span>
+    </button>
+  );
+}
 
 export default function ProfileHeader({
   me,
   role,
   emailStatus,
   walletBalance,
+  stats = { approved: 0, pending: 0, rejected: 0, archived: 0 },
+  favCount = 0,
+  activeStatus,
+  onSelectStatus,
+  onOpenFavorites,
   onOpenWallet,
   onLogout,
 }) {
   const { t } = useI18n();
   const completion = calculateProfileCompletion(me, emailStatus);
   const userId = me?.id || me?._id;
-  const initials = getUserInitials(me?.name);
-  const showRole = isStaffRole(role);
+  const memberSince = formatRegistrationDate(me?.createdAt);
   const sellerLabel =
     me?.sellerType === "company" ? t("profile.sellerCompany") : t("profile.sellerPrivate");
 
+  const counters = [
+    {
+      key: "approved",
+      icon: CheckCircle2,
+      tone: "success",
+      label: t("profile.statsApproved"),
+      value: stats.approved,
+      onClick: () => onSelectStatus("approved"),
+    },
+    {
+      key: "pending",
+      icon: Clock3,
+      tone: "warning",
+      label: t("profile.statsPending"),
+      value: stats.pending,
+      onClick: () => onSelectStatus("pending"),
+    },
+    {
+      key: "rejected",
+      icon: AlertTriangle,
+      tone: "danger",
+      label: t("profile.statsRejected"),
+      value: stats.rejected,
+      onClick: () => onSelectStatus("rejected"),
+    },
+    {
+      key: "archived",
+      icon: Archive,
+      tone: "neutral",
+      label: t("profile.statsArchived"),
+      value: stats.archived,
+      onClick: () => onSelectStatus("archived"),
+    },
+    {
+      key: "favorites",
+      icon: Heart,
+      tone: "sun",
+      label: t("profile.favorites"),
+      value: favCount == null ? "—" : favCount,
+      onClick: onOpenFavorites,
+    },
+  ];
+
   return (
-    <div className="rounded-2xl border border-ink/8 bg-white shadow-soft overflow-hidden">
-      <div className="p-4 md:p-6">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex items-start gap-4 min-w-0">
-            <div className="relative w-16 h-16 sm:w-[4.5rem] sm:h-[4.5rem] rounded-2xl bg-sun text-white font-bold text-xl grid place-items-center shrink-0 shadow-soft">
-              {initials !== "?" ? initials : <UserIcon size={28} />}
-            </div>
+    <section className="surface-panel p-4 sm:p-5">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div className="flex min-w-0 items-start gap-3 sm:gap-4">
+          <Avatar name={getUserInitials(me?.name)} size="xl" rounded="rounded-2xl" />
 
-            <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-2 mb-1.5">
-                <span className="px-2 py-0.5 text-2xs font-bold uppercase tracking-wide rounded-md bg-mist text-ink-400">
-                  {sellerLabel}
-                </span>
-                <EmailBadge status={emailStatus} />
-                {showRole && (
-                  <span className="px-2 py-0.5 text-2xs font-semibold uppercase tracking-wide rounded-md bg-mist text-ink-500 border border-ink/8">
-                    {role.replace("_", " ")}
-                  </span>
-                )}
-              </div>
+          <div className="min-w-0">
+            <h1 className="font-display text-xl font-extrabold leading-tight tracking-tight text-ink-900 break-anywhere sm:text-2xl">
+              {me?.name || t("seller.noName")}
+            </h1>
 
-              <h1 className="font-display text-xl sm:text-2xl font-bold leading-tight break-words text-ink tracking-tight">
-                {me?.name || t("seller.noName")}
-              </h1>
-
-              <p className="text-sm text-ink-400 mt-1 truncate">{me?.email}</p>
-            </div>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              onClick={onOpenWallet}
-              className="inline-flex items-center gap-2 rounded-xl bg-sun px-4 py-2.5 text-sm font-semibold text-white hover:bg-sun-600 transition shadow-soft"
-            >
-              <Wallet size={16} />
-              {t("nav.wallet")}
-              <span className="opacity-90 tabular-nums">
-                {formatMoney(walletBalance, { currency: "с.", emptyLabel: "0 с." })}
-              </span>
-            </button>
-
-            {userId && (
-              <Link
-                to={`/seller/${userId}`}
-                className="inline-flex items-center gap-1.5 rounded-xl border border-ink/10 bg-white px-3.5 py-2.5 text-sm font-medium text-ink-600 hover:border-sun/40 hover:text-sun transition"
-              >
-                {t("profile.howOthersSee")}
-                <ExternalLink size={14} />
-              </Link>
+            {me?.email && (
+              <p className="mt-0.5 truncate text-sm text-ink-400">{me.email}</p>
             )}
 
-            <button
-              type="button"
-              className="inline-flex items-center gap-1.5 rounded-xl border border-ink/10 bg-white px-3.5 py-2.5 text-sm font-medium text-ink-600 hover:bg-mist transition"
-              onClick={onLogout}
-            >
-              <LogOut size={16} />
-              {t("profile.logout")}
-            </button>
+            <div className="mt-2 flex flex-wrap items-center gap-1.5">
+              <Badge tone="neutral">{sellerLabel}</Badge>
+              <EmailBadge status={emailStatus} />
+              {isStaffRole(role) && <Badge tone="info">{role.replace("_", " ")}</Badge>}
+            </div>
+
+            {memberSince && (
+              <p className="mt-2 text-xs text-ink-400">
+                {t("profile.memberSince", { date: memberSince })}
+              </p>
+            )}
           </div>
         </div>
 
-        <div className="mt-5 rounded-xl border border-ink/8 bg-mist/50 p-3 md:p-4">
-          <div className="flex flex-wrap items-center justify-between gap-2 text-sm mb-2">
-            <span className="font-medium text-ink-600">
+        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap lg:justify-end">
+          <Button variant="primary" to="/add" icon={Plus} className="sm:order-2">
+            {t("profile.postListing")}
+          </Button>
+
+          <Button onClick={onOpenWallet} icon={Wallet} className="sm:order-1">
+            {t("nav.wallet")}
+            <span className="tabular-nums text-ink-500">
+              {formatMoney(walletBalance, { currency: t("price.currency") })}
+            </span>
+          </Button>
+
+          <div className="flex gap-2 sm:order-3">
+            {userId && (
+              <Button
+                to={`/seller/${userId}`}
+                iconRight={ExternalLink}
+                className="flex-1 sm:flex-none"
+              >
+                {t("profile.howOthersSee")}
+              </Button>
+            )}
+
+            <Button onClick={onLogout} icon={LogOut} aria-label={t("profile.logout")}>
+              <span className="sm:sr-only">{t("profile.logout")}</span>
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      <h2 className="sr-only">{t("profile.overviewTitle")}</h2>
+
+      <ul
+        aria-live="polite"
+        className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5"
+      >
+        {counters.map((counter) => (
+          <li key={counter.key} className="min-w-0">
+            <CounterTile
+              icon={counter.icon}
+              tone={counter.tone}
+              label={counter.label}
+              value={counter.value}
+              active={counter.key === activeStatus}
+              onClick={counter.onClick}
+            />
+          </li>
+        ))}
+      </ul>
+
+      {completion.percent < 100 && (
+        <div className="mt-4 rounded-xl border border-ink-200 bg-mist-50 p-3">
+          <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+            <span className="text-sm font-medium text-ink-600">
               {t("profile.completionLabel", { percent: completion.percent })}
             </span>
-            {completion.percent < 100 && completion.hints[0] && (
+
+            {completion.hintKeys[0] && (
               <Link
                 to="/profile?tab=profile"
-                className="inline-flex items-center gap-1 text-sm font-semibold text-sun hover:text-sun-600 transition"
+                className="text-sm font-semibold text-sun-700 hover:text-sun-800"
               >
-                {completion.hints[0]}
-                <ChevronRight size={14} />
+                {t(completion.hintKeys[0])}
               </Link>
             )}
           </div>
 
-          <div className="h-2.5 rounded-full bg-mist-200 overflow-hidden">
+          <div
+            className="h-2 overflow-hidden rounded-full bg-mist-200"
+            role="progressbar"
+            aria-valuenow={completion.percent}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-label={t("profile.completionLabel", { percent: completion.percent })}
+          >
             <div
-              className="h-full rounded-full bg-sun transition-all duration-500"
+              className="h-full rounded-full bg-sun-500 transition-all duration-500"
               style={{ width: `${completion.percent}%` }}
             />
           </div>
         </div>
-      </div>
-    </div>
+      )}
+    </section>
   );
 }

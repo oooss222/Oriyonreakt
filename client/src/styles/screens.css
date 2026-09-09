@@ -54,6 +54,77 @@
     @apply bg-sun-500 hover:bg-sun-600;
   }
 
+  .filter-sidebar__count {
+    @apply ml-auto rounded-full bg-mist-100 px-2 py-0.5 text-2xs font-bold text-ink-600;
+  }
+
+  /* One rule per group, none per row: the rail stays quiet while the options
+     inside a group read as one list. */
+  .filter-group {
+    @apply border-t border-ink-200 py-3 first:border-t-0;
+  }
+
+  .filter-group__toggle {
+    @apply flex min-h-[2.5rem] w-full items-center justify-between gap-3 rounded-xl text-left;
+  }
+
+  .filter-group__chevron {
+    @apply shrink-0 text-ink-300 transition-transform duration-150;
+  }
+
+  .filter-group__chevron--open {
+    @apply rotate-180;
+  }
+
+  .filter-group__body {
+    @apply mt-2 space-y-3;
+  }
+
+  .filter-option {
+    @apply flex min-h-[2.5rem] items-center justify-between gap-3 rounded-xl px-2
+           transition-colors hover:bg-mist-100;
+  }
+
+  .filter-option__count {
+    @apply shrink-0 text-xs font-medium tabular-nums text-ink-400;
+  }
+
+  /* Filter chips carry a 40px touch target, unlike the denser display chips. */
+  .filter-chip {
+    @apply h-10 px-4;
+  }
+
+  .filter-reset {
+    @apply inline-flex min-h-[2.5rem] items-center gap-1.5 rounded-xl px-2 text-sm
+           font-medium text-ink-500 transition-colors hover:text-ink-900;
+  }
+
+  /* Sticky mobile control bar: filters, sort and the subcategory rail. */
+  .filter-toolbar {
+    @apply sticky top-14 -mx-4 border-b border-ink-200 bg-mist-100/95 px-4 py-2
+           backdrop-blur lg:hidden;
+    z-index: var(--z-sticky-bar);
+  }
+
+  /* Applied filter, removed by tapping anywhere on it. */
+  .filter-token {
+    @apply inline-flex h-10 max-w-full items-center gap-1.5 rounded-full border
+           border-ink-200 bg-white pl-3.5 pr-3 text-sm font-medium text-ink-700
+           transition-colors hover:border-ink-300 hover:bg-mist-100;
+  }
+
+  .filter-token__label {
+    @apply shrink-0 text-ink-400;
+  }
+
+  .filter-token__value {
+    @apply truncate font-semibold;
+  }
+
+  .filter-token__icon {
+    @apply shrink-0 text-ink-400;
+  }
+
   /* ===================================================== real-estate filters */
 
   .re-filter-segment {
@@ -161,6 +232,72 @@
 
   .listing-form-header {
     @apply space-y-1;
+  }
+
+  .listing-form-progress {
+    @apply card space-y-3 p-3 sm:p-4;
+  }
+
+  .listing-form-progress__track {
+    @apply relative h-1.5 flex-1 overflow-hidden rounded-full bg-mist-200;
+  }
+
+  .listing-form-progress__fill {
+    @apply absolute inset-y-0 left-0 rounded-full bg-sun-500 transition-[width] duration-300;
+  }
+
+  .listing-form-progress__count {
+    @apply shrink-0 text-xs font-semibold tabular-nums text-ink-500;
+  }
+
+  .listing-form-progress__list {
+    @apply flex gap-1 overflow-x-auto scrollbar-none;
+  }
+
+  .listing-form-progress__step {
+    @apply inline-flex h-9 max-w-[10rem] items-center gap-1.5 rounded-full border border-ink-200
+           bg-white px-2.5 text-xs font-medium text-ink-600 transition hover:bg-mist-100;
+  }
+
+  .listing-form-progress__step--done {
+    @apply border-success-200 bg-success-50 text-success-800;
+  }
+
+  .listing-form-progress__badge {
+    @apply grid h-5 w-5 shrink-0 place-items-center rounded-full bg-mist-200 text-2xs font-bold;
+  }
+
+  .listing-form-progress__step--done .listing-form-progress__badge {
+    @apply bg-success-500 text-white;
+  }
+
+  .listing-form-section__head {
+    @apply flex items-start gap-3 border-b border-ink-200 px-4 py-3.5 sm:px-5;
+  }
+
+  .listing-form-section__step {
+    @apply mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-full bg-mist-200
+           text-xs font-bold text-ink-600;
+  }
+
+  .listing-form-section__step--done {
+    @apply bg-success-500 text-white;
+  }
+
+  .listing-form-section__title {
+    @apply flex items-center gap-2 text-base font-bold text-ink-900;
+  }
+
+  .listing-form-section__optional {
+    @apply rounded-full bg-mist-100 px-1.5 py-0.5 text-2xs font-semibold uppercase text-ink-400;
+  }
+
+  .listing-form-section__hint {
+    @apply mt-0.5 text-sm text-ink-400;
+  }
+
+  .listing-form-section__body {
+    @apply space-y-4 p-4 sm:p-5;
   }
 
   .listing-form-badge {
@@ -371,140 +508,96 @@
   }
 
   .auth-shell {
-    @apply container-x flex min-h-[calc(100vh-4rem)] items-center py-8 lg:py-12;
+    @apply mx-auto flex w-full max-w-[26rem] flex-col justify-center px-4 py-6 sm:py-10;
+    min-height: calc(100vh - 3.5rem);
+    /* dvh keeps the submit button above the mobile keyboard. */
+    min-height: calc(100dvh - 3.5rem);
   }
 
-  .auth-grid {
-    @apply mx-auto grid w-full max-w-5xl gap-8 lg:grid-cols-2 lg:gap-12;
+  @media (min-width: 1024px) {
+    .auth-shell {
+      min-height: calc(100vh - 4rem);
+      min-height: calc(100dvh - 4rem);
+    }
   }
 
-  .auth-header {
-    @apply mb-6 space-y-2 lg:mb-8;
+  .auth-head {
+    @apply mb-5 flex flex-col items-center gap-1.5 text-center;
   }
 
-  .auth-header__title {
-    @apply text-2xl font-extrabold tracking-tight text-ink-900 sm:text-3xl;
+  .auth-brand {
+    @apply mb-2 inline-flex items-center gap-2 text-ink-900;
   }
 
-  .auth-header__subtitle {
-    @apply text-sm leading-relaxed text-ink-500 sm:text-base;
+  .auth-brand img {
+    @apply h-9 w-9 object-contain;
+  }
+
+  .auth-brand__text {
+    @apply brand-wordmark text-lg;
+  }
+
+  .auth-title {
+    @apply font-display text-2xl font-extrabold tracking-tight text-ink-900;
+  }
+
+  .auth-subtitle {
+    @apply text-sm leading-relaxed text-ink-400;
   }
 
   .auth-card {
-    @apply overflow-hidden rounded-2xl border border-ink-200 bg-white shadow-md;
+    @apply overflow-hidden rounded-2xl border border-ink-200 bg-white shadow-xs;
   }
 
-  .auth-card__tabs {
-    @apply border-b border-ink-200 bg-mist-50 px-3 py-3;
-  }
-
-  .auth-card__tabbar {
-    @apply grid gap-1 rounded-xl border border-ink-200 bg-white p-1;
-  }
-
-  .auth-card__tab {
-    @apply min-h-[2.5rem] rounded-lg px-3 text-sm font-semibold transition-colors;
-  }
-
-  .auth-card__tab--active {
-    @apply bg-sun-500 text-white;
-  }
-
-  .auth-card__tab--idle {
-    @apply text-ink-500 hover:bg-mist-100 hover:text-ink-900;
+  .auth-card__head {
+    @apply border-b border-ink-200 bg-mist-50 p-3;
   }
 
   .auth-card__body {
     @apply space-y-5 p-5 sm:p-6;
   }
 
-  .auth-input {
-    @apply h-11 w-full rounded-xl border border-ink-200 bg-white px-3 text-sm text-ink-900
-           outline-none transition placeholder:text-ink-300
-           focus:border-sun-400 focus:ring-2 focus:ring-sun/25;
+  /* Auth is a one-handed phone screen, so its switches sit above the shared
+     segmented height. */
+  .auth-segmented {
+    @apply flex w-full;
   }
 
-  .auth-input--icon {
-    @apply pl-11;
+  .auth-segmented .segmented-item {
+    @apply min-h-[2.75rem];
   }
 
-  .auth-input--toggle {
-    @apply pr-11;
+  .auth-note {
+    @apply rounded-xl border border-ink-200 bg-mist-50 px-3.5 py-2.5 text-xs leading-relaxed text-ink-500;
   }
 
-  .auth-input--invalid {
-    @apply border-danger-300 focus:border-danger-400 focus:ring-danger-500/20;
+  .auth-steps {
+    @apply flex items-center gap-4;
   }
 
-  .auth-alert {
-    @apply flex items-start gap-2 rounded-xl border p-3 text-sm;
-  }
-
-  .auth-alert--error {
-    @apply border-danger-200 bg-danger-50 text-danger-700;
-  }
-
-  .auth-alert--success {
-    @apply border-success-200 bg-success-50 text-success-700;
-  }
-
-  .auth-alert__action {
-    @apply text-sm font-semibold underline underline-offset-2 hover:no-underline;
-  }
-
-  .auth-field-hint {
-    @apply mt-1.5 text-xs;
-  }
-
-  .auth-field-hint--warn {
-    @apply text-warning-700;
-  }
-
-  .auth-method-switch {
-    @apply grid grid-cols-2 gap-1 rounded-xl border border-ink-200 bg-mist-50 p-1;
-  }
-
-  .auth-method-switch__btn {
-    @apply inline-flex min-h-[2.5rem] items-center justify-center gap-2 rounded-lg px-3
-           text-sm font-semibold text-ink-500 transition-colors hover:text-ink-900;
-  }
-
-  .auth-method-switch__btn--active {
-    @apply border border-ink-200 bg-white text-ink-900 shadow-xs;
-  }
-
-  .auth-register-steps {
-    @apply flex items-center gap-3;
-  }
-
-  .auth-register-steps__item {
+  .auth-steps__item {
     @apply flex items-center gap-2 text-xs font-medium text-ink-400;
   }
 
-  .auth-register-steps__item--active {
-    @apply text-sun-700;
+  .auth-steps__item--active {
+    @apply text-ink-900;
   }
 
-  .auth-register-steps__item--done {
-    @apply text-success-600;
+  .auth-steps__item--done {
+    @apply text-success-700;
   }
 
-  .auth-register-steps__dot {
-    @apply inline-flex h-7 w-7 items-center justify-center rounded-full border
+  .auth-steps__dot {
+    @apply inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border
            border-current bg-white text-2xs font-bold;
   }
 
-  .auth-register-steps__item--active .auth-register-steps__dot {
+  .auth-steps__item--active .auth-steps__dot {
     @apply border-sun-500 bg-sun-500 text-white;
   }
 
-  .auth-register-steps__item--done .auth-register-steps__dot {
+  .auth-steps__item--done .auth-steps__dot {
     @apply border-success-500 bg-success-50 text-success-700;
-  }
-
-  .auth-phone-hint {
-    @apply flex items-start gap-3 rounded-xl border border-sun-100 bg-sun-50 px-4 py-3
-           text-sm leading-relaxed text-ink-600;
   }
 
   .auth-phone-row {
@@ -512,7 +605,7 @@
   }
 
   .auth-phone-prefix {
-    @apply inline-flex h-11 items-center rounded-l-xl border border-r-0 border-ink-200
+    @apply inline-flex h-11 shrink-0 items-center rounded-l-xl border border-r-0 border-ink-200
            bg-mist-50 px-3 text-sm font-semibold text-ink-600;
   }
 
@@ -520,65 +613,45 @@
     @apply rounded-l-none;
   }
 
-  .auth-submit {
-    @apply btn btn-primary h-11 w-full;
+  .auth-code-target {
+    @apply flex items-center justify-between gap-2 rounded-xl border border-ink-200
+           bg-mist-50 py-1.5 pl-3.5 pr-1.5;
   }
 
-  .auth-back-link {
-    @apply inline-flex items-center gap-1 text-sm text-ink-500 transition-colors hover:text-ink-900;
-  }
-
-  .auth-code-banner {
-    @apply rounded-xl border border-ink-200 bg-mist-50 px-4 py-3;
-  }
-
-  .auth-code-banner__title {
-    @apply text-xs font-semibold uppercase tracking-wide text-ink-400;
-  }
-
-  .auth-code-banner__phone {
-    @apply mt-1 text-lg font-bold text-ink-900;
+  .auth-code-target__phone {
+    @apply text-sm font-semibold text-ink-900;
   }
 
   .auth-otp {
-    @apply grid grid-cols-6 gap-2;
+    @apply grid grid-cols-6 gap-1.5 sm:gap-2;
   }
 
   .auth-otp__box {
-    @apply h-12 rounded-xl border border-ink-200 bg-white text-center text-lg font-bold
-           text-ink-900 outline-none transition
-           focus:border-sun-400 focus:ring-2 focus:ring-sun/25;
+    @apply h-12 w-full min-w-0 rounded-xl border border-ink-200 bg-white text-center
+           text-lg font-bold text-ink-900 outline-none transition
+           focus:border-sun-400 focus:ring-2 focus:ring-sun/25
+           disabled:bg-mist-100 disabled:text-ink-400;
   }
 
   .auth-otp__box--filled {
     @apply border-sun-300 bg-sun-50;
   }
 
-  .auth-resend {
-    @apply w-full text-sm font-medium text-sun-700 hover:underline
-           disabled:text-ink-300 disabled:no-underline;
+  .auth-otp__box--invalid {
+    @apply border-danger-300;
   }
 
-  .auth-policy {
-    @apply flex cursor-pointer items-start gap-3 rounded-xl border border-ink-200
-           bg-white px-3 py-3 text-sm text-ink-600 transition;
+  .auth-inline-link {
+    @apply inline-flex min-h-[2.75rem] items-center text-sm font-medium text-sun-700
+           hover:text-sun-800 hover:underline;
   }
 
-  .auth-policy--checked {
-    @apply border-sun-200 bg-sun-50;
+  .auth-legal {
+    @apply mt-5 text-center text-xs leading-relaxed text-ink-400;
   }
 
-  .auth-policy__input {
-    @apply sr-only;
-  }
-
-  .auth-policy__box {
-    @apply mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-md
-           border border-ink-300 bg-white text-2xs font-bold text-white;
-  }
-
-  .auth-policy--checked .auth-policy__box {
-    @apply border-sun-500 bg-sun-500;
+  .auth-legal a {
+    @apply font-medium text-ink-600 underline underline-offset-2 hover:text-ink-900;
   }
 
   .auth-strength {
@@ -613,82 +686,20 @@
     @apply text-xs font-medium text-ink-400;
   }
 
-  .auth-password-reqs {
-    @apply grid grid-cols-1 gap-2 sm:grid-cols-2;
-  }
+  /* Below 480px the card runs edge to edge and keeps its own inner padding. */
+  @media (max-width: 479px) {
+    .auth-shell {
+      @apply px-0;
+    }
 
-  .auth-password-req {
-    @apply flex items-center gap-2 text-xs text-ink-400;
-  }
+    .auth-head,
+    .auth-legal {
+      @apply px-5;
+    }
 
-  .auth-password-req--ok {
-    @apply text-success-700;
-  }
-
-  .auth-password-req__dot {
-    @apply h-1.5 w-1.5 shrink-0 rounded-full bg-ink-200;
-  }
-
-  .auth-password-req--ok .auth-password-req__dot {
-    @apply bg-success-500;
-  }
-
-  .auth-mobile-benefits {
-    @apply flex flex-wrap gap-2;
-  }
-
-  .auth-mobile-benefits__chip {
-    @apply inline-flex rounded-full border border-sun-100 bg-sun-50 px-3 py-1 text-xs
-           font-semibold text-sun-800;
-  }
-
-  .auth-trust-wrap {
-    @apply hidden flex-col justify-center lg:flex;
-  }
-
-  .auth-trust-panel {
-    @apply rounded-3xl border border-ink-800 bg-ink-900 p-8 text-white shadow-lg;
-  }
-
-  .auth-trust-panel__badge {
-    @apply inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs
-           font-semibold uppercase tracking-wide text-white/90;
-  }
-
-  .auth-trust-panel__title {
-    @apply mt-5 text-2xl font-bold leading-tight text-white;
-  }
-
-  .auth-trust-panel__text {
-    @apply mt-3 text-sm leading-relaxed text-white/70;
-  }
-
-  .auth-trust-panel__chips {
-    @apply mt-5 flex flex-wrap gap-2;
-  }
-
-  .auth-trust-panel__chips span {
-    @apply rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-white/90;
-  }
-
-  .auth-trust-panel__list {
-    @apply mt-8 space-y-5;
-  }
-
-  .auth-trust-panel__list li {
-    @apply flex gap-3;
-  }
-
-  .auth-trust-panel__icon {
-    @apply flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/10 text-sun-400;
-  }
-
-  .auth-trust-panel__legal {
-    @apply mt-8 text-xs text-white/50;
-  }
-
-  .auth-footer-link {
-    @apply mt-4 text-center text-sm text-ink-500;
+    .auth-card {
+      @apply rounded-none border-x-0;
+    }
   }
 
   /* ================================================================= messages */

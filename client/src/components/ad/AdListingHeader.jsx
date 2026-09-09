@@ -1,6 +1,7 @@
 import React from "react";
 import { Calendar, Eye, MapPin } from "lucide-react";
 import { formatPublicId, formatViewsLabel } from "../../lib/format";
+import { useI18n } from "../../i18n";
 
 export default function AdListingHeader({
   title,
@@ -9,33 +10,32 @@ export default function AdListingHeader({
   published,
   views,
 }) {
-  return (
-    <div className="space-y-3">
-      {publicId && (
-        <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-500">
-          № {formatPublicId(publicId)}
-        </span>
-      )}
+  const { t } = useI18n();
 
-      <h1 className="text-2xl font-extrabold text-slate-900 leading-tight">
-        {title || "Без названия"}
+  return (
+    <div className="space-y-2.5">
+      <h1 className="font-display text-xl font-extrabold leading-tight text-ink-900 break-anywhere sm:text-2xl">
+        {title || t("listing.noTitle")}
       </h1>
 
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-500">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-ink-400">
         <span className="inline-flex items-center gap-1.5">
-          <MapPin className="w-4 h-4 shrink-0" />
-          {location || "Душанбе"}
+          <MapPin className="h-4 w-4 shrink-0" aria-hidden />
+          {location || t("location.dushanbe")}
         </span>
         {published && (
           <span className="inline-flex items-center gap-1.5">
-            <Calendar className="w-4 h-4 shrink-0" />
+            <Calendar className="h-4 w-4 shrink-0" aria-hidden />
             {published}
           </span>
         )}
         <span className="inline-flex items-center gap-1.5">
-          <Eye className="w-4 h-4 shrink-0" />
+          <Eye className="h-4 w-4 shrink-0" aria-hidden />
           {formatViewsLabel(views)}
         </span>
+        {publicId && (
+          <span className="text-ink-400">№ {formatPublicId(publicId)}</span>
+        )}
       </div>
     </div>
   );
