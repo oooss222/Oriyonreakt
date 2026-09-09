@@ -1,6 +1,8 @@
 export default {
   a11y: {
     photoOf: "Акси {{index}} аз {{total}}",
+    photoViewer: "Тамошои аксҳо",
+    goToPhoto: "Гузаштан ба акси {{index}}",
     photoCount: "акс",
     viewCount: "дидашуда",
     breadcrumbs: "Навигатсия",
@@ -849,6 +851,7 @@ export default {
     selectDate: "Интихоб кунед",
     guests: "Меҳмонон",
     guestsAny: "Ҳар шумора",
+    guestsPlaceholder: "Чанд меҳмон?",
     guestsCount: "Шумораи меҳмонон",
     prevMonth: "Моҳи гузашта",
     nextMonth: "Моҳи оянда",

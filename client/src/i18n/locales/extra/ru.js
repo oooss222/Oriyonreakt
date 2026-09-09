@@ -1,6 +1,8 @@
 export default {
   a11y: {
     photoOf: "Фото {{index}} из {{total}}",
+    photoViewer: "Просмотр фото",
+    goToPhoto: "Перейти к фото {{index}}",
     photoCount: "фото",
     viewCount: "просмотров",
     breadcrumbs: "Навигация",
@@ -850,6 +852,7 @@ export default {
     selectDate: "Выберите",
     guests: "Гости",
     guestsAny: "Любое количество",
+    guestsPlaceholder: "Сколько гостей?",
     guestsCount: "Количество гостей",
     prevMonth: "Предыдущий месяц",
     nextMonth: "Следующий месяц",

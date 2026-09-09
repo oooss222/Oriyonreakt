@@ -1,6 +1,8 @@
 import React from "react";
 import { createPortal } from "react-dom";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { useBodyScrollLock, useFocusTrap } from "../ui";
+import { useI18n } from "../i18n";
 
 export default function ListingImageLightbox({
   open,
@@ -8,14 +10,18 @@ export default function ListingImageLightbox({
   images = [],
   activeIndex = 0,
   onChangeIndex,
-  title = "Фото объявления",
+  title,
 }) {
+  const { t } = useI18n();
+  const panelRef = React.useRef(null);
   const touchStartX = React.useRef(null);
+  const heading = title || t("a11y.photoViewer");
+
+  useBodyScrollLock(open);
+  useFocusTrap(panelRef, open);
 
   React.useEffect(() => {
     if (!open) return undefined;
-
-    document.body.style.overflow = "hidden";
 
     const onKeyDown = (event) => {
       if (event.key === "Escape") {
@@ -35,11 +41,7 @@ export default function ListingImageLightbox({
     };
 
     window.addEventListener("keydown", onKeyDown);
-
-    return () => {
-      document.body.style.overflow = "";
-      window.removeEventListener("keydown", onKeyDown);
-    };
+    return () => window.removeEventListener("keydown", onKeyDown);
   }, [open, images.length, activeIndex, onClose, onChangeIndex]);
 
   const goPrev = React.useCallback(() => {
@@ -76,34 +78,40 @@ export default function ListingImageLightbox({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[120] bg-black/95 flex flex-col"
+      ref={panelRef}
+      className="fixed inset-0 flex flex-col bg-black/95"
+      style={{ zIndex: "var(--z-modal)" }}
       role="dialog"
       aria-modal="true"
-      aria-label="Просмотр фото"
+      aria-label={heading}
+      tabIndex={-1}
       onClick={onClose}
     >
       <div className="flex shrink-0 items-center justify-between gap-3 px-4 py-3 text-white">
         <div className="min-w-0">
-          <div className="text-sm font-semibold truncate">{title}</div>
+          <p className="truncate text-sm font-semibold">{heading}</p>
           {images.length > 1 && (
-            <div className="text-xs text-white/70 mt-0.5">
-              {activeIndex + 1} из {images.length}
-            </div>
+            <p className="mt-0.5 text-xs text-white/70" aria-live="polite">
+              {t("a11y.photoOf", {
+                index: activeIndex + 1,
+                total: images.length,
+              })}
+            </p>
           )}
         </div>
 
         <button
           type="button"
           onClick={onClose}
-          className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition shrink-0"
-          aria-label="Закрыть"
+          className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-white/10 transition hover:bg-white/20"
+          aria-label={t("a11y.close")}
         >
-          <X className="w-5 h-5" />
+          <X className="h-5 w-5" aria-hidden />
         </button>
       </div>
 
       <div
-        className="relative flex-1 min-h-0 flex items-center justify-center px-3 sm:px-16"
+        className="relative flex min-h-0 flex-1 items-center justify-center px-3 sm:px-16"
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
         onClick={(event) => event.stopPropagation()}
@@ -113,52 +121,56 @@ export default function ListingImageLightbox({
             <button
               type="button"
               onClick={goPrev}
-              className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition"
-              aria-label="Предыдущее фото"
+              className="absolute left-2 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full bg-white/10 text-white transition hover:bg-white/20 sm:left-4"
+              aria-label={t("a11y.photoPrev")}
             >
-              <ChevronLeft className="w-6 h-6" />
+              <ChevronLeft className="h-6 w-6" aria-hidden />
             </button>
 
             <button
               type="button"
               onClick={goNext}
-              className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition"
-              aria-label="Следующее фото"
+              className="absolute right-2 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full bg-white/10 text-white transition hover:bg-white/20 sm:right-4"
+              aria-label={t("a11y.photoNext")}
             >
-              <ChevronRight className="w-6 h-6" />
+              <ChevronRight className="h-6 w-6" aria-hidden />
             </button>
           </>
         )}
 
         <img
           src={currentSrc}
-          alt={title}
-          className="max-w-full max-h-full object-contain select-none"
+          alt={heading}
+          className="max-h-full max-w-full select-none object-contain"
           draggable={false}
         />
       </div>
 
       {images.length > 1 && (
         <div
-          className="shrink-0 border-t border-white/10 bg-black/40 px-3 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]"
+          className="shrink-0 border-t border-white/10 bg-black/40 px-3 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))]"
           onClick={(event) => event.stopPropagation()}
         >
-          <div className="flex gap-2 overflow-x-auto scrollbar-hide snap-x snap-mandatory max-w-4xl mx-auto">
+          <div className="mx-auto flex max-w-4xl snap-x snap-mandatory gap-2 overflow-x-auto scrollbar-none">
             {images.map((src, index) => (
               <button
                 key={`${src}-${index}`}
                 type="button"
                 onClick={() => onChangeIndex?.(index)}
-                className={`snap-start shrink-0 rounded-xl overflow-hidden border-2 transition ${
+                aria-label={t("a11y.goToPhoto", { index: index + 1 })}
+                aria-current={activeIndex === index ? "true" : undefined}
+                className={`shrink-0 snap-start overflow-hidden rounded-xl border-2 transition ${
                   activeIndex === index
-                    ? "border-sun ring-2 ring-sun/30"
-                    : "border-transparent opacity-70 hover:opacity-100"
+                    ? "border-sun-500"
+                    : "border-transparent opacity-60 hover:opacity-100"
                 }`}
               >
                 <img
                   src={src}
                   alt=""
-                  className="w-16 h-14 sm:w-20 sm:h-16 object-cover bg-slate-800"
+                  loading="lazy"
+                  decoding="async"
+                  className="h-14 w-16 bg-ink-800 object-cover sm:h-16 sm:w-20"
                   draggable={false}
                 />
               </button>

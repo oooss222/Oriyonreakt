@@ -1,6 +1,8 @@
 export default {
   a11y: {
     photoOf: "Photo {{index}} of {{total}}",
+    photoViewer: "Photo viewer",
+    goToPhoto: "Go to photo {{index}}",
     photoCount: "photos",
     viewCount: "views",
     breadcrumbs: "Breadcrumb",
@@ -846,6 +848,7 @@ export default {
     selectDate: "Select",
     guests: "Guests",
     guestsAny: "Any number",
+    guestsPlaceholder: "How many guests?",
     guestsCount: "Number of guests",
     prevMonth: "Previous month",
     nextMonth: "Next month",
