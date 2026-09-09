@@ -3,13 +3,14 @@ import { Link, useNavigate, useSearchParams, useLocation } from "react-router-do
 import {
   Search,
   User,
-  PlusCircle,
+  Plus,
   Heart,
   Wallet,
   Scale,
   LogIn,
   MessageCircle,
   ClipboardCheck,
+  X,
 } from "lucide-react";
 
 import { api } from "../lib/api";
@@ -19,7 +20,7 @@ import { canAccessModeration } from "../lib/adminUtils";
 import { subscribeModerationQueue } from "../lib/moderationSocket";
 import { useUnreadCount } from "../lib/unread";
 import CategoryStrip from "./CategoryStrip";
-import HeaderSearchSuggestions from "./HeaderSearchSuggestions";
+import HeaderSearchSuggestions, { useSearchSuggestions } from "./HeaderSearchSuggestions";
 import LanguageSwitcher from "./LanguageSwitcher";
 import { useI18n } from "../i18n";
 import {
@@ -28,6 +29,39 @@ import {
   findCompareCatWithItems,
 } from "../lib/compareListings";
 import { getComparePath } from "../lib/compareConfig";
+import { cn } from "../ui";
+
+/** Icon link with a counter. 44px square so it is comfortable on touch. */
+function NavIconLink({ to, icon: Icon, label, count = 0, tone = "danger" }) {
+  const toneClass = {
+    danger: "bg-danger-600",
+    sun: "bg-sun-500",
+    warning: "bg-warning-600",
+  }[tone];
+
+  return (
+    <Link
+      to={to}
+      aria-label={count > 0 ? `${label} (${count})` : label}
+      title={label}
+      className="relative grid h-11 w-11 place-items-center rounded-xl text-ink-600 transition-colors hover:bg-mist-100 hover:text-ink-900"
+    >
+      <Icon size={20} strokeWidth={1.9} aria-hidden="true" />
+
+      {count > 0 && (
+        <span
+          className={cn(
+            "absolute right-1.5 top-1.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full px-1 text-2xs font-bold text-white ring-2 ring-white",
+            toneClass
+          )}
+          aria-hidden="true"
+        >
+          {count > 99 ? "99+" : count}
+        </span>
+      )}
+    </Link>
+  );
+}
 
 export default function Header({ variant = "full" }) {
   const nav = useNavigate();
@@ -36,16 +70,19 @@ export default function Header({ variant = "full" }) {
   const isMinimal = variant === "minimal";
   const { t, lang } = useI18n();
 
-  const numberLocale =
-    lang === "en" ? "en-US" : lang === "tg" ? "tg-TJ" : "ru-RU";
+  const numberLocale = lang === "en" ? "en-US" : lang === "tg" ? "tg-TJ" : "ru-RU";
 
   const [q, setQ] = React.useState(sp.get("search") || sp.get("q") || "");
   const [catalogTotal, setCatalogTotal] = React.useState(0);
-  const [showSuggestions, setShowSuggestions] = React.useState(false);
+  const [suggestionsOpen, setSuggestionsOpen] = React.useState(false);
+  const [activeIndex, setActiveIndex] = React.useState(-1);
   const [moderationCount, setModerationCount] = React.useState(0);
   const [compareCount, setCompareCount] = React.useState(0);
   const [comparePath, setComparePath] = React.useState("/realestate/sravnenie");
-  const [scrolled, setScrolled] = React.useState(false);
+
+  const inputRef = React.useRef(null);
+  const listboxId = React.useId();
+  const optionId = React.useCallback((index) => `${listboxId}-option-${index}`, [listboxId]);
 
   const token = localStorage.getItem(TOKEN_KEY) || "";
 
@@ -61,6 +98,15 @@ export default function Header({ variant = "full" }) {
   const onMessagesPage = pathname === "/messages";
   const badgeCount = useUnreadCount(Boolean(token) && !onMessagesPage);
   const canModerate = canAccessModeration(user?.role);
+
+  const { items: suggestions, loading: suggestionsLoading } = useSearchSuggestions(
+    q,
+    suggestionsOpen && !isMinimal
+  );
+
+  React.useEffect(() => {
+    setActiveIndex(-1);
+  }, [q]);
 
   React.useEffect(() => {
     if (!token || !canModerate) {
@@ -94,19 +140,10 @@ export default function Header({ variant = "full" }) {
   const isBrowsePage =
     !isMinimal &&
     (pathname === "/" ||
-    pathname === "/listing" ||
-    pathname === "/realestate" ||
-    pathname.startsWith("/realestate/") ||
-    pathname.startsWith("/c/"));
-
-  const compactCategories = pathname !== "/";
-
-  React.useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 48);
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+      pathname === "/listing" ||
+      pathname === "/realestate" ||
+      pathname.startsWith("/realestate/") ||
+      pathname.startsWith("/c/"));
 
   React.useEffect(() => {
     const syncCompare = () => {
@@ -124,293 +161,285 @@ export default function Header({ variant = "full" }) {
   React.useEffect(() => {
     let active = true;
 
-    async function loadCount() {
-      try {
-        const data = await api.listingCount({});
-        if (active) {
-          setCatalogTotal(Number(data?.total || 0));
-        }
-      } catch {
+    api
+      .listingCount({})
+      .then((data) => {
+        if (active) setCatalogTotal(Number(data?.total || 0));
+      })
+      .catch(() => {
         if (active) setCatalogTotal(0);
-      }
-    }
-
-    loadCount();
+      });
 
     return () => {
       active = false;
     };
   }, []);
 
-  const listingsCountLabel = React.useMemo(() => {
+  const searchPlaceholder = React.useMemo(() => {
     if (!catalogTotal) return t("header.searchPlaceholder");
-    return t("header.searchAmong", {
-      count: catalogTotal.toLocaleString(numberLocale),
-    });
+    return t("header.searchAmong", { count: catalogTotal.toLocaleString(numberLocale) });
   }, [catalogTotal, t, numberLocale]);
 
-  const go = React.useCallback(() => {
-    const text = q.trim();
-    setShowSuggestions(false);
+  const go = React.useCallback(
+    (text = q) => {
+      const value = String(text || "").trim();
+      setSuggestionsOpen(false);
+      setActiveIndex(-1);
+      inputRef.current?.blur();
 
-    if (text) {
-      trackSearch(text);
-      nav(`/listing?search=${encodeURIComponent(text)}`);
-    } else {
-      nav("/listing");
-    }
-  }, [q, nav]);
-
-  const suggestionList = (
-    <HeaderSearchSuggestions
-      query={q}
-      visible={showSuggestions}
-      onSelect={(ad, id) => {
-        sessionStorage.setItem("ad_preview", JSON.stringify(ad));
-        setShowSuggestions(false);
-        nav(`/ad/${id}`);
-      }}
-      onNavigate={() => {
-        setShowSuggestions(false);
-        go();
-      }}
-    />
+      if (value) {
+        trackSearch(value);
+        nav(`/listing?search=${encodeURIComponent(value)}`);
+      } else {
+        nav("/listing");
+      }
+    },
+    [q, nav]
   );
 
-  const searchField = (compact = false) => (
-    <div
-      className={`relative flex items-center w-full rounded-xl bg-ink-600 overflow-visible ring-1 ring-white/10 focus-within:ring-sun/70 transition ${
-        compact ? "min-w-0" : ""
-      }`}
-    >
-      <div className="flex items-center w-full rounded-xl overflow-hidden bg-ink-600">
-      <Search size={18} className="text-ink-300 shrink-0 ml-3" />
+  const openSuggestion = React.useCallback(
+    (ad, id) => {
+      sessionStorage.setItem("ad_preview", JSON.stringify(ad));
+      setSuggestionsOpen(false);
+      setActiveIndex(-1);
+      nav(`/ad/${id}`);
+    },
+    [nav]
+  );
 
-      <input
-        className={`flex-1 outline-none bg-transparent text-sm text-white placeholder:text-ink-300 px-2 min-w-0 ${
-          compact ? "h-10" : "h-10 lg:h-11"
-        }`}
-        value={q}
-        onFocus={() => setShowSuggestions(true)}
-        onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
-        onChange={(e) => {
-          setQ(e.target.value);
-          setShowSuggestions(true);
-        }}
-        onKeyDown={(e) => e.key === "Enter" && go()}
-        placeholder={listingsCountLabel}
-      />
+  const onSearchKeyDown = (event) => {
+    if (event.key === "Escape") {
+      setSuggestionsOpen(false);
+      setActiveIndex(-1);
+      return;
+    }
 
-      <button
-        type="button"
-        onClick={go}
-        className={`bg-sun hover:bg-sun-600 text-white text-sm font-semibold transition shrink-0 ${
-          compact ? "h-10 px-3.5" : "h-10 lg:h-11 px-4 lg:px-5"
-        }`}
+    if (event.key === "Enter") {
+      const picked = suggestions[activeIndex];
+
+      if (picked) {
+        event.preventDefault();
+        openSuggestion(picked, picked.id || picked._id);
+        return;
+      }
+
+      go();
+      return;
+    }
+
+    if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
+    if (suggestions.length === 0) return;
+
+    event.preventDefault();
+    setSuggestionsOpen(true);
+    // The cycle has one extra slot past the last option, which means "back to
+    // whatever I typed".
+    const slots = suggestions.length + 1;
+    const delta = event.key === "ArrowDown" ? 1 : -1;
+    setActiveIndex((prev) => (prev + delta + slots + 1) % slots);
+  };
+
+  const expanded = suggestionsOpen && (suggestions.length > 0 || suggestionsLoading);
+
+  const searchField = (
+    <div className="relative w-full">
+      <div
+        className="flex h-11 w-full items-center overflow-hidden rounded-xl border border-ink-200 bg-white
+                   transition focus-within:border-sun-400 focus-within:ring-2 focus-within:ring-sun/25"
       >
-        {t("common.find")}
-      </button>
+        <Search size={18} className="ml-3 shrink-0 text-ink-400" aria-hidden="true" />
+
+        <input
+          ref={inputRef}
+          type="search"
+          role="combobox"
+          aria-label={t("a11y.mainSearch")}
+          aria-expanded={expanded}
+          aria-controls={expanded ? listboxId : undefined}
+          aria-autocomplete="list"
+          aria-activedescendant={
+            activeIndex >= 0 && activeIndex < suggestions.length ? optionId(activeIndex) : undefined
+          }
+          className="h-full min-w-0 flex-1 bg-transparent px-2.5 text-sm text-ink-900 outline-none
+                     placeholder:text-ink-400 [&::-webkit-search-cancel-button]:hidden"
+          value={q}
+          onFocus={() => setSuggestionsOpen(true)}
+          onBlur={() => setTimeout(() => setSuggestionsOpen(false), 120)}
+          onChange={(event) => {
+            setQ(event.target.value);
+            setSuggestionsOpen(true);
+          }}
+          onKeyDown={onSearchKeyDown}
+          placeholder={searchPlaceholder}
+        />
+
+        {q && (
+          <button
+            type="button"
+            onMouseDown={(event) => event.preventDefault()}
+            onClick={() => {
+              setQ("");
+              inputRef.current?.focus();
+            }}
+            aria-label={t("a11y.clearSearch")}
+            className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-ink-400 transition hover:bg-mist-100 hover:text-ink-900"
+          >
+            <X size={15} aria-hidden="true" />
+          </button>
+        )}
+
+        <button
+          type="button"
+          onClick={() => go()}
+          aria-label={t("a11y.submitSearch")}
+          className="ml-1 h-11 shrink-0 bg-sun-500 px-4 text-sm font-semibold text-white transition-colors hover:bg-sun-600 sm:px-5"
+        >
+          <Search size={17} strokeWidth={2.4} className="sm:hidden" aria-hidden="true" />
+          <span className="hidden sm:inline">{t("common.find")}</span>
+        </button>
       </div>
 
-      {suggestionList}
+      {suggestionsOpen && (
+        <HeaderSearchSuggestions
+          listboxId={listboxId}
+          optionId={optionId}
+          items={suggestions}
+          loading={suggestionsLoading}
+          activeIndex={activeIndex}
+          onSelect={openSuggestion}
+          onNavigate={() => go()}
+        />
+      )}
     </div>
+  );
+
+  const logo = (
+    <Link to="/" className="group flex shrink-0 items-center gap-2" aria-label="Oriyon.store">
+      <img
+        src="/oriyon.store.png"
+        alt=""
+        width={40}
+        height={40}
+        className="h-10 w-10 object-contain transition-transform duration-200 group-hover:scale-105"
+      />
+      <span className="brand-wordmark hidden text-lg text-ink-900 sm:inline">
+        Oriyon
+        <span className="text-sun-500">.</span>
+        <span className="text-2xs font-bold uppercase tracking-wider text-ink-400">store</span>
+      </span>
+    </Link>
   );
 
   return (
     <>
-      <header className="sticky top-0 z-50 bg-ink-700 text-white border-b border-white/5 shadow-soft">
-        <div className="container mx-auto px-3 sm:px-4 lg:px-6">
-        <div
-          className={`hidden lg:flex items-center gap-2 sm:gap-3 transition-all duration-300 ${
-            scrolled ? "h-14" : "h-16 lg:h-[72px]"
-          }`}
-        >
-          <Link to="/" className="flex items-center gap-2 group shrink-0 min-w-0">
-            <img
-              src="/oriyon.store.png"
-              alt="Oriyon Store"
-              className={`object-contain transition-all duration-300 group-hover:scale-105 ${
-                scrolled ? "w-10 h-10" : "w-12 h-12 lg:w-14 lg:h-14"
-              }`}
-            />
+      <header
+        className="sticky top-0 border-b border-ink-200 bg-white"
+        style={{ zIndex: "var(--z-header)" }}
+      >
+        <div className="page-container">
+          {/* Desktop */}
+          <div className="hidden h-16 items-center gap-3 lg:flex">
+            {logo}
 
-            <span
-              className={`brand-wordmark transition-all duration-300 truncate ${
-                scrolled ? "text-base" : "text-lg"
-              }`}
-            >
-              Oriyon
-              <span className="text-sun">.</span>
-              <span className="text-white/70 font-semibold text-[0.85em]">store</span>
-            </span>
-          </Link>
-
-          <Link
-            to="/add"
-            className="inline-flex items-center gap-1.5 shrink-0 px-3 py-2 rounded-xl border border-sun/50 text-sun text-sm font-semibold hover:bg-sun/10 transition"
-          >
-            <PlusCircle size={17} />
-            {t("header.addListing")}
-          </Link>
-
-          {!isMinimal && (
-            <div className="flex-1 min-w-0 relative">{searchField(false)}{suggestionList}</div>
-          )}
-
-          {isMinimal && (
-            <div className="flex-1" aria-hidden="true" />
-          )}
-
-          <nav className="flex items-center gap-0.5 shrink-0">
             {isMinimal ? (
-              <>
-                <Link
-                  to="/listing"
-                  className="hidden sm:inline px-3 py-2 rounded-lg text-sm font-medium text-white/80 hover:bg-white/10 hover:text-white transition"
-                >
+              <div className="flex-1" aria-hidden="true" />
+            ) : (
+              <div className="min-w-0 flex-1">{searchField}</div>
+            )}
+
+            {isMinimal ? (
+              <nav className="flex items-center gap-1" aria-label={t("nav.mobileNav")}>
+                <Link to="/listing" className="btn btn-ghost">
                   {t("nav.catalog")}
                 </Link>
-                <Link
-                  to="/"
-                  className="px-3 py-2 rounded-lg text-sm font-medium text-white/80 hover:bg-white/10 hover:text-white transition"
-                >
+                <Link to="/" className="btn btn-ghost">
                   {t("nav.backHome")}
                 </Link>
-              </>
+                <LanguageSwitcher />
+              </nav>
             ) : (
-              <>
-            <LanguageSwitcher className="hidden sm:block" />
+              <nav className="flex shrink-0 items-center gap-0.5" aria-label={t("nav.mobileNav")}>
+                <NavIconLink to="/profile?tab=fav" icon={Heart} label={t("nav.favorites")} />
+                <NavIconLink
+                  to="/messages"
+                  icon={MessageCircle}
+                  label={t("nav.messages")}
+                  count={badgeCount}
+                />
+                <NavIconLink
+                  to={comparePath}
+                  icon={Scale}
+                  label={t("nav.compare")}
+                  count={compareCount}
+                  tone="sun"
+                />
 
-            <Link
-              to="/profile?tab=fav"
-              className="p-2.5 rounded-lg hover:bg-white/10 transition"
-              title={t("nav.favorites")}
-            >
-              <Heart size={20} />
-            </Link>
-
-            <Link
-              to="/messages"
-              className="relative p-2.5 rounded-lg hover:bg-white/10 transition"
-              title={t("nav.messages")}
-            >
-              <MessageCircle size={20} />
-              {badgeCount > 0 && (
-                <span className="absolute top-1 right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-2xs font-bold flex items-center justify-center">
-                  {badgeCount > 99 ? "99+" : badgeCount}
-                </span>
-              )}
-            </Link>
-
-            <Link
-              to={comparePath}
-              className="relative p-2.5 rounded-lg hover:bg-white/10 transition"
-              title={t("nav.compare")}
-            >
-              <Scale size={20} />
-              {compareCount > 0 && (
-                <span className="absolute top-1 right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-sun text-white text-2xs font-bold flex items-center justify-center">
-                  {compareCount > 99 ? "99+" : compareCount}
-                </span>
-              )}
-            </Link>
-
-            {canModerate && (
-              <Link
-                to="/admin?section=moderation"
-                className="relative p-2.5 rounded-lg hover:bg-white/10 transition"
-                title={t("nav.moderation")}
-              >
-                <ClipboardCheck size={20} />
-                {moderationCount > 0 && (
-                  <span className="absolute top-1 right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-amber-500 text-white text-2xs font-bold flex items-center justify-center">
-                    {moderationCount > 99 ? "99+" : moderationCount}
-                  </span>
+                {canModerate && (
+                  <NavIconLink
+                    to="/admin?section=moderation"
+                    icon={ClipboardCheck}
+                    label={t("nav.moderation")}
+                    count={moderationCount}
+                    tone="warning"
+                  />
                 )}
-              </Link>
-            )}
 
-            {token ? (
-              <>
-                <Link
-                  to="/profile?tab=wallet"
-                  className="p-2.5 rounded-lg hover:bg-white/10 transition"
-                  title={t("nav.wallet")}
-                >
-                  <Wallet size={20} />
+                {token ? (
+                  <>
+                    <NavIconLink to="/profile?tab=wallet" icon={Wallet} label={t("nav.wallet")} />
+                    <NavIconLink
+                      to="/profile?tab=profile"
+                      icon={User}
+                      label={user?.name || t("nav.profile")}
+                    />
+                  </>
+                ) : (
+                  <NavIconLink to="/auth" icon={LogIn} label={t("nav.login")} />
+                )}
+
+                <LanguageSwitcher className="ml-1" />
+
+                <Link to="/add" className="btn btn-primary ml-2 shrink-0">
+                  <Plus size={17} strokeWidth={2.4} aria-hidden="true" />
+                  {t("header.addListing")}
                 </Link>
-
-                <Link
-                  to="/profile?tab=profile"
-                  className="p-2.5 rounded-lg hover:bg-white/10 transition"
-                  title={user?.name || t("nav.profile")}
-                >
-                  <User size={20} />
-                </Link>
-              </>
-            ) : (
-              <Link
-                to="/auth"
-                className="p-2.5 rounded-lg hover:bg-white/10 transition"
-                title={t("nav.login")}
-              >
-                <LogIn size={20} />
-              </Link>
+              </nav>
             )}
-              </>
-            )}
-          </nav>
-        </div>
-
-        {!isMinimal ? (
-        <div className="lg:hidden pt-2 pb-2.5 relative">
-          <div className="flex items-center gap-2">
-            <Link to="/" className="shrink-0" aria-label={t("nav.backHome")}>
-              <img
-                src="/oriyon.store.png"
-                alt="Oriyon Store"
-                className="w-9 h-9 object-contain"
-              />
-            </Link>
-
-            <LanguageSwitcher />
-
-            <div className="flex-1 min-w-0 relative">
-              {searchField(true)}
-              {suggestionList}
-            </div>
           </div>
-        </div>
-        ) : (
-          <div className="lg:hidden py-2.5 flex items-center justify-between gap-3">
-            <Link to="/" className="shrink-0" aria-label={t("nav.backHome")}>
-              <img
-                src="/oriyon.store.png"
-                alt="Oriyon Store"
-                className="w-9 h-9 object-contain"
-              />
-            </Link>
-            <div className="flex items-center gap-2">
-              <Link
-                to="/listing"
-                className="text-sm font-medium text-white/80 hover:text-white transition"
-              >
-                {t("nav.catalog")}
+
+          {/* Mobile */}
+          {isMinimal ? (
+            <div className="flex h-14 items-center justify-between gap-3 lg:hidden">
+              {logo}
+
+              <div className="flex items-center gap-1">
+                <Link to="/listing" className="btn btn-ghost btn-sm">
+                  {t("nav.catalog")}
+                </Link>
+                <LanguageSwitcher />
+              </div>
+            </div>
+          ) : (
+            <div className="flex h-14 items-center gap-2 lg:hidden">
+              <Link to="/" className="shrink-0" aria-label={t("nav.backHome")}>
+                <img
+                  src="/oriyon.store.png"
+                  alt=""
+                  width={36}
+                  height={36}
+                  className="h-9 w-9 object-contain"
+                />
               </Link>
-              <Link
-                to="/"
-                className="text-sm font-medium text-white/80 hover:text-white transition"
-              >
-                {t("nav.backHome")}
-              </Link>
+
+              <div className="min-w-0 flex-1">{searchField}</div>
+
               <LanguageSwitcher />
             </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
       </header>
 
-      {isBrowsePage && <CategoryStrip compact={compactCategories} />}
+      {isBrowsePage && <CategoryStrip compact={pathname !== "/"} />}
     </>
   );
 }

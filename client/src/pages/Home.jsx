@@ -1,9 +1,9 @@
 import React from "react";
-import { Link } from "react-router-dom";
 import ListingCard from "../components/ListingCard";
 import RealEstateListingCard from "../components/RealEstateListingCard";
 import AdSlot from "../components/AdSlot";
 import BusinessPromoBanner from "../components/BusinessPromoBanner";
+import SectionHeader from "../components/SectionHeader";
 import { api } from "../lib/api";
 import { getUserFacingErrorMessage } from "../lib/apiError";
 import { useI18n } from "../i18n";
@@ -12,128 +12,146 @@ import { CONSENT_EVENT } from "../lib/cookieConsent";
 import { sortListingsByPromotion } from "../lib/listingSort";
 import { usePageMeta } from "../lib/usePageMeta";
 import { REAL_ESTATE_CAT, DEFAULT_REAL_ESTATE_BROWSE_PATH } from "../data/realEstate";
+import { TOKEN_KEY } from "../lib/auth";
+import { Alert, Button, EmptyState, ListingCardSkeleton } from "../ui";
 import {
-  PlusCircle,
+  Plus,
   ShieldCheck,
   Tag,
-  ArrowRight,
   TrendingUp,
   BadgeCheck,
   Flame,
-  Home as HomeIcon,
+  LayoutGrid,
   Smartphone,
   Monitor,
   Building2,
   Eye,
+  Rocket,
+  Heart,
+  PackageSearch,
 } from "lucide-react";
 
-function RealEstateSection({ items }) {
-  const { t } = useI18n();
+const FEED_GRID = "grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5";
 
-  if (!items?.length) {
-    return (
-      <AdSlot placement="home_top" className="overflow-hidden rounded-3xl" />
-    );
-  }
+function Hero({ total }) {
+  const { t } = useI18n();
+  const token = typeof window !== "undefined" ? localStorage.getItem(TOKEN_KEY) : "";
 
   return (
-    <section className="space-y-4">
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <div className="w-10 h-10 icon-box-sun shrink-0">
-            <Building2 size={20} />
-          </div>
-          <div>
-            <h2 className="section-title">{t("categories.realestate")}</h2>
-            <div className="text-sm text-ink-400">
-              {t("listing.count", { count: items.length })}
-            </div>
+    <section className="overflow-hidden rounded-2xl border border-ink-200 bg-white">
+      <div className="grid gap-6 p-5 sm:p-7 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center lg:gap-10 lg:p-9">
+        <div className="min-w-0">
+          <h1 className="max-w-2xl text-2xl font-extrabold tracking-tight text-ink-900 sm:text-3xl lg:text-4xl">
+            {t("home.heroTitle")}
+          </h1>
+
+          <p className="mt-3 max-w-xl text-sm leading-relaxed text-ink-500 sm:text-base">
+            {t("home.heroSubtitle")}
+          </p>
+
+          <div className="mt-5 flex flex-wrap items-center gap-2">
+            <Button variant="primary" size="lg" to="/add" icon={Plus}>
+              {t("home.quickSell")}
+            </Button>
+
+            <Button size="lg" to="/listing" icon={LayoutGrid}>
+              {t("home.quickBrowse")}
+            </Button>
+
+            {token && (
+              <Button size="lg" to="/profile?tab=fav" icon={Heart} className="hidden sm:inline-flex">
+                {t("home.quickFavorites")}
+              </Button>
+            )}
           </div>
         </div>
 
-        <Link
-          to={DEFAULT_REAL_ESTATE_BROWSE_PATH}
-          className="hidden sm:inline-flex items-center gap-1 text-sm font-semibold text-sun-700 hover:text-sun transition"
-        >
-          {t("footer.allListings")}
-          <ArrowRight size={16} />
-        </Link>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-        {items.map((ad) => (
-          <RealEstateListingCard key={ad.id || ad._id} item={ad} />
-        ))}
+        <dl className="grid grid-cols-3 gap-3 border-t border-ink-200 pt-5 lg:w-[22rem] lg:border-l lg:border-t-0 lg:pl-10 lg:pt-0">
+          {[
+            { icon: PackageSearch, value: total ? total.toLocaleString("ru-RU") : "—", label: t("nav.catalog") },
+            { icon: ShieldCheck, value: "100%", label: t("home.moderationTitle") },
+            { icon: Rocket, value: "VIP / TOP", label: t("home.promotionTitle") },
+          ].map(({ icon: Icon, value, label }) => (
+            <div key={label} className="min-w-0">
+              <Icon size={18} className="mb-1.5 text-sun-600" aria-hidden="true" />
+              <dt className="sr-only">{label}</dt>
+              <dd className="font-display text-lg font-extrabold leading-tight text-ink-900">
+                {value}
+              </dd>
+              <p className="mt-0.5 text-2xs font-medium leading-tight text-ink-400">{label}</p>
+            </div>
+          ))}
+        </dl>
       </div>
     </section>
   );
 }
 
-function HorizontalSection({ title, icon: Icon, items, linkTo = "/listing" }) {
+function FeedSection({ title, icon, items, linkTo = "/listing", cardComponent: Card = ListingCard }) {
   const { t } = useI18n();
+  const headingId = React.useId();
 
   if (!items?.length) return null;
 
   return (
-    <section className="space-y-4">
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <div className="w-10 h-10 rounded-2xl bg-sun-50 grid place-items-center ring-1 ring-sun/15">
-            <Icon className="text-sun" size={20} />
-          </div>
+    <section className="space-y-3 sm:space-y-4" aria-labelledby={headingId}>
+      <SectionHeader
+        id={headingId}
+        title={title}
+        icon={icon}
+        subtitle={t("listing.count", { count: items.length })}
+        linkTo={linkTo}
+        linkLabel={t("home.viewAll")}
+      />
 
-          <div>
-            <h2 className="section-title">{title}</h2>
-            <div className="text-sm text-ink-400">
-              {t("listing.count", { count: items.length })}
-            </div>
-          </div>
-        </div>
-
-        <Link
-          to={linkTo}
-          className="hidden sm:inline-flex items-center gap-1 text-sm font-semibold text-sun-700 hover:text-sun transition"
-        >
-          {t("home.viewAll")}
-          <ArrowRight size={16} />
-        </Link>
-      </div>
-
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+      <div className={FEED_GRID}>
         {items.map((ad) => (
-          <ListingCard
-            key={ad.id || ad._id}
-            item={ad}
-            listings={items}
-            trackSource="home"
-          />
+          <Card key={ad.id || ad._id} item={ad} listings={items} trackSource="home" />
         ))}
       </div>
     </section>
   );
 }
 
-function ListingSkeleton() {
+function FeedSkeleton() {
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-      {Array.from({ length: 6 }).map((_, index) => (
-        <div
-          key={index}
-          className="listing-card animate-pulse"
-        >
-          <div className="listing-card__media bg-mist-200" />
-          <div className="listing-card__body space-y-2">
-            <div className="h-5 bg-mist-200 rounded-full w-1/3" />
-            <div className="h-4 bg-mist-200 rounded w-5/6" />
-            <div className="h-4 bg-mist-200 rounded w-4/6" />
-            <div className="flex justify-between pt-2">
-              <div className="h-5 bg-mist-200 rounded w-1/3" />
-              <div className="h-3 bg-mist-200 rounded w-1/4" />
-            </div>
-          </div>
-        </div>
-      ))}
+    <div className="space-y-4" aria-busy="true">
+      <div className={FEED_GRID}>
+        {Array.from({ length: 10 }).map((_, index) => (
+          <ListingCardSkeleton key={index} />
+        ))}
+      </div>
     </div>
+  );
+}
+
+function TrustSection() {
+  const { t } = useI18n();
+
+  const cards = [
+    { icon: ShieldCheck, title: t("home.moderationTitle"), text: t("home.moderationDesc") },
+    { icon: BadgeCheck, title: t("home.accountTitle"), text: t("home.accountDesc") },
+    { icon: Rocket, title: t("home.promotionTitle"), text: t("home.promotionDesc") },
+  ];
+
+  return (
+    <section aria-labelledby="home-trust" className="space-y-3 sm:space-y-4">
+      <h2 id="home-trust" className="section-title">
+        {t("home.trustTitle")}
+      </h2>
+
+      <div className="grid grid-cols-1 gap-3 sm:gap-4 md:grid-cols-3">
+        {cards.map(({ icon: Icon, title, text }) => (
+          <div key={title} className="card p-5">
+            <span className="icon-box-ink mb-3 grid h-10 w-10">
+              <Icon size={19} strokeWidth={1.9} aria-hidden="true" />
+            </span>
+            <h3 className="text-base font-bold text-ink-900">{title}</h3>
+            <p className="mt-1.5 text-sm leading-relaxed text-ink-500">{text}</p>
+          </div>
+        ))}
+      </div>
+    </section>
   );
 }
 
@@ -144,6 +162,7 @@ export default function Home() {
   const [personalized, setPersonalized] = React.useState(false);
   const [listings, setListings] = React.useState([]);
   const [realEstateListings, setRealEstateListings] = React.useState([]);
+  const [total, setTotal] = React.useState(0);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState("");
   const [reloadKey, setReloadKey] = React.useState(0);
@@ -170,47 +189,42 @@ export default function Home() {
 
         const city = getDefaultCity();
 
-        const [recommendations, catalog, realEstate] = await Promise.all([
+        const [recommendations, catalog, realEstate, count] = await Promise.all([
           api.homeRecommendations({ city, limit: 20 }).catch(() => null),
-          api.listings({
-            limit: 50,
-            sort: "promoted",
-          }),
+          api.listings({ limit: 50, sort: "promoted" }),
           api.listings({
             cat: REAL_ESTATE_CAT,
             limit: 8,
             sort: "promoted",
             location: "Душанбе",
           }),
+          api.listingCount({}).catch(() => null),
         ]);
 
-        if (active) {
-          const catalogList = Array.isArray(catalog) ? catalog : [];
+        if (!active) return;
 
-          setListings(catalogList);
-          setForYou(
-            Array.isArray(recommendations?.blocks?.forYou)
-              ? recommendations.blocks.forYou
-              : catalogList.slice(0, 20)
-          );
-          setRecentlyViewed(
-            Array.isArray(recommendations?.blocks?.recentlyViewed)
-              ? recommendations.blocks.recentlyViewed
-              : []
-          );
-          setPersonalized(Boolean(recommendations?.personalized));
-          setRealEstateListings(
-            sortListingsByPromotion(Array.isArray(realEstate) ? realEstate : [])
-          );
-        }
+        const catalogList = Array.isArray(catalog) ? catalog : [];
+
+        setListings(catalogList);
+        setForYou(
+          Array.isArray(recommendations?.blocks?.forYou)
+            ? recommendations.blocks.forYou
+            : catalogList.slice(0, 20)
+        );
+        setRecentlyViewed(
+          Array.isArray(recommendations?.blocks?.recentlyViewed)
+            ? recommendations.blocks.recentlyViewed
+            : []
+        );
+        setPersonalized(Boolean(recommendations?.personalized));
+        setRealEstateListings(
+          sortListingsByPromotion(Array.isArray(realEstate) ? realEstate : [])
+        );
+        setTotal(Number(count?.total || 0));
       } catch (e) {
-        if (active) {
-          setError(getUserFacingErrorMessage(e, t) || t("errors.loadListings"));
-        }
+        if (active) setError(getUserFacingErrorMessage(e, t) || t("errors.loadListings"));
       } finally {
-        if (active) {
-          setLoading(false);
-        }
+        if (active) setLoading(false);
       }
     }
 
@@ -233,156 +247,111 @@ export default function Home() {
     });
   }, [forYou, listings]);
 
-  const sortedListings = React.useMemo(
-    () => sortListingsByPromotion(feedPool),
-    [feedPool]
+  const sortedListings = React.useMemo(() => sortListingsByPromotion(feedPool), [feedPool]);
+
+  const byCategory = React.useCallback(
+    (cat) => sortedListings.filter((item) => item.cat === cat).slice(0, 10),
+    [sortedListings]
   );
 
   const hotListings = (forYou.length ? forYou : sortedListings).slice(0, 10);
 
-  const electronicsListings = sortedListings
-    .filter((item) => item.cat === "electronics")
-    .slice(0, 10);
-
-  const phonesListings = sortedListings
-    .filter((item) => item.cat === "phones")
-    .slice(0, 10);
-
-  const computersListings = sortedListings
-    .filter((item) => item.cat === "computers")
-    .slice(0, 10);
-
-  const newestListings = sortedListings.slice(0, 10);
-
   return (
-    <div className="page-shell">
-      <div className="container mx-auto px-4 py-6 space-y-10">
-        {loading && <ListingSkeleton />}
+    <div className="page-container stack-page">
+      <Hero total={total} />
 
-        {!loading && error && (
-          <div className="surface-panel p-6 text-center text-red-700 bg-red-50/80">
-            {error}
-          </div>
-        )}
+      {error && !loading && (
+        <Alert tone="danger" title={t("errors.generic")}>
+          {error}
+        </Alert>
+      )}
 
-        {!loading && !error && (
-          <>
-            <RealEstateSection items={realEstateListings} />
+      {loading && <FeedSkeleton />}
 
-            <BusinessPromoBanner />
+      {!loading && !error && (
+        <>
+          {realEstateListings.length > 0 ? (
+            <section className="space-y-3 sm:space-y-4" aria-labelledby="home-realestate">
+              <SectionHeader
+                id="home-realestate"
+                title={t("categories.realestate")}
+                icon={Building2}
+                subtitle={t("listing.count", { count: realEstateListings.length })}
+                linkTo={DEFAULT_REAL_ESTATE_BROWSE_PATH}
+                linkLabel={t("home.viewAll")}
+              />
 
-            {listings.length === 0 ? (
-              <div className="surface-panel p-8 text-center">
-                <div className="mx-auto w-14 h-14 rounded-2xl bg-sun-50 grid place-items-center mb-3 ring-1 ring-sun/15">
-                  <Tag className="text-sun" />
-                </div>
-
-                <div className="font-display font-semibold text-ink">
-                  {t("home.noPublished")}
-                </div>
-
-                <p className="text-sm text-ink-400 mt-1">
-                  {t("home.noPublishedHint")}
-                </p>
-
-                <Link
-                  to="/add"
-                  className="btn btn-primary mt-4"
-                >
-                  <PlusCircle size={18} />
-                  {t("footer.postListing")}
-                </Link>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 2xl:grid-cols-4">
+                {realEstateListings.map((ad) => (
+                  <RealEstateListingCard key={ad.id || ad._id} item={ad} />
+                ))}
               </div>
-            ) : (
-              <div className="space-y-10">
-            {recentlyViewed.length > 0 && (
-              <HorizontalSection
+            </section>
+          ) : (
+            <AdSlot placement="home_top" className="overflow-hidden rounded-2xl" />
+          )}
+
+          <BusinessPromoBanner />
+
+          {listings.length === 0 ? (
+            <EmptyState
+              icon={Tag}
+              title={t("home.noPublished")}
+              description={t("home.noPublishedHint")}
+              actionLabel={t("footer.postListing")}
+              actionTo="/add"
+            />
+          ) : (
+            <>
+              <FeedSection
                 title={t("home.viewed")}
                 icon={Eye}
                 items={recentlyViewed}
                 linkTo="/listing"
               />
-            )}
 
-            <HorizontalSection
-              title={personalized ? t("home.pickedForYou") : t("home.hotDeals")}
-              icon={personalized ? Tag : Flame}
-              items={hotListings}
-              linkTo="/listing"
-            />
+              <FeedSection
+                title={personalized ? t("home.pickedForYou") : t("home.hotDeals")}
+                icon={personalized ? Tag : Flame}
+                items={hotListings}
+                linkTo="/listing"
+              />
 
-            <AdSlot placement="home_mid" className="overflow-hidden rounded-3xl" />
+              <AdSlot placement="home_mid" className="overflow-hidden rounded-2xl" />
 
-            <HorizontalSection
-              title={t("categories.electronics")}
-              icon={HomeIcon}
-              items={electronicsListings}
-              linkTo="/c/electronics"
-            />
+              <FeedSection
+                title={t("categories.electronics")}
+                icon={Monitor}
+                items={byCategory("electronics")}
+                linkTo="/c/electronics"
+              />
 
-            <HorizontalSection
-              title={t("categories.phones")}
-              icon={Smartphone}
-              items={phonesListings}
-              linkTo="/c/phones"
-            />
+              <FeedSection
+                title={t("categories.phones")}
+                icon={Smartphone}
+                items={byCategory("phones")}
+                linkTo="/c/phones"
+              />
 
-            <HorizontalSection
-              title={t("categories.computers")}
-              icon={Monitor}
-              items={computersListings}
-              linkTo="/c/computers"
-            />
+              <FeedSection
+                title={t("categories.computers")}
+                icon={Monitor}
+                items={byCategory("computers")}
+                linkTo="/c/computers"
+              />
 
-            <HorizontalSection
-              title={t("home.newListings")}
-              icon={TrendingUp}
-              items={newestListings}
-              linkTo="/listing"
-            />
-          </div>
-            )}
-          </>
-        )}
+              <FeedSection
+                title={t("home.newListings")}
+                icon={TrendingUp}
+                items={sortedListings.slice(0, 10)}
+                linkTo="/listing"
+              />
+            </>
+          )}
 
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="surface-panel p-5">
-            <div className="w-11 h-11 icon-box-sun mb-3">
-              <ShieldCheck />
-            </div>
-
-            <h3 className="font-display font-bold text-lg text-ink">
-              {t("home.moderationTitle")}
-            </h3>
-
-            <p className="text-sm text-ink-400 mt-2">{t("home.moderationDesc")}</p>
-          </div>
-
-          <div className="surface-panel p-5">
-            <div className="w-11 h-11 icon-box-sun mb-3">
-              <BadgeCheck />
-            </div>
-
-            <h3 className="font-display font-bold text-lg text-ink">
-              {t("home.accountTitle")}
-            </h3>
-
-            <p className="text-sm text-ink-400 mt-2">{t("home.accountDesc")}</p>
-          </div>
-
-          <div className="surface-panel p-5">
-            <div className="w-11 h-11 icon-box-ink mb-3">
-              <ShieldCheck />
-            </div>
-
-            <h3 className="font-display font-bold text-lg text-ink">
-              {t("home.promotionTitle")}
-            </h3>
-
-            <p className="text-sm text-ink-400 mt-2">{t("home.promotionDesc")}</p>
-          </div>
-        </section>
-      </div>
+          <TrustSection />
+        </>
+      )}
     </div>
   );
 }

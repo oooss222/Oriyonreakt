@@ -1,15 +1,10 @@
 import React from "react";
 import { Link, useLocation, useSearchParams } from "react-router-dom";
-import {
-  Home,
-  Heart,
-  PlusCircle,
-  MessageCircle,
-  User,
-} from "lucide-react";
+import { Home, Heart, Plus, MessageCircle, User } from "lucide-react";
 import { TOKEN_KEY } from "../lib/auth";
 import { useUnreadCount } from "../lib/unread";
 import { useI18n } from "../i18n";
+import { cn } from "../ui";
 
 export default function MobileNav({ showPolicyLink = false }) {
   const { pathname } = useLocation();
@@ -32,7 +27,7 @@ export default function MobileNav({ showPolicyLink = false }) {
       {
         to: "/add",
         label: t("nav.add"),
-        icon: PlusCircle,
+        icon: Plus,
         highlight: true,
         match: (path) => path === "/add" || path.startsWith("/edit/"),
       },
@@ -56,20 +51,23 @@ export default function MobileNav({ showPolicyLink = false }) {
 
   return (
     <nav
-      className="fixed bottom-0 inset-x-0 z-40 lg:hidden border-t border-ink/10 bg-white/95 backdrop-blur-md supports-[backdrop-filter]:bg-white/90 pb-[max(env(safe-area-inset-bottom),0px)]"
+      className="fixed inset-x-0 bottom-0 border-t border-ink-200 bg-white/95 backdrop-blur-md
+                 supports-[backdrop-filter]:bg-white/90 pb-[max(env(safe-area-inset-bottom),0px)] lg:hidden"
+      style={{ zIndex: "var(--z-mobile-nav)" }}
       aria-label={t("nav.mobileNav")}
     >
-      {showPolicyLink ? (
-        <div className="border-b border-ink/5 px-4 py-1.5 text-center">
+      {showPolicyLink && (
+        <div className="border-b border-ink-100 px-4 py-1.5 text-center">
           <Link
             to="/policy"
-            className="text-2xs font-semibold text-ink-400 hover:text-sun transition"
+            className="text-2xs font-semibold text-ink-400 transition-colors hover:text-ink-900"
           >
             {t("nav.policy")}
           </Link>
         </div>
-      ) : null}
-      <div className="grid grid-cols-5 h-16 max-w-lg mx-auto">
+      )}
+
+      <div className="mx-auto grid h-[4.25rem] max-w-lg grid-cols-5">
         {navItems.map(({ to, label, icon: Icon, highlight, badge, match }) => {
           const active = match(pathname, tab);
           const showBadge = badge && unreadCount > 0;
@@ -78,31 +76,35 @@ export default function MobileNav({ showPolicyLink = false }) {
             <Link
               key={to}
               to={to}
-              className={`relative flex flex-col items-center justify-end gap-0.5 pb-1.5 text-2xs font-semibold transition min-w-0 px-0.5 ${
-                active
-                  ? "text-sun"
-                  : highlight
-                  ? "text-sun"
-                  : "text-ink-400"
-              }`}
+              aria-current={active ? "page" : undefined}
+              aria-label={showBadge ? `${label} (${unreadCount})` : undefined}
+              className={cn(
+                "relative flex min-w-0 flex-col items-center justify-center gap-1 px-0.5 text-2xs font-semibold transition-colors",
+                active || highlight ? "text-sun-700" : "text-ink-500"
+              )}
             >
               <span
-                className={`relative grid place-items-center rounded-xl transition ${
+                className={cn(
+                  "relative grid place-items-center rounded-xl transition-colors",
                   highlight
-                    ? "w-11 h-11 -mt-5 bg-sun text-white shadow-soft"
-                    : "w-8 h-8"
-                } ${active && !highlight ? "bg-sun-50" : ""}`}
+                    ? "h-10 w-12 bg-sun-500 text-white"
+                    : cn("h-8 w-12", active && "bg-sun-50")
+                )}
               >
-                <Icon size={highlight ? 22 : 20} />
+                <Icon size={highlight ? 22 : 20} strokeWidth={active || highlight ? 2.3 : 1.9} aria-hidden="true" />
+
                 {showBadge && (
-                  <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-red-500 text-white text-2xs font-bold flex items-center justify-center ring-2 ring-white">
+                  <span
+                    className="absolute -right-0.5 -top-1 flex h-4 min-w-[16px] items-center justify-center
+                               rounded-full bg-danger-600 px-1 text-2xs font-bold text-white ring-2 ring-white"
+                    aria-hidden="true"
+                  >
                     {unreadCount > 99 ? "99+" : unreadCount}
                   </span>
                 )}
               </span>
-              <span className="truncate w-full text-center leading-none">
-                {label}
-              </span>
+
+              <span className="w-full truncate text-center leading-none">{label}</span>
             </Link>
           );
         })}

@@ -227,6 +227,18 @@ export default {
     home: "На главную",
   },
   home: {
+    heroTitle: "Купить и продать в Таджикистане",
+    heroSubtitle:
+      "Объявления от частных лиц и компаний: техника, транспорт, недвижимость и услуги. Каждое объявление проходит модерацию.",
+    heroSearchLabel: "Что вы ищете?",
+    heroSearchPlaceholder: "Например: iPhone 14, Toyota Camry, квартира",
+    quickSell: "Разместить объявление",
+    quickBrowse: "Смотреть каталог",
+    quickFavorites: "Избранное",
+    quickProfile: "Мои объявления",
+    popularCategories: "Популярные категории",
+    trustTitle: "Почему Oriyon.store",
+    listingsTotal: "{{count}} объявлений",
     viewed: "Вы смотрели",
     pickedForYou: "Подобрано для вас",
     hotDeals: "Горящие товары",

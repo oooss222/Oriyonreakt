@@ -74,6 +74,36 @@ function resolveListingImage(entry, options) {
   );
 }
 
+/** Drops the transformation segment we (or Cloudinary) put after `/upload/`. */
+function stripImageTransform(url) {
+  const marker = url.indexOf(CLOUDINARY_UPLOAD);
+
+  if (marker === -1) return url;
+
+  const prefixEnd = marker + CLOUDINARY_UPLOAD.length;
+  const rest = url.slice(prefixEnd);
+
+  return EXISTING_TRANSFORM.test(rest)
+    ? url.slice(0, prefixEnd) + rest.replace(EXISTING_TRANSFORM, "")
+    : url;
+}
+
+/**
+ * Builds a `srcset` so phones stop downloading desktop-sized photos.
+ *
+ * Only Cloudinary can resize on the fly; local uploads are served as-is, so
+ * they get an empty set and the browser falls back to plain `src`.
+ */
+export function buildSrcSet(url, widths = [200, 400, 640]) {
+  if (!url || !url.includes("res.cloudinary.com")) {
+    return "";
+  }
+
+  const base = stripImageTransform(url);
+
+  return widths.map((width) => `${withImageWidth(base, width)} ${width}w`).join(", ");
+}
+
 export function getListingThumb(ad, options = {}) {
   const first = ad?.images?.[0];
   const fromFirst = resolveListingImage(first, options);

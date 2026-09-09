@@ -226,6 +226,18 @@ export default {
     home: "Go home",
   },
   home: {
+    heroTitle: "Buy and sell across Tajikistan",
+    heroSubtitle:
+      "Listings from individuals and businesses: electronics, vehicles, property and services. Every listing is moderated.",
+    heroSearchLabel: "What are you looking for?",
+    heroSearchPlaceholder: "Try: iPhone 14, Toyota Camry, apartment",
+    quickSell: "Post a listing",
+    quickBrowse: "Browse catalogue",
+    quickFavorites: "Favourites",
+    quickProfile: "My listings",
+    popularCategories: "Popular categories",
+    trustTitle: "Why Oriyon.store",
+    listingsTotal: "{{count}} listings",
     viewed: "Recently viewed",
     pickedForYou: "Picked for you",
     hotDeals: "Hot deals",

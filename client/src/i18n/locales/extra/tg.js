@@ -227,6 +227,18 @@ export default {
     home: "Ба асосӣ",
   },
   home: {
+    heroTitle: "Дар Тоҷикистон харед ва фурӯшед",
+    heroSubtitle:
+      "Эълонҳо аз шахсони воқеӣ ва ширкатҳо: техника, нақлиёт, амлок ва хизматрасонӣ. Ҳар эълон аз модератсия мегузарад.",
+    heroSearchLabel: "Шумо чиро меҷӯед?",
+    heroSearchPlaceholder: "Масалан: iPhone 14, Toyota Camry, хона",
+    quickSell: "Эълон ҷойгир кунед",
+    quickBrowse: "Дидани каталог",
+    quickFavorites: "Интихобшуда",
+    quickProfile: "Эълонҳои ман",
+    popularCategories: "Категорияҳои маъмул",
+    trustTitle: "Чаро Oriyon.store",
+    listingsTotal: "{{count}} эълон",
     viewed: "Шумо тамошо кардед",
     pickedForYou: "Барои шумо",
     hotDeals: "Тахфифҳо",

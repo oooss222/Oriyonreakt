@@ -30,7 +30,7 @@ export default function LanguageSwitcher({ className = "" }) {
       <button
         type="button"
         onClick={() => setOpen((value) => !value)}
-        className="inline-flex items-center justify-center min-w-[2.5rem] h-10 px-2 rounded-lg border border-white/15 bg-white/5 text-xs font-bold tracking-wide text-white/90 hover:bg-white/10 transition"
+        className="inline-flex h-11 min-w-[2.75rem] items-center justify-center rounded-xl px-2 text-xs font-bold tracking-wide text-ink-600 transition-colors hover:bg-mist-100 hover:text-ink-900"
         aria-label={t("lang.switch")}
         aria-expanded={open}
         aria-haspopup="listbox"
@@ -42,7 +42,8 @@ export default function LanguageSwitcher({ className = "" }) {
         <div
           role="listbox"
           aria-label={t("lang.switch")}
-          className="absolute right-0 top-[calc(100%+0.35rem)] z-[60] min-w-[9rem] overflow-hidden rounded-xl border border-slate-200 bg-white text-slate-900 shadow-lift"
+          className="absolute right-0 top-[calc(100%+0.35rem)] min-w-[9rem] overflow-hidden rounded-xl border border-ink-200 bg-white text-ink-900 shadow-lg"
+          style={{ zIndex: "var(--z-dropdown)" }}
         >
           {SUPPORTED_LANGS.map((code) => {
             const active = code === lang;
