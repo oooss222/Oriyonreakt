@@ -46,7 +46,7 @@ function formatDateTime(value) {
 function Benefit({ icon: Icon, children }) {
   return (
     <li className="flex items-start gap-2 text-xs text-ink-500">
-      <Icon className="w-3.5 h-3.5 shrink-0 mt-0.5 text-current opacity-80" />
+      <Icon className="mt-0.5 h-3.5 w-3.5 shrink-0 opacity-80" aria-hidden />
       <span>{children}</span>
     </li>
   );
@@ -108,60 +108,54 @@ export default function ListingPromotionActions({
   if (compact) {
     return (
       <>
-        <div className="rounded-2xl border border-ink/8 bg-mist/40 p-2 space-y-2">
-          <div className="grid grid-cols-1 gap-2">
-            <button
-              type="button"
-              disabled={Boolean(promoting)}
-              onClick={() => openPlanPicker("vip")}
-              className={`inline-flex items-center justify-center gap-2 rounded-xl border px-3 py-2 text-xs font-semibold transition disabled:opacity-60 ${
-                vipActive
-                  ? "border-sun/30 bg-sun-50 text-sun-700"
-                  : "border-ink/10 bg-white text-ink-600 hover:border-sun/25 hover:bg-sun-50"
-              }`}
-            >
-              <Crown className="w-4 h-4" />
-              {vipBusy
-                ? t("promotion.activating")
-                : vipActive
+        <div className="grid grid-cols-1 gap-2 rounded-2xl border border-ink-200 bg-mist-50 p-2">
+          <button
+            type="button"
+            disabled={Boolean(promoting)}
+            onClick={() => openPlanPicker("vip")}
+            className={`btn btn-sm ${
+              vipActive ? "border-sun-300 bg-sun-50 text-sun-700" : ""
+            }`}
+          >
+            <Crown className="h-4 w-4" aria-hidden />
+            {vipBusy
+              ? t("promotion.activating")
+              : vipActive
                 ? t("promotion.vipUntil", { date: vipUntilLabel || "—" })
                 : t("promotion.vipFrom", { price: formatMoney(vipFromPrice) })}
-            </button>
+          </button>
 
-            <button
-              type="button"
-              disabled={Boolean(promoting)}
-              onClick={() => openPlanPicker("top")}
-              className={`inline-flex items-center justify-center gap-2 rounded-xl border px-3 py-2 text-xs font-semibold transition disabled:opacity-60 ${
-                topActive
-                  ? "border-lagoon/30 bg-lagoon/10 text-lagoon-700"
-                  : "border-ink/10 bg-white text-ink-600 hover:border-lagoon/25 hover:bg-lagoon/5"
-              }`}
-            >
-              <TrendingUp className="w-4 h-4" />
-              {topBusy
-                ? t("promotion.activating")
-                : topActive
+          <button
+            type="button"
+            disabled={Boolean(promoting)}
+            onClick={() => openPlanPicker("top")}
+            className={`btn btn-sm ${
+              topActive ? "border-lagoon-300 bg-lagoon-50 text-lagoon-700" : ""
+            }`}
+          >
+            <TrendingUp className="h-4 w-4" aria-hidden />
+            {topBusy
+              ? t("promotion.activating")
+              : topActive
                 ? t("promotion.topUntil", { date: topUntilLabel || "—" })
                 : t("promotion.topFrom", { price: formatMoney(topFromPrice) })}
-            </button>
+          </button>
 
-            <button
-              type="button"
-              disabled={Boolean(promoting)}
-              onClick={() => onPromote?.("bump")}
-              className="inline-flex items-center justify-center gap-2 rounded-xl border border-ink/10 bg-white px-3 py-2 text-xs font-semibold text-ink-600 hover:bg-mist transition disabled:opacity-60"
-            >
-              <CalendarClock className="w-4 h-4" />
-              {bumpBusy
-                ? t("promotion.bumpUpdating")
-                : Number(bumpPrice) <= 0
+          <button
+            type="button"
+            disabled={Boolean(promoting)}
+            onClick={() => onPromote?.("bump")}
+            className="btn btn-sm"
+          >
+            <CalendarClock className="h-4 w-4" aria-hidden />
+            {bumpBusy
+              ? t("promotion.bumpUpdating")
+              : Number(bumpPrice) <= 0
                 ? t("promotion.bumpFree")
                 : bumpedAtLabel
-                ? t("promotion.bumpUpdated", { date: bumpedAtLabel })
-                : t("promotion.bumpPrice", { price: formatMoney(bumpPrice) })}
-            </button>
-          </div>
+                  ? t("promotion.bumpUpdated", { date: bumpedAtLabel })
+                  : t("promotion.bumpPrice", { price: formatMoney(bumpPrice) })}
+          </button>
         </div>
         {planModal}
       </>
@@ -170,166 +164,169 @@ export default function ListingPromotionActions({
 
   return (
     <>
-      <div className="rounded-[1.35rem] border border-ink/8 bg-white p-4 sm:p-5 space-y-4 shadow-soft">
+      <section className="card space-y-4 p-4 sm:p-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <div className="inline-flex items-center gap-2 text-sm font-bold text-ink">
-              <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-sun text-white">
-                <Crown className="w-4 h-4" />
+            <h2 className="inline-flex items-center gap-2 text-base font-bold text-ink-900">
+              <span className="icon-box-sun h-8 w-8">
+                <Crown className="h-4 w-4" aria-hidden />
               </span>
               {t("promotion.title")}
-            </div>
-            <p className="text-sm text-ink-400 mt-2 max-w-2xl">{t("promotion.desc")}</p>
+            </h2>
+            <p className="mt-2 max-w-2xl text-sm text-ink-400">
+              {t("promotion.desc")}
+            </p>
           </div>
 
-          <div className="rounded-xl border border-ink/8 bg-mist/50 px-3 py-2 text-xs text-ink-500">
+          <p className="rounded-xl border border-ink-200 bg-mist-50 px-3 py-2 text-xs text-ink-500">
             {t("promotion.balance")}{" "}
-            <span className="font-bold text-ink">
+            <span className="font-bold tabular-nums text-ink-900">
               {balance.toLocaleString("ru-RU")} TJS
             </span>
-          </div>
+          </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
           <div
-            className={`rounded-2xl border p-4 transition ${
+            className={`space-y-3 rounded-2xl border p-4 transition-colors ${
               vipActive
-                ? "border-sun/35 bg-sun-50/70"
-                : "border-ink/8 bg-white hover:border-sun/25"
+                ? "border-sun-300 bg-sun-50"
+                : "border-ink-200 bg-white hover:border-sun-200"
             }`}
           >
-            <div className="space-y-3">
-              <div className="flex items-center justify-between gap-3">
-                <div className="inline-flex items-center gap-2">
-                  <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-sun text-white">
-                    <Crown className="w-5 h-5" />
-                  </span>
-                  <div>
-                    <div className="font-display text-lg font-extrabold text-ink">VIP</div>
-                    <div className="text-xs font-semibold uppercase tracking-wide text-sun-700">
-                      {t("promotion.vipMaxAttention")}
-                    </div>
-                  </div>
+            <div className="flex items-center justify-between gap-3">
+              <div className="inline-flex items-center gap-2">
+                <span className="grid h-10 w-10 place-items-center rounded-2xl bg-sun-500 text-white">
+                  <Crown className="h-5 w-5" aria-hidden />
+                </span>
+                <div>
+                  <h3 className="font-display text-lg font-extrabold text-ink-900">
+                    VIP
+                  </h3>
+                  <p className="label-caps text-sun-700">
+                    {t("promotion.vipMaxAttention")}
+                  </p>
                 </div>
-
-                {vipActive && (
-                  <span className="rounded-md bg-sun px-2.5 py-1 text-2xs font-bold uppercase tracking-wide text-white">
-                    {t("promotion.active")}
-                  </span>
-                )}
               </div>
 
-              <ul className="space-y-1.5">
-                <Benefit icon={Crown}>{t("promotion.vipBadge")}</Benefit>
-                <Benefit icon={Zap}>{t("promotion.vipFirst")}</Benefit>
-                <Benefit icon={Eye}>{t("promotion.vipViews")}</Benefit>
-              </ul>
-
-              <button
-                type="button"
-                disabled={Boolean(promoting)}
-                onClick={() => openPlanPicker("vip")}
-                className={`w-full rounded-xl px-4 py-3 text-sm font-bold transition disabled:opacity-60 ${
-                  vipActive
-                    ? "bg-white text-sun-700 border border-sun/25"
-                    : "btn btn-primary"
-                }`}
-              >
-                {vipBusy
-                  ? t("promotion.activatingVip")
-                  : vipActive
-                  ? t("promotion.vipActiveUntil", { date: vipUntilLabel || "—" })
-                  : t("promotion.connectVip", { price: formatMoney(vipFromPrice) })}
-              </button>
+              {vipActive && (
+                <span className="badge">{t("promotion.active")}</span>
+              )}
             </div>
+
+            <ul className="space-y-1.5">
+              <Benefit icon={Crown}>{t("promotion.vipBadge")}</Benefit>
+              <Benefit icon={Zap}>{t("promotion.vipFirst")}</Benefit>
+              <Benefit icon={Eye}>{t("promotion.vipViews")}</Benefit>
+            </ul>
+
+            <button
+              type="button"
+              disabled={Boolean(promoting)}
+              onClick={() => openPlanPicker("vip")}
+              className={`btn btn-lg btn-block ${
+                vipActive ? "border-sun-300 text-sun-700" : "btn-primary"
+              }`}
+            >
+              {vipBusy
+                ? t("promotion.activatingVip")
+                : vipActive
+                  ? t("promotion.vipActiveUntil", { date: vipUntilLabel || "—" })
+                  : t("promotion.connectVip", {
+                      price: formatMoney(vipFromPrice),
+                    })}
+            </button>
           </div>
 
           <div
-            className={`rounded-2xl border p-4 transition ${
+            className={`space-y-3 rounded-2xl border p-4 transition-colors ${
               topActive
-                ? "border-lagoon/35 bg-lagoon/5"
-                : "border-ink/8 bg-white hover:border-lagoon/25"
+                ? "border-lagoon-300 bg-lagoon-50"
+                : "border-ink-200 bg-white hover:border-lagoon-200"
             }`}
           >
-            <div className="space-y-3">
-              <div className="flex items-center justify-between gap-3">
-                <div className="inline-flex items-center gap-2">
-                  <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-lagoon text-white">
-                    <TrendingUp className="w-5 h-5" />
-                  </span>
-                  <div>
-                    <div className="font-display text-lg font-extrabold text-ink">TOP</div>
-                    <div className="text-xs font-semibold uppercase tracking-wide text-lagoon-700">
-                      {t("promotion.topAbove")}
-                    </div>
-                  </div>
+            <div className="flex items-center justify-between gap-3">
+              <div className="inline-flex items-center gap-2">
+                <span className="grid h-10 w-10 place-items-center rounded-2xl bg-lagoon-600 text-white">
+                  <TrendingUp className="h-5 w-5" aria-hidden />
+                </span>
+                <div>
+                  <h3 className="font-display text-lg font-extrabold text-ink-900">
+                    TOP
+                  </h3>
+                  <p className="label-caps text-lagoon-700">
+                    {t("promotion.topAbove")}
+                  </p>
                 </div>
-
-                {topActive && (
-                  <span className="rounded-md bg-lagoon px-2.5 py-1 text-2xs font-bold uppercase tracking-wide text-white">
-                    {t("promotion.active")}
-                  </span>
-                )}
               </div>
 
-              <ul className="space-y-1.5">
-                <Benefit icon={ArrowUp}>{t("promotion.topRaise")}</Benefit>
-                <Benefit icon={TrendingUp}>{t("promotion.topBadge")}</Benefit>
-                <Benefit icon={Eye}>{t("promotion.topVisibility")}</Benefit>
-              </ul>
-
-              <button
-                type="button"
-                disabled={Boolean(promoting)}
-                onClick={() => openPlanPicker("top")}
-                className={`w-full rounded-xl px-4 py-3 text-sm font-bold transition disabled:opacity-60 ${
-                  topActive
-                    ? "bg-white text-lagoon-700 border border-lagoon/25"
-                    : "bg-lagoon text-white hover:bg-lagoon-600"
-                }`}
-              >
-                {topBusy
-                  ? t("promotion.activatingTop")
-                  : topActive
-                  ? t("promotion.topActiveUntil", { date: topUntilLabel || "—" })
-                  : t("promotion.connectTop", { price: formatMoney(topFromPrice) })}
-              </button>
+              {topActive && (
+                <span className="badge badge-info">{t("promotion.active")}</span>
+              )}
             </div>
+
+            <ul className="space-y-1.5">
+              <Benefit icon={ArrowUp}>{t("promotion.topRaise")}</Benefit>
+              <Benefit icon={TrendingUp}>{t("promotion.topBadge")}</Benefit>
+              <Benefit icon={Eye}>{t("promotion.topVisibility")}</Benefit>
+            </ul>
+
+            <button
+              type="button"
+              disabled={Boolean(promoting)}
+              onClick={() => openPlanPicker("top")}
+              className={`btn btn-lg btn-block ${
+                topActive ? "border-lagoon-300 text-lagoon-700" : "btn-lagoon"
+              }`}
+            >
+              {topBusy
+                ? t("promotion.activatingTop")
+                : topActive
+                  ? t("promotion.topActiveUntil", { date: topUntilLabel || "—" })
+                  : t("promotion.connectTop", {
+                      price: formatMoney(topFromPrice),
+                    })}
+            </button>
           </div>
         </div>
 
-        <div className="rounded-2xl border border-ink/8 bg-mist/40 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="flex flex-col gap-3 rounded-2xl border border-ink-200 bg-mist-50 p-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <div className="inline-flex items-center gap-2 text-sm font-semibold text-ink">
-              <CalendarClock className="w-4 h-4 text-ink-400" />
+            <h3 className="inline-flex items-center gap-2 text-sm font-semibold text-ink-900">
+              <CalendarClock className="h-4 w-4 text-ink-400" aria-hidden />
               {t("promotion.bumpTitle")}
-            </div>
-            <p className="text-xs text-ink-400 mt-1">{t("promotion.bumpDesc")}</p>
+            </h3>
+            <p className="mt-1 text-xs text-ink-400">{t("promotion.bumpDesc")}</p>
           </div>
 
           <button
             type="button"
             disabled={Boolean(promoting)}
             onClick={() => onPromote?.("bump")}
-            className="inline-flex items-center justify-center gap-2 rounded-xl border border-ink/10 bg-white px-4 py-2.5 text-sm font-semibold text-ink-600 hover:border-ink/20 transition disabled:opacity-60 shrink-0"
+            className="btn shrink-0"
           >
             {bumpBusy
               ? t("promotion.bumpUpdating")
               : Number(bumpPrice) <= 0
-              ? t("promotion.bumpFreeShort")
-              : bumpedAtLabel
-              ? t("promotion.bumpUpdated", { date: bumpedAtLabel })
-              : t("promotion.bumpPriceShort", { price: formatMoney(bumpPrice) })}
+                ? t("promotion.bumpFreeShort")
+                : bumpedAtLabel
+                  ? t("promotion.bumpUpdated", { date: bumpedAtLabel })
+                  : t("promotion.bumpPriceShort", {
+                      price: formatMoney(bumpPrice),
+                    })}
           </button>
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-ink-400">
           <span>{t("promotion.walletNote")}</span>
-          <Link to="/profile?tab=wallet" className="font-semibold text-sun-700 hover:underline">
+          <Link
+            to="/profile?tab=wallet"
+            className="font-semibold text-sun-700 hover:underline"
+          >
             {t("promotion.topUpWallet")}
           </Link>
         </div>
-      </div>
+      </section>
       {planModal}
     </>
   );

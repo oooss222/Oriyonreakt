@@ -17,8 +17,8 @@ function statusMeta(status, t) {
   if (key === "approved") {
     return {
       icon: CheckCircle2,
-      tone: "border-lagoon/20 bg-lagoon/5 text-lagoon-700",
-      iconClass: "bg-lagoon text-white",
+      tone: "border-success-200 bg-success-50",
+      iconClass: "bg-success-500 text-white",
       title: t("listing.submitApprovedTitle"),
       body: t("listing.submitApprovedBody"),
     };
@@ -27,8 +27,8 @@ function statusMeta(status, t) {
   if (key === "rejected") {
     return {
       icon: XCircle,
-      tone: "border-red-200 bg-red-50 text-red-700",
-      iconClass: "bg-red-500 text-white",
+      tone: "border-danger-200 bg-danger-50",
+      iconClass: "bg-danger-500 text-white",
       title: t("listing.submitRejectedTitle"),
       body: t("listing.submitRejectedBody"),
     };
@@ -36,8 +36,8 @@ function statusMeta(status, t) {
 
   return {
     icon: Clock3,
-    tone: "border-sun/20 bg-sun-50 text-sun-800",
-    iconClass: "bg-sun text-white",
+    tone: "border-sun-200 bg-sun-50",
+    iconClass: "bg-sun-500 text-white",
     title: t("listing.submitPendingTitle"),
     body: t("listing.submitPendingBody"),
   };
@@ -52,34 +52,36 @@ export default function ListingSubmitResult({ listing, onEditAgain }) {
 
   return (
     <div className="listing-form-page min-h-[calc(100vh-4rem)]">
-      <div className={`mx-auto max-w-xl rounded-[1.35rem] border p-6 md:p-8 shadow-soft ${meta.tone}`}>
-        <div className={`mb-5 grid h-14 w-14 place-items-center rounded-2xl ${meta.iconClass}`}>
-          <Icon size={28} />
-        </div>
+      <section
+        className={`mx-auto max-w-xl rounded-2xl border p-6 shadow-xs md:p-8 ${meta.tone}`}
+        aria-live="polite"
+      >
+        <span
+          className={`mb-5 grid h-14 w-14 place-items-center rounded-2xl ${meta.iconClass}`}
+        >
+          <Icon size={28} aria-hidden />
+        </span>
 
-        <h1 className="font-display text-2xl font-bold tracking-tight text-ink">
+        <h1 className="font-display text-2xl font-bold tracking-tight text-ink-900">
           {meta.title}
         </h1>
-        <p className="mt-2 text-sm leading-relaxed text-ink-500">{meta.body}</p>
+        <p className="mt-2 text-sm leading-relaxed text-ink-600">{meta.body}</p>
 
         {listing?.title ? (
-          <div className="mt-5 rounded-xl border border-ink/8 bg-white/80 px-4 py-3 text-sm">
-            <div className="text-xs font-semibold uppercase tracking-wide text-ink-300">
+          <div className="mt-5 rounded-xl border border-ink-200 bg-white px-4 py-3 text-sm">
+            <p className="label-caps text-ink-400">
               {t("listing.submitListingLabel")}
-            </div>
-            <div className="mt-1 font-semibold text-ink line-clamp-2">
+            </p>
+            <p className="mt-1 font-semibold text-ink-900 line-clamp-2">
               {listing.title}
-            </div>
+            </p>
           </div>
         ) : null}
 
         <div className="mt-6 flex flex-col gap-2.5">
           {id && status !== "rejected" ? (
-            <Link
-              to={`/ad/${id}`}
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-sun px-4 py-3 text-sm font-semibold text-white hover:bg-sun-600"
-            >
-              <Eye size={16} />
+            <Link to={`/ad/${id}`} className="btn btn-primary btn-lg btn-block">
+              <Eye size={17} aria-hidden />
               {t("listing.submitViewAd")}
             </Link>
           ) : null}
@@ -88,30 +90,24 @@ export default function ListingSubmitResult({ listing, onEditAgain }) {
             <button
               type="button"
               onClick={onEditAgain}
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-sun px-4 py-3 text-sm font-semibold text-white hover:bg-sun-600"
+              className="btn btn-primary btn-lg btn-block"
             >
-              <Pencil size={16} />
+              <Pencil size={17} aria-hidden />
               {t("listing.submitFix")}
             </button>
           ) : null}
 
-          <Link
-            to="/profile?tab=my"
-            className="inline-flex items-center justify-center gap-2 rounded-xl border border-ink/10 bg-white px-4 py-3 text-sm font-semibold text-ink-600 hover:bg-mist"
-          >
-            <List size={16} />
+          <Link to="/profile?tab=my" className="btn btn-lg btn-block">
+            <List size={17} aria-hidden />
             {t("listing.submitMyListings")}
           </Link>
 
-          <Link
-            to="/profile?tab=profile"
-            className="inline-flex items-center justify-center gap-2 rounded-xl border border-ink/10 bg-white px-4 py-3 text-sm font-semibold text-ink-600 hover:bg-mist"
-          >
-            <Phone size={16} />
+          <Link to="/profile?tab=profile" className="btn btn-lg btn-block">
+            <Phone size={17} aria-hidden />
             {t("listing.submitCheckPhone")}
           </Link>
         </div>
-      </div>
+      </section>
     </div>
   );
 }

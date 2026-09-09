@@ -15,43 +15,8 @@ import BusinessProfileSection from "../BusinessProfileSection";
 import EmailBadge from "./EmailBadge";
 import { USER_KEY } from "../../lib/auth";
 import { formatPhoneDisplay, isStaffRole } from "./profileUtils";
+import { Badge, Field, Input, SectionCard } from "../../ui";
 import { useI18n } from "../../i18n";
-
-function SectionCard({ icon: Icon, title, description, children, className = "" }) {
-  return (
-    <section className={`rounded-2xl border border-ink/8 bg-white overflow-hidden shadow-soft ${className}`}>
-      <div className="px-5 py-4 border-b border-ink/8">
-        <div className="flex items-start gap-3 min-w-0">
-          {Icon && (
-            <div className="w-10 h-10 rounded-xl bg-sun/10 grid place-items-center shrink-0">
-              <Icon size={18} className="text-sun" />
-            </div>
-          )}
-          <div className="min-w-0">
-            <h2 className="font-display text-lg font-bold text-ink tracking-tight">{title}</h2>
-            {description && (
-              <p className="text-sm text-ink-400 mt-0.5 leading-relaxed">{description}</p>
-            )}
-          </div>
-        </div>
-      </div>
-      <div className="p-5">{children}</div>
-    </section>
-  );
-}
-
-function Field({ label, hint, badge, children }) {
-  return (
-    <label className="block">
-      <div className="flex items-center gap-2 mb-1.5">
-        <span className="text-sm font-medium text-ink-600">{label}</span>
-        {badge}
-      </div>
-      {children}
-      {hint && <p className="text-xs text-ink-300 mt-1.5">{hint}</p>}
-    </label>
-  );
-}
 
 export default function ProfileSettingsPanel({
   me,
@@ -114,78 +79,92 @@ export default function ProfileSettingsPanel({
   };
 
   return (
-    <div className="space-y-6 max-w-5xl">
+    <div className="max-w-5xl space-y-6">
       <SectionCard
         icon={UserRound}
         title={t("profile.contacts")}
         description={t("profile.contactsHint")}
       >
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label={t("profile.username")}>
-            <input
-              className="mobile-control"
-              value={form.name}
-              onChange={(e) => setForm((v) => ({ ...v, name: e.target.value }))}
-              placeholder={t("profile.usernamePlaceholder")}
-            />
+            {(field) => (
+              <Input
+                {...field}
+                value={form.name}
+                onChange={(e) => setForm((v) => ({ ...v, name: e.target.value }))}
+                placeholder={t("profile.usernamePlaceholder")}
+              />
+            )}
           </Field>
 
           <Field
-            label="Email"
-            badge={
-              emailStatus === "verified" ? (
-                <span className="inline-flex items-center gap-1 rounded-full bg-lagoon/10 border border-lagoon/15 px-2 py-0.5 text-2xs font-semibold text-lagoon-700">
-                  <CheckCircle2 size={12} />
-                  {t("profile.emailVerified")}
-                </span>
-              ) : (
-                <EmailBadge status={emailStatus} />
-              )
+            label={
+              <span className="inline-flex flex-wrap items-center gap-2">
+                Email
+                {emailStatus === "verified" ? (
+                  <Badge tone="success" icon={CheckCircle2}>
+                    {t("profile.emailVerified")}
+                  </Badge>
+                ) : (
+                  <EmailBadge status={emailStatus} />
+                )}
+              </span>
             }
           >
-            <input
-              className="mobile-control bg-mist text-ink-400"
-              type="email"
-              value={form.email}
-              readOnly
-            />
+            {(field) => (
+              <Input
+                {...field}
+                type="email"
+                value={form.email}
+                readOnly
+                className="bg-mist-100 text-ink-500"
+              />
+            )}
           </Field>
         </div>
 
-        <div className="mt-6 pt-5 border-t border-ink/8">
-          <div className="flex items-center gap-2 mb-1">
-            <Phone size={16} className="text-ink-300" />
-            <h3 className="text-sm font-semibold text-ink">{t("profile.contactMethods")}</h3>
+        <div className="mt-6 border-t border-ink-200 pt-5">
+          <h3 className="mb-1 flex items-center gap-2 text-sm font-semibold text-ink-900">
+            <Phone size={16} className="text-ink-400" aria-hidden />
+            {t("profile.contactMethods")}
+          </h3>
+
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <p className="text-sm font-medium text-ink-600">
+              {t("profile.phoneNumbers")}
+            </p>
+            <p className="text-xs text-ink-400">{t("profile.phonePerAdHint")}</p>
           </div>
 
-          <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-            <div className="text-sm font-medium text-ink-600">{t("profile.phoneNumbers")}</div>
-            <div className="text-xs text-ink-300">{t("profile.phonePerAdHint")}</div>
-          </div>
-
-          <div className="space-y-2.5">
+          <ul className="space-y-2.5">
             {phones.map((phone, index) => (
-              <div key={`phone-${index}`} className="flex flex-col sm:flex-row gap-2">
-                <input
-                  className="mobile-control flex-1 tabular-nums"
+              <li key={`phone-${index}`} className="flex flex-col gap-2 sm:flex-row">
+                <label className="sr-only" htmlFor={`profile-phone-${index}`}>
+                  {index === 0
+                    ? t("profile.primaryPhone")
+                    : t("profile.phoneNumbers")}
+                </label>
+                <Input
+                  id={`profile-phone-${index}`}
+                  className="flex-1 tabular-nums"
+                  inputMode="tel"
                   placeholder="+992 90 123 45 67"
                   value={phone}
                   onChange={(e) => updatePhoneAt(index, e.target.value)}
                   onBlur={(e) => {
-                    const formatted = formatPhoneDisplay(e.target.value) || e.target.value;
+                    const formatted =
+                      formatPhoneDisplay(e.target.value) || e.target.value;
                     if (formatted !== phone) updatePhoneAt(index, formatted);
                   }}
                 />
-                <div className="flex items-center gap-2 shrink-0">
+                <div className="flex shrink-0 items-center gap-2">
                   {index === 0 ? (
-                    <span className="inline-flex items-center rounded-full bg-sun/15 px-3 py-2 text-xs font-semibold text-sun">
-                      {t("profile.primaryPhone")}
-                    </span>
+                    <span className="badge">{t("profile.primaryPhone")}</span>
                   ) : (
                     <button
                       type="button"
                       onClick={() => makePrimary(index)}
-                      className="rounded-full border border-ink/10 px-3 py-2 text-xs font-semibold text-ink-500 hover:bg-mist"
+                      className="btn btn-sm"
                     >
                       {t("profile.makePrimary")}
                     </button>
@@ -193,65 +172,74 @@ export default function ProfileSettingsPanel({
                   <button
                     type="button"
                     onClick={() => removePhone(index)}
-                    className="rounded-xl border border-red-100 p-2 text-red-500 hover:bg-red-50"
+                    className="btn btn-icon-sm border-danger-200 text-danger-600 hover:bg-danger-50"
                     aria-label={t("a11y.delete")}
                   >
-                    <Trash2 size={16} />
+                    <Trash2 size={16} aria-hidden />
                   </button>
                 </div>
-              </div>
+              </li>
             ))}
-          </div>
+          </ul>
 
           {phones.length < 5 && (
             <button
               type="button"
               onClick={addPhone}
-              className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-sun hover:text-sun-600"
+              className="btn btn-ghost btn-sm mt-3 text-sun-700 hover:bg-sun-50"
             >
-              <Plus size={16} />
+              <Plus size={16} aria-hidden />
               {t("profile.addPhone")}
             </button>
           )}
 
-          <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Field label="WhatsApp">
-              <input
-                className="mobile-control"
-                placeholder="992901234567"
-                value={form.whatsapp}
-                onChange={(e) => setForm((prev) => ({ ...prev, whatsapp: e.target.value }))}
-              />
+              {(field) => (
+                <Input
+                  {...field}
+                  inputMode="tel"
+                  placeholder="992901234567"
+                  value={form.whatsapp}
+                  onChange={(e) =>
+                    setForm((prev) => ({ ...prev, whatsapp: e.target.value }))
+                  }
+                />
+              )}
             </Field>
 
             <Field label="Telegram" hint={t("profile.telegramHint")}>
-              <input
-                className="mobile-control"
-                placeholder="@username"
-                value={form.telegram}
-                onChange={(e) => setForm((prev) => ({ ...prev, telegram: e.target.value }))}
-              />
+              {(field) => (
+                <Input
+                  {...field}
+                  placeholder="@username"
+                  value={form.telegram}
+                  onChange={(e) =>
+                    setForm((prev) => ({ ...prev, telegram: e.target.value }))
+                  }
+                />
+              )}
             </Field>
           </div>
         </div>
       </SectionCard>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="rounded-2xl overflow-hidden border border-ink/10 bg-ink text-white p-5 shadow-soft">
-          <div className="flex items-center gap-2 text-sun text-xs font-bold uppercase tracking-wider mb-2">
-            <Crown size={16} />
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <section className="rounded-2xl border border-ink-800 bg-ink-900 p-5 text-white">
+          <p className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-sun-400">
+            <Crown size={16} aria-hidden />
             Oriyon Premium
-          </div>
-          <h3 className="font-display text-xl font-bold text-white mb-2 tracking-tight">
+          </p>
+          <h3 className="mb-2 font-display text-xl font-bold tracking-tight">
             {t("profile.premiumTitle")}
           </h3>
-          <p className="text-sm text-white/70 leading-relaxed mb-4">
+          <p className="mb-4 text-sm leading-relaxed text-white/70">
             {t("profile.premiumDesc")}
           </p>
-          <div className="text-xs font-semibold uppercase tracking-wide text-white/50 mb-2">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-white/50">
             {t("profile.premiumBenefits")}
-          </div>
-          <ul className="space-y-1.5 text-sm text-white/85 mb-4">
+          </p>
+          <ul className="mb-4 space-y-1.5 text-sm text-white/85">
             {[
               t("profile.premiumBenefit1"),
               t("profile.premiumBenefit2"),
@@ -260,36 +248,44 @@ export default function ProfileSettingsPanel({
               t("profile.premiumBenefit5"),
             ].map((item) => (
               <li key={item} className="flex items-start gap-2">
-                <CheckCircle2 size={14} className="text-sun shrink-0 mt-0.5" />
+                <CheckCircle2
+                  size={14}
+                  className="mt-0.5 shrink-0 text-sun-400"
+                  aria-hidden
+                />
                 <span>{item}</span>
               </li>
             ))}
           </ul>
-          <p className="text-xs text-white/45 mb-3">{t("profile.premiumAdminHint")}</p>
+          <p className="mb-3 text-xs text-white/50">
+            {t("profile.premiumAdminHint")}
+          </p>
           <a
             href="https://t.me/oriyon_support"
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-2 rounded-xl bg-sun px-4 py-2.5 text-sm font-bold text-white hover:bg-sun-600 transition"
+            className="btn btn-primary"
           >
-            <MessageCircle size={16} />
+            <MessageCircle size={16} aria-hidden />
             {t("profile.writeAdmin")}
           </a>
-        </div>
+        </section>
 
-        <div className="rounded-2xl border border-lagoon/15 bg-lagoon/5 p-5 shadow-soft flex flex-col">
+        <section className="flex flex-col rounded-2xl border border-lagoon-200 bg-lagoon-50 p-5">
           <div className="flex items-start gap-3">
-            <div className="w-11 h-11 rounded-xl bg-white border border-lagoon/15 grid place-items-center shrink-0">
-              <ShieldCheck className="text-lagoon" size={22} />
-            </div>
+            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-lagoon-200 bg-white">
+              <ShieldCheck className="text-lagoon-600" size={22} aria-hidden />
+            </span>
             <div>
-              <p className="text-sm text-ink-600 leading-relaxed">
-                <span className="font-bold text-ink">{t("profile.security")}.</span>{" "}
+              <p className="text-sm leading-relaxed text-ink-700">
+                <span className="font-bold text-ink-900">
+                  {t("profile.security")}.
+                </span>{" "}
                 {t("profile.securityTip")}
               </p>
               <Link
                 to="/policy"
-                className="mt-3 inline-flex text-sm font-semibold text-lagoon-700 hover:text-lagoon"
+                className="mt-3 inline-flex min-h-[2.25rem] items-center text-sm font-semibold text-lagoon-700 hover:underline"
               >
                 {t("profile.scamGuide")}
               </Link>
@@ -302,9 +298,9 @@ export default function ProfileSettingsPanel({
                 type="button"
                 onClick={onRequestVerifyEmail}
                 disabled={sendingEmail || emailStatus === "pending"}
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-sun text-white text-sm font-semibold hover:bg-sun-600 transition disabled:opacity-60"
+                className="btn btn-primary"
               >
-                <Mail size={16} />
+                <Mail size={16} aria-hidden />
                 {emailStatus === "pending"
                   ? t("profile.emailSent")
                   : sendingEmail
@@ -315,14 +311,14 @@ export default function ProfileSettingsPanel({
           )}
 
           {isStaffRole(role) && (
-            <div className="mt-4 flex items-center justify-between gap-3 rounded-xl border bg-white px-4 py-3 text-sm">
+            <div className="mt-4 flex items-center justify-between gap-3 rounded-xl border border-ink-200 bg-white px-4 py-3 text-sm">
               <span className="text-ink-400">{t("profile.accountRole")}</span>
-              <span className="font-semibold text-ink uppercase tracking-wide text-xs">
+              <span className="label-caps text-ink-900">
                 {role.replace("_", " ")}
               </span>
             </div>
           )}
-        </div>
+        </section>
       </div>
 
       {me?.sellerType === "company" && (
