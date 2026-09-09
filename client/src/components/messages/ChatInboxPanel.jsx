@@ -1,37 +1,68 @@
 import React from "react";
-import { Archive, CheckCheck, Search } from "lucide-react";
+import { CheckCheck, MessageCircle, Search, SearchX } from "lucide-react";
 import ChatAvatar from "./ChatAvatar";
+import {
+  Badge,
+  Chip,
+  EmptyState,
+  IconButton,
+  Input,
+  Skeleton,
+  cn,
+} from "../../ui";
 import {
   getPeerId,
   getPeerName,
   getThreadRole,
   formatInboxTime,
-  listingImageUrl,
-  roleBadgeMeta,
   getMessagePreview,
 } from "../../lib/messagesUtils";
 import { isBusinessSupportThread } from "../../lib/openBusinessSupportChat";
 
 const FILTERS = ["all", "unread", "buying", "selling", "archived"];
 
-function countByFilter(items, me, filter) {
-  if (filter === "archived") {
-    return items.length;
-  }
+const ROLE_BADGES = {
+  selling: { tone: "sun", key: "chat.roleSelling" },
+  buying: { tone: "neutral", key: "chat.roleBuying" },
+  support: { tone: "info", key: "chat.roleSupport" },
+};
 
+function countByFilter(items, me, filter) {
   if (filter === "unread") {
     return items.filter((item) => Number(item.unreadCount || 0) > 0).length;
   }
 
-  if (filter === "buying") {
-    return items.filter((item) => getThreadRole(item, me) === "buying").length;
-  }
-
-  if (filter === "selling") {
-    return items.filter((item) => getThreadRole(item, me) === "selling").length;
+  if (filter === "buying" || filter === "selling") {
+    return items.filter((item) => getThreadRole(item, me) === filter).length;
   }
 
   return items.length;
+}
+
+function InboxSkeleton() {
+  return (
+    <ul className="space-y-1">
+      {Array.from({ length: 7 }).map((_, index) => (
+        <li key={index} className="flex items-start gap-2.5 p-2.5">
+          <Skeleton className="h-11 w-11 shrink-0" rounded="rounded-xl" />
+          <div className="min-w-0 flex-1 space-y-1.5 pt-0.5">
+            <Skeleton className="h-3.5 w-2/5" />
+            <Skeleton className="h-3 w-1/2" />
+            <Skeleton className="h-3 w-4/5" />
+          </div>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function UnreadBadge({ count, t }) {
+  return (
+    <span className="inline-flex h-5 min-w-[1.25rem] shrink-0 items-center justify-center rounded-full bg-sun-500 px-1.5 text-2xs font-bold text-white">
+      <span aria-hidden="true">{count > 99 ? "99+" : count}</span>
+      <span className="sr-only">{t("chat.unreadCount", { count })}</span>
+    </span>
+  );
 }
 
 export default function ChatInboxPanel({
@@ -45,21 +76,17 @@ export default function ChatInboxPanel({
   onFilterChange,
   onSelect,
   onMarkAllRead,
-  onArchiveSelected,
   markingAll,
-  archiving,
+  loading,
+  className = "",
 }) {
   const filteredItems = React.useMemo(() => {
     let next = items;
 
-    if (filter !== "archived") {
-      if (filter === "unread") {
-        next = next.filter((item) => Number(item.unreadCount || 0) > 0);
-      } else if (filter === "buying") {
-        next = next.filter((item) => getThreadRole(item, me) === "buying");
-      } else if (filter === "selling") {
-        next = next.filter((item) => getThreadRole(item, me) === "selling");
-      }
+    if (filter === "unread") {
+      next = next.filter((item) => Number(item.unreadCount || 0) > 0);
+    } else if (filter === "buying" || filter === "selling") {
+      next = next.filter((item) => getThreadRole(item, me) === filter);
     }
 
     const value = query.trim().toLowerCase();
@@ -80,187 +107,147 @@ export default function ChatInboxPanel({
   const unreadTotal = countByFilter(items, me, "unread");
 
   return (
-    <aside className="messages-inbox flex h-full min-h-0 min-w-0 flex-col border-r border-ink/8 overflow-hidden">
-      <div className="flex items-center justify-between gap-2 px-4 pt-5 pb-3">
-        <div>
-          <h2 className="font-display text-[1.35rem] font-bold tracking-tight text-ink">
+    <aside className={cn("chat-inbox", className)} aria-label={t("chat.dialogList")}>
+      <div className="chat-inbox__head">
+        <div className="flex items-center gap-2">
+          <h1 className="min-w-0 flex-1 font-display text-xl font-bold tracking-tight text-ink-900">
             {t("chat.title")}
-          </h2>
-          {unreadTotal > 0 ? (
-            <p className="mt-0.5 text-xs text-ink-400">
-              {t("chat.filter.unread")} · {unreadTotal}
-            </p>
-          ) : null}
-        </div>
+          </h1>
 
-        <div className="flex items-center gap-1">
-          <button
-            type="button"
+          <IconButton
+            icon={CheckCheck}
+            label={t("chat.markAllRead")}
             onClick={onMarkAllRead}
             disabled={markingAll || unreadTotal === 0}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-ink/8 bg-white text-ink-500 transition hover:border-sun/30 hover:bg-sun-50 hover:text-sun-700 disabled:opacity-35"
-            title={t("chat.markAllRead")}
-          >
-            <CheckCheck size={18} />
-          </button>
-          <button
-            type="button"
-            onClick={onArchiveSelected}
-            disabled={archiving || !selected}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-ink/8 bg-white text-ink-500 transition hover:border-ink/15 hover:bg-mist hover:text-ink disabled:opacity-35"
-            title={t("chat.actionArchive")}
-          >
-            <Archive size={17} />
-          </button>
-        </div>
-      </div>
-
-      <div className="px-4 pb-3">
-        <div className="relative">
-          <Search
-            size={17}
-            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-300 pointer-events-none"
-          />
-          <input
-            value={query}
-            onChange={(e) => onQueryChange(e.target.value)}
-            placeholder={t("chat.searchPlaceholder")}
-            className="input w-full h-11 pl-10 rounded-2xl bg-white/90 border-ink/8 shadow-soft focus:border-sun/40 focus:ring-sun/15"
           />
         </div>
-      </div>
 
-      <div className="px-4 pb-3 min-w-0">
-        <div className="messages-inbox-filters">
+        <Input
+          type="search"
+          value={query}
+          onChange={(event) => onQueryChange(event.target.value)}
+          placeholder={t("chat.searchPlaceholder")}
+          aria-label={t("chat.searchPlaceholder")}
+          iconLeft={Search}
+        />
+
+        <div className="chat-inbox__filters">
           {FILTERS.map((key) => {
-            const active = filter === key;
-            const count = countByFilter(items, me, key);
-            const label =
-              key === "all" && count > 0
-                ? `${t(`chat.filter.${key}`)} ${count}`
-                : t(`chat.filter.${key}`);
+            const count = key === "archived" ? 0 : countByFilter(items, me, key);
 
             return (
-              <button
+              <Chip
                 key={key}
-                type="button"
+                active={filter === key}
                 onClick={() => onFilterChange(key)}
-                className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold transition ${
-                  active
-                    ? "bg-sun text-white shadow-soft"
-                    : "bg-white/80 text-ink-500 border border-ink/8 hover:border-sun/25 hover:text-sun-700"
-                }`}
+                count={count > 0 ? count : undefined}
               >
-                {label}
-              </button>
+                {t(`chat.filter.${key}`)}
+              </Chip>
             );
           })}
         </div>
       </div>
 
-      {filteredItems.length === 0 ? (
-        <div className="mx-4 mb-4 rounded-2xl border border-dashed border-ink/10 bg-white/70 p-8 text-center">
-          <div className="mx-auto mb-3 grid h-12 w-12 place-items-center rounded-2xl bg-mist text-ink-300">
-            <Search size={20} />
-          </div>
-          <p className="text-sm font-medium text-ink-500">{t("chat.empty")}</p>
-        </div>
-      ) : (
-        <div className="flex-1 overflow-y-auto px-2.5 pb-4">
-          {filteredItems.map((item) => {
-            const peerId = getPeerId(item, me);
-            const supportItem = isBusinessSupportThread(item);
-            const role = getThreadRole(item, me);
-            const badge = roleBadgeMeta(role, t);
-            const peerName = getPeerName(item, me, t);
-            const active =
-              String(selected?.listingId) === String(item.listingId) &&
-              String(getPeerId(selected, me)) === String(peerId);
-            const thumb = listingImageUrl(item.listingImage);
-            const listingTitle = supportItem
-              ? t("chat.supportOriyon")
-              : item.listingTitle || t("chat.listing");
-            const unread = Number(item.unreadCount || 0) > 0;
+      <div className="chat-inbox__list">
+        {loading ? (
+          <InboxSkeleton />
+        ) : items.length === 0 && filter === "all" && !query.trim() ? (
+          <EmptyState
+            bare
+            icon={MessageCircle}
+            title={t("chat.empty")}
+            description={t("chat.emptyHint")}
+            actionLabel={t("chat.emptyAction")}
+            actionTo="/"
+          />
+        ) : filteredItems.length === 0 ? (
+          <EmptyState
+            bare
+            icon={SearchX}
+            title={t("chat.noResultsTitle")}
+            description={t("chat.noResultsHint")}
+            actionLabel={t("chat.filter.all")}
+            actionVariant="secondary"
+            onAction={() => {
+              onQueryChange("");
+              onFilterChange("all");
+            }}
+          />
+        ) : (
+          <ul className="space-y-1">
+            {filteredItems.map((item) => {
+              const peerId = getPeerId(item, me);
+              const supportItem = isBusinessSupportThread(item);
+              const role = getThreadRole(item, me);
+              const peerName = getPeerName(item, me, t);
+              const unreadCount = Number(item.unreadCount || 0);
+              const active =
+                String(selected?.listingId) === String(item.listingId) &&
+                String(getPeerId(selected, me)) === String(peerId);
+              const listingTitle = supportItem
+                ? t("chat.supportOriyon")
+                : item.listingTitle || t("chat.listing");
+              const roleBadge = ROLE_BADGES[role];
 
-            return (
-              <button
-                key={`${item.listingId}-${peerId}-${item.id || item.createdAt}`}
-                type="button"
-                onClick={() => onSelect(item)}
-                className={`messages-inbox-item w-full text-left rounded-2xl px-3 py-3 mb-1 ${
-                  active
-                    ? "is-active bg-sun-50 border border-sun/20"
-                    : "border border-transparent hover:bg-white/90 hover:border-ink/6"
-                }`}
-              >
-                <div className="flex gap-3 items-start">
-                  <ChatAvatar name={peerName} support={supportItem} />
+              return (
+                <li key={`${item.listingId}-${peerId}-${item.id || item.createdAt}`}>
+                  <button
+                    type="button"
+                    onClick={() => onSelect(item)}
+                    aria-current={active ? "true" : undefined}
+                    className={cn(
+                      "chat-row",
+                      active && "chat-row--active",
+                      unreadCount > 0 && "chat-row--unread"
+                    )}
+                  >
+                    <ChatAvatar name={peerName} support={supportItem} />
 
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        <div
-                          className={`truncate ${
-                            unread
-                              ? "font-bold text-ink"
-                              : "font-semibold text-ink"
-                          }`}
+                    <span className="flex min-w-0 flex-1 flex-col">
+                      <span className="flex items-baseline gap-2">
+                        <span
+                          className={cn(
+                            "min-w-0 flex-1 truncate text-sm",
+                            unreadCount > 0
+                              ? "font-bold text-ink-900"
+                              : "font-semibold text-ink-800"
+                          )}
                         >
                           {peerName}
-                        </div>
-                        {badge ? (
-                          <div
-                            className={`inline-flex mt-1 rounded-md px-1.5 py-0.5 text-2xs font-bold tracking-wide uppercase ${badge.className}`}
-                          >
-                            {badge.label}
-                          </div>
-                        ) : null}
-                      </div>
-
-                      <div className="shrink-0 text-right">
-                        <div
-                          className={`text-2xs tabular-nums ${
-                            unread ? "font-semibold text-sun-600" : "text-ink-400"
-                          }`}
-                        >
+                        </span>
+                        <span className="shrink-0 text-2xs tabular-nums text-ink-400">
                           {formatInboxTime(item.createdAt, t)}
-                        </div>
-                        {unread ? (
-                          <div className="mt-1.5 ml-auto min-w-[1.25rem] h-5 px-1.5 rounded-full bg-sun text-white text-2xs font-bold inline-flex items-center justify-center shadow-soft">
-                            {Number(item.unreadCount) > 99
-                              ? "99+"
-                              : item.unreadCount}
-                          </div>
+                        </span>
+                      </span>
+
+                      <span className="mt-0.5 flex items-center gap-1.5">
+                        {roleBadge ? (
+                          <Badge tone={roleBadge.tone} className="shrink-0 py-0">
+                            {t(roleBadge.key)}
+                          </Badge>
                         ) : null}
-                      </div>
-                    </div>
+                        <span className="min-w-0 truncate text-xs text-ink-400">
+                          {listingTitle}
+                        </span>
+                      </span>
 
-                    <div className="mt-1.5 text-xs font-medium text-ink-500 truncate">
-                      {listingTitle}
-                    </div>
-
-                    <div
-                      className={`mt-0.5 text-sm line-clamp-1 ${
-                        unread ? "text-ink-600 font-medium" : "text-ink-400"
-                      }`}
-                    >
-                      {getMessagePreview(item, t)}
-                    </div>
-                  </div>
-
-                  {thumb && !supportItem ? (
-                    <img
-                      src={thumb}
-                      alt=""
-                      className="w-12 h-12 rounded-xl object-cover bg-mist shrink-0 ring-1 ring-ink/5"
-                    />
-                  ) : null}
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      )}
+                      <span className="mt-1 flex items-center gap-2">
+                        <span className="chat-row__preview min-w-0 flex-1">
+                          {getMessagePreview(item, t)}
+                        </span>
+                        {unreadCount > 0 ? (
+                          <UnreadBadge count={unreadCount} t={t} />
+                        ) : null}
+                      </span>
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
     </aside>
   );
 }

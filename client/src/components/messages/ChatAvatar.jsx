@@ -1,6 +1,6 @@
 import React from "react";
 import { Shield } from "lucide-react";
-import { avatarColorFromName, getPeerInitials } from "../../lib/messagesUtils";
+import { Avatar, cn } from "../../ui";
 
 export default function ChatAvatar({
   name,
@@ -8,42 +8,31 @@ export default function ChatAvatar({
   support = false,
   size = "md",
   online = false,
+  onlineLabel,
 }) {
-  const sizeClass =
-    size === "lg"
-      ? "w-11 h-11 text-sm"
-      : size === "sm"
-      ? "w-9 h-9 text-xs"
-      : "w-11 h-11 text-sm";
-
-  const content = support ? (
-    <div
-      className={`${sizeClass} rounded-2xl bg-gradient-to-br from-lagoon to-lagoon-700 text-white grid place-items-center shrink-0 shadow-soft ring-2 ring-white`}
-    >
-      <Shield size={size === "lg" ? 18 : 15} strokeWidth={2.25} />
-    </div>
-  ) : imageUrl ? (
-    <img
-      src={imageUrl}
-      alt=""
-      className={`${sizeClass} rounded-2xl object-cover bg-mist shrink-0 ring-2 ring-white shadow-soft`}
-    />
-  ) : (
-    <div
-      className={`${sizeClass} rounded-2xl bg-gradient-to-br ${avatarColorFromName(
-        name
-      )} text-white font-bold grid place-items-center shrink-0 shadow-soft ring-2 ring-white`}
-    >
-      {getPeerInitials(name)}
-    </div>
-  );
+  const small = size === "sm";
 
   return (
-    <div className="relative shrink-0">
-      {content}
+    <span className="relative inline-flex shrink-0">
+      {support ? (
+        <span
+          className={cn(
+            "grid shrink-0 place-items-center rounded-xl bg-lagoon-500 text-white",
+            small ? "h-9 w-9" : "h-11 w-11"
+          )}
+        >
+          <Shield size={small ? 15 : 18} strokeWidth={2.2} aria-hidden="true" />
+        </span>
+      ) : (
+        <Avatar name={name} src={imageUrl} size={small ? "sm" : "md"} />
+      )}
+
       {online ? (
-        <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-lagoon border-2 border-white shadow-sm" />
+        <span
+          className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white bg-lagoon-500"
+          title={onlineLabel}
+        />
       ) : null}
-    </div>
+    </span>
   );
 }

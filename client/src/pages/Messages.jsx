@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Shield, X } from "lucide-react";
+import { Shield } from "lucide-react";
 import { api } from "../lib/api";
 import { connectChatSocket, getChatSocket } from "../lib/chatSocket";
 import {
@@ -21,53 +21,16 @@ import {
 import ChatInboxPanel from "../components/messages/ChatInboxPanel";
 import ChatThreadPanel from "../components/messages/ChatThreadPanel";
 import ChatReportModal from "../components/messages/ChatReportModal";
+import { Alert, cn, useConfirm, useToast } from "../ui";
 
 const TOKEN_KEY = "auth_token";
 const USER_KEY = "auth_user";
 
-function Toast({ message, type = "info", onClose, closeLabel }) {
-  React.useEffect(() => {
-    if (!message) return undefined;
-
-    const timer = setTimeout(onClose, 3200);
-    return () => clearTimeout(timer);
-  }, [message, onClose]);
-
-  if (!message) return null;
-
-  const styles =
-    type === "error"
-      ? "bg-red-600"
-      : type === "success"
-      ? "bg-lagoon"
-      : "bg-ink-800";
-
-  return (
-    <div
-      role={type === "error" ? "alert" : "status"}
-      aria-live={type === "error" ? "assertive" : "polite"}
-      className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[120] animate-fade-in-up"
-    >
-      <div
-        className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-white text-sm shadow-lift backdrop-blur-sm ${styles}`}
-      >
-        <span>{message}</span>
-        <button
-          type="button"
-          onClick={onClose}
-          className="p-0.5 rounded hover:bg-white/15"
-          aria-label={closeLabel}
-        >
-          <X size={16} />
-        </button>
-      </div>
-    </div>
-  );
-}
-
 export default function Messages() {
   const nav = useNavigate();
   const { t } = useI18n();
+  const { showToast } = useToast();
+  const confirm = useConfirm();
   const [searchParams, setSearchParams] = useSearchParams();
   const token = localStorage.getItem(TOKEN_KEY) || "";
 
@@ -95,7 +58,6 @@ export default function Messages() {
   const [filter, setFilter] = React.useState("all");
   const [mobileView, setMobileView] = React.useState("list");
   const [typingPeer, setTypingPeer] = React.useState(false);
-  const [toast, setToast] = React.useState({ message: "", type: "info" });
   const [socketReady, setSocketReady] = React.useState(false);
   const [socketError, setSocketError] = React.useState("");
   const [peerPresence, setPeerPresence] = React.useState({});
@@ -114,9 +76,9 @@ export default function Messages() {
   const [threadLoading, setThreadLoading] = React.useState(false);
   const [sending, setSending] = React.useState(false);
   const [markingAll, setMarkingAll] = React.useState(false);
-  const [archiving, setArchiving] = React.useState(false);
 
-  const chatEndRef = React.useRef(null);
+  const logRef = React.useRef(null);
+  const openThreadKeyRef = React.useRef("");
   const deepHandledRef = React.useRef(false);
   const typingEmitRef = React.useRef(null);
   const markThreadAsReadRef = React.useRef(null);
@@ -125,10 +87,6 @@ export default function Messages() {
 
   const isAdmin = me?.role === "admin" || me?.role === "super_admin";
   const myId = me?.id || me?._id;
-
-  const showToast = React.useCallback((message, type = "info") => {
-    setToast({ message, type });
-  }, []);
 
   const applyPresenceUpdate = React.useCallback(
     ({ userId, online, lastSeen }) => {
@@ -647,12 +605,39 @@ export default function Messages() {
     t,
   ]);
 
+  const pinLogToBottom = React.useCallback((behavior = "auto") => {
+    const node = logRef.current;
+    if (!node) return;
+
+    node.scrollTo({ top: node.scrollHeight, behavior });
+  }, []);
+
+  // Called when the composer grows: the list gets shorter, so the newest
+  // message would drift out of view unless the reader had scrolled up.
+  const keepLogPinned = React.useCallback(() => {
+    const node = logRef.current;
+    if (!node) return;
+
+    const distanceFromBottom =
+      node.scrollHeight - node.scrollTop - node.clientHeight;
+
+    if (distanceFromBottom > 96) return;
+
+    node.scrollTop = node.scrollHeight;
+  }, []);
+
   React.useEffect(() => {
-    chatEndRef.current?.scrollIntoView({
-      behavior: "smooth",
-      block: "end",
-    });
-  }, [thread.length, selected, typingPeer]);
+    const key = selected
+      ? `${selected.listingId}:${getPeerId(selected, me)}`
+      : "";
+    // The key is only remembered once the history is on screen, so opening a
+    // thread jumps to the newest message instead of animating past all of it.
+    const switchedThread = key !== openThreadKeyRef.current;
+
+    if (!threadLoading) openThreadKeyRef.current = key;
+
+    pinLogToBottom(switchedThread ? "auto" : "smooth");
+  }, [thread.length, selected, typingPeer, threadLoading, me, pinLogToBottom]);
 
   const emitTyping = React.useCallback(
     (active) => {
@@ -757,23 +742,6 @@ export default function Messages() {
     return settings;
   };
 
-  const archiveSelectedThread = async () => {
-    if (!selected || archiving) return;
-
-    try {
-      setArchiving(true);
-      await updateThreadSettings({ isArchived: true });
-      setSelected(null);
-      setThread([]);
-      setMobileView("list");
-      showToast(t("chat.archivedSuccess"), "success");
-    } catch (e) {
-      showToast(getUserFacingErrorMessage(e, t) || t("chat.loadFailed"), "error");
-    } finally {
-      setArchiving(false);
-    }
-  };
-
   const handlePickImage = async (event) => {
     const file = event.target.files?.[0];
     event.target.value = "";
@@ -847,7 +815,7 @@ export default function Messages() {
     if (!peerId) return;
 
     try {
-      if (action === "report" || action === "menu") {
+      if (action === "report") {
         setReportOpen(true);
         return;
       }
@@ -909,7 +877,12 @@ export default function Messages() {
       }
 
       if (action === "block") {
-        const confirmed = window.confirm(t("chat.blockConfirm"));
+        const confirmed = await confirm({
+          title: t("chat.actionBlock"),
+          message: t("chat.blockConfirm"),
+          confirmLabel: t("chat.actionBlock"),
+          tone: "danger",
+        });
 
         if (!confirmed) return;
 
@@ -991,25 +964,74 @@ export default function Messages() {
 
   const phoneNumber = listing?.phone || listing?.sellerPhone || "";
 
-  if (loading) {
-    return (
-      <div className="page-shell min-h-screen px-4 py-6">
-        <div className="max-w-[1800px] mx-auto messages-workspace p-6 animate-pulse space-y-3">
-          <div className="h-8 bg-mist-200 rounded-xl w-48" />
-          <div className="h-[70vh] bg-mist-200 rounded-2xl" />
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="page-shell min-h-screen">
-      <Toast
-        message={toast.message}
-        type={toast.type}
-        onClose={() => setToast({ message: "", type: "info" })}
-        closeLabel={t("common.close")}
-      />
+    <div className="chat-shell">
+      {isAdmin || socketError ? (
+        <div className="space-y-2 px-3 pt-2 lg:px-0 lg:pt-0">
+          {isAdmin ? (
+            <Alert tone="info" live={false} icon={Shield}>
+              {t("chat.adminSeeAll")}
+            </Alert>
+          ) : null}
+
+          {socketError ? (
+            <Alert tone="warning">{t("chat.offlinePolling")}</Alert>
+          ) : null}
+        </div>
+      ) : null}
+
+      <div className="chat-workspace">
+        <ChatInboxPanel
+          className={cn("chat-pane", mobileView === "chat" && "chat-pane--stacked")}
+          t={t}
+          items={items}
+          selected={selected}
+          me={me}
+          query={query}
+          onQueryChange={setQuery}
+          filter={filter}
+          onFilterChange={setFilter}
+          onSelect={openThread}
+          onMarkAllRead={markAllRead}
+          markingAll={markingAll}
+          loading={loading}
+        />
+
+        <ChatThreadPanel
+          className={cn("chat-pane", mobileView === "list" && "chat-pane--stacked")}
+          t={t}
+          selected={selected}
+          me={me}
+          thread={thread}
+          groupedThread={groupedThread}
+          threadLoading={threadLoading}
+          typingPeer={typingPeer}
+          peerOnline={peerOnline}
+          selectedPeerLastSeen={selectedPeerLastSeen}
+          peerName={peerName}
+          supportThread={supportThread}
+          listing={listing}
+          phoneVisible={phoneVisible}
+          onRevealPhone={revealPhone}
+          phoneNumber={phoneNumber}
+          text={text}
+          onTextChange={handleTextChange}
+          onSend={send}
+          sending={sending}
+          quickReplies={quickReplies}
+          isAdmin={isAdmin}
+          onBack={() => setMobileView("list")}
+          onAction={handleThreadAction}
+          logRef={logRef}
+          onComposerGrow={keepLogPinned}
+          threadSettings={threadSettings}
+          pendingAttachment={pendingAttachment}
+          onPickImage={handlePickImage}
+          onRemoveAttachment={handleRemoveAttachment}
+          uploadingAttachment={uploadingAttachment}
+          imageInputRef={imageInputRef}
+        />
+      </div>
 
       <ChatReportModal
         open={reportOpen}
@@ -1018,86 +1040,6 @@ export default function Messages() {
         sending={reportSending}
         t={t}
       />
-
-      <div className="max-w-[1800px] mx-auto px-2 md:px-5 py-4">
-        {isAdmin ? (
-          <div className="mb-3 inline-flex items-center gap-2 text-xs font-semibold text-lagoon-700 bg-lagoon/10 border border-lagoon/15 rounded-full px-3 py-1.5">
-            <Shield size={14} />
-            {t("chat.adminSeeAll")}
-          </div>
-        ) : null}
-
-        {socketError ? (
-          <div className="mb-3 text-xs text-amber-800 bg-amber-50/90 border border-amber-200/80 rounded-xl px-3.5 py-2.5">
-            {t("chat.offlinePolling")}
-          </div>
-        ) : null}
-
-        <div className="messages-workspace">
-          <div className="messages-layout">
-            <div
-              className={`h-full min-h-0 ${
-                mobileView === "chat" ? "hidden xl:block" : "block"
-              }`}
-            >
-              <ChatInboxPanel
-                t={t}
-                items={items}
-                selected={selected}
-                me={me}
-                query={query}
-                onQueryChange={setQuery}
-                filter={filter}
-                onFilterChange={setFilter}
-                onSelect={openThread}
-                onMarkAllRead={markAllRead}
-                onArchiveSelected={archiveSelectedThread}
-                markingAll={markingAll}
-                archiving={archiving}
-              />
-            </div>
-
-            <div
-              className={`h-full min-h-0 ${
-                mobileView === "list" ? "hidden xl:block" : "block"
-              }`}
-            >
-              <ChatThreadPanel
-                t={t}
-                selected={selected}
-                me={me}
-                thread={thread}
-                groupedThread={groupedThread}
-                threadLoading={threadLoading}
-                typingPeer={typingPeer}
-                peerOnline={peerOnline}
-                selectedPeerLastSeen={selectedPeerLastSeen}
-                peerName={peerName}
-                supportThread={supportThread}
-                listing={listing}
-                phoneVisible={phoneVisible}
-                onRevealPhone={revealPhone}
-                phoneNumber={phoneNumber}
-                text={text}
-                onTextChange={handleTextChange}
-                onSend={send}
-                sending={sending}
-                quickReplies={quickReplies}
-                isAdmin={isAdmin}
-                onBack={() => setMobileView("list")}
-                onAction={handleThreadAction}
-                chatEndRef={chatEndRef}
-                threadSettings={threadSettings}
-                pendingAttachment={pendingAttachment}
-                onPickImage={handlePickImage}
-                onRemoveAttachment={handleRemoveAttachment}
-                uploadingAttachment={uploadingAttachment}
-                imageInputRef={imageInputRef}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }
