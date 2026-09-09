@@ -132,8 +132,9 @@
   }
 
   .re-filter-segment__btn {
-    @apply min-w-0 rounded-lg px-1.5 py-2 text-center text-xs font-semibold leading-tight
-           text-ink-500 transition-colors hover:text-ink-900;
+    @apply grid min-h-[2.5rem] min-w-0 place-items-center rounded-lg px-1.5 py-2 text-center
+           text-xs font-semibold leading-tight text-ink-500 transition-colors
+           hover:text-ink-900;
   }
 
   .re-filter-segment__btn--active {
@@ -157,8 +158,8 @@
   }
 
   .re-filter-district-chip {
-    @apply inline-flex max-w-full items-center gap-1.5 rounded-full border border-ink-200
-           bg-white px-3 py-1.5 text-sm font-medium text-ink-700
+    @apply inline-flex h-10 max-w-full items-center gap-1.5 rounded-full border border-ink-200
+           bg-white px-3.5 text-sm font-medium text-ink-700
            transition-colors hover:border-ink-300 hover:bg-mist-100;
   }
 
@@ -754,6 +755,9 @@
     @apply grid min-h-0 flex-1 grid-cols-1 overflow-hidden border-y border-ink-200 bg-white
            lg:grid-cols-[19rem_minmax(0,1fr)] lg:rounded-2xl lg:border lg:shadow-xs
            xl:grid-cols-[22rem_minmax(0,1fr)];
+    /* An explicit track keeps the panes at the height of the workspace instead
+       of letting the message list decide it. */
+    grid-template-rows: minmax(0, 1fr);
   }
 
   .chat-pane {
@@ -774,7 +778,7 @@
   }
 
   .chat-inbox__filters {
-    @apply -mx-3 flex gap-1.5 overflow-x-auto px-3 pb-0.5 scrollbar-none sm:-mx-4 sm:px-4;
+    @apply flex flex-wrap gap-1.5;
   }
 
   .chat-inbox__list {
