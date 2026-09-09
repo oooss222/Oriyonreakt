@@ -18,6 +18,8 @@ import EmptyState from "../components/EmptyState";
 import { StarRating } from "../components/SellerReviewsPanel";
 import SellerReviewsPanel from "../components/SellerReviewsPanel";
 import BusinessBadge from "../components/BusinessBadge";
+import SectionHeader from "../components/SectionHeader";
+import { Avatar, Badge, Skeleton, SkeletonText } from "../ui";
 import { usePageMeta } from "../lib/usePageMeta";
 import { getDisplayName, parseCompanyAddresses } from "../lib/businessAccount";
 import { api } from "../lib/api";
@@ -26,18 +28,6 @@ import { useI18n } from "../i18n";
 import { getUserFacingErrorMessage } from "../lib/apiError";
 
 const TOKEN_KEY = "auth_token";
-
-function getInitials(name = "") {
-  const parts = String(name).trim().split(/\s+/).filter(Boolean);
-
-  if (!parts.length) return "П";
-
-  return parts
-    .slice(0, 2)
-    .map((part) => part[0])
-    .join("")
-    .toUpperCase();
-}
 
 function formatMemberSince(value) {
   if (!value || Number.isNaN(Date.parse(value))) return "";
@@ -181,16 +171,17 @@ export default function Seller() {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-6 space-y-6">
-        <div className="h-4 w-48 bg-slate-200 rounded animate-pulse" />
-        <div className="card p-6 rounded-3xl animate-pulse space-y-4">
+      <div className="page-container stack-page" aria-busy="true">
+        <Skeleton className="h-4 w-48" />
+        <div className="card space-y-4 p-5 sm:p-6">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-2xl bg-slate-200" />
-            <div className="space-y-2 flex-1">
-              <div className="h-6 bg-slate-200 rounded w-40" />
-              <div className="h-4 bg-slate-200 rounded w-56" />
+            <Skeleton className="h-16 w-16 rounded-2xl" />
+            <div className="flex-1 space-y-2">
+              <Skeleton className="h-6 w-40" />
+              <Skeleton className="h-4 w-56" />
             </div>
           </div>
+          <SkeletonText lines={2} />
         </div>
         <ListingGridSkeleton count={8} />
       </div>
@@ -199,7 +190,7 @@ export default function Seller() {
 
   if (error || !seller) {
     return (
-      <div className="container mx-auto px-4 py-10">
+      <div className="page-container py-10">
         <EmptyState
           icon={User}
           title={t("seller.notFound")}
@@ -212,7 +203,7 @@ export default function Seller() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-6 space-y-6">
+    <div className="page-container stack-page">
       <Breadcrumbs
         items={[
           { label: t("nav.home"), to: "/" },
@@ -221,23 +212,22 @@ export default function Seller() {
         ]}
       />
 
-      <section className="card rounded-3xl p-5 md:p-6 shadow-sm space-y-5">
-        <div className="flex flex-col sm:flex-row sm:items-start gap-4">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-sun to-lagoon flex items-center justify-center text-white font-bold text-lg shadow-sm shrink-0 overflow-hidden">
-            {seller.sellerType === "company" && seller.companyLogo ? (
-              <img
-                src={seller.companyLogo}
-                alt={sellerName}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              getInitials(sellerName)
-            )}
-          </div>
+      <section className="card space-y-5 p-5 md:p-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
+          <Avatar
+            src={
+              seller.sellerType === "company" ? seller.companyLogo : undefined
+            }
+            name={sellerName}
+            size="xl"
+            rounded="rounded-2xl"
+          />
 
           <div className="min-w-0 flex-1 space-y-2">
             <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-2xl font-bold text-slate-900">{sellerName}</h1>
+              <h1 className="font-display text-2xl font-extrabold tracking-tight text-ink-900">
+                {sellerName}
+              </h1>
 
               <BusinessBadge
                 sellerType={seller.sellerType}
@@ -246,33 +236,32 @@ export default function Seller() {
               />
 
               {seller.emailVerified && (
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-100">
-                  <BadgeCheck className="w-3.5 h-3.5" />
+                <Badge tone="success" icon={BadgeCheck}>
                   {t("seller.emailVerified")}
-                </span>
+                </Badge>
               )}
 
               {seller.phoneVerified && (
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100">
-                  <BadgeCheck className="w-3.5 h-3.5" />
+                <Badge tone="info" icon={BadgeCheck}>
                   {t("seller.phoneListed")}
-                </span>
+                </Badge>
               )}
 
               {Number(seller.ratingCount || 0) > 0 && (
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-800 border border-amber-100">
+                <Badge tone="warning">
                   <StarRating value={seller.ratingAverage} size={12} />
-                  {Number(seller.ratingAverage || 0).toFixed(1)} ({seller.ratingCount})
-                </span>
+                  {Number(seller.ratingAverage || 0).toFixed(1)} (
+                  {seller.ratingCount})
+                </Badge>
               )}
             </div>
 
-            <div className="flex flex-wrap items-center gap-3 text-sm text-slate-500">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-ink-400">
               <span className="inline-flex items-center gap-1.5">
                 {seller.sellerType === "company" ? (
-                  <Building2 className="w-4 h-4" />
+                  <Building2 className="h-4 w-4" aria-hidden />
                 ) : (
-                  <User className="w-4 h-4" />
+                  <User className="h-4 w-4" aria-hidden />
                 )}
                 {sellerTypeLabel(seller.sellerType, t)}
               </span>
@@ -282,7 +271,7 @@ export default function Seller() {
               )}
 
               <span className="inline-flex items-center gap-1.5">
-                <Package className="w-4 h-4" />
+                <Package className="h-4 w-4" aria-hidden />
                 {t("seller.listingsCount", { count: seller.listingsCount })}
               </span>
             </div>
@@ -290,22 +279,22 @@ export default function Seller() {
         </div>
 
         {seller.sellerType === "company" && seller.companyDescription && (
-          <div className="rounded-2xl border bg-slate-50 p-4 text-sm text-slate-700 leading-relaxed">
+          <p className="rounded-2xl border border-ink-200 bg-mist-50 p-4 text-sm leading-relaxed text-ink-700">
             {seller.companyDescription}
-          </div>
+          </p>
         )}
 
         {seller.sellerType === "company" &&
           (companyAddresses.length > 0 ||
             seller.companyWebsite ||
             seller.companyInstagram) && (
-            <div className="flex flex-wrap gap-3 text-sm">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
               {companyAddresses.map((address) => (
                 <span
                   key={address}
-                  className="inline-flex items-center gap-1.5 text-slate-600"
+                  className="inline-flex items-center gap-1.5 text-ink-600"
                 >
-                  <MapPin className="w-4 h-4 text-slate-400" />
+                  <MapPin className="h-4 w-4 text-ink-400" aria-hidden />
                   {address}
                 </span>
               ))}
@@ -314,9 +303,9 @@ export default function Seller() {
                   href={normalizeExternalUrl(seller.companyWebsite)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 text-blue-600 hover:underline"
+                  className="inline-flex min-h-[2.25rem] items-center gap-1.5 font-medium text-lagoon-700 hover:underline"
                 >
-                  <Globe className="w-4 h-4" />
+                  <Globe className="h-4 w-4" aria-hidden />
                   {t("seller.website")}
                 </a>
               )}
@@ -325,30 +314,31 @@ export default function Seller() {
                   href={normalizeExternalUrl(seller.companyInstagram)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 text-pink-600 hover:underline"
+                  className="inline-flex min-h-[2.25rem] items-center gap-1.5 font-medium text-lagoon-700 hover:underline"
                 >
-                  <Instagram className="w-4 h-4" />
+                  <Instagram className="h-4 w-4" aria-hidden />
                   Instagram
                 </a>
               )}
             </div>
           )}
 
-        <div className="flex items-start gap-2 text-xs text-emerald-800 bg-emerald-50 border border-emerald-100 rounded-2xl p-3">
-          <ShieldCheck className="w-4 h-4 shrink-0 mt-0.5 text-emerald-600" />
-          <span>
-            {t("auth.trustLoginItem3Text")}
-          </span>
-        </div>
+        <p className="flex items-start gap-2 rounded-xl border border-success-200 bg-success-50 px-3 py-2.5 text-xs leading-relaxed text-success-800">
+          <ShieldCheck
+            className="mt-0.5 h-4 w-4 shrink-0 text-success-600"
+            aria-hidden
+          />
+          <span>{t("auth.trustLoginItem3Text")}</span>
+        </p>
 
         {!isOwner && (
-          <div className="flex flex-col sm:flex-row flex-wrap gap-2.5">
+          <div className="flex flex-col flex-wrap gap-2.5 sm:flex-row">
             <button
               type="button"
-              className="btn btn-primary rounded-2xl py-3"
+              className="btn btn-primary btn-lg"
               onClick={openSellerChat}
             >
-              <MessageCircle className="w-5 h-5" />
+              <MessageCircle className="h-5 w-5" aria-hidden />
               {t("seller.writeSeller")}
             </button>
 
@@ -357,7 +347,7 @@ export default function Seller() {
                 href={whatsappHref}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="btn rounded-2xl py-3 bg-[#25D366] text-white border-[#25D366] hover:bg-[#20bd5a]"
+                className="btn btn-lg border-[#25D366] bg-[#25D366] text-white hover:bg-[#20bd5a]"
               >
                 WhatsApp
               </a>
@@ -368,7 +358,7 @@ export default function Seller() {
                 href={seller.telegram}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="btn rounded-2xl py-3"
+                className="btn btn-lg"
               >
                 Telegram
               </a>
@@ -377,23 +367,19 @@ export default function Seller() {
         )}
 
         {isOwner && (
-          <Link to="/profile" className="btn rounded-2xl py-3 w-full sm:w-auto">
+          <Link to="/profile" className="btn btn-lg w-full sm:w-auto">
             {t("seller.myProfile")}
           </Link>
         )}
       </section>
 
-      <section className="space-y-4">
-        <div className="flex items-end justify-between gap-3 px-1">
-          <div>
-            <h2 className="text-xl font-bold text-slate-900">
-              {t("seller.sellerListings")}
-            </h2>
-            <p className="text-sm text-slate-500 mt-1">
-              {t("seller.activeListingsDesc")}
-            </p>
-          </div>
-        </div>
+      <section className="space-y-4" aria-labelledby="seller-listings">
+        <SectionHeader
+          id="seller-listings"
+          title={t("seller.sellerListings")}
+          subtitle={t("seller.activeListingsDesc")}
+          icon={Package}
+        />
 
         {listings.length === 0 ? (
           <EmptyState
@@ -404,7 +390,7 @@ export default function Seller() {
             onAction={() => nav("/listing")}
           />
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3">
+          <div className="grid-items">
             {listings.map((item) => (
               <ListingCard key={item._id || item.id} item={item} />
             ))}

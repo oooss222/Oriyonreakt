@@ -1,8 +1,10 @@
 import React from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { ShieldAlert } from "lucide-react";
 import { api } from "../lib/api";
 import ListingForm from "../components/ListingForm";
 import { goToAuth, TOKEN_KEY, USER_KEY } from "../lib/auth";
+import { EmptyState, Skeleton } from "../ui";
 import { useI18n } from "../i18n";
 
 export default function EditListing() {
@@ -57,28 +59,27 @@ export default function EditListing() {
     const forbidden = err === "forbidden" || /forbidden/i.test(err);
 
     return (
-      <div className="w-full max-w-7xl mx-auto px-4 py-6">
-        <div className="rounded-2xl border border-red-200 bg-red-50 text-red-700 p-6 text-center space-y-4">
-          <p>
-            {forbidden ? t("listing.editForbidden") : err}
-          </p>
-          <button
-            type="button"
-            onClick={() => nav("/profile?tab=my")}
-            className="inline-flex items-center justify-center rounded-xl border border-ink/10 bg-white px-4 py-2 hover:bg-mist text-ink-600"
-          >
-            {t("listing.backToMine")}
-          </button>
-        </div>
+      <div className="page-container py-10">
+        <EmptyState
+          icon={ShieldAlert}
+          title={forbidden ? t("listing.editForbidden") : t("listing.saveError")}
+          description={forbidden ? undefined : err}
+          actionLabel={t("listing.backToMine")}
+          onAction={() => nav("/profile?tab=my")}
+        />
       </div>
     );
   }
 
   if (!initialData) {
     return (
-      <div className="w-full max-w-7xl mx-auto px-4 py-6">
-        <div className="rounded-2xl border border-ink/8 bg-white p-6 text-center text-ink-400">
-          {t("common.loading")}
+      <div className="listing-form-page" aria-busy="true">
+        <Skeleton className="h-8 w-56" />
+        <Skeleton className="h-4 w-80" />
+        <div className="card space-y-3 p-5">
+          <Skeleton className="h-11 w-full" />
+          <Skeleton className="h-11 w-full" />
+          <Skeleton className="h-32 w-full" />
         </div>
       </div>
     );

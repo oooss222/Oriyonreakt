@@ -60,6 +60,7 @@ export default {
     copyright: "platformaи эълонҳои Тоҷикистон",
   },
   auth: {
+    redirecting: "Ба воридшавӣ мегузарем…",
     welcome: "Хуш \u043e\u043c\u0430\u0434\u0435\u0434",
     createAccount: "Эҷоди ҳисоб",
     loginTab: "Воридшавӣ",

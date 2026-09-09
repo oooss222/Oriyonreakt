@@ -17,8 +17,9 @@ import {
   isCompareSupported,
 } from "../lib/compareListings";
 import { getComparePath } from "../lib/compareConfig";
+import SectionHeader from "../components/SectionHeader";
 import { useI18n, getCategoryLabel } from "../i18n";
-import { Search, FolderOpen, Scale, ArrowRight } from "lucide-react";
+import { Search, FolderOpen, Scale, ArrowRight, Sparkles } from "lucide-react";
 
 const PREVIEW_LIMIT = 6;
 
@@ -132,7 +133,7 @@ export default function Category() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-6 space-y-6">
+    <div className="page-container stack-page">
       <Breadcrumbs
         items={[
           { label: t("nav.home"), to: "/" },
@@ -145,13 +146,13 @@ export default function Category() {
       {isCompareSupported(slug) && compareCount > 0 && (
         <Link
           to={getComparePath(slug)}
-          className="flex items-center justify-between gap-3 rounded-2xl border border-slate-900/10 bg-slate-900 px-4 py-3.5 text-white hover:bg-slate-800 transition shadow-sm"
+          className="flex items-center justify-between gap-3 rounded-2xl border border-ink-800 bg-ink-900 px-4 py-3.5 text-white shadow-xs transition-colors hover:bg-ink-800"
         >
           <span className="inline-flex items-center gap-2 text-sm font-semibold">
-            <Scale size={18} className="text-sun" />
+            <Scale size={18} className="text-sun-400" aria-hidden />
             {t("compare.open", { count: compareCount, max: COMPARE_MAX })}
           </span>
-          <ArrowRight size={18} className="text-white/70" />
+          <ArrowRight size={18} className="text-white/70" aria-hidden />
         </Link>
       )}
 
@@ -164,25 +165,40 @@ export default function Category() {
         />
       )}
 
-      <div className="surface-panel p-3 md:p-4">
-        <div className="flex flex-col md:flex-row md:items-center gap-3">
-          <input
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder={t("empty.searchSubcats")}
-            className="input w-full"
-          />
-
-          <div className="text-xs text-ink-400 md:w-56">
-            {t("category.subcatsFound")}{" "}
-            <span className="font-medium text-ink">{subs.length}</span>
-          </div>
-        </div>
-      </div>
-
       {slug === "transport" && <TransportQuickFilters />}
 
-      <section>
+      <section className="space-y-4" aria-labelledby="category-subcats">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <h2 id="category-subcats" className="section-title text-lg">
+            {t("category.subcategories")}
+          </h2>
+
+          <div className="flex items-center gap-3 md:w-96">
+            <label htmlFor="subcat-search" className="sr-only">
+              {t("category.searchSubcats")}
+            </label>
+            <div className="relative min-w-0 flex-1">
+              <Search
+                size={16}
+                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-400"
+                aria-hidden
+              />
+              <input
+                id="subcat-search"
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                placeholder={t("empty.searchSubcats")}
+                className="input w-full pl-9"
+              />
+            </div>
+
+            <p className="shrink-0 text-xs text-ink-400" aria-live="polite">
+              {t("category.subcatsFound")}{" "}
+              <span className="font-semibold text-ink-700">{subs.length}</span>
+            </p>
+          </div>
+        </div>
+
         {subs.length === 0 ? (
           <EmptyState
             icon={Search}
@@ -213,7 +229,7 @@ export default function Category() {
                   to={`/listing?cat=${slug}&subcategory=${encodeURIComponent(sub)}`}
                   className={`subcategory-chip ${
                     empty
-                      ? "border-ink/10 bg-mist text-ink-300"
+                      ? "border-ink-200 bg-mist-100 text-ink-400"
                       : "subcategory-chip-idle"
                   }`}
                 >
@@ -228,17 +244,14 @@ export default function Category() {
         )}
       </section>
 
-      <section className="space-y-4">
-        <div className="flex items-center justify-between gap-3">
-          <h2 className="section-title text-lg">{t("category.freshListings")}</h2>
-
-          <Link
-            to={`/listing?cat=${slug}`}
-            className="text-sm text-sun hover:text-sun-600 font-medium"
-          >
-            {t("home.viewAll")}
-          </Link>
-        </div>
+      <section className="space-y-4" aria-labelledby="category-fresh">
+        <SectionHeader
+          id="category-fresh"
+          title={t("category.freshListings")}
+          icon={Sparkles}
+          linkTo={`/listing?cat=${slug}`}
+          linkLabel={t("home.viewAll")}
+        />
 
         {loadingPreview && <ListingGridSkeleton count={6} />}
 
@@ -261,7 +274,7 @@ export default function Category() {
               className="mb-4"
             />
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3">
+          <div className="grid-items">
             {preview.map((ad) => (
               <ListingCard key={ad._id || ad.id} item={ad} trackSource="category" />
             ))}
@@ -270,14 +283,12 @@ export default function Category() {
         )}
       </section>
 
-      <div className="sm:hidden">
-        <Link
-          to={`/listing?cat=${slug}`}
-          className="flex w-full justify-center px-4 py-3 rounded-xl bg-sun text-white hover:bg-sun-600 transition shadow-sm font-medium"
-        >
-          {t("footer.allListings")} ({stats.total})
-        </Link>
-      </div>
+      <Link
+        to={`/listing?cat=${slug}`}
+        className="btn btn-primary btn-lg btn-block sm:hidden"
+      >
+        {t("footer.allListings")} ({stats.total})
+      </Link>
     </div>
   );
 }

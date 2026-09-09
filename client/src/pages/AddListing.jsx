@@ -2,9 +2,12 @@ import React from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import ListingForm from "../components/ListingForm";
 import { goToAuth, TOKEN_KEY } from "../lib/auth";
+import { Spinner } from "../ui";
+import { useI18n } from "../i18n";
 
 export default function AddListing() {
   const nav = useNavigate();
+  const { t } = useI18n();
   const [searchParams] = useSearchParams();
   const initialCat = searchParams.get("cat") || "";
   const token = localStorage.getItem(TOKEN_KEY) || "";
@@ -24,10 +27,12 @@ export default function AddListing() {
 
   if (!allowed) {
     return (
-      <div className="w-full max-w-7xl mx-auto px-4 py-6">
-        <div className="rounded-2xl border border-ink/8 bg-white p-6 text-center text-ink-400">
-          Перенаправление на вход...
-        </div>
+      <div
+        className="page-container flex items-center justify-center gap-3 py-16 text-sm text-ink-400"
+        role="status"
+      >
+        <Spinner size={18} />
+        {t("auth.redirecting")}
       </div>
     );
   }

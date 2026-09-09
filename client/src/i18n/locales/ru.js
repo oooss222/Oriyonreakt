@@ -60,6 +60,7 @@ export default {
     copyright: "платформа объявлений Таджикистана",
   },
   auth: {
+    redirecting: "Перенаправляем на вход…",
     welcome: "Добро пожаловать",
     createAccount: "Создайте аккаунт",
     loginTab: "Вход",

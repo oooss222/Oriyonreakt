@@ -60,6 +60,7 @@ export default {
     copyright: "Tajikistan classifieds platform",
   },
   auth: {
+    redirecting: "Redirecting to sign in…",
     welcome: "Welcome",
     createAccount: "Create an account",
     loginTab: "Sign in",
