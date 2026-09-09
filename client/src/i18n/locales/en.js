@@ -15,6 +15,7 @@ export default {
     no: "No",
     confirm: "Confirm",
     confirmTitle: "Confirm action",
+    delete: "Delete",
   },
   a11y: {
     categories: "Categories",

@@ -15,6 +15,7 @@ export default {
     no: "Не",
     confirm: "Тасдиқ кардан",
     confirmTitle: "Амалро тасдиқ кунед",
+    delete: "Нест кардан",
   },
   a11y: {
     categories: "Категорияҳо",

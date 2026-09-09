@@ -20,13 +20,15 @@ import ProfileListingsGrid from "../components/profile/ProfileListingsGrid";
 import SavedSearchesTab from "../components/profile/SavedSearchesTab";
 import SellerAnalyticsPanel from "../components/profile/SellerAnalyticsPanel";
 import { getId, normalizeTab, summarizeListings } from "../components/profile/profileUtils";
-import { EmptyState } from "../ui";
+import { EmptyState, useConfirm, useToast } from "../ui";
 import { useI18n } from "../i18n";
 import { getUserFacingErrorMessage } from "../lib/apiError";
 
 export default function Profile() {
   const nav = useNavigate();
   const { t } = useI18n();
+  const { showToast } = useToast();
+  const confirm = useConfirm();
   const [searchParams, setSearchParams] = useSearchParams();
   const token = localStorage.getItem(TOKEN_KEY) || "";
 
@@ -272,55 +274,86 @@ export default function Profile() {
 
   const remove = React.useCallback(
     async (id) => {
-      if (!confirm(t("listing.confirmDelete"))) return;
+      const ok = await confirm({
+        title: t("profile.deleteTitle"),
+        message: t("listing.confirmDelete"),
+        confirmLabel: t("common.delete"),
+        tone: "danger",
+      });
+      if (!ok) return;
 
       try {
         await api.deleteListing(token, id);
         setMyItems((arr) => arr.filter((x) => String(getId(x)) !== String(id)));
-      } catch {}
+      } catch (e) {
+        showToast(
+          getUserFacingErrorMessage(e, t) || t("profile.deleteFailed"),
+          "error"
+        );
+      }
     },
-    [token, t]
+    [token, t, confirm, showToast]
   );
 
   const submitAppeal = React.useCallback(
     async (id) => {
-      const text = prompt(t("profile.appealPrompt"));
+      const text = await confirm({
+        title: t("profile.appealTitle"),
+        message: t("profile.appealPrompt"),
+        prompt: true,
+        multiline: true,
+        requireValue: true,
+        placeholder: t("profile.appealPlaceholder"),
+      });
       if (!text) return;
 
       try {
-        const updated = await api.listingAppeal(token, id, text.trim());
+        const updated = await api.listingAppeal(token, id, text);
         setMyItems((arr) =>
           arr.map((item) =>
             String(getId(item)) === String(id) ? { ...item, ...updated } : item
           )
         );
-        alert(t("profile.appealSent"));
+        showToast(t("profile.appealSent"), "success");
       } catch (e) {
-        alert(getUserFacingErrorMessage(e, t) || t("errors.appealFailed"));
+        showToast(
+          getUserFacingErrorMessage(e, t) || t("errors.appealFailed"),
+          "error"
+        );
       }
     },
-    [token, t]
+    [token, t, confirm, showToast]
   );
 
-  const logout = React.useCallback(() => {
-    if (!confirm(t("listing.confirmLogout"))) return;
+  const logout = React.useCallback(async () => {
+    const ok = await confirm({
+      title: t("profile.logout"),
+      message: t("listing.confirmLogout"),
+      confirmLabel: t("profile.logout"),
+      tone: "danger",
+    });
+    if (!ok) return;
+
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
     nav("/auth");
-  }, [nav, t]);
+  }, [nav, t, confirm]);
 
   const requestVerifyEmail = React.useCallback(async () => {
     try {
       setSendingEmail(true);
       await api.requestEmailVerification(token);
       setEmailStatus("pending");
-      alert(t("profile.verifyEmailSent"));
+      showToast(t("profile.verifyEmailSent"), "success");
     } catch (e) {
-      alert(`${t("errors.generic")}: ${getUserFacingErrorMessage(e, t) || t("errors.emailSend")}`);
+      showToast(
+        getUserFacingErrorMessage(e, t) || t("errors.emailSend"),
+        "error"
+      );
     } finally {
       setSendingEmail(false);
     }
-  }, [token, t]);
+  }, [token, t, showToast]);
 
   const onWalletSuccess = React.useCallback(
     (user) => {
@@ -393,7 +426,11 @@ export default function Profile() {
         republish: t("listing.confirmRepublish"),
       };
 
-      if (!confirm(prompts[action] || t("listing.confirmStatus"))) return;
+      const ok = await confirm({
+        message: prompts[action] || t("listing.confirmStatus"),
+        tone: action === "archive" ? "danger" : undefined,
+      });
+      if (!ok) return;
 
       try {
         let updated;
@@ -406,10 +443,13 @@ export default function Profile() {
           items.map((item) => (String(getId(item)) === String(id) ? updated : item))
         );
       } catch (e) {
-        alert(getUserFacingErrorMessage(e, t) || t("listing.statusUpdateFailed"));
+        showToast(
+          getUserFacingErrorMessage(e, t) || t("listing.statusUpdateFailed"),
+          "error"
+        );
       }
     },
-    [token, t]
+    [token, t, confirm, showToast]
   );
 
   const bulkAction = React.useCallback(
@@ -420,9 +460,11 @@ export default function Profile() {
         delete: t("listing.confirmBulkDelete"),
       };
 
-      if (!confirm(labels[action] || t("listing.confirmBulkAction"))) {
-        return;
-      }
+      const ok = await confirm({
+        message: labels[action] || t("listing.confirmBulkAction"),
+        tone: action === "republish" ? undefined : "danger",
+      });
+      if (!ok) return;
 
       try {
         for (const id of ids) {
@@ -444,10 +486,13 @@ export default function Profile() {
           setMyItems(Array.isArray(refreshed) ? refreshed : []);
         }
       } catch (e) {
-        alert(getUserFacingErrorMessage(e, t) || t("listing.bulkActionFailed"));
+        showToast(
+          getUserFacingErrorMessage(e, t) || t("listing.bulkActionFailed"),
+          "error"
+        );
       }
     },
-    [token, t]
+    [token, t, confirm, showToast]
   );
 
   const promoteListing = React.useCallback(
@@ -460,9 +505,10 @@ export default function Profile() {
             ? t("profile.bumpFree")
             : t("profile.bumpPaid", { price: priceLabel });
 
-        if (!confirm(confirmText)) return;
+        const ok = await confirm({ message: confirmText });
+        if (!ok) return;
       } else if (!getPromotionPlan(type, days)) {
-        alert(t("profile.selectPromotion"));
+        showToast(t("profile.selectPromotion"), "error");
         return;
       }
 
@@ -488,23 +534,29 @@ export default function Profile() {
           localStorage.setItem(USER_KEY, JSON.stringify(user));
         }
 
-        alert(t("profile.dateUpdated"));
+        showToast(t("profile.dateUpdated"), "success");
       } catch (e) {
         const message = e?.message || "";
 
         if (message.includes("Insufficient balance") || message.includes("402")) {
-          if (confirm(t("profile.insufficientFunds"))) {
-            setTab("wallet");
-          }
+          const topUp = await confirm({
+            title: t("profile.insufficientFundsTitle"),
+            message: t("profile.insufficientFunds"),
+            confirmLabel: t("profile.topUpWallet"),
+          });
+          if (topUp) setTab("wallet");
           return;
         }
 
-        alert(getUserFacingErrorMessage(e, t) || t("profile.promotionFailed"));
+        showToast(
+          getUserFacingErrorMessage(e, t) || t("profile.promotionFailed"),
+          "error"
+        );
       } finally {
         setPromotingId(null);
       }
     },
-    [token, promotionPrices, setTab, t]
+    [token, promotionPrices, setTab, t, confirm, showToast]
   );
 
   const walletBalance = Number(me?.walletBalance || 0);
