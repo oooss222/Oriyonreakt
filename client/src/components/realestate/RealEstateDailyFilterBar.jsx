@@ -7,6 +7,8 @@ import {
   formatGuestLabel,
 } from "../../data/realEstate";
 import { formatPriceInput } from "../../data/specOptions";
+import { useI18n } from "../../i18n";
+import { Chip, cn } from "../../ui";
 
 export default function RealEstateDailyFilterBar({
   subcategory = "",
@@ -19,6 +21,11 @@ export default function RealEstateDailyFilterBar({
   onOpenFilters,
   activeFilterCount = 0,
 }) {
+  const { t } = useI18n();
+  const priceLabelId = React.useId();
+  const guestsLabelId = React.useId();
+  const typeLabelId = React.useId();
+
   const pricePresets = REAL_ESTATE_DAILY_PRESETS.filter(
     (item) => item.from || item.to
   );
@@ -31,92 +38,103 @@ export default function RealEstateDailyFilterBar({
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-        <button
-          type="button"
+      <div className="scrollbar-none flex items-center gap-2 overflow-x-auto pb-1">
+        <Chip
+          className="filter-chip shrink-0 font-semibold"
+          icon={SlidersHorizontal}
+          count={activeFilterCount || undefined}
           onClick={onOpenFilters}
-          className="chip shrink-0 font-semibold"
         >
-          <SlidersHorizontal size={15} />
-          Фильтры
-          {activeFilterCount > 0 && (
-            <span className="min-w-[1.15rem] h-5 px-1 rounded-full bg-sun text-white text-2xs grid place-items-center">
-              {activeFilterCount}
-            </span>
-          )}
-        </button>
+          {t("filter.title")}
+        </Chip>
 
-        {DAILY_HOUSING_TYPES.map((item) => (
-          <button
-            key={item.value}
-            type="button"
-            onClick={() =>
-              onSubcategoryChange?.(subcategory === item.value ? "" : item.value)
-            }
-            className={`chip ${subcategory === item.value ? "chip-active" : ""}`}
-          >
-            {item.label}
-          </button>
-        ))}
+        <span id={typeLabelId} className="sr-only">
+          {t("realestate.type")}
+        </span>
+
+        <div role="group" aria-labelledby={typeLabelId} className="flex shrink-0 gap-2">
+          {DAILY_HOUSING_TYPES.map((item) => (
+            <Chip
+              key={item.value}
+              active={subcategory === item.value}
+              className="filter-chip"
+              onClick={() =>
+                onSubcategoryChange?.(subcategory === item.value ? "" : item.value)
+              }
+            >
+              {item.label}
+            </Chip>
+          ))}
+        </div>
       </div>
 
-      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-        <span className="label-caps">Цена за сутки</span>
+      <div
+        role="group"
+        aria-labelledby={priceLabelId}
+        className="scrollbar-none flex items-center gap-2 overflow-x-auto pb-1"
+      >
+        <span id={priceLabelId} className="label-caps">
+          {t("realestate.pricePerNight")}
+        </span>
 
         {pricePresets.map((preset) => (
-          <button
+          <Chip
             key={preset.label}
-            type="button"
+            active={activePricePreset?.label === preset.label}
+            className="filter-chip"
             onClick={() =>
               onPricePreset?.({
                 from: preset.from ? String(preset.from) : "",
                 to: preset.to ? String(preset.to) : "",
               })
             }
-            className={`chip ${
-              activePricePreset?.label === preset.label ? "chip-active" : ""
-            }`}
           >
             {preset.label.replace("Любая", "").trim() || preset.label}
-          </button>
+          </Chip>
         ))}
 
         {(priceFrom || priceTo) && !activePricePreset && (
-          <button
-            type="button"
+          <Chip
+            active
+            className={cn("filter-chip")}
             onClick={() => onPricePreset?.({ from: "", to: "" })}
-            className="chip chip-active"
           >
             {priceFrom && priceTo
               ? `${formatPriceInput(priceFrom)} – ${formatPriceInput(priceTo)} с.`
               : priceFrom
                 ? `от ${formatPriceInput(priceFrom)} с.`
                 : `до ${formatPriceInput(priceTo)} с.`}
-            <X size={13} className="ml-1 inline" />
-          </button>
+            <X size={13} aria-hidden="true" />
+          </Chip>
         )}
       </div>
 
-      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-        <span className="label-caps">Гости</span>
+      <div
+        role="group"
+        aria-labelledby={guestsLabelId}
+        className="scrollbar-none flex items-center gap-2 overflow-x-auto pb-1"
+      >
+        <span id={guestsLabelId} className="label-caps">
+          {t("realestate.guests")}
+        </span>
 
-        <button
-          type="button"
+        <Chip
+          active={!guests}
+          className="filter-chip"
           onClick={() => onGuestsChange?.("")}
-          className={`chip ${!guests ? "chip-active" : ""}`}
         >
-          Любое
-        </button>
+          {t("realestate.any")}
+        </Chip>
 
         {GUEST_OPTIONS.map((option) => (
-          <button
+          <Chip
             key={option}
-            type="button"
+            active={guests === option}
+            className="filter-chip"
             onClick={() => onGuestsChange?.(guests === option ? "" : option)}
-            className={`chip ${guests === option ? "chip-active" : ""}`}
           >
             {formatGuestLabel(option)}
-          </button>
+          </Chip>
         ))}
       </div>
     </div>

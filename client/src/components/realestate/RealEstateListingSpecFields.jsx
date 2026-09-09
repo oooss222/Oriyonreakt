@@ -28,7 +28,7 @@ export default function RealEstateListingSpecFields({
 }) {
   if (!fields.length) {
     return (
-      <div className="px-4 py-6 text-sm text-slate-500">
+      <div className="px-4 py-6 text-sm text-ink-400">
         Выберите тип объекта и сделки, чтобы заполнить параметры.
       </div>
     );
@@ -63,6 +63,7 @@ export default function RealEstateListingSpecFields({
               ) : row.type === "select" ? (
                 <select
                   value={row.value || ""}
+                  aria-label={row.name}
                   onChange={(e) => onUpdateByName(row.name, e.target.value)}
                   className="listing-form-select"
                 >
@@ -76,6 +77,7 @@ export default function RealEstateListingSpecFields({
               ) : (
                 <input
                   value={row.value || ""}
+                  aria-label={row.name}
                   onChange={(e) => onUpdateByName(row.name, e.target.value)}
                   placeholder={row.placeholder || ""}
                   className="listing-form-input"

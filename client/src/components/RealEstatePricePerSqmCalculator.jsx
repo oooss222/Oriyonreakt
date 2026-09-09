@@ -6,17 +6,27 @@ import {
   calculateTotalPriceFromPerSqm,
   formatPricePerSqmValue,
 } from "../lib/realEstate";
+import { useI18n } from "../i18n";
+import { Button, Field, Input, SectionCard } from "../ui";
 
-function PerSqmInput({ value, onChange, placeholder, disabled = false }) {
+function PerSqmInput({ value, onChange, ...rest }) {
   return (
-    <input
-      type="text"
-      inputMode="numeric"
-      disabled={disabled}
-      placeholder={placeholder}
+    <Input
+      inputMode="decimal"
       value={value ? formatPriceInput(value) : ""}
       onChange={(e) => onChange(getPriceDigits(e.target.value))}
-      className="mobile-control disabled:opacity-60"
+      {...rest}
+    />
+  );
+}
+
+function AreaInput({ value, onChange, ...rest }) {
+  return (
+    <Input
+      inputMode="decimal"
+      value={value}
+      onChange={(e) => onChange(e.target.value.replace(/[^\d.,]/g, ""))}
+      {...rest}
     />
   );
 }
@@ -27,6 +37,7 @@ export default function RealEstatePricePerSqmCalculator({
   onChange,
   disabled = false,
 }) {
+  const { t } = useI18n();
   const [objectPrice, setObjectPrice] = React.useState("");
   const [objectArea, setObjectArea] = React.useState("");
   const [targetPerSqm, setTargetPerSqm] = React.useState("");
@@ -54,124 +65,132 @@ export default function RealEstatePricePerSqmCalculator({
   return (
     <div className="space-y-3">
       <div className="grid grid-cols-2 gap-2">
-        <PerSqmInput
-          value={pricePerSqmFrom}
-          onChange={(next) =>
-            onChange?.({ pricePerSqmFrom: next, pricePerSqmTo })
-          }
-          placeholder="от, с./м²"
-          disabled={disabled}
-        />
-        <PerSqmInput
-          value={pricePerSqmTo}
-          onChange={(next) =>
-            onChange?.({ pricePerSqmFrom, pricePerSqmTo: next })
-          }
-          placeholder="до, с./м²"
-          disabled={disabled}
-        />
+        <Field label={t("realestate.from")}>
+          {(props) => (
+            <PerSqmInput
+              {...props}
+              disabled={disabled}
+              placeholder={t("realestate.ppsqmFrom")}
+              value={pricePerSqmFrom}
+              onChange={(next) => onChange?.({ pricePerSqmFrom: next, pricePerSqmTo })}
+            />
+          )}
+        </Field>
+
+        <Field label={t("realestate.to")}>
+          {(props) => (
+            <PerSqmInput
+              {...props}
+              disabled={disabled}
+              placeholder={t("realestate.ppsqmTo")}
+              value={pricePerSqmTo}
+              onChange={(next) => onChange?.({ pricePerSqmFrom, pricePerSqmTo: next })}
+            />
+          )}
+        </Field>
       </div>
 
-      <div className="rounded-xl border border-ink/10 bg-mist p-3 space-y-4">
-        <div className="flex items-center gap-2 text-sm font-semibold text-ink">
-          <Calculator size={16} className="text-sun" />
-          Калькулятор цены за м²
-        </div>
-
-        <div className="space-y-2">
-          <div className="label-caps">Цена объекта и площадь</div>
+      <SectionCard
+        title={t("realestate.ppsqmTitle")}
+        icon={Calculator}
+        headingLevel="h4"
+        bodyClassName="space-y-5"
+      >
+        <div className="space-y-2.5">
           <div className="grid grid-cols-2 gap-2">
-            <input
-              type="text"
-              inputMode="numeric"
-              disabled={disabled}
-              placeholder="Цена, с."
-              value={objectPrice ? formatPriceInput(objectPrice) : ""}
-              onChange={(e) => setObjectPrice(getPriceDigits(e.target.value))}
-              className="mobile-control disabled:opacity-60"
-            />
-            <input
-              type="text"
-              inputMode="decimal"
-              disabled={disabled}
-              placeholder="Площадь, м²"
-              value={objectArea}
-              onChange={(e) =>
-                setObjectArea(e.target.value.replace(/[^\d.,]/g, ""))
-              }
-              className="mobile-control disabled:opacity-60"
-            />
+            <Field label={t("realestate.ppsqmPrice")}>
+              {(props) => (
+                <PerSqmInput
+                  {...props}
+                  disabled={disabled}
+                  value={objectPrice}
+                  onChange={setObjectPrice}
+                />
+              )}
+            </Field>
+
+            <Field label={t("realestate.ppsqmArea")}>
+              {(props) => (
+                <AreaInput
+                  {...props}
+                  disabled={disabled}
+                  value={objectArea}
+                  onChange={setObjectArea}
+                />
+              )}
+            </Field>
           </div>
 
           {derivedPerSqm ? (
-            <div className="rounded-lg border border-sun/20 bg-white px-3 py-2 text-sm text-ink">
-              <span className="font-semibold text-sun-800">
+            <div
+              className="rounded-xl border border-sun-200 bg-sun-50 px-3 py-2.5"
+              aria-live="polite"
+            >
+              <p className="text-2xs font-semibold uppercase tracking-wide text-sun-700">
+                {t("realestate.ppsqmResult")}
+              </p>
+              <p className="font-display text-xl font-extrabold tracking-tight text-sun-900">
                 {formatPricePerSqmValue(derivedPerSqm)}
-              </span>
+              </p>
+
               <div className="mt-2 flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  disabled={disabled}
-                  onClick={() => applyDerivedPerSqm("to")}
-                  className="text-xs font-semibold text-sun-700 hover:text-sun-800 disabled:opacity-60"
-                >
-                  Подставить в «до»
-                </button>
-                <button
-                  type="button"
-                  disabled={disabled}
-                  onClick={() => applyDerivedPerSqm("from")}
-                  className="text-xs font-semibold text-sun-700 hover:text-sun-800 disabled:opacity-60"
-                >
-                  Подставить в «от»
-                </button>
+                <Button size="sm" disabled={disabled} onClick={() => applyDerivedPerSqm("to")}>
+                  {t("realestate.ppsqmApplyTo")}
+                </Button>
+                <Button size="sm" disabled={disabled} onClick={() => applyDerivedPerSqm("from")}>
+                  {t("realestate.ppsqmApplyFrom")}
+                </Button>
               </div>
             </div>
           ) : (
-            <p className="text-xs text-slate-500">
-              Введите цену и площадь — рассчитаем стоимость квадратного метра.
-            </p>
+            <p className="text-xs text-ink-400">{t("realestate.ppsqmEmpty")}</p>
           )}
         </div>
 
-        <div className="space-y-2">
-          <div className="text-xs font-medium uppercase tracking-wide text-slate-500">
-            Бюджет за м² и площадь
-          </div>
+        <div className="space-y-2.5">
+          <p className="label-caps">{t("realestate.ppsqmBudget")}</p>
+
           <div className="grid grid-cols-2 gap-2">
-            <PerSqmInput
-              value={targetPerSqm}
-              onChange={setTargetPerSqm}
-              placeholder="с./м²"
-              disabled={disabled}
-            />
-            <input
-              type="text"
-              inputMode="decimal"
-              disabled={disabled}
-              placeholder="Площадь, м²"
-              value={budgetArea}
-              onChange={(e) =>
-                setBudgetArea(e.target.value.replace(/[^\d.,]/g, ""))
-              }
-              className="mobile-control disabled:opacity-60"
-            />
+            <Field label={t("realestate.ppsqmRange")}>
+              {(props) => (
+                <PerSqmInput
+                  {...props}
+                  disabled={disabled}
+                  value={targetPerSqm}
+                  onChange={setTargetPerSqm}
+                />
+              )}
+            </Field>
+
+            <Field label={t("realestate.ppsqmArea")}>
+              {(props) => (
+                <AreaInput
+                  {...props}
+                  disabled={disabled}
+                  value={budgetArea}
+                  onChange={setBudgetArea}
+                />
+              )}
+            </Field>
           </div>
 
           {derivedTotalPrice ? (
-            <div className="rounded-lg border border-sun/20 bg-white px-3 py-2 text-sm text-slate-700">
-              Итого:{" "}
-              <span className="font-semibold text-sun-800">
+            <div
+              className="rounded-xl border border-sun-200 bg-sun-50 px-3 py-2.5"
+              aria-live="polite"
+            >
+              <p className="text-2xs font-semibold uppercase tracking-wide text-sun-700">
+                {t("realestate.ppsqmTotal")}
+              </p>
+              <p className="font-display text-xl font-extrabold tracking-tight text-sun-900">
                 {formatPriceInput(String(derivedTotalPrice))} с.
-              </span>
+              </p>
             </div>
           ) : (
-            <p className="text-xs text-slate-500">
-              Покажем ориентировочную полную стоимость объекта.
-            </p>
+            <p className="text-xs text-ink-400">{t("realestate.ppsqmTotalEmpty")}</p>
           )}
         </div>
-      </div>
+      </SectionCard>
     </div>
   );
 }

@@ -1,47 +1,59 @@
 import React from "react";
-import { Link } from "react-router-dom";
 import { Building2, ArrowRight } from "lucide-react";
 import { buildRealEstateCategoryUrl } from "../../lib/realEstate";
+import { useI18n } from "../../i18n";
+import { Button } from "../../ui";
 
 export default function RealEstateNovostroykiSection({
   city = "Душанбе",
   listingCount = 0,
   developments = [],
 }) {
+  const { t } = useI18n();
+  const headingId = React.useId();
   const listingsUrl = buildRealEstateCategoryUrl(city, "Новостройки");
 
   return (
-    <section className="rounded-2xl border border-sun/25 bg-gradient-to-br from-sun-50/90 via-white to-white p-4 sm:p-5 shadow-sm">
-      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+    <section
+      aria-labelledby={headingId}
+      className="rounded-2xl border border-sun-200 bg-sun-50 p-4 shadow-xs sm:p-5"
+    >
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
-          <div className="inline-flex items-center gap-2 mb-2">
-            <span className="w-10 h-10 rounded-xl bg-sun text-white grid place-items-center shrink-0">
-              <Building2 size={20} />
+          <div className="mb-2 inline-flex items-center gap-2">
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-sun-500 text-white">
+              <Building2 size={20} aria-hidden="true" />
             </span>
+
             <div>
-              <h2 className="text-lg font-bold text-slate-900">Новостройки</h2>
-              <p className="text-sm text-slate-500">
-                Отдельный раздел — квартиры от застройщиков и ЖК в {city}
+              <h2 id={headingId} className="text-lg font-bold text-ink-900">
+                {t("realestate.novostroyki")}
+              </h2>
+              <p className="text-sm text-ink-500">
+                {t("realestate.novostroykiHint", { city })}
               </p>
             </div>
           </div>
 
           {listingCount > 0 && (
-            <p className="text-sm text-slate-600 mt-1">
-              {listingCount.toLocaleString("ru-RU")} объявлений в каталоге
+            <p className="mt-1 text-sm text-ink-600">
+              {t("realestate.novostroykiCount", {
+                count: listingCount.toLocaleString("ru-RU"),
+              })}
               {developments.length > 0 &&
-                ` · ${developments.length} жилых комплексов`}
+                t("realestate.novostroykiComplexes", { count: developments.length })}
             </p>
           )}
         </div>
 
-        <Link
+        <Button
+          variant="primary"
           to={listingsUrl}
-          className="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-xl bg-sun text-white text-sm font-semibold hover:bg-sun-600 transition shrink-0"
+          iconRight={ArrowRight}
+          className="shrink-0"
         >
-          Смотреть новостройки
-          <ArrowRight size={16} />
-        </Link>
+          {t("realestate.novostroykiCta")}
+        </Button>
       </div>
     </section>
   );

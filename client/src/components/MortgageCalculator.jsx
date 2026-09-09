@@ -1,13 +1,25 @@
 import React from "react";
 import { Calculator } from "lucide-react";
 import { formatPriceInput, getPriceDigits } from "../data/specOptions";
+import { useI18n } from "../i18n";
+import { Field, Input, SectionCard } from "../ui";
 
 function formatMoney(value) {
   if (!Number.isFinite(value)) return "—";
   return `${Math.round(value).toLocaleString("ru-RU")} с.`;
 }
 
+function ResultTile({ label, value }) {
+  return (
+    <div className="surface-muted p-4">
+      <p className="text-xs font-semibold text-ink-500">{label}</p>
+      <p className="mt-1 text-lg font-bold text-ink-900">{value}</p>
+    </div>
+  );
+}
+
 export default function MortgageCalculator({ price = "" }) {
+  const { t } = useI18n();
   const initialPrice = getPriceDigits(price) || "";
   const [amount, setAmount] = React.useState(initialPrice);
   const [downPct, setDownPct] = React.useState("20");
@@ -48,85 +60,92 @@ export default function MortgageCalculator({ price = "" }) {
   }, [amount, downPct, years, rate]);
 
   return (
-    <section className="card p-5 md:p-6 rounded-3xl space-y-4">
-      <div className="flex items-center gap-2">
-        <Calculator size={18} className="text-sun" />
-        <h2 className="text-lg font-bold text-slate-900">Калькулятор ипотеки</h2>
+    <SectionCard
+      title={t("realestate.mortgageTitle")}
+      description={t("realestate.mortgageHint")}
+      icon={Calculator}
+      bodyClassName="space-y-4"
+    >
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Field label={t("realestate.mortgagePrice")}>
+          {(props) => (
+            <Input
+              {...props}
+              inputMode="decimal"
+              value={amount ? formatPriceInput(amount) : ""}
+              onChange={(e) => setAmount(getPriceDigits(e.target.value))}
+              placeholder="с."
+            />
+          )}
+        </Field>
+
+        <Field label={t("realestate.mortgageDown")}>
+          {(props) => (
+            <Input
+              {...props}
+              type="number"
+              inputMode="decimal"
+              min="0"
+              max="90"
+              value={downPct}
+              onChange={(e) => setDownPct(e.target.value)}
+            />
+          )}
+        </Field>
+
+        <Field label={t("realestate.mortgageTerm")}>
+          {(props) => (
+            <Input
+              {...props}
+              type="number"
+              inputMode="decimal"
+              min="1"
+              max="30"
+              value={years}
+              onChange={(e) => setYears(e.target.value)}
+            />
+          )}
+        </Field>
+
+        <Field label={t("realestate.mortgageRate")}>
+          {(props) => (
+            <Input
+              {...props}
+              type="number"
+              inputMode="decimal"
+              min="0"
+              max="40"
+              step="0.1"
+              value={rate}
+              onChange={(e) => setRate(e.target.value)}
+            />
+          )}
+        </Field>
       </div>
 
-      <p className="text-sm text-slate-500">
-        Примерный расчёт ежемесячного платежа. Точные условия уточняйте в банке.
-      </p>
-
-      <div className="grid sm:grid-cols-2 gap-3">
-        <label className="block text-sm">
-          <span className="font-medium text-slate-700">Стоимость</span>
-          <input
-            value={amount ? formatPriceInput(amount) : ""}
-            onChange={(e) => setAmount(getPriceDigits(e.target.value))}
-            className="mt-1 w-full h-11 rounded-xl border px-3"
-            placeholder="с."
-          />
-        </label>
-
-        <label className="block text-sm">
-          <span className="font-medium text-slate-700">Первый взнос, %</span>
-          <input
-            type="number"
-            min="0"
-            max="90"
-            value={downPct}
-            onChange={(e) => setDownPct(e.target.value)}
-            className="mt-1 w-full h-11 rounded-xl border px-3"
-          />
-        </label>
-
-        <label className="block text-sm">
-          <span className="font-medium text-slate-700">Срок, лет</span>
-          <input
-            type="number"
-            min="1"
-            max="30"
-            value={years}
-            onChange={(e) => setYears(e.target.value)}
-            className="mt-1 w-full h-11 rounded-xl border px-3"
-          />
-        </label>
-
-        <label className="block text-sm">
-          <span className="font-medium text-slate-700">Ставка, % годовых</span>
-          <input
-            type="number"
-            min="0"
-            max="40"
-            step="0.1"
-            value={rate}
-            onChange={(e) => setRate(e.target.value)}
-            className="mt-1 w-full h-11 rounded-xl border px-3"
-          />
-        </label>
+      <div
+        className="rounded-2xl border border-sun-200 bg-sun-50 p-4 sm:p-5"
+        aria-live="polite"
+      >
+        <p className="text-xs font-semibold uppercase tracking-wide text-sun-700">
+          {t("realestate.mortgageMonthly")}
+        </p>
+        <p className="font-display text-3xl font-extrabold tracking-tight text-sun-900">
+          {formatMoney(result.monthly)}
+        </p>
       </div>
 
-      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        <div className="rounded-2xl bg-sun-50 border border-sun/20 p-4">
-          <div className="text-xs text-sun-700 font-semibold">Платёж / мес</div>
-          <div className="text-xl font-extrabold text-sun-900 mt-1">
-            {formatMoney(result.monthly)}
-          </div>
-        </div>
-        <div className="rounded-2xl border p-4">
-          <div className="text-xs text-slate-500 font-semibold">Кредит</div>
-          <div className="text-lg font-bold mt-1">{formatMoney(result.loan)}</div>
-        </div>
-        <div className="rounded-2xl border p-4">
-          <div className="text-xs text-slate-500 font-semibold">Первый взнос</div>
-          <div className="text-lg font-bold mt-1">{formatMoney(result.downPayment)}</div>
-        </div>
-        <div className="rounded-2xl border p-4">
-          <div className="text-xs text-slate-500 font-semibold">Переплата</div>
-          <div className="text-lg font-bold mt-1">{formatMoney(result.overpay)}</div>
-        </div>
+      <div className="grid gap-3 sm:grid-cols-3">
+        <ResultTile label={t("realestate.mortgageLoan")} value={formatMoney(result.loan)} />
+        <ResultTile
+          label={t("realestate.mortgageDownPayment")}
+          value={formatMoney(result.downPayment)}
+        />
+        <ResultTile
+          label={t("realestate.mortgageOverpay")}
+          value={formatMoney(result.overpay)}
+        />
       </div>
-    </section>
+    </SectionCard>
   );
 }

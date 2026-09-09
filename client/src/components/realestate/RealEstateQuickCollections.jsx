@@ -2,6 +2,8 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { QUICK_COLLECTIONS } from "../../data/realEstate";
 import { buildRealEstateListingUrl } from "../../lib/realEstate";
+import { useI18n } from "../../i18n";
+import { Chip } from "../../ui";
 
 export default function RealEstateQuickCollections({
   city = "Душанбе",
@@ -9,7 +11,9 @@ export default function RealEstateQuickCollections({
   onSelect,
   className = "",
 }) {
+  const { t } = useI18n();
   const nav = useNavigate();
+  const labelId = React.useId();
 
   const isActive = (collection) => {
     if (!activeParams) return false;
@@ -38,17 +42,24 @@ export default function RealEstateQuickCollections({
 
   return (
     <div className={className}>
-      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide scroll-fade-x">
-        <span className="label-caps">Подборки</span>
+      <div
+        role="group"
+        aria-labelledby={labelId}
+        className="scrollbar-hide scroll-fade-x flex items-center gap-2 overflow-x-auto pb-1"
+      >
+        <span id={labelId} className="label-caps">
+          {t("realestate.collections")}
+        </span>
+
         {QUICK_COLLECTIONS.map((collection) => (
-          <button
+          <Chip
             key={collection.title}
-            type="button"
+            active={isActive(collection)}
+            className="filter-chip"
             onClick={() => open(collection)}
-            className={`chip ${isActive(collection) ? "chip-active" : ""}`}
           >
             {collection.title}
-          </button>
+          </Chip>
         ))}
       </div>
     </div>

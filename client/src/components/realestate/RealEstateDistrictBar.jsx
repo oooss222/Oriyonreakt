@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import { MapPin } from "lucide-react";
 import { buildRealEstateListingUrl } from "../../lib/realEstate";
 import { REAL_ESTATE_CITIES, getDistrictsForCity } from "../../data/realEstate";
+import { useI18n } from "../../i18n";
+import { cn } from "../../ui";
 
 export default function RealEstateDistrictBar({
   city,
@@ -11,7 +13,9 @@ export default function RealEstateDistrictBar({
   activeDistrict = "",
   filterContext = {},
 }) {
+  const { t } = useI18n();
   const districts = getDistrictsForCity(city);
+  const headingId = React.useId();
 
   const buildDistrictUrl = (district = "") => {
     const specs = { ...(filterContext.specs || {}) };
@@ -36,31 +40,35 @@ export default function RealEstateDistrictBar({
   };
 
   return (
-    <section className="filter-panel p-4 md:p-5 space-y-4">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-        <div className="flex items-start gap-3 min-w-0">
-          <div className="w-10 h-10 rounded-xl icon-box-sun shrink-0">
-            <MapPin size={18} />
-          </div>
+    <section aria-labelledby={headingId} className="surface-panel space-y-4 p-4 md:p-5">
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div className="flex min-w-0 items-start gap-3">
+          <span className="icon-box-sun h-10 w-10 shrink-0">
+            <MapPin size={18} aria-hidden="true" />
+          </span>
+
           <div>
-            <h2 className="text-lg font-bold text-ink">Город и районы</h2>
-            <p className="text-sm text-ink-400 mt-0.5">
+            <h2 id={headingId} className="text-lg font-bold text-ink-900">
+              {t("realestate.cityAndDistricts")}
+            </h2>
+            <p className="mt-0.5 text-sm text-ink-400">
               {totalCount > 0
-                ? `${totalCount.toLocaleString("ru-RU")} объявлений · цены в сомони`
-                : "Душанбе и Худжанд — выберите район"}
+                ? t("realestate.cityAndDistrictsHint", {
+                    count: totalCount.toLocaleString("ru-RU"),
+                  })
+                : t("realestate.cityAndDistrictsEmpty")}
             </p>
           </div>
         </div>
 
-        <div className="segmented shrink-0">
+        <div role="group" aria-label={t("realestate.city")} className="segmented shrink-0">
           {REAL_ESTATE_CITIES.map((item) => (
             <button
               key={item}
               type="button"
+              aria-pressed={city === item}
               onClick={() => onCityChange?.(item)}
-              className={`segmented-item ${
-                city === item ? "segmented-item-active" : ""
-              }`}
+              className={cn("segmented-item", city === item && "segmented-item-active")}
             >
               {item}
             </button>
@@ -69,21 +77,24 @@ export default function RealEstateDistrictBar({
       </div>
 
       {districts.length > 0 && (
-        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide scroll-fade-x snap-x snap-mandatory">
+        <div className="scroll-fade-x scrollbar-hide flex snap-x snap-mandatory gap-2 overflow-x-auto pb-1">
           <Link
             to={buildDistrictUrl("")}
-            className={`chip snap-start ${!activeDistrict ? "chip-active" : ""}`}
+            aria-current={!activeDistrict ? "true" : undefined}
+            className={cn("chip filter-chip snap-start", !activeDistrict && "chip-active")}
           >
-            Весь {city}
+            {t("realestate.allCity", { city })}
           </Link>
 
           {districts.map((district) => (
             <Link
               key={district}
               to={buildDistrictUrl(district)}
-              className={`chip snap-start ${
-                activeDistrict === district ? "chip-active" : ""
-              }`}
+              aria-current={activeDistrict === district ? "true" : undefined}
+              className={cn(
+                "chip filter-chip snap-start",
+                activeDistrict === district && "chip-active"
+              )}
             >
               {district}
             </Link>

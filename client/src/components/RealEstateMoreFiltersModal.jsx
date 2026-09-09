@@ -1,6 +1,5 @@
 import React from "react";
-import { createPortal } from "react-dom";
-import { X } from "lucide-react";
+import { RotateCcw } from "lucide-react";
 import { api } from "../lib/api";
 import {
   REAL_ESTATE_CAT,
@@ -31,6 +30,8 @@ import LandFilterFields from "./realestate/LandFilterFields";
 import GarageFilterFields from "./realestate/GarageFilterFields";
 import CommercialFilterFields from "./realestate/CommercialFilterFields";
 import RentalQualityFilterFields from "./realestate/RentalQualityFilterFields";
+import { Button, Checkbox, Chip, Input, Modal, Select } from "../ui";
+import { useI18n } from "../i18n";
 
 const AREA_PRESETS = ["20", "30", "40", "50", "60", "70", "80", "100", "120", "150"];
 
@@ -113,9 +114,17 @@ function buildCountQuery(draft) {
 }
 
 function FilterSection({ title, children }) {
+  const headingId = React.useId();
+
   return (
-    <section className="py-3 border-b border-slate-100 last:border-b-0">
-      <h3 className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400 mb-3">
+    <section
+      aria-labelledby={headingId}
+      className="border-b border-ink-200 py-3 last:border-b-0"
+    >
+      <h3
+        id={headingId}
+        className="mb-3 text-xs font-bold uppercase tracking-[0.12em] text-ink-400"
+      >
         {title}
       </h3>
       <div className="space-y-3">{children}</div>
@@ -124,34 +133,40 @@ function FilterSection({ title, children }) {
 }
 
 function FilterRow({ label, children }) {
+  const labelId = React.useId();
+
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-[9rem_1fr] gap-2 sm:gap-4 py-3 border-b border-slate-100 last:border-b-0">
-      <div className="text-sm font-medium text-slate-700 sm:pt-2.5">{label}</div>
+    <div
+      role="group"
+      aria-labelledby={labelId}
+      className="grid grid-cols-1 gap-2 border-b border-ink-200 py-3 last:border-b-0 sm:grid-cols-[9rem_1fr] sm:gap-4"
+    >
+      <div id={labelId} className="text-sm font-medium text-ink-700 sm:pt-2.5">
+        {label}
+      </div>
       <div className="min-w-0">{children}</div>
     </div>
   );
 }
 
-function PillGroup({ value, options, onChange, anyLabel = "Любой" }) {
+function PillGroup({ value, options, onChange, anyLabel }) {
+  const { t } = useI18n();
+
   return (
     <div className="flex flex-wrap gap-2">
-      <button
-        type="button"
-        onClick={() => onChange("")}
-        className={`chip ${!value ? "chip-active" : ""}`}
-      >
-        {anyLabel}
-      </button>
+      <Chip active={!value} className="filter-chip" onClick={() => onChange("")}>
+        {anyLabel || t("filter.any")}
+      </Chip>
 
       {options.map((option) => (
-        <button
+        <Chip
           key={option}
-          type="button"
+          active={value === option}
+          className="filter-chip"
           onClick={() => onChange(option)}
-          className={`chip ${value === option ? "chip-active" : ""}`}
         >
           {option}
-        </button>
+        </Chip>
       ))}
     </div>
   );
@@ -168,19 +183,19 @@ function PresetPills({ presets, onSelect, activeFrom = "", activeTo = "" }) {
           String(activeTo || "") === String(preset.to || "");
 
         return (
-          <button
+          <Chip
             key={preset.label}
-            type="button"
+            active={active}
+            className="filter-chip"
             onClick={() =>
               onSelect({
                 from: preset.from ? String(preset.from) : "",
                 to: preset.to ? String(preset.to) : "",
               })
             }
-            className={`chip ${active ? "chip-active" : ""}`}
           >
             {preset.label}
-          </button>
+          </Chip>
         );
       })}
     </div>
@@ -188,6 +203,8 @@ function PresetPills({ presets, onSelect, activeFrom = "", activeTo = "" }) {
 }
 
 function AreaRangeSelects(props) {
+  const { t } = useI18n();
+
   return (
     <RangeFilter
       {...props}
@@ -198,8 +215,8 @@ function AreaRangeSelects(props) {
         props.onToChange?.(to);
       }}
       selectOptions={AREA_PRESETS}
-      fromPlaceholder="от"
-      toPlaceholder="до"
+      fromPlaceholder={t("filter.from")}
+      toPlaceholder={t("filter.to")}
       suffix=" м²"
     />
   );
@@ -232,6 +249,7 @@ export default function RealEstateMoreFiltersModal({
   specs: initialSpecs = {},
   onNavigate,
 }) {
+  const { t } = useI18n();
   const [draft, setDraft] = React.useState(() =>
     buildDraft({
       dealType,
@@ -402,61 +420,6 @@ export default function RealEstateMoreFiltersModal({
     };
   }, [draft, open]);
 
-  const dialogRef = React.useRef(null);
-
-  React.useEffect(() => {
-    if (!open) return undefined;
-
-    const previouslyFocused = document.activeElement;
-
-    const focusable = () =>
-      Array.from(
-        dialogRef.current?.querySelectorAll(
-          'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
-        ) || []
-      ).filter((el) => el.offsetParent !== null);
-
-    const onKeyDown = (event) => {
-      if (event.key === "Escape") {
-        onClose?.();
-        return;
-      }
-
-      // Without a trap, Tab walks into the page behind the overlay.
-      if (event.key !== "Tab") return;
-
-      const items = focusable();
-      if (!items.length) return;
-
-      const first = items[0];
-      const last = items[items.length - 1];
-
-      if (event.shiftKey && document.activeElement === first) {
-        event.preventDefault();
-        last.focus();
-      } else if (!event.shiftKey && document.activeElement === last) {
-        event.preventDefault();
-        first.focus();
-      }
-    };
-
-    document.body.style.overflow = "hidden";
-    document.addEventListener("keydown", onKeyDown);
-
-    // Move focus into the dialog so screen readers announce it.
-    const initial = setTimeout(() => {
-      (dialogRef.current?.querySelector("[data-autofocus]") || focusable()[0])
-        ?.focus?.();
-    }, 0);
-
-    return () => {
-      clearTimeout(initial);
-      document.body.style.overflow = "";
-      document.removeEventListener("keydown", onKeyDown);
-      previouslyFocused?.focus?.();
-    };
-  }, [open, onClose]);
-
   if (!open) return null;
 
   const setSpec = (key, value) => {
@@ -528,45 +491,38 @@ export default function RealEstateMoreFiltersModal({
     onClose?.();
   };
 
-  return createPortal(
-    <div className="fixed inset-0 z-[120] flex items-end sm:items-center justify-center p-0 sm:p-4">
-      <button
-        type="button"
-        aria-label="Закрыть"
-        className="absolute inset-0 bg-black/45"
-        onClick={onClose}
-      />
+  return (
+    <Modal
+      open={open}
+      onClose={onClose}
+      title={t("realestate.moreFilters")}
+      size="lg"
+      bodyClassName="px-4 py-2 sm:px-5"
+      footer={
+        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <Button variant="ghost" icon={RotateCcw} onClick={reset}>
+            {t("realestate.resetValues")}
+          </Button>
 
-      <div
-        ref={dialogRef}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="re-more-filters-title"
-        className="relative w-full sm:max-w-2xl max-h-[92vh] sm:max-h-[88vh] flex flex-col rounded-t-3xl sm:rounded-2xl bg-white shadow-2xl overflow-hidden"
-      >
-        <div className="flex shrink-0 items-center justify-between gap-3 border-b px-4 py-3">
-          <h2
-            id="re-more-filters-title"
-            className="text-lg font-bold text-slate-900"
+          <Button
+            variant="primary"
+            size="lg"
+            onClick={submit}
+            className="sm:min-w-[14rem]"
           >
-            Ещё фильтры
-          </h2>
-
-          <button
-            type="button"
-            onClick={onClose}
-            data-autofocus
-            className="p-2 rounded-xl border border-slate-200 hover:bg-slate-50 transition"
-            aria-label="Закрыть"
-          >
-            <X size={18} />
-          </button>
+            {previewLoading
+              ? t("realestate.showResultsLoading")
+              : t("realestate.showResults", {
+                  count: previewTotal.toLocaleString("ru-RU"),
+                })}
+          </Button>
         </div>
-
-        <div className="min-h-0 flex-1 overflow-y-auto px-4 py-2">
+      }
+    >
+      <>
           {isDaily && (
-            <FilterSection title="Поездка">
-              <FilterRow label="Заезд / выезд">
+            <FilterSection title={t("realestate.trip")}>
+              <FilterRow label={t("realestate.dates")}>
                 <RealEstateDateRangePicker
                   checkIn={draft.checkIn || ""}
                   checkOut={draft.checkOut || ""}
@@ -580,7 +536,7 @@ export default function RealEstateMoreFiltersModal({
                 />
               </FilterRow>
 
-              <FilterRow label="Гости">
+              <FilterRow label={t("realestate.guests")}>
                 <RealEstateGuestsPicker
                   compact
                   value={draft.guests || ""}
@@ -590,35 +546,34 @@ export default function RealEstateMoreFiltersModal({
                 />
               </FilterRow>
 
-              <FilterRow label="Тип жилья">
+              <FilterRow label={t("realestate.type")}>
                 <div className="flex flex-wrap gap-2">
-                  <button
-                    type="button"
+                  <Chip
+                    active={!(draft.subcategory || subcategory)}
+                    className="filter-chip"
                     onClick={() =>
                       setDraft((current) => ({ ...current, subcategory: "" }))
                     }
-                    className={`chip ${
-                      !(draft.subcategory || subcategory) ? "chip-active" : ""
-                    }`}
                   >
-                    Любой
-                  </button>
+                    {t("filter.any")}
+                  </Chip>
+
                   {DAILY_HOUSING_TYPES.map((item) => {
                     const active = (draft.subcategory || subcategory) === item.value;
                     return (
-                      <button
+                      <Chip
                         key={item.value}
-                        type="button"
+                        active={active}
+                        className="filter-chip"
                         onClick={() =>
                           setDraft((current) => ({
                             ...current,
                             subcategory: active ? "" : item.value,
                           }))
                         }
-                        className={`chip ${active ? "chip-active" : ""}`}
                       >
                         {item.label}
-                      </button>
+                      </Chip>
                     );
                   })}
                 </div>
@@ -626,8 +581,8 @@ export default function RealEstateMoreFiltersModal({
             </FilterSection>
           )}
 
-          <FilterSection title="Местоположение">
-            <FilterRow label="Город">
+          <FilterSection title={t("realestate.location")}>
+            <FilterRow label={t("filter.city")}>
               <RealEstateCitySelect
                 value={draft.location || city}
                 onChange={(e) => {
@@ -646,19 +601,24 @@ export default function RealEstateMoreFiltersModal({
             </FilterRow>
 
             {districts.length > 0 && (
-              <FilterRow label="Район">
+              <FilterRow label={t("realestate.district")}>
                 <div className="space-y-3">
                   {popularDistricts.length > 0 && (
                     <MultiPillGroup
                       values={draft.specs?.["Район"] || ""}
                       options={popularDistricts}
                       onChange={(value) => setSpec("Район", value)}
-                      anyLabel="Любой"
+                      anyLabel={t("filter.any")}
                     />
                   )}
                   {otherDistricts.length > 0 && (
-                    <select
+                    <Select
                       value=""
+                      aria-label={
+                        activeCity === "Душанбе"
+                          ? t("realestate.addDistrictOrMicro")
+                          : t("realestate.addDistrict")
+                      }
                       onChange={(e) => {
                         const value = e.target.value;
                         if (!value) return;
@@ -667,29 +627,32 @@ export default function RealEstateMoreFiltersModal({
                           toggleMultiSpecValue(draft.specs?.["Район"], value)
                         );
                       }}
-                      className="mobile-control"
                     >
                       <option value="">
                         {activeCity === "Душанбе"
-                          ? "Добавить район или микрорайон"
-                          : "Добавить район"}
+                          ? t("realestate.addDistrictOrMicro")
+                          : t("realestate.addDistrict")}
                       </option>
                       {otherDistricts.map((item) => (
                         <option key={item} value={item}>
                           {item}
                         </option>
                       ))}
-                    </select>
+                    </Select>
                   )}
                 </div>
               </FilterRow>
             )}
           </FilterSection>
 
-          <FilterSection title={isDaily ? "Цена за сутки, сомони" : "Цена, сомони"}>
-            <FilterRow label="Диапазон">
+          <FilterSection
+            title={isDaily ? t("realestate.pricePerNight") : t("filter.price")}
+          >
+            <FilterRow label={t("realestate.priceRange")}>
               <div className="grid grid-cols-2 gap-2">
-                <input
+                <Input
+                  inputMode="numeric"
+                  aria-label={t("realestate.from")}
                   value={draft.priceFrom ? formatPriceInput(draft.priceFrom) : ""}
                   onChange={(e) =>
                     setDraft((current) => ({
@@ -697,10 +660,11 @@ export default function RealEstateMoreFiltersModal({
                       priceFrom: getPriceDigits(e.target.value),
                     }))
                   }
-                  placeholder="от"
-                  className="mobile-control"
+                  placeholder={t("filter.from")}
                 />
-                <input
+                <Input
+                  inputMode="numeric"
+                  aria-label={t("realestate.to")}
                   value={draft.priceTo ? formatPriceInput(draft.priceTo) : ""}
                   onChange={(e) =>
                     setDraft((current) => ({
@@ -708,8 +672,7 @@ export default function RealEstateMoreFiltersModal({
                       priceTo: getPriceDigits(e.target.value),
                     }))
                   }
-                  placeholder="до"
-                  className="mobile-control"
+                  placeholder={t("filter.to")}
                 />
               </div>
             </FilterRow>
@@ -717,10 +680,10 @@ export default function RealEstateMoreFiltersModal({
             <FilterRow
               label={
                 dealType === "Посуточно"
-                  ? "Быстрый выбор, сут."
+                  ? t("realestate.quickPickPerNight")
                   : dealType === "Снять"
-                    ? "Быстрый выбор, мес."
-                    : "Быстрый выбор"
+                    ? t("realestate.quickPickPerMonth")
+                    : t("realestate.quickPick")
               }
             >
               <PresetPills
@@ -738,7 +701,7 @@ export default function RealEstateMoreFiltersModal({
             </FilterRow>
 
             {dealType !== "Посуточно" && (
-              <FilterRow label="Цена за м²">
+              <FilterRow label={t("filter.pricePerSqm")}>
                 <div className="space-y-3">
                   <PresetPills
                     presets={REAL_ESTATE_PRICE_PER_SQM_PRESETS}
@@ -768,23 +731,25 @@ export default function RealEstateMoreFiltersModal({
             )}
           </FilterSection>
 
-          <FilterSection title="Параметры объекта">
+          <FilterSection title={t("realestate.objectParams")}>
             {sellerOptions.length > 0 && (
-              <FilterRow label="Продавец">
+              <FilterRow label={t("filter.seller")}>
                 <div className="flex flex-wrap gap-2">
-                  <button
-                    type="button"
+                  <Chip
+                    active={!draft.sellerType}
+                    className="filter-chip"
                     onClick={() =>
                       setDraft((current) => ({ ...current, sellerType: "" }))
                     }
-                    className={`chip ${!draft.sellerType ? "chip-active" : ""}`}
                   >
-                    Любой
-                  </button>
+                    {t("filter.any")}
+                  </Chip>
+
                   {sellerOptions.map((option) => (
-                    <button
+                    <Chip
                       key={option.value}
-                      type="button"
+                      active={draft.sellerType === option.value}
+                      className="filter-chip"
                       onClick={() =>
                         setDraft((current) => ({
                           ...current,
@@ -794,19 +759,16 @@ export default function RealEstateMoreFiltersModal({
                               : option.value,
                         }))
                       }
-                      className={`chip ${
-                        draft.sellerType === option.value ? "chip-active" : ""
-                      }`}
                     >
                       {option.label}
-                    </button>
+                    </Chip>
                   ))}
                 </div>
               </FilterRow>
             )}
 
             {!isDaily && (
-            <FilterRow label="Общая площадь">
+            <FilterRow label={t("filter.area")}>
               <AreaRangeSelects
                 from={draft.areaFrom}
                 to={draft.areaTo}
@@ -822,7 +784,7 @@ export default function RealEstateMoreFiltersModal({
 
             {showFloor && !isDaily && (
               <>
-                <FilterRow label="Этаж">
+                <FilterRow label={t("filter.floor")}>
                   <RangeFilter
                     from={draft.floorFrom}
                     to={draft.floorTo}
@@ -836,43 +798,37 @@ export default function RealEstateMoreFiltersModal({
                   />
                 </FilterRow>
 
-                <FilterRow label="Этажность">
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      type="button"
-                      onClick={() =>
+                <FilterRow label={t("realestate.floors")}>
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    <Checkbox
+                      boxed
+                      label={t("filter.floorNotFirst")}
+                      checked={Boolean(draft.floorNotFirst)}
+                      onChange={(e) =>
                         setDraft((current) => ({
                           ...current,
-                          floorNotFirst: !current.floorNotFirst,
+                          floorNotFirst: e.target.checked,
                         }))
                       }
-                      className={`mobile-btn border ${
-                        draft.floorNotFirst ? "chip-active" : ""
-                      }`}
-                    >
-                      Не первый
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() =>
+                    />
+                    <Checkbox
+                      boxed
+                      label={t("filter.floorNotLast")}
+                      checked={Boolean(draft.floorNotLast)}
+                      onChange={(e) =>
                         setDraft((current) => ({
                           ...current,
-                          floorNotLast: !current.floorNotLast,
+                          floorNotLast: e.target.checked,
                         }))
                       }
-                      className={`mobile-btn border ${
-                        draft.floorNotLast ? "chip-active" : ""
-                      }`}
-                    >
-                      Не последний
-                    </button>
+                    />
                   </div>
                 </FilterRow>
               </>
             )}
 
             {furnitureOptions.length > 0 && (isRentDeal || showRooms) && (
-              <FilterRow label="Мебель">
+              <FilterRow label={t("realestate.furniture")}>
                 <PillGroup
                   value={draft.specs?.["Мебель"] || ""}
                   options={furnitureOptions}
@@ -882,7 +838,7 @@ export default function RealEstateMoreFiltersModal({
             )}
 
             {isDaily && (
-              <FilterRow label="Удобства и правила">
+              <FilterRow label={t("realestate.dailyFeaturesTitle")}>
                 <DailyRentalFilterFields
                   draft={draft}
                   setSpec={setSpec}
@@ -891,7 +847,7 @@ export default function RealEstateMoreFiltersModal({
             )}
 
             {showRentApartmentFilters && (
-              <FilterRow label="Условия аренды">
+              <FilterRow label={t("realestate.rentFeaturesTitle")}>
                 <RentRentalFilterFields
                   draft={draft}
                   setSpec={setSpec}
@@ -907,13 +863,15 @@ export default function RealEstateMoreFiltersModal({
             )}
 
             {isLand && !isDaily && (
-              <FilterRow label="Параметры участка">
+              <FilterRow label={t("realestate.landParams")}>
                 <LandFilterFields draft={draft} setSpec={setSpec} />
               </FilterRow>
             )}
 
             {isGarage && !isDaily && (
-              <FilterRow label={isRent ? "Условия аренды" : "Параметры"}>
+              <FilterRow
+                label={isRent ? t("realestate.rentFeaturesTitle") : t("realestate.params")}
+              >
                 <GarageFilterFields
                   draft={draft}
                   setSpec={setSpec}
@@ -923,7 +881,9 @@ export default function RealEstateMoreFiltersModal({
             )}
 
             {isCommercial && !isDaily && (
-              <FilterRow label={isRent ? "Условия аренды" : "Параметры"}>
+              <FilterRow
+                label={isRent ? t("realestate.rentFeaturesTitle") : t("realestate.params")}
+              >
                 <CommercialFilterFields
                   draft={draft}
                   setSpec={setSpec}
@@ -933,7 +893,7 @@ export default function RealEstateMoreFiltersModal({
             )}
 
             {(isDaily || isRent) && (
-              <FilterRow label="Дополнительно">
+              <FilterRow label={t("filter.more")}>
                 <RentalQualityFilterFields
                   draft={draft}
                   onOnlyWithPhotosChange={(value) =>
@@ -947,7 +907,7 @@ export default function RealEstateMoreFiltersModal({
             )}
 
             {houseTypeOptions.length > 0 && !isDaily && !isRent && (
-              <FilterRow label="Тип дома">
+              <FilterRow label={t("realestate.houseType")}>
                 <PillGroup
                   value={draft.specs?.["Тип дома"] || ""}
                   options={houseTypeOptions}
@@ -957,7 +917,7 @@ export default function RealEstateMoreFiltersModal({
             )}
 
             {repairOptions.length > 0 && !isDaily && !isCommercial && (
-              <FilterRow label="Ремонт">
+              <FilterRow label={t("realestate.repair")}>
                 <MultiPillGroup
                   values={draft.specs?.["Ремонт"] || ""}
                   options={repairOptions}
@@ -967,7 +927,7 @@ export default function RealEstateMoreFiltersModal({
             )}
 
             {conditionOptions.length > 0 && (
-              <FilterRow label="Состояние">
+              <FilterRow label={t("filter.condition")}>
                 <PillGroup
                   value={draft.specs?.["Состояние"] || ""}
                   options={conditionOptions}
@@ -978,7 +938,7 @@ export default function RealEstateMoreFiltersModal({
 
             {showFloor && (
               <>
-                <FilterRow label="Санузел">
+                <FilterRow label={t("realestate.bathroom")}>
                   <PillGroup
                     value={draft.specs?.["Санузел"] || ""}
                     options={bathroomOptions}
@@ -986,7 +946,7 @@ export default function RealEstateMoreFiltersModal({
                   />
                 </FilterRow>
 
-                <FilterRow label="Балкон">
+                <FilterRow label={t("realestate.balcony")}>
                   <PillGroup
                     value={draft.specs?.["Балкон"] || ""}
                     options={balconyOptions}
@@ -997,7 +957,7 @@ export default function RealEstateMoreFiltersModal({
             )}
 
             {parkingOptions.length > 0 && !isCommercial && (
-              <FilterRow label="Парковка">
+              <FilterRow label={t("realestate.parking")}>
                 <PillGroup
                   value={draft.specs?.["Парковка"] || ""}
                   options={parkingOptions}
@@ -1007,7 +967,7 @@ export default function RealEstateMoreFiltersModal({
             )}
 
             {showFloor && !isDaily && (
-              <FilterRow label="Высота потолков">
+              <FilterRow label={t("realestate.ceilingHeight")}>
                 <MultiPillGroup
                   values={draft.specs?.["Высота потолков"] || ""}
                   options={CEILING_HEIGHTS}
@@ -1016,48 +976,23 @@ export default function RealEstateMoreFiltersModal({
               </FilterRow>
             )}
 
-            <FilterRow label="Сортировка">
-              <select
-                value={
-                  sortOptions[draft.sort] ? draft.sort : "new"
-                }
+            <FilterRow label={t("filter.sort")}>
+              <Select
+                aria-label={t("filter.sort")}
+                value={sortOptions[draft.sort] ? draft.sort : "new"}
                 onChange={(e) =>
                   setDraft((current) => ({ ...current, sort: e.target.value }))
                 }
-                className="mobile-control"
               >
                 {Object.entries(sortOptions).map(([value, label]) => (
                   <option key={value} value={value}>
                     {label}
                   </option>
                 ))}
-              </select>
+              </Select>
             </FilterRow>
           </FilterSection>
-        </div>
-
-        <div className="shrink-0 border-t bg-white px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
-          <button
-            type="button"
-            onClick={reset}
-            className="inline-flex items-center justify-center gap-1.5 text-sm font-medium text-red-600 hover:text-red-700 transition"
-          >
-            <X size={15} />
-            Сбросить значения
-          </button>
-
-          <button
-            type="button"
-            onClick={submit}
-            className="mobile-btn bg-sun text-white hover:bg-sun-600 font-semibold sm:min-w-[14rem]"
-          >
-            {previewLoading
-              ? "Показать объявления…"
-              : `Показать объявления (${previewTotal.toLocaleString("ru-RU")})`}
-          </button>
-        </div>
-      </div>
-    </div>,
-    document.body
+      </>
+    </Modal>
   );
 }

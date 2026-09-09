@@ -17,11 +17,7 @@ import {
 import { buildRealEstateListingUrl } from "../lib/realEstate";
 import { formatPriceInput, getPriceDigits } from "../data/specOptions";
 import { useI18n, pluralRealEstateListings } from "../i18n";
-
-const FIELD_LABEL =
-  "mb-1.5 block text-2xs font-semibold uppercase tracking-[0.08em] text-slate-500";
-const FIELD_CONTROL =
-  "h-11 w-full rounded-xl border border-slate-200/90 bg-white text-sm font-medium text-slate-900 outline-none transition focus:border-sun/50 focus:ring-2 focus:ring-sun/20 appearance-none";
+import { Button, Field, Input, Select, cn } from "../ui";
 
 function formatHeroPriceSummary(from, to, currency = "с.") {
   const fromLabel = from ? formatPriceInput(from) : "";
@@ -37,36 +33,53 @@ function pluralAds(count, t) {
   return pluralRealEstateListings(t, count);
 }
 
-function HeroSelect({ label, value, onChange, children, className = "", icon: Icon }) {
+/**
+ * Deal type is a filter, not a tab strip: there is no panel to control, so it
+ * announces as a group of toggles.
+ */
+function DealTypeGroup({ value, onChange, label }) {
   return (
-    <label className="block min-w-0">
-      <span className={FIELD_LABEL}>{label}</span>
-      <div className="relative">
-        {Icon && (
-          <Icon
-            size={15}
-            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-          />
-        )}
-        <select
-          value={value}
-          onChange={onChange}
-          className={`${FIELD_CONTROL} pr-9 ${Icon ? "pl-9" : "px-3"} ${className}`}
-        >
-          {children}
-        </select>
-        <ChevronDown
-          size={15}
-          className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"
-        />
-      </div>
-    </label>
+    <div
+      role="group"
+      aria-label={label}
+      className="mb-4 inline-flex w-full gap-1 rounded-xl border border-ink-200 bg-mist-100 p-1 sm:w-auto"
+    >
+      {DEAL_TYPES.map((item) => {
+        const active = value === item.value;
+
+        return (
+          <button
+            key={item.value}
+            type="button"
+            aria-pressed={active}
+            onClick={() => onChange(item.value)}
+            className={cn(
+              "min-h-[2.75rem] flex-1 rounded-lg px-4 text-sm font-semibold transition-colors sm:min-w-[6.5rem] sm:flex-none",
+              active
+                ? "bg-sun-500 text-white shadow-xs"
+                : "text-ink-600 hover:bg-white hover:text-ink-900"
+            )}
+          >
+            {item.label}
+          </button>
+        );
+      })}
+    </div>
   );
 }
 
-function HeroPriceFilter({ priceFrom, priceTo, priceCurrency, onChange, dealType = "Купить", label, t }) {
+function HeroPriceFilter({
+  priceFrom,
+  priceTo,
+  priceCurrency,
+  onChange,
+  dealType = "Купить",
+  label,
+  t,
+}) {
   const [open, setOpen] = React.useState(false);
   const rootRef = React.useRef(null);
+  const panelId = React.useId();
   const summary = formatHeroPriceSummary(priceFrom, priceTo, priceCurrency);
   const presets = getPricePresetsForDeal(dealType).filter(
     (item) => item.from || item.to
@@ -93,80 +106,93 @@ function HeroPriceFilter({ priceFrom, priceTo, priceCurrency, onChange, dealType
 
   return (
     <div ref={rootRef} className="relative block min-w-0">
-      <span className={FIELD_LABEL}>{label}</span>
+      <span className="field-label" id={`${panelId}-label`}>
+        {label}
+      </span>
 
       <button
         type="button"
         aria-expanded={open}
-        aria-haspopup="dialog"
+        aria-controls={panelId}
+        aria-labelledby={`${panelId}-label`}
         onClick={() => setOpen((value) => !value)}
-        className={`${FIELD_CONTROL} flex items-center justify-between gap-3 px-3 text-left ${
-          summary ? "text-slate-900" : "text-slate-500"
-        }`}
+        className={cn(
+          "input flex items-center justify-between gap-3 text-left",
+          summary ? "text-ink-900" : "text-ink-400"
+        )}
       >
         <span className="truncate">{summary || t("realestate.anyPrice")}</span>
         {open ? (
-          <ChevronUp size={15} className="shrink-0 text-slate-400" />
+          <ChevronUp size={16} className="shrink-0 text-ink-400" aria-hidden="true" />
         ) : (
-          <ChevronDown size={15} className="shrink-0 text-slate-400" />
+          <ChevronDown size={16} className="shrink-0 text-ink-400" aria-hidden="true" />
         )}
       </button>
 
       {open && (
         <div
-          role="dialog"
+          id={panelId}
+          role="group"
           aria-label={t("realestate.priceRange")}
-          className="absolute left-0 right-0 top-[calc(100%+6px)] z-50 rounded-xl border border-slate-200 bg-white p-2 shadow-xl text-slate-900"
+          className="absolute left-0 right-0 top-[calc(100%+6px)] w-full min-w-[17rem] space-y-3
+                     rounded-2xl border border-ink-200 bg-white p-3 text-ink-900 shadow-lg"
+          style={{ zIndex: "var(--z-dropdown)" }}
         >
-          <div className="flex h-11 items-stretch overflow-hidden rounded-lg border border-slate-200">
-            <input
-              type="text"
-              inputMode="numeric"
-              placeholder={t("realestate.from")}
-              value={priceFrom ? formatPriceInput(priceFrom) : ""}
-              onChange={(e) =>
-                onChange({
-                  priceFrom: getPriceDigits(e.target.value),
-                  priceTo,
-                  priceCurrency,
-                })
-              }
-              className="w-1/2 min-w-0 border-r border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none placeholder:text-slate-400"
-            />
-            <input
-              type="text"
-              inputMode="numeric"
-              placeholder={t("realestate.to")}
-              value={priceTo ? formatPriceInput(priceTo) : ""}
-              onChange={(e) =>
-                onChange({
-                  priceFrom,
-                  priceTo: getPriceDigits(e.target.value),
-                  priceCurrency,
-                })
-              }
-              className="w-1/2 min-w-0 border-r border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none placeholder:text-slate-400"
-            />
-            <div className="relative shrink-0">
-              <select
+          <div className="grid grid-cols-2 gap-2">
+            <Field label={t("realestate.from")}>
+              {(props) => (
+                <Input
+                  {...props}
+                  inputMode="numeric"
+                  placeholder="0"
+                  value={priceFrom ? formatPriceInput(priceFrom) : ""}
+                  onChange={(e) =>
+                    onChange({
+                      priceFrom: getPriceDigits(e.target.value),
+                      priceTo,
+                      priceCurrency,
+                    })
+                  }
+                />
+              )}
+            </Field>
+
+            <Field label={t("realestate.to")}>
+              {(props) => (
+                <Input
+                  {...props}
+                  inputMode="numeric"
+                  placeholder="∞"
+                  value={priceTo ? formatPriceInput(priceTo) : ""}
+                  onChange={(e) =>
+                    onChange({
+                      priceFrom,
+                      priceTo: getPriceDigits(e.target.value),
+                      priceCurrency,
+                    })
+                  }
+                />
+              )}
+            </Field>
+          </div>
+
+          <Field label={t("realestate.currency")}>
+            {(props) => (
+              <Select
+                {...props}
                 value={priceCurrency}
                 onChange={(e) =>
                   onChange({ priceFrom, priceTo, priceCurrency: e.target.value })
                 }
-                className="h-full min-w-[3.5rem] appearance-none bg-white pl-2.5 pr-7 text-sm text-slate-900 outline-none"
               >
                 <option value="с.">с.</option>
                 <option value="$">$</option>
-              </select>
-              <ChevronDown
-                size={14}
-                className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-slate-400"
-              />
-            </div>
-          </div>
+              </Select>
+            )}
+          </Field>
 
           {presets.length > 0 && (
-            <div className="mt-2 flex flex-wrap gap-1.5">
+            <div role="group" aria-label={t("realestate.quickPick")} className="flex flex-wrap gap-1.5">
               {presets.slice(0, 5).map((preset) => (
                 <button
                   key={preset.label}
@@ -178,7 +204,7 @@ function HeroPriceFilter({ priceFrom, priceTo, priceCurrency, onChange, dealType
                       priceCurrency,
                     })
                   }
-                  className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-2xs font-medium text-slate-600 hover:border-sun/40 hover:bg-sun-50 hover:text-sun-800"
+                  className="chip filter-chip text-xs"
                 >
                   {preset.label.replace("Любая", "").trim() || preset.label}
                 </button>
@@ -220,6 +246,7 @@ export default function RealEstateSearchHero({
   const [guests, setGuests] = React.useState(initialGuests || (isDailyDeal(initialDeal) ? "2" : ""));
   const [priceCurrency, setPriceCurrency] = React.useState("с.");
   const [moreOpen, setMoreOpen] = React.useState(false);
+  const filtersLabelId = React.useId();
 
   React.useEffect(() => setCity(initialCity), [initialCity]);
   React.useEffect(() => setSubcategory(initialSubcategory), [initialSubcategory]);
@@ -343,26 +370,22 @@ export default function RealEstateSearchHero({
 
   return (
     <>
-      <section
-        className={`hero-dark ${
-          compact ? "p-4 md:p-5" : "p-5 md:p-8"
-        }`}
-      >
+      <section className={cn("hero-dark", compact ? "p-4 md:p-5" : "p-5 md:p-8")}>
         <div
-          className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-sun/15 blur-3xl"
+          className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-sun-500/15 blur-3xl"
           aria-hidden="true"
         />
         <div
-          className="pointer-events-none absolute -bottom-20 left-1/4 h-48 w-48 rounded-full bg-sun/10 blur-3xl"
+          className="pointer-events-none absolute -bottom-20 left-1/4 h-48 w-48 rounded-full bg-sun-500/10 blur-3xl"
           aria-hidden="true"
         />
 
         {!compact && (
-          <div className="relative mb-5 md:mb-6 max-w-3xl">
+          <div className="relative mb-5 max-w-3xl md:mb-6">
             <p className="mb-2 text-xs font-bold uppercase tracking-[0.14em] text-sun-300">
               {t("realestate.heroBrand")}
             </p>
-            <h1 className="font-display text-3xl md:text-[2.35rem] font-extrabold leading-tight">
+            <h1 className="font-display text-3xl font-extrabold leading-tight md:text-[2.35rem]">
               {heroTitle}
             </h1>
             {totalCount > 0 && (
@@ -376,33 +399,12 @@ export default function RealEstateSearchHero({
 
         <div className="relative overflow-visible">
           {isDaily ? (
-            <div className="rounded-2xl bg-white/95 p-4 text-slate-900 shadow-xl ring-1 ring-slate-900/5 md:p-5">
-              <div
-                role="tablist"
-                aria-label={t("realestate.dealType")}
-                className="mb-4 inline-flex w-full gap-1 rounded-xl border border-slate-200/80 bg-slate-100/80 p-1 sm:w-auto"
-              >
-                {DEAL_TYPES.map((item) => {
-                  const active = dealType === item.value;
-
-                  return (
-                    <button
-                      key={item.value}
-                      type="button"
-                      role="tab"
-                      aria-selected={active}
-                      onClick={() => handleDealTypeChange(item.value)}
-                      className={`min-h-[42px] flex-1 rounded-lg px-4 py-2.5 text-sm font-semibold transition sm:flex-none sm:min-w-[6.5rem] ${
-                        active
-                          ? "bg-sun text-white shadow-sm"
-                          : "text-slate-600 hover:bg-white hover:text-slate-900"
-                      }`}
-                    >
-                      {item.label}
-                    </button>
-                  );
-                })}
-              </div>
+            <div className="rounded-2xl bg-white p-4 text-ink-900 shadow-md md:p-5">
+              <DealTypeGroup
+                value={dealType}
+                onChange={handleDealTypeChange}
+                label={t("realestate.dealType")}
+              />
 
               <form onSubmit={submit}>
                 <RealEstateDailySearchBar
@@ -424,139 +426,128 @@ export default function RealEstateSearchHero({
               </form>
             </div>
           ) : (
-            <div className="rounded-2xl bg-white p-4 text-slate-900 shadow-xl ring-1 ring-slate-900/5 md:p-5">
-              <div
-                role="tablist"
-                aria-label={t("realestate.dealType")}
-                className="mb-4 inline-flex w-full gap-1 rounded-xl border border-slate-200/80 bg-slate-100/80 p-1 sm:w-auto"
-              >
-                {DEAL_TYPES.map((item) => {
-                  const active = dealType === item.value;
-
-                  return (
-                    <button
-                      key={item.value}
-                      type="button"
-                      role="tab"
-                      aria-selected={active}
-                      onClick={() => handleDealTypeChange(item.value)}
-                      className={`min-h-[42px] flex-1 rounded-lg px-4 py-2.5 text-sm font-semibold transition sm:flex-none sm:min-w-[6.5rem] ${
-                        active
-                          ? "bg-sun text-white shadow-sm"
-                          : "text-slate-600 hover:bg-white hover:text-slate-900"
-                      }`}
-                    >
-                      {item.label}
-                    </button>
-                  );
-                })}
-              </div>
+            <div className="rounded-2xl bg-white p-4 text-ink-900 shadow-md md:p-5">
+              <DealTypeGroup
+                value={dealType}
+                onChange={handleDealTypeChange}
+                label={t("realestate.dealType")}
+              />
 
               <form onSubmit={submit} className="space-y-4">
-              <div
-                className={`grid grid-cols-1 gap-3 sm:grid-cols-2 ${
-                  showRooms ? "lg:grid-cols-4" : "lg:grid-cols-3"
-                }`}
-              >
-                {!listingPage && (
-                <label className="block min-w-0">
-                  <span className={FIELD_LABEL}>{t("realestate.city")}</span>
-                  <div className="relative">
-                    <MapPin
-                      size={15}
-                      className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 z-10"
-                    />
-                    <RealEstateCitySelect
-                      value={city}
-                      onChange={(e) => handleCityChange(e.target.value)}
-                      className={`${FIELD_CONTROL} pl-9 pr-9`}
-                    />
-                    <ChevronDown
-                      size={15}
-                      className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"
+                <div role="group" aria-labelledby={filtersLabelId}>
+                  <h2 id={filtersLabelId} className="sr-only">
+                    {t("realestate.searchParams")}
+                  </h2>
+
+                  <div
+                    className={cn(
+                      "grid grid-cols-1 gap-3 sm:grid-cols-2",
+                      showRooms ? "lg:grid-cols-4" : "lg:grid-cols-3"
+                    )}
+                  >
+                    {!listingPage && (
+                      <Field label={t("realestate.city")}>
+                        {(props) => (
+                          <div className="relative">
+                            <MapPin
+                              size={16}
+                              aria-hidden="true"
+                              className="pointer-events-none absolute left-3 top-1/2 z-10 -translate-y-1/2 text-ink-400"
+                            />
+                            <RealEstateCitySelect
+                              {...props}
+                              value={city}
+                              onChange={(e) => handleCityChange(e.target.value)}
+                              className="select pl-9"
+                            />
+                          </div>
+                        )}
+                      </Field>
+                    )}
+
+                    <Field label={t("realestate.type")}>
+                      {(props) => (
+                        <Select
+                          {...props}
+                          value={subcategory}
+                          onChange={(e) => setSubcategory(e.target.value)}
+                        >
+                          <option value="">{t("realestate.allTypes")}</option>
+                          {Object.keys(SUBCATEGORY_META).map((item) => (
+                            <option key={item} value={item}>
+                              {item}
+                            </option>
+                          ))}
+                        </Select>
+                      )}
+                    </Field>
+
+                    {showRooms && (
+                      <Field label={t("realestate.rooms")}>
+                        {(props) => (
+                          <Select
+                            {...props}
+                            value={rooms}
+                            onChange={(e) => setRooms(e.target.value)}
+                          >
+                            <option value="">{t("realestate.any")}</option>
+                            {ROOM_OPTIONS.map((item) => (
+                              <option key={item} value={item}>
+                                {item}
+                              </option>
+                            ))}
+                          </Select>
+                        )}
+                      </Field>
+                    )}
+
+                    <HeroPriceFilter
+                      dealType={dealType}
+                      priceFrom={priceFrom}
+                      priceTo={priceTo}
+                      priceCurrency={priceCurrency}
+                      label={t("realestate.price")}
+                      t={t}
+                      onChange={({
+                        priceFrom: nextFrom,
+                        priceTo: nextTo,
+                        priceCurrency: nextCurrency,
+                      }) => {
+                        setPriceFrom(nextFrom);
+                        setPriceTo(nextTo);
+                        setPriceCurrency(nextCurrency);
+                      }}
                     />
                   </div>
-                </label>
+                </div>
+
+                {!listingPage && !isDaily && (
+                  <RealEstateQuickCollections
+                    city={city}
+                    className="scroll-fade-x border-t border-ink-200 pt-3"
+                  />
                 )}
 
-                <HeroSelect
-                  label={t("realestate.type")}
-                  value={subcategory}
-                  onChange={(e) => setSubcategory(e.target.value)}
-                >
-                  <option value="">{t("realestate.allTypes")}</option>
-                  {Object.keys(SUBCATEGORY_META).map((item) => (
-                    <option key={item} value={item}>
-                      {item}
-                    </option>
-                  ))}
-                </HeroSelect>
+                {!listingPage && (
+                  <div className="flex flex-col gap-3 border-t border-ink-200 pt-4 sm:flex-row">
+                    <Button type="submit" variant="primary" size="lg" icon={Search} block>
+                      {submitLabel}
+                    </Button>
 
-                {showRooms && (
-                  <HeroSelect
-                    label={t("realestate.rooms")}
-                    value={rooms}
-                    onChange={(e) => setRooms(e.target.value)}
-                  >
-                    <option value="">{t("realestate.any")}</option>
-                    {ROOM_OPTIONS.map((item) => (
-                      <option key={item} value={item}>
-                        {item}
-                      </option>
-                    ))}
-                  </HeroSelect>
+                    <Button
+                      size="lg"
+                      icon={SlidersHorizontal}
+                      block
+                      onClick={() => setMoreOpen(true)}
+                      className={cn(
+                        "sm:w-auto sm:min-w-[10.5rem]",
+                        hasActiveFilters && "border-sun-300 ring-1 ring-sun-100"
+                      )}
+                    >
+                      {t("realestate.moreFilters")}
+                    </Button>
+                  </div>
                 )}
-
-                <HeroPriceFilter
-                  dealType={dealType}
-                  priceFrom={priceFrom}
-                  priceTo={priceTo}
-                  priceCurrency={priceCurrency}
-                  label={t("realestate.price")}
-                  t={t}
-                  onChange={({
-                    priceFrom: nextFrom,
-                    priceTo: nextTo,
-                    priceCurrency: nextCurrency,
-                  }) => {
-                    setPriceFrom(nextFrom);
-                    setPriceTo(nextTo);
-                    setPriceCurrency(nextCurrency);
-                  }}
-                />
-              </div>
-
-              {!listingPage && !isDaily && (
-                <RealEstateQuickCollections
-                  city={city}
-                  className="border-t border-slate-100 pt-3 scroll-fade-x"
-                />
-              )}
-
-              {!listingPage && (
-              <div className="flex flex-col gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:items-stretch">
-                <button
-                  type="submit"
-                  className="mobile-btn min-h-[46px] flex-1 bg-sun font-bold text-white shadow-sm hover:bg-sun-600"
-                >
-                  <Search size={18} />
-                  {submitLabel}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setMoreOpen(true)}
-                  className={`mobile-btn min-h-[46px] border bg-white font-semibold text-slate-700 hover:bg-slate-50 sm:min-w-[10.5rem] ${
-                    hasActiveFilters
-                      ? "border-sun/40 ring-1 ring-sun/15"
-                      : "border-slate-200"
-                  }`}
-                >
-                  <SlidersHorizontal size={18} />
-                  {t("realestate.moreFilters")}
-                </button>
-              </div>
-              )}
               </form>
             </div>
           )}
@@ -564,20 +555,20 @@ export default function RealEstateSearchHero({
       </section>
 
       {!listingPage && (
-      <RealEstateMoreFiltersModal
-        open={moreOpen}
-        onClose={() => setMoreOpen(false)}
-        dealType={dealType}
-        city={city}
-        subcategory={subcategory}
-        rooms={rooms}
-        guests={guests}
-        checkIn={checkIn}
-        checkOut={checkOut}
-        priceFrom={priceFrom}
-        priceTo={priceTo}
-        onNavigate={(url) => nav(url)}
-      />
+        <RealEstateMoreFiltersModal
+          open={moreOpen}
+          onClose={() => setMoreOpen(false)}
+          dealType={dealType}
+          city={city}
+          subcategory={subcategory}
+          rooms={rooms}
+          guests={guests}
+          checkIn={checkIn}
+          checkOut={checkOut}
+          priceFrom={priceFrom}
+          priceTo={priceTo}
+          onNavigate={(url) => nav(url)}
+        />
       )}
     </>
   );
