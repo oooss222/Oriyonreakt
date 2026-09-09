@@ -1,6 +1,6 @@
 import React from "react";
-import { Link } from "react-router-dom";
-import { PlusCircle } from "lucide-react";
+import { Heart, PlusCircle } from "lucide-react";
+import { EmptyState } from "../../ui";
 import ProfileListingCard from "./ProfileListingCard";
 import { getId } from "./profileUtils";
 import { useI18n } from "../../i18n";
@@ -20,50 +20,27 @@ export default React.memo(function ProfileListingsGrid({
   const { t } = useI18n();
 
   if (!items?.length) {
+    const favorites = tab === "fav";
+
     return (
-      <div className="rounded-3xl border bg-white p-10 text-center">
-        <div className="mx-auto w-14 h-14 rounded-2xl bg-sun-50 grid place-items-center mb-3">
-          <PlusCircle className="text-sun" size={26} />
-        </div>
-
-        <div className="text-slate-800 font-semibold mb-1">
-          {tab === "fav" ? t("favorites.empty") : t("empty.noMyListings")}
-        </div>
-
-        <div className="text-sm text-slate-500 mb-4">
-          {tab === "fav"
-            ? t("favorites.emptyHint")
-            : t("empty.noMyListingsHint")}
-        </div>
-
-        {tab === "my" ? (
-          <Link
-            to="/add"
-            className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-sun text-white hover:bg-sun-600 transition"
-          >
-            <PlusCircle size={18} />
-            {t("empty.postListing")}
-          </Link>
-        ) : (
-          <Link
-            to="/"
-            className="inline-flex items-center gap-2 px-5 py-3 rounded-xl border hover:bg-slate-50 transition"
-          >
-            {t("empty.goHome")}
-          </Link>
-        )}
-      </div>
+      <EmptyState
+        bare
+        icon={favorites ? Heart : PlusCircle}
+        title={favorites ? t("favorites.empty") : t("empty.noMyListings")}
+        description={favorites ? t("favorites.emptyHint") : t("empty.noMyListingsHint")}
+        actionLabel={favorites ? t("empty.goHome") : t("empty.postListing")}
+        actionTo={favorites ? "/" : "/add"}
+        actionVariant={favorites ? "secondary" : "primary"}
+      />
     );
   }
 
   return (
     <div
-      className={`grid gap-4 ${
-        compact
+      className={`grid gap-3 sm:gap-4 ${
+        compact || canManage
           ? "grid-cols-1 sm:grid-cols-2 xl:grid-cols-3"
-          : canManage
-            ? "grid-cols-1 sm:grid-cols-2 xl:grid-cols-3"
-            : "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
+          : "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
       }`}
     >
       {items.map((ad) => {

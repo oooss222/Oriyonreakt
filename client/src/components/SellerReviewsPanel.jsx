@@ -1,23 +1,33 @@
 import React from "react";
-import { Star } from "lucide-react";
+import { MessageSquareQuote, Star } from "lucide-react";
+import { Alert, Avatar, Button, Field, SectionCard, Textarea, cn } from "../ui";
+import { useI18n } from "../i18n";
+
+const RATING_VALUES = [1, 2, 3, 4, 5];
 
 export function StarRating({ value = 0, size = 16, className = "" }) {
+  const { t } = useI18n();
   const rating = Number(value) || 0;
 
   return (
-    <div className={`inline-flex items-center gap-0.5 ${className}`}>
-      {Array.from({ length: 5 }).map((_, index) => {
-        const filled = index + 1 <= Math.round(rating);
-
-        return (
-          <Star
-            key={index}
-            size={size}
-            className={filled ? "fill-amber-400 text-amber-400" : "text-slate-300"}
-          />
-        );
-      })}
-    </div>
+    <span
+      role="img"
+      aria-label={t("seller.ratingValue", { value: rating.toFixed(1) })}
+      className={cn("inline-flex items-center gap-0.5", className)}
+    >
+      {RATING_VALUES.map((star) => (
+        <Star
+          key={star}
+          size={size}
+          aria-hidden="true"
+          className={
+            star <= Math.round(rating)
+              ? "fill-warning-400 text-warning-400"
+              : "text-ink-300"
+          }
+        />
+      ))}
+    </span>
   );
 }
 
@@ -30,6 +40,8 @@ export default function SellerReviewsPanel({
   items = [],
   onSubmitted,
 }) {
+  const { t } = useI18n();
+  const ratingName = React.useId();
   const [rating, setRating] = React.useState(5);
   const [comment, setComment] = React.useState("");
   const [loading, setLoading] = React.useState(false);
@@ -39,7 +51,7 @@ export default function SellerReviewsPanel({
     event.preventDefault();
 
     if (!token) {
-      setError("Войдите, чтобы оставить отзыв");
+      setError(t("seller.reviewNeedAuth"));
       return;
     }
 
@@ -58,94 +70,119 @@ export default function SellerReviewsPanel({
       setComment("");
       onSubmitted?.(result);
     } catch (e) {
-      setError(e.message || "Не удалось сохранить отзыв");
+      setError(e.message || t("seller.reviewFailed"));
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="rounded-2xl border bg-white p-4 md:p-5 space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <div className="text-lg font-semibold text-slate-900">Отзывы о продавце</div>
-          <div className="flex items-center gap-2 mt-1">
-            <StarRating value={summary.average} />
-            <span className="text-sm text-slate-600">
-              {Number(summary.average || 0).toFixed(1)} · {summary.count || 0} отзывов
-            </span>
-          </div>
-        </div>
+    <SectionCard
+      title={t("seller.reviewsTitle")}
+      icon={MessageSquareQuote}
+      bodyClassName="space-y-4"
+    >
+      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+        <span className="font-display text-3xl font-extrabold tabular-nums text-ink-900">
+          {Number(summary.average || 0).toFixed(1)}
+        </span>
+        <StarRating value={summary.average} className="self-center" />
+        <span className="text-sm text-ink-400">
+          {t("seller.reviewsCount", { count: summary.count || 0 })}
+        </span>
       </div>
 
       {canReview && (
-        <form onSubmit={submit} className="rounded-2xl border bg-slate-50 p-4 space-y-3">
-          <div className="text-sm font-medium text-slate-800">Оставить отзыв</div>
+        <form onSubmit={submit} className="surface-muted space-y-4 p-4">
+          <h3 className="text-sm font-bold text-ink-900">{t("seller.reviewFormTitle")}</h3>
 
-          <div className="flex items-center gap-2">
-            {[1, 2, 3, 4, 5].map((value) => (
-              <button
-                key={value}
-                type="button"
-                onClick={() => setRating(value)}
-                className={`rounded-lg px-2 py-1 text-sm border ${
-                  rating >= value
-                    ? "bg-amber-100 border-amber-300 text-amber-800"
-                    : "bg-white border-slate-200 text-slate-500"
-                }`}
-              >
-                {value}
-              </button>
-            ))}
-          </div>
+          <fieldset>
+            <legend className="field-label">{t("seller.reviewRating")}</legend>
 
-          <textarea
-            value={comment}
-            onChange={(e) => setComment(e.target.value)}
-            placeholder="Расскажите о сделке..."
-            className="input w-full min-h-[90px]"
-          />
-
-          {error && (
-            <div className="rounded-xl border border-red-200 bg-red-50 text-red-700 p-3 text-sm">
-              {error}
+            <div className="flex items-center gap-1">
+              {RATING_VALUES.map((value) => (
+                <label
+                  key={value}
+                  className="grid min-h-[2.75rem] min-w-[2.75rem] cursor-pointer place-items-center"
+                >
+                  <input
+                    type="radio"
+                    name={ratingName}
+                    value={value}
+                    checked={rating === value}
+                    onChange={() => setRating(value)}
+                    className="peer sr-only"
+                  />
+                  <Star
+                    size={26}
+                    aria-hidden="true"
+                    className={cn(
+                      "rounded transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-sun/50 peer-focus-visible:ring-offset-2",
+                      value <= rating ? "fill-warning-400 text-warning-400" : "text-ink-300"
+                    )}
+                  />
+                  <span className="sr-only">
+                    {t("seller.ratingOption", { value })}
+                  </span>
+                </label>
+              ))}
             </div>
-          )}
+          </fieldset>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="btn btn-primary rounded-xl disabled:opacity-60"
-          >
-            {loading ? "Отправляем..." : "Отправить отзыв"}
-          </button>
+          <Field label={t("seller.reviewComment")} hint={t("seller.reviewCommentHint")}>
+            {(field) => (
+              <Textarea
+                {...field}
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                placeholder={t("seller.reviewPlaceholder")}
+                rows={4}
+              />
+            )}
+          </Field>
+
+          {error && <Alert tone="danger">{error}</Alert>}
+
+          <Button type="submit" variant="primary" loading={loading}>
+            {loading ? t("seller.reviewSubmitting") : t("seller.reviewSubmit")}
+          </Button>
         </form>
       )}
 
-      <div className="space-y-3">
-        {items.length === 0 ? (
-          <div className="text-sm text-slate-500">Пока нет отзывов.</div>
-        ) : (
-          items.map((item) => (
-            <div key={item.id} className="rounded-xl border bg-slate-50 p-3">
-              <div className="flex items-center justify-between gap-3">
-                <div className="font-medium text-slate-900">
-                  {item.reviewerName || "Покупатель"}
+      {items.length === 0 ? (
+        <p className="py-6 text-center text-sm text-ink-400">{t("seller.reviewsEmpty")}</p>
+      ) : (
+        <ul className="space-y-3">
+          {items.map((item) => {
+            const name = item.reviewerName || t("seller.reviewer");
+
+            return (
+              <li key={item.id} className="surface-muted p-3">
+                <div className="flex items-center gap-3">
+                  <Avatar name={name} size="sm" rounded="rounded-full" />
+
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold text-ink-900">{name}</p>
+                    <p className="text-xs text-ink-400">
+                      {item.createdAt
+                        ? new Date(item.createdAt).toLocaleDateString("ru-RU")
+                        : ""}
+                    </p>
+                  </div>
+
+                  <StarRating value={item.rating} size={14} className="shrink-0" />
                 </div>
-                <StarRating value={item.rating} size={14} />
-              </div>
-              {item.comment && (
-                <div className="text-sm text-slate-600 mt-2">{item.comment}</div>
-              )}
-              <div className="text-xs text-slate-400 mt-2">
-                {item.createdAt
-                  ? new Date(item.createdAt).toLocaleDateString("ru-RU")
-                  : ""}
-              </div>
-            </div>
-          ))
-        )}
-      </div>
-    </div>
+
+                {item.comment && (
+                  <p className="mt-2 text-sm leading-relaxed text-ink-600 break-anywhere">
+                    {item.comment}
+                  </p>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </SectionCard>
   );
 }

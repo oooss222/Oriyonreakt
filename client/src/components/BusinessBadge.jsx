@@ -1,6 +1,8 @@
 import React from "react";
 import { BadgeCheck, Building2 } from "lucide-react";
+import { Badge } from "../ui";
 import { sellerTypeLabel } from "../lib/businessAccount";
+import { useI18n } from "../i18n";
 
 export default function BusinessBadge({
   sellerType,
@@ -8,32 +10,25 @@ export default function BusinessBadge({
   size = "sm",
   className = "",
 }) {
+  const { t } = useI18n();
+
   if (sellerType !== "company") {
     return null;
   }
 
-  const sizeClasses =
-    size === "lg"
-      ? "px-3 py-1 text-sm gap-1.5"
-      : "px-2 py-0.5 text-2xs gap-1";
+  const sizeClass = size === "lg" ? "px-2.5 py-1 text-xs" : "";
 
   if (businessVerified) {
     return (
-      <span
-        className={`inline-flex items-center rounded-md font-semibold bg-lagoon/10 text-lagoon-700 border border-lagoon/15 ${sizeClasses} ${className}`}
-      >
-        <BadgeCheck className={size === "lg" ? "w-4 h-4" : "w-3 h-3"} />
-        Проверенный премиум
-      </span>
+      <Badge tone="info" icon={BadgeCheck} className={`${sizeClass} ${className}`}>
+        {t("business.verifiedBadge")}
+      </Badge>
     );
   }
 
   return (
-    <span
-      className={`inline-flex items-center rounded-md font-semibold bg-mist text-ink-600 border border-ink/8 ${sizeClasses} ${className}`}
-    >
-      <Building2 className={size === "lg" ? "w-4 h-4" : "w-3 h-3"} />
+    <Badge tone="neutral" icon={Building2} className={`${sizeClass} ${className}`}>
       {sellerTypeLabel("company")}
-    </span>
+    </Badge>
   );
 }

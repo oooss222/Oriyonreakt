@@ -9,31 +9,36 @@ export default function Breadcrumbs({ items = [] }) {
   if (!items.length) return null;
 
   return (
-    <nav
-      aria-label={t("a11y.breadcrumbs")}
-      className="flex flex-wrap items-center gap-1 text-sm text-slate-500"
-    >
-      {items.map((item, index) => {
-        const isLast = index === items.length - 1;
+    <nav aria-label={t("a11y.breadcrumbs")}>
+      <ol className="flex flex-wrap items-center gap-1 text-sm text-ink-400">
+        {items.map((item, index) => {
+          const isLast = index === items.length - 1;
 
-        return (
-          <React.Fragment key={`${item.label}-${index}`}>
-            {index > 0 && (
-              <ChevronRight size={14} className="shrink-0 text-slate-400" />
-            )}
+          return (
+            <li key={`${item.label}-${index}`} className="flex items-center gap-1">
+              {index > 0 && (
+                <ChevronRight size={14} className="shrink-0 text-ink-300" aria-hidden="true" />
+              )}
 
-            {item.to && !isLast ? (
-              <Link to={item.to} className="hover:text-sun transition">
-                {item.label}
-              </Link>
-            ) : (
-              <span className={isLast ? "text-slate-700 font-medium" : ""}>
-                {item.label}
-              </span>
-            )}
-          </React.Fragment>
-        );
-      })}
+              {item.to && !isLast ? (
+                <Link
+                  to={item.to}
+                  className="rounded transition-colors hover:text-sun-700"
+                >
+                  {item.label}
+                </Link>
+              ) : (
+                <span
+                  aria-current={isLast ? "page" : undefined}
+                  className={isLast ? "font-medium text-ink-700" : undefined}
+                >
+                  {item.label}
+                </span>
+              )}
+            </li>
+          );
+        })}
+      </ol>
     </nav>
   );
 }

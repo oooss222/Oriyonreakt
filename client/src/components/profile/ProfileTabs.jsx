@@ -10,43 +10,21 @@ import {
   LayoutGrid,
   BarChart3,
 } from "lucide-react";
+import { cn } from "../../ui";
 import { useI18n } from "../../i18n";
 
-function TabButton({ active, onClick, children, icon: Icon }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`inline-flex shrink-0 items-center gap-2 px-3 sm:px-4 py-3 text-sm font-semibold border-b-2 transition snap-start ${
-        active
-          ? "border-sun text-sun"
-          : "border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-200"
-      }`}
-    >
-      {Icon && <Icon size={16} className={active ? "text-sun" : "text-slate-400"} />}
-      {children}
-    </button>
-  );
-}
-
-function TabLink({ to, children, icon: Icon }) {
-  return (
-    <Link
-      to={to}
-      className="inline-flex shrink-0 items-center gap-2 px-3 sm:px-4 py-3 text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-200 transition snap-start"
-    >
-      {Icon && <Icon size={16} className="text-slate-400" />}
-      {children}
-    </Link>
-  );
-}
+const TAB_CLASS =
+  "inline-flex min-h-[2.75rem] shrink-0 snap-start items-center gap-2 border-b-2 px-3 py-2 " +
+  "text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 " +
+  "focus-visible:ring-sun/50 focus-visible:ring-offset-1";
 
 function CountBadge({ count, active }) {
   return (
     <span
-      className={`min-w-[1.35rem] rounded-full px-1.5 py-0.5 text-2xs font-bold text-center tabular-nums ${
-        active ? "bg-sun/15 text-sun" : "bg-slate-100 text-slate-600"
-      }`}
+      className={cn(
+        "inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full px-1.5 text-2xs font-bold tabular-nums",
+        active ? "bg-sun-100 text-sun-800" : "bg-mist-200 text-ink-500"
+      )}
     >
       {count}
     </span>
@@ -64,57 +42,121 @@ export default function ProfileTabs({
   role,
 }) {
   const { t } = useI18n();
+  const listRef = React.useRef(null);
+
+  const items = [
+    { value: "my", label: t("profile.myListings"), icon: LayoutGrid, count: myCount },
+    { value: "fav", label: t("profile.favorites"), icon: FolderHeart, count: favCount },
+    { value: "searches", label: t("profile.searches"), icon: Bookmark },
+    { value: "analytics", label: t("profile.analytics"), icon: BarChart3 },
+    { value: "profile", label: t("profile.profile"), icon: UserIcon },
+  ];
+
+  if (canOpenModeration) {
+    items.push({
+      value: "moderation",
+      label: t("profile.moderation"),
+      icon: ClipboardCheck,
+    });
+  }
+
+  if (canOpenAdmin) {
+    const accountant = canAccessAccountant(role);
+    items.push({
+      value: "admin",
+      label: accountant ? t("profile.finance") : t("profile.admin"),
+      icon: accountant ? Wallet : Shield,
+      to: accountant ? "/admin?section=finance" : "/admin",
+    });
+  }
+
+  // The wallet and promotion panels are opened from the profile header and have
+  // no tab of their own, so the strip keeps one reachable stop regardless.
+  const selectedIndex = items.findIndex((item) => item.value === tab);
+  const stopIndex = selectedIndex === -1 ? 0 : selectedIndex;
+
+  const onKeyDown = (event) => {
+    const keys = ["ArrowLeft", "ArrowRight", "Home", "End"];
+    if (!keys.includes(event.key)) return;
+
+    const tabs = Array.from(listRef.current?.querySelectorAll("[role='tab']") || []);
+    const current = tabs.indexOf(document.activeElement);
+    if (current === -1) return;
+
+    event.preventDefault();
+
+    const next =
+      event.key === "Home"
+        ? 0
+        : event.key === "End"
+          ? tabs.length - 1
+          : (current + (event.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length;
+
+    tabs[next]?.focus();
+  };
 
   return (
-    <div className="rounded-2xl border border-slate-200/80 bg-white px-1 sm:px-2 shadow-sm">
+    <div className="card overflow-hidden">
       <div
+        ref={listRef}
         role="tablist"
-        className="flex gap-0.5 overflow-x-auto scrollbar-hide snap-x snap-mandatory border-b border-slate-100"
+        aria-label={t("profile.tabsLabel")}
+        onKeyDown={onKeyDown}
+        className="flex gap-1 snap-x overflow-x-auto px-3 scroll-px-3 scrollbar-none"
       >
-        <TabButton active={tab === "my"} onClick={() => setTab("my")} icon={LayoutGrid}>
-          {t("profile.myListings")}
-          <CountBadge count={myCount} active={tab === "my"} />
-        </TabButton>
+        {items.map((item, index) => {
+          const active = item.value === tab;
+          const Icon = item.icon;
 
-        <TabButton active={tab === "fav"} onClick={() => setTab("fav")} icon={FolderHeart}>
-          {t("profile.favorites")}
-          <CountBadge count={favCount} active={tab === "fav"} />
-        </TabButton>
+          const content = (
+            <>
+              <Icon
+                size={16}
+                strokeWidth={2.1}
+                aria-hidden="true"
+                className={active ? "text-sun-600" : "text-ink-400"}
+              />
+              <span className="whitespace-nowrap">{item.label}</span>
+              {item.count != null && <CountBadge count={item.count} active={active} />}
+            </>
+          );
 
-        <TabButton active={tab === "searches"} onClick={() => setTab("searches")} icon={Bookmark}>
-          {t("profile.searches")}
-        </TabButton>
+          const classes = cn(
+            TAB_CLASS,
+            active
+              ? "border-sun-500 text-ink-900"
+              : "border-transparent text-ink-500 hover:border-ink-300 hover:text-ink-900"
+          );
 
-        <TabButton
-          active={tab === "analytics"}
-          onClick={() => setTab("analytics")}
-          icon={BarChart3}
-        >
-          {t("profile.analytics")}
-        </TabButton>
+          if (item.to) {
+            return (
+              <Link
+                key={item.value}
+                to={item.to}
+                role="tab"
+                aria-selected={false}
+                tabIndex={index === stopIndex ? 0 : -1}
+                className={classes}
+              >
+                {content}
+              </Link>
+            );
+          }
 
-        <TabButton active={tab === "profile"} onClick={() => setTab("profile")} icon={UserIcon}>
-          {t("profile.profile")}
-        </TabButton>
-
-        {canOpenModeration && (
-          <TabButton
-            active={tab === "moderation"}
-            onClick={() => setTab("moderation")}
-            icon={ClipboardCheck}
-          >
-            {t("profile.moderation")}
-          </TabButton>
-        )}
-
-        {canOpenAdmin && (
-          <TabLink
-            to={canAccessAccountant(role) ? "/admin?section=finance" : "/admin"}
-            icon={canAccessAccountant(role) ? Wallet : Shield}
-          >
-            {canAccessAccountant(role) ? t("profile.finance") : t("profile.admin")}
-          </TabLink>
-        )}
+          return (
+            <button
+              key={item.value}
+              type="button"
+              role="tab"
+              aria-selected={active}
+              tabIndex={index === stopIndex ? 0 : -1}
+              onClick={() => setTab(item.value)}
+              className={classes}
+            >
+              {content}
+            </button>
+          );
+        })}
       </div>
     </div>
   );

@@ -2,6 +2,8 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Building2, MessageCircle, ChevronRight } from "lucide-react";
 import { openBusinessSupportChat } from "../lib/openBusinessSupportChat";
+import { Alert, Button } from "../ui";
+import { useI18n } from "../i18n";
 
 const TOKEN_KEY = "auth_token";
 const USER_KEY = "auth_user";
@@ -11,6 +13,7 @@ export default function BusinessPromoBanner({
   hideForCompany = true,
   sellerType: sellerTypeProp,
 }) {
+  const { t } = useI18n();
   const nav = useNavigate();
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState("");
@@ -42,7 +45,7 @@ export default function BusinessPromoBanner({
       const token = localStorage.getItem(TOKEN_KEY) || "";
       await openBusinessSupportChat({ nav, token });
     } catch (e) {
-      setError(e.message || "Не удалось открыть чат");
+      setError(e.message || t("business.chatFailed"));
     } finally {
       setLoading(false);
     }
@@ -50,46 +53,43 @@ export default function BusinessPromoBanner({
 
   return (
     <section
-      className={`surface-panel overflow-hidden relative ${className}`}
+      className={`surface-panel relative overflow-hidden ${className}`}
       aria-label="Oriyon Premium"
     >
-      <div
-        className="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-sun to-lagoon"
-        aria-hidden="true"
-      />
+      <div className="absolute inset-y-0 left-0 w-1 bg-sun-500" aria-hidden="true" />
 
-      <div className="p-4 md:p-5 pl-5 md:pl-6">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-sun-50 ring-1 ring-sun/15 grid place-items-center shrink-0">
-            <Building2 className="text-sun" size={22} />
-          </div>
+      <div className="p-4 pl-5 sm:p-5 sm:pl-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+          <span className="icon-box-sun h-12 w-12 shrink-0">
+            <Building2 size={22} aria-hidden="true" />
+          </span>
 
-          <div className="flex-1 min-w-0">
-            <div className="text-2xs font-bold uppercase tracking-wide text-sun-700">
-              Oriyon Premium
-            </div>
-            <h3 className="font-display font-bold text-lg text-ink mt-0.5">
-              Продавайте с премиум-аккаунтом
+          <div className="min-w-0 flex-1">
+            <p className="label-caps text-sun-700">Oriyon Premium</p>
+            <h3 className="mt-0.5 font-display text-lg font-bold text-ink-900">
+              {t("business.promoTitle")}
             </h3>
-            <p className="text-sm text-ink-400 mt-1 leading-relaxed">
-              Логотип, Instagram, адреса магазинов и автообновление дат
-              объявлений. Напишите администратору — обсудите подключение в чате.
+            <p className="mt-1 text-sm leading-relaxed text-ink-500">
+              {t("business.promoDesc")}
             </p>
             {error && (
-              <p className="text-xs text-red-600 mt-2">{error}</p>
+              <Alert tone="danger" className="mt-3">
+                {error}
+              </Alert>
             )}
           </div>
 
-          <button
-            type="button"
+          <Button
+            variant="primary"
+            size="lg"
+            icon={MessageCircle}
+            iconRight={loading ? undefined : ChevronRight}
+            loading={loading}
             onClick={handleClick}
-            disabled={loading}
-            className="btn btn-primary shrink-0 w-full sm:w-auto justify-center py-3 px-5 disabled:opacity-60"
+            className="w-full shrink-0 sm:w-auto"
           >
-            <MessageCircle size={18} />
-            {loading ? "Открываем чат…" : "Написать администратору"}
-            {!loading && <ChevronRight size={18} className="opacity-80" />}
-          </button>
+            {loading ? t("business.openingChat") : t("business.contactAdmin")}
+          </Button>
         </div>
       </div>
     </section>

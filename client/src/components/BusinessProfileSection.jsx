@@ -4,10 +4,12 @@ import {
   BadgeCheck,
   Building2,
   Clock3,
+  Crown,
+  Eye,
   Globe,
   Instagram,
+  LayoutGrid,
   MapPin,
-  Crown,
   MessageCircle,
   RefreshCw,
   Upload,
@@ -15,6 +17,17 @@ import {
 import { api } from "../lib/api";
 import { openBusinessSupportChat } from "../lib/openBusinessSupportChat";
 import BusinessBadge from "./BusinessBadge";
+import {
+  Alert,
+  Button,
+  Checkbox,
+  Field,
+  Input,
+  SectionCard,
+  Skeleton,
+  Textarea,
+  useToast,
+} from "../ui";
 import { useI18n, getBusinessBenefits } from "../i18n";
 import {
   formatAutoBumpInterval,
@@ -35,9 +48,28 @@ function formatDateTime(value, t) {
   });
 }
 
+function StatTile({ icon: Icon, label, value, loading }) {
+  return (
+    <div className="surface-muted p-4">
+      <p className="flex items-center gap-1.5 text-xs font-medium text-ink-400">
+        <Icon size={14} aria-hidden="true" />
+        {label}
+      </p>
+      {loading ? (
+        <Skeleton className="mt-2 h-7 w-20" />
+      ) : (
+        <p className="mt-1 font-display text-2xl font-extrabold tabular-nums text-ink-900">
+          {value}
+        </p>
+      )}
+    </div>
+  );
+}
+
 export default function BusinessProfileSection({ token, me, onUpdated }) {
   const { t } = useI18n();
   const nav = useNavigate();
+  const { showToast } = useToast();
   const [stats, setStats] = React.useState(null);
   const [loadingStats, setLoadingStats] = React.useState(true);
   const [saving, setSaving] = React.useState(false);
@@ -45,8 +77,7 @@ export default function BusinessProfileSection({ token, me, onUpdated }) {
   const [bumpingAll, setBumpingAll] = React.useState(false);
   const [contactLoading, setContactLoading] = React.useState(false);
   const [uploadingLogo, setUploadingLogo] = React.useState(false);
-  const [error, setError] = React.useState("");
-  const [success, setSuccess] = React.useState("");
+  const [nameError, setNameError] = React.useState("");
 
   const isCompany = isCompanyAccount(me);
 
@@ -79,6 +110,9 @@ export default function BusinessProfileSection({ token, me, onUpdated }) {
     });
   }, [me]);
 
+  const setField = (key, value) =>
+    setForm((current) => ({ ...current, [key]: value }));
+
   const reloadStats = React.useCallback(() => {
     if (!token) return;
 
@@ -101,15 +135,15 @@ export default function BusinessProfileSection({ token, me, onUpdated }) {
   const saveBusinessProfile = async () => {
     if (!isCompany) return;
 
-    setError("");
-    setSuccess("");
+    if (!form.companyName.trim()) {
+      setNameError(t("business.companyRequired"));
+      return;
+    }
+
+    setNameError("");
     setSaving(true);
 
     try {
-      if (!form.companyName.trim()) {
-        throw new Error(t("business.companyRequired"));
-      }
-
       const updated = await api.updateMe(token, {
         companyName: form.companyName.trim(),
         companyDescription: form.companyDescription.trim(),
@@ -120,9 +154,9 @@ export default function BusinessProfileSection({ token, me, onUpdated }) {
       });
 
       onUpdated?.(updated);
-      setSuccess(t("business.profileSaved"));
+      showToast(t("business.profileSaved"), "success");
     } catch (e) {
-      setError(e.message || t("business.saveFailed"));
+      showToast(e.message || t("business.saveFailed"), "error");
     } finally {
       setSaving(false);
     }
@@ -131,14 +165,10 @@ export default function BusinessProfileSection({ token, me, onUpdated }) {
   const saveAutoBumpSettings = async () => {
     if (!isCompany) return;
 
-    setError("");
-    setSuccess("");
     setSavingAutoBump(true);
 
     try {
-      const intervalHours = normalizeAutoBumpIntervalHours(
-        autoBumpForm.intervalHours
-      );
+      const intervalHours = normalizeAutoBumpIntervalHours(autoBumpForm.intervalHours);
 
       const updated = await api.updateMe(token, {
         listingAutoBumpEnabled: autoBumpForm.enabled,
@@ -147,15 +177,16 @@ export default function BusinessProfileSection({ token, me, onUpdated }) {
 
       onUpdated?.(updated);
       reloadStats();
-      setSuccess(
+      showToast(
         autoBumpForm.enabled
           ? t("business.autoBumpOn", {
               interval: formatAutoBumpInterval(autoBumpForm.intervalHours),
             })
-          : t("business.autoBumpOff")
+          : t("business.autoBumpOff"),
+        "success"
       );
     } catch (e) {
-      setError(e.message || t("business.autoBumpSaveFailed"));
+      showToast(e.message || t("business.autoBumpSaveFailed"), "error");
     } finally {
       setSavingAutoBump(false);
     }
@@ -164,33 +195,31 @@ export default function BusinessProfileSection({ token, me, onUpdated }) {
   const bumpAllListingsNow = async () => {
     if (!isCompany) return;
 
-    setError("");
-    setSuccess("");
     setBumpingAll(true);
 
     try {
       const result = await api.bumpAllListings(token);
       reloadStats();
-      setSuccess(
+      showToast(
         result?.updatedCount
           ? t("business.bumpedCount", { count: result.updatedCount })
-          : t("business.noActiveToBump")
+          : t("business.noActiveToBump"),
+        "success"
       );
     } catch (e) {
-      setError(e.message || t("business.bumpFailed"));
+      showToast(e.message || t("business.bumpFailed"), "error");
     } finally {
       setBumpingAll(false);
     }
   };
 
   const contactAdmin = async () => {
-    setError("");
     setContactLoading(true);
 
     try {
       await openBusinessSupportChat({ nav, token });
     } catch (e) {
-      setError(e.message || t("business.chatFailed"));
+      showToast(e.message || t("business.chatFailed"), "error");
     } finally {
       setContactLoading(false);
     }
@@ -202,7 +231,6 @@ export default function BusinessProfileSection({ token, me, onUpdated }) {
     if (!file || !token) return;
 
     setUploadingLogo(true);
-    setError("");
 
     try {
       const formData = new FormData();
@@ -214,12 +242,9 @@ export default function BusinessProfileSection({ token, me, onUpdated }) {
         throw new Error(t("business.logoUploadFailed"));
       }
 
-      setForm((current) => ({
-        ...current,
-        companyLogo: urls[0],
-      }));
+      setField("companyLogo", urls[0]);
     } catch (e) {
-      setError(e.message || t("business.logoUploadError"));
+      showToast(e.message || t("business.logoUploadError"), "error");
     } finally {
       setUploadingLogo(false);
       event.target.value = "";
@@ -227,325 +252,280 @@ export default function BusinessProfileSection({ token, me, onUpdated }) {
   };
 
   return (
-    <div className="rounded-3xl border bg-white overflow-hidden">
-      <div className="px-5 py-5 border-b bg-gradient-to-r from-slate-50 to-white">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <div className="inline-flex items-center gap-2 text-sun-700 font-semibold">
-              <Crown size={18} />
-              Oriyon Premium
-            </div>
-            <h2 className="text-xl font-bold mt-2">{t("business.premiumAccount")}</h2>
-            <p className="text-sm text-slate-500 mt-1 max-w-2xl">
-              {t("business.premiumDesc")}
-            </p>
-          </div>
-
-          {isCompany && (
+    <div className="space-y-4">
+      <SectionCard
+        title={t("business.premiumAccount")}
+        description={t("business.premiumDesc")}
+        icon={Crown}
+        action={
+          isCompany ? (
             <BusinessBadge
               sellerType={me?.sellerType}
               businessVerified={me?.businessVerified}
               size="lg"
             />
-          )}
-        </div>
-      </div>
-
-      <div className="p-5 space-y-5">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <div className="rounded-2xl border bg-slate-50 p-4">
-            <div className="text-xs text-slate-500">{t("business.activeListings")}</div>
-            <div className="text-2xl font-bold mt-1">
-              {loadingStats ? "…" : activeListings}
-            </div>
-          </div>
-
-          <div className="rounded-2xl border bg-blue-50 p-4">
-            <div className="text-xs text-blue-700">{t("business.listingViews")}</div>
-            <div className="text-2xl font-bold text-blue-700 mt-1">
-              {loadingStats ? "…" : totalViews.toLocaleString("ru-RU")}
-            </div>
-          </div>
+          ) : null
+        }
+        bodyClassName="space-y-4"
+      >
+        <div className="grid gap-3 sm:grid-cols-2">
+          <StatTile
+            icon={LayoutGrid}
+            label={t("business.activeListings")}
+            value={activeListings.toLocaleString("ru-RU")}
+            loading={loadingStats}
+          />
+          <StatTile
+            icon={Eye}
+            label={t("business.listingViews")}
+            value={totalViews.toLocaleString("ru-RU")}
+            loading={loadingStats}
+          />
         </div>
 
         {!isCompany && (
-          <div className="rounded-2xl border border-dashed border-blue-200 bg-blue-50/50 p-4 space-y-4">
+          <div className="space-y-4">
             <div>
-              <div className="font-semibold text-slate-900">
+              <h3 className="text-sm font-bold text-ink-900">
                 {t("business.benefitsTitle")}
-              </div>
-              <ul className="mt-3 space-y-2 text-sm text-slate-600">
+              </h3>
+              <ul className="mt-3 space-y-2 text-sm text-ink-600">
                 {getBusinessBenefits(t).map((item) => (
                   <li key={item} className="flex items-start gap-2">
-                    <BadgeCheck className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+                    <BadgeCheck
+                      size={16}
+                      aria-hidden="true"
+                      className="mt-0.5 shrink-0 text-info-600"
+                    />
                     {item}
                   </li>
                 ))}
               </ul>
             </div>
 
-            <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+            <Alert tone="info" live={false}>
               {t("business.adminConnect")}
-            </div>
+            </Alert>
 
-            <button
-              type="button"
+            <Button
+              variant="primary"
+              icon={MessageCircle}
+              loading={contactLoading}
               onClick={contactAdmin}
-              disabled={contactLoading}
-              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-blue-600 px-5 py-3 font-semibold text-white hover:bg-blue-700 transition disabled:opacity-60"
             >
-              <MessageCircle size={18} />
               {contactLoading ? t("business.openingChat") : t("business.contactAdmin")}
-            </button>
+            </Button>
           </div>
         )}
 
-        {isCompany && (
-          <div className="space-y-4 pt-2">
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="w-24 h-24 rounded-2xl border bg-slate-50 overflow-hidden grid place-items-center shrink-0">
-                {form.companyLogo ? (
-                  <img
-                    src={form.companyLogo}
-                    alt={t("business.logoAlt")}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <Building2 className="text-slate-300" size={32} />
-                )}
-              </div>
+        {isCompany &&
+          (me?.businessVerified ? (
+            <Alert tone="success" live={false}>
+              {t("business.verified")}
+            </Alert>
+          ) : (
+            <Alert tone="warning" live={false}>
+              {t("business.fillProfile")}
+            </Alert>
+          ))}
+      </SectionCard>
 
-              <div className="flex-1 space-y-3">
-                <label className="block">
-                  <div className="text-sm font-medium mb-2">
-                    {t("business.companyName")}
-                  </div>
-                  <input
-                    className="h-12 rounded-2xl border px-4 w-full outline-none focus:ring-2 focus:ring-blue-300"
+      {isCompany && (
+        <SectionCard
+          title={t("business.profileTitle")}
+          description={t("business.profileDesc")}
+          icon={Building2}
+          bodyClassName="space-y-4"
+        >
+          <div className="flex flex-col gap-4 sm:flex-row">
+            <div className="grid h-24 w-24 shrink-0 place-items-center overflow-hidden rounded-2xl border border-ink-200 bg-mist-50">
+              {form.companyLogo ? (
+                <img
+                  src={form.companyLogo}
+                  alt={t("business.logoAlt")}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <Building2 size={32} className="text-ink-300" aria-hidden="true" />
+              )}
+            </div>
+
+            <div className="flex-1 space-y-3">
+              <Field
+                label={t("business.companyNameLabel")}
+                required
+                error={nameError}
+              >
+                {(field) => (
+                  <Input
+                    {...field}
                     value={form.companyName}
-                    onChange={(e) =>
-                      setForm((current) => ({
-                        ...current,
-                        companyName: e.target.value,
-                      }))
-                    }
+                    onChange={(e) => {
+                      setField("companyName", e.target.value);
+                      if (nameError) setNameError("");
+                    }}
                     placeholder="Oriyon Estate"
                   />
-                </label>
+                )}
+              </Field>
 
-                <label className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border cursor-pointer hover:bg-slate-50 transition">
-                  <Upload size={16} />
-                  {uploadingLogo ? t("business.uploading") : t("business.uploadLogo")}
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={uploadLogo}
-                    disabled={uploadingLogo}
-                  />
-                </label>
-              </div>
+              <label className="btn inline-flex cursor-pointer focus-within:ring-2 focus-within:ring-sun/50 focus-within:ring-offset-2">
+                <Upload size={16} aria-hidden="true" />
+                {uploadingLogo ? t("business.uploading") : t("business.uploadLogo")}
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="sr-only"
+                  onChange={uploadLogo}
+                  disabled={uploadingLogo}
+                />
+              </label>
             </div>
+          </div>
 
-            <label className="block">
-              <div className="text-sm font-medium mb-2">{t("business.aboutCompany")}</div>
-              <textarea
-                className="min-h-[110px] rounded-2xl border px-4 py-3 w-full outline-none focus:ring-2 focus:ring-blue-300"
+          <Field label={t("business.aboutCompany")}>
+            {(field) => (
+              <Textarea
+                {...field}
                 value={form.companyDescription}
-                onChange={(e) =>
-                  setForm((current) => ({
-                    ...current,
-                    companyDescription: e.target.value,
-                  }))
-                }
+                onChange={(e) => setField("companyDescription", e.target.value)}
                 placeholder="Агентство недвижимости, работаем с 2015 года…"
               />
-            </label>
+            )}
+          </Field>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <label className="block md:col-span-2">
-                <div className="text-sm font-medium mb-2 inline-flex items-center gap-1">
-                  <MapPin size={15} />
+          <div className="grid gap-4 md:grid-cols-2">
+            <Field
+              className="md:col-span-2"
+              label={
+                <span className="inline-flex items-center gap-1.5">
+                  <MapPin size={15} aria-hidden="true" />
                   {t("business.storeAddresses")}
-                </div>
-                <textarea
-                  className="min-h-[96px] rounded-2xl border px-4 py-3 w-full outline-none focus:ring-2 focus:ring-blue-300"
+                </span>
+              }
+              hint={t("business.addressesHint")}
+            >
+              {(field) => (
+                <Textarea
+                  {...field}
                   value={form.companyAddress}
-                  onChange={(e) =>
-                    setForm((current) => ({
-                      ...current,
-                      companyAddress: e.target.value,
-                    }))
-                  }
+                  onChange={(e) => setField("companyAddress", e.target.value)}
+                  className="min-h-[6rem]"
                   placeholder={"ул. Рудаки 95, Душанбе\nпр. Рудаки 44, Душанбе"}
                 />
-                <p className="text-xs text-slate-500 mt-1">
-                  {t("business.addressesHint")}
-                </p>
-              </label>
+              )}
+            </Field>
 
-              <label className="block">
-                <div className="text-sm font-medium mb-2 inline-flex items-center gap-1">
-                  <Globe size={15} />
+            <Field
+              label={
+                <span className="inline-flex items-center gap-1.5">
+                  <Globe size={15} aria-hidden="true" />
                   {t("business.website")}
-                </div>
-                <input
-                  className="h-12 rounded-2xl border px-4 w-full outline-none focus:ring-2 focus:ring-blue-300"
+                </span>
+              }
+            >
+              {(field) => (
+                <Input
+                  {...field}
                   value={form.companyWebsite}
-                  onChange={(e) =>
-                    setForm((current) => ({
-                      ...current,
-                      companyWebsite: e.target.value,
-                    }))
-                  }
+                  onChange={(e) => setField("companyWebsite", e.target.value)}
                   placeholder="oriyon.tj"
                 />
-              </label>
+              )}
+            </Field>
 
-              <label className="block">
-                <div className="text-sm font-medium mb-2 inline-flex items-center gap-1">
-                  <Instagram size={15} />
+            <Field
+              label={
+                <span className="inline-flex items-center gap-1.5">
+                  <Instagram size={15} aria-hidden="true" />
                   Instagram
-                </div>
-                <input
-                  className="h-12 rounded-2xl border px-4 w-full outline-none focus:ring-2 focus:ring-blue-300"
+                </span>
+              }
+            >
+              {(field) => (
+                <Input
+                  {...field}
                   value={form.companyInstagram}
-                  onChange={(e) =>
-                    setForm((current) => ({
-                      ...current,
-                      companyInstagram: e.target.value,
-                    }))
-                  }
+                  onChange={(e) => setField("companyInstagram", e.target.value)}
                   placeholder="@oriyon_estate"
                 />
-              </label>
-            </div>
-
-            <div className="rounded-2xl border border-blue-100 bg-blue-50/40 p-4 space-y-4">
-              <div>
-                <div className="font-semibold text-slate-900 inline-flex items-center gap-2">
-                  <RefreshCw size={18} className="text-blue-600" />
-                  {t("business.autoBumpTitle")}
-                </div>
-                <p className="text-sm text-slate-600 mt-1">
-                  {t("business.autoBumpDesc")}
-                </p>
-              </div>
-
-              <label className="flex items-start gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  className="mt-1"
-                  checked={autoBumpForm.enabled}
-                  onChange={(e) =>
-                    setAutoBumpForm((current) => ({
-                      ...current,
-                      enabled: e.target.checked,
-                    }))
-                  }
-                />
-                <span className="text-sm text-slate-700">
-                  {t("business.autoBumpEnable")}
-                </span>
-              </label>
-
-              <label className="block">
-                <div className="text-sm font-medium mb-2 inline-flex items-center gap-1">
-                  <Clock3 size={15} />
-                  {t("business.bumpInterval")}
-                </div>
-                <input
-                  type="number"
-                  min={MIN_AUTO_BUMP_INTERVAL_HOURS}
-                  max={MAX_AUTO_BUMP_INTERVAL_HOURS}
-                  step={1}
-                  className="h-12 rounded-2xl border px-4 w-full outline-none focus:ring-2 focus:ring-blue-300 bg-white"
-                  value={autoBumpForm.intervalHours}
-                  disabled={!autoBumpForm.enabled}
-                  onChange={(e) =>
-                    setAutoBumpForm((current) => ({
-                      ...current,
-                      intervalHours: e.target.value,
-                    }))
-                  }
-                />
-                <p className="text-xs text-slate-500 mt-1">
-                  {t("business.bumpIntervalHint", {
-                    min: MIN_AUTO_BUMP_INTERVAL_HOURS,
-                    max: MAX_AUTO_BUMP_INTERVAL_HOURS,
-                  })}
-                </p>
-              </label>
-
-              <p className="text-xs text-slate-500">
-                {t("business.lastBump")}{" "}
-                {formatDateTime(
-                  stats?.listingAutoBumpLastAt || me?.listingAutoBumpLastAt,
-                  t
-                )}
-                {autoBumpForm.enabled &&
-                  t("business.schedule", {
-                    interval: formatAutoBumpInterval(autoBumpForm.intervalHours),
-                  })}
-              </p>
-
-              <div className="flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  onClick={saveAutoBumpSettings}
-                  disabled={savingAutoBump}
-                  className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition disabled:opacity-60"
-                >
-                  {savingAutoBump ? t("business.saving") : t("business.saveSchedule")}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={bumpAllListingsNow}
-                  disabled={bumpingAll}
-                  className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border bg-white text-sm font-semibold text-slate-700 hover:bg-slate-50 transition disabled:opacity-60"
-                >
-                  <RefreshCw size={16} />
-                  {bumpingAll ? t("business.bumping") : t("business.bumpAllNow")}
-                </button>
-              </div>
-            </div>
-
-            {me?.businessVerified ? (
-              <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700">
-                {t("business.verified")}
-              </div>
-            ) : (
-              <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
-                {t("business.fillProfile")}
-              </div>
-            )}
+              )}
+            </Field>
           </div>
-        )}
 
-        {error && (
-          <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            {error}
-          </div>
-        )}
-
-        {success && (
-          <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-            {success}
-          </div>
-        )}
-
-        {isCompany && (
-          <button
-            type="button"
-            onClick={saveBusinessProfile}
-            disabled={saving}
-            className="inline-flex items-center justify-center px-5 py-3 rounded-2xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition disabled:opacity-60"
-          >
+          <Button variant="primary" loading={saving} onClick={saveBusinessProfile}>
             {saving ? t("business.saving") : t("business.saveProfile")}
-          </button>
-        )}
-      </div>
+          </Button>
+        </SectionCard>
+      )}
+
+      {isCompany && (
+        <SectionCard
+          title={t("business.autoBumpTitle")}
+          description={t("business.autoBumpDesc")}
+          icon={RefreshCw}
+          bodyClassName="space-y-4"
+        >
+          <Checkbox
+            label={t("business.autoBumpEnable")}
+            checked={autoBumpForm.enabled}
+            onChange={(e) =>
+              setAutoBumpForm((current) => ({ ...current, enabled: e.target.checked }))
+            }
+          />
+
+          <Field
+            label={
+              <span className="inline-flex items-center gap-1.5">
+                <Clock3 size={15} aria-hidden="true" />
+                {t("business.bumpInterval")}
+              </span>
+            }
+            hint={t("business.bumpIntervalHint", {
+              min: MIN_AUTO_BUMP_INTERVAL_HOURS,
+              max: MAX_AUTO_BUMP_INTERVAL_HOURS,
+            })}
+            className="max-w-xs"
+          >
+            {(field) => (
+              <Input
+                {...field}
+                type="number"
+                min={MIN_AUTO_BUMP_INTERVAL_HOURS}
+                max={MAX_AUTO_BUMP_INTERVAL_HOURS}
+                step={1}
+                value={autoBumpForm.intervalHours}
+                disabled={!autoBumpForm.enabled}
+                onChange={(e) =>
+                  setAutoBumpForm((current) => ({
+                    ...current,
+                    intervalHours: e.target.value,
+                  }))
+                }
+              />
+            )}
+          </Field>
+
+          <p className="text-xs text-ink-400">
+            {t("business.lastBump")}{" "}
+            {formatDateTime(stats?.listingAutoBumpLastAt || me?.listingAutoBumpLastAt, t)}
+            {autoBumpForm.enabled &&
+              t("business.schedule", {
+                interval: formatAutoBumpInterval(autoBumpForm.intervalHours),
+              })}
+          </p>
+
+          <div className="flex flex-wrap gap-2">
+            <Button variant="primary" loading={savingAutoBump} onClick={saveAutoBumpSettings}>
+              {savingAutoBump ? t("business.saving") : t("business.saveSchedule")}
+            </Button>
+
+            <Button icon={RefreshCw} loading={bumpingAll} onClick={bumpAllListingsNow}>
+              {bumpingAll ? t("business.bumping") : t("business.bumpAllNow")}
+            </Button>
+          </div>
+        </SectionCard>
+      )}
     </div>
   );
 }

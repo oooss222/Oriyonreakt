@@ -1,5 +1,15 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { BarChart3, Phone, TrendingDown, TrendingUp, Trophy } from "lucide-react";
+import {
+  Alert,
+  Badge,
+  EmptyState,
+  SectionCard,
+  SegmentedControl,
+  Skeleton,
+  cn,
+} from "../../ui";
 import { api } from "../../lib/api";
 import { getListingThumb } from "../../lib/media";
 import { formatViewCount } from "../../lib/format";
@@ -8,81 +18,116 @@ import { useI18n } from "../../i18n";
 
 const DAY_LABELS = ["Вс", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"];
 
+const SERIES = [
+  { key: "views", labelKey: "profile.analyticsViews", bar: "bg-sun-500", swatch: "bg-sun-500" },
+  {
+    key: "reveals",
+    labelKey: "profile.analyticsReveals",
+    bar: "bg-lagoon-500",
+    swatch: "bg-lagoon-500",
+  },
+  {
+    key: "favorites",
+    labelKey: "profile.analyticsFavorites",
+    bar: "bg-warning-400",
+    swatch: "bg-warning-400",
+  },
+];
+
+function dayDate(day) {
+  return new Date(`${day}T12:00:00`);
+}
+
 function ChangeBadge({ value, suffix = "%" }) {
   if (value == null) return null;
+
   const positive = value >= 0;
+
   return (
-    <span
-      className={`text-xs font-semibold tabular-nums ${
-        positive ? "text-emerald-600" : "text-red-500"
-      }`}
+    <Badge
+      tone={positive ? "success" : "danger"}
+      icon={positive ? TrendingUp : TrendingDown}
+      className="tabular-nums"
     >
       {positive ? "+" : ""}
       {value}
       {suffix}
-    </span>
+    </Badge>
   );
 }
 
 function KpiCard({ label, value, change, changeSuffix, hint }) {
   return (
-    <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm">
-      <div className="text-sm text-slate-500 mb-1">{label}</div>
-      <div className="flex items-baseline gap-2">
-        <div className="text-2xl sm:text-3xl font-extrabold tabular-nums text-slate-900">
+    <div className="card flex min-h-[7rem] flex-col justify-between p-4">
+      <p className="text-xs font-medium text-ink-400 sm:text-sm">{label}</p>
+
+      <div className="mt-2 flex flex-wrap items-baseline gap-x-2 gap-y-1">
+        <span className="font-display text-2xl font-extrabold tabular-nums text-ink-900 sm:text-3xl">
           {Number(value || 0).toLocaleString("ru-RU")}
-        </div>
+        </span>
         <ChangeBadge value={change} suffix={changeSuffix} />
       </div>
-      {hint && <div className="mt-1 text-xs text-slate-400">{hint}</div>}
+
+      {hint && <p className="mt-1 text-2xs text-ink-400 sm:text-xs">{hint}</p>}
     </div>
   );
 }
 
-function GroupedBarChart({ series, hidden }) {
+function GroupedBarChart({ series, hidden, t }) {
   const max = Math.max(
     1,
-    ...series.flatMap((d) => [
-      hidden.views ? 0 : d.views,
-      hidden.reveals ? 0 : d.reveals,
-      hidden.favorites ? 0 : d.favorites,
-    ])
+    ...series.flatMap((day) =>
+      SERIES.map((metric) => (hidden[metric.key] ? 0 : day[metric.key]))
+    )
   );
 
   return (
-    <div className="h-56 flex items-end gap-1.5 sm:gap-2.5 pt-2">
-      {series.map((day) => {
-        const label = DAY_LABELS[new Date(`${day.day}T12:00:00`).getDay()] || "";
-        const bars = [
-          { key: "views", value: day.views, color: "bg-sun", hidden: hidden.views },
-          { key: "reveals", value: day.reveals, color: "bg-teal-500", hidden: hidden.reveals },
-          {
-            key: "favorites",
-            value: day.favorites,
-            color: "bg-amber-300",
-            hidden: hidden.favorites,
-          },
-        ];
+    <figure className="m-0">
+      <div className="flex h-56 items-end gap-1.5 pt-2 sm:gap-2.5" aria-hidden="true">
+        {series.map((day) => {
+          const label = DAY_LABELS[dayDate(day.day).getDay()] || "";
 
-        return (
-          <div key={day.day} className="flex-1 min-w-0 flex flex-col items-center gap-1.5 h-full">
-            <div className="flex-1 w-full flex items-end justify-center gap-0.5 sm:gap-1">
-              {bars.map((bar) =>
-                bar.hidden ? null : (
-                  <div
-                    key={bar.key}
-                    title={`${label}: ${bar.value}`}
-                    className={`w-[28%] max-w-[14px] rounded-t-sm ${bar.color} transition-all`}
-                    style={{ height: `${Math.max(4, (bar.value / max) * 100)}%` }}
-                  />
-                )
-              )}
+          return (
+            <div
+              key={day.day}
+              className="flex h-full min-w-0 flex-1 flex-col items-center gap-1.5"
+            >
+              <div className="flex w-full flex-1 items-end justify-center gap-0.5 sm:gap-1">
+                {SERIES.map((metric) =>
+                  hidden[metric.key] ? null : (
+                    <div
+                      key={metric.key}
+                      title={`${label}: ${day[metric.key]}`}
+                      className={cn("w-[28%] max-w-[14px] rounded-t-sm", metric.bar)}
+                      style={{ height: `${Math.max(4, (day[metric.key] / max) * 100)}%` }}
+                    />
+                  )
+                )}
+              </div>
+              <span className="text-2xs font-medium text-ink-400 sm:text-xs">{label}</span>
             </div>
-            <div className="text-2xs sm:text-xs text-slate-400 font-medium">{label}</div>
-          </div>
-        );
-      })}
-    </div>
+          );
+        })}
+      </div>
+
+      <figcaption className="sr-only">
+        <ul>
+          {series.map((day) => (
+            <li key={day.day}>
+              {t("profile.analyticsDaySummary", {
+                day: dayDate(day.day).toLocaleDateString("ru-RU", {
+                  day: "numeric",
+                  month: "long",
+                }),
+                views: day.views,
+                reveals: day.reveals,
+                favorites: day.favorites,
+              })}
+            </li>
+          ))}
+        </ul>
+      </figcaption>
+    </figure>
   );
 }
 
@@ -91,6 +136,7 @@ export default function SellerAnalyticsPanel({ token }) {
   const [period, setPeriod] = React.useState("7d");
   const [data, setData] = React.useState(null);
   const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState("");
   const [hidden, setHidden] = React.useState({
     views: false,
     reveals: false,
@@ -105,10 +151,14 @@ export default function SellerAnalyticsPanel({ token }) {
     api
       .sellerAnalytics(token, period)
       .then((res) => {
-        if (alive) setData(res);
+        if (!alive) return;
+        setData(res);
+        setError("");
       })
       .catch(() => {
-        if (alive) setData(null);
+        if (!alive) return;
+        setData(null);
+        setError(t("profile.analyticsFailed"));
       })
       .finally(() => {
         if (alive) setLoading(false);
@@ -117,7 +167,7 @@ export default function SellerAnalyticsPanel({ token }) {
     return () => {
       alive = false;
     };
-  }, [token, period]);
+  }, [token, period, t]);
 
   const kpis = data?.kpis || {};
   const series = data?.series || [];
@@ -125,50 +175,45 @@ export default function SellerAnalyticsPanel({ token }) {
   const topListings = data?.topListings || [];
   const maxPhone = Math.max(1, ...phoneReveals.map((p) => p.count || 0));
 
-  const periodLabel =
-    period === "7d"
-      ? t("profile.analyticsPeriod7")
-      : period === "30d"
-        ? t("profile.analyticsPeriod30")
-        : t("profile.analyticsPeriodAll");
+  const periods = [
+    { value: "7d", label: t("profile.analyticsPeriod7") },
+    { value: "30d", label: t("profile.analyticsPeriod30") },
+    { value: "all", label: t("profile.analyticsPeriodAll") },
+  ];
+
+  const periodLabel = periods.find((item) => item.value === period)?.label || "";
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4 sm:space-y-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900">{t("profile.analytics")}</h2>
-          <p className="text-sm text-slate-500 mt-1">{t("profile.analyticsSubtitle")}</p>
+          <h2 className="section-title">{t("profile.analytics")}</h2>
+          <p className="section-subtitle mt-1">{t("profile.analyticsSubtitle")}</p>
         </div>
 
-        <div className="inline-flex rounded-xl border border-slate-200 bg-white p-1 shadow-sm">
-          {[
-            ["7d", t("profile.analyticsPeriod7")],
-            ["30d", t("profile.analyticsPeriod30")],
-            ["all", t("profile.analyticsPeriodAll")],
-          ].map(([key, label]) => (
-            <button
-              key={key}
-              type="button"
-              onClick={() => setPeriod(key)}
-              className={`rounded-lg px-3 py-1.5 text-sm font-semibold transition ${
-                period === key ? "bg-sun text-white" : "text-slate-600 hover:bg-slate-50"
-              }`}
-            >
-              {label}
-            </button>
-          ))}
+        <div className="shrink-0">
+          <p className="label-caps mb-1.5">{t("profile.analyticsPeriodLabel")}</p>
+          <SegmentedControl
+            items={periods}
+            value={period}
+            onChange={setPeriod}
+            label={t("profile.analyticsPeriodLabel")}
+            className="w-full sm:w-auto"
+          />
         </div>
       </div>
 
+      {error && <Alert tone="danger">{error}</Alert>}
+
       {loading ? (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-28 rounded-2xl border bg-white animate-pulse" />
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <Skeleton key={index} className="h-28 w-full" rounded="rounded-2xl" />
           ))}
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
             <KpiCard
               label={t("profile.analyticsViews")}
               value={kpis.views}
@@ -198,174 +243,201 @@ export default function SellerAnalyticsPanel({ token }) {
             />
           </div>
 
-          <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1.4fr)_minmax(0,0.8fr)] gap-4">
-            <section className="rounded-2xl border border-slate-200/80 bg-white p-4 md:p-5 shadow-sm">
-              <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
-                <h3 className="text-lg font-bold text-slate-900">
-                  {t("profile.analyticsDynamics", { period: periodLabel })}
-                </h3>
-                <div className="flex flex-wrap gap-3 text-xs font-medium">
-                  {[
-                    ["views", t("profile.analyticsViews"), "bg-sun", kpis.views],
-                    ["reveals", t("profile.analyticsReveals"), "bg-teal-500", kpis.reveals],
-                    [
-                      "favorites",
-                      t("profile.analyticsFavorites"),
-                      "bg-amber-300",
-                      kpis.favorites,
-                    ],
-                  ].map(([key, label, color, count]) => (
+          <div className="grid gap-4 xl:grid-cols-[minmax(0,1.4fr)_minmax(0,0.8fr)]">
+            <SectionCard
+              title={t("profile.analyticsDynamics", { period: periodLabel })}
+              icon={BarChart3}
+              headingLevel="h3"
+            >
+              <div
+                role="group"
+                aria-label={t("profile.analyticsLegend")}
+                className="mb-4 flex flex-wrap gap-2"
+              >
+                {SERIES.map((metric) => {
+                  const label = t(metric.labelKey);
+                  const shown = !hidden[metric.key];
+
+                  return (
                     <button
-                      key={key}
+                      key={metric.key}
                       type="button"
+                      aria-pressed={shown}
                       onClick={() =>
-                        setHidden((h) => ({ ...h, [key]: !h[key] }))
+                        setHidden((current) => ({
+                          ...current,
+                          [metric.key]: !current[metric.key],
+                        }))
                       }
-                      className={`inline-flex items-center gap-1.5 ${
-                        hidden[key] ? "opacity-40" : ""
-                      }`}
+                      className={cn(
+                        "inline-flex min-h-[2.125rem] items-center gap-1.5 rounded-lg border border-ink-200 px-2.5 text-xs font-semibold transition-colors hover:bg-mist-100",
+                        shown ? "text-ink-700" : "text-ink-400"
+                      )}
                     >
-                      <span className={`w-2.5 h-2.5 rounded-sm ${color}`} />
+                      <span
+                        className={cn(
+                          "h-2.5 w-2.5 rounded-sm",
+                          shown ? metric.swatch : "bg-ink-300"
+                        )}
+                        aria-hidden="true"
+                      />
                       {label}
-                      <span className="text-slate-400 tabular-nums">
-                        {Number(count || 0).toLocaleString("ru-RU")}
+                      <span className="tabular-nums text-ink-400">
+                        {Number(kpis[metric.key] || 0).toLocaleString("ru-RU")}
                       </span>
                     </button>
-                  ))}
-                </div>
+                  );
+                })}
               </div>
 
-              <GroupedBarChart series={series} hidden={hidden} />
-              <p className="mt-3 text-xs text-slate-400">{t("profile.analyticsChartHint")}</p>
-            </section>
-
-            <section className="rounded-2xl border border-slate-200/80 bg-white p-4 md:p-5 shadow-sm">
-              <h3 className="text-lg font-bold text-slate-900">
-                {t("profile.analyticsByPhone")}
-              </h3>
-              <p className="text-sm text-slate-500 mt-1 mb-4">
-                {t("profile.analyticsByPhoneHint")}
-              </p>
-
-              {phoneReveals.length === 0 ? (
-                <p className="text-sm text-slate-400 py-8 text-center">
-                  {t("profile.analyticsNoPhones")}
-                </p>
+              {series.length === 0 ? (
+                <EmptyState
+                  bare
+                  icon={BarChart3}
+                  title={t("profile.analyticsEmptyChart")}
+                  description={t("profile.analyticsEmptyChartHint")}
+                />
               ) : (
-                <div className="space-y-4">
+                <GroupedBarChart series={series} hidden={hidden} t={t} />
+              )}
+
+              <p className="mt-3 text-xs text-ink-400">{t("profile.analyticsChartHint")}</p>
+            </SectionCard>
+
+            <SectionCard
+              title={t("profile.analyticsByPhone")}
+              description={t("profile.analyticsByPhoneHint")}
+              icon={Phone}
+              headingLevel="h3"
+            >
+              {phoneReveals.length === 0 ? (
+                <EmptyState
+                  bare
+                  icon={Phone}
+                  title={t("profile.analyticsNoPhones")}
+                  description={t("profile.analyticsNoPhonesHint")}
+                />
+              ) : (
+                <ul className="space-y-4">
                   {phoneReveals.map((row) => (
-                    <div key={row.phone}>
-                      <div className="flex items-center justify-between gap-2 text-sm mb-1.5">
-                        <span className="font-medium text-slate-700 tabular-nums">
+                    <li key={row.phone}>
+                      <div className="mb-1.5 flex items-center justify-between gap-2 text-sm">
+                        <span className="font-medium tabular-nums text-ink-700">
                           {row.phone}
                         </span>
-                        <span className="font-bold text-teal-700 tabular-nums">
+                        <span className="font-bold tabular-nums text-lagoon-700">
                           {row.count}
                         </span>
                       </div>
-                      <div className="h-2.5 rounded-full bg-slate-100 overflow-hidden">
+                      <div
+                        className="h-2.5 overflow-hidden rounded-full bg-mist-200"
+                        aria-hidden="true"
+                      >
                         <div
-                          className="h-full rounded-full bg-teal-500"
-                          style={{
-                            width: `${Math.max(4, (row.count / maxPhone) * 100)}%`,
-                          }}
+                          className="h-full rounded-full bg-lagoon-500"
+                          style={{ width: `${Math.max(4, (row.count / maxPhone) * 100)}%` }}
                         />
                       </div>
-                    </div>
+                    </li>
                   ))}
-                </div>
+                </ul>
               )}
-            </section>
+            </SectionCard>
           </div>
 
-          <section className="rounded-2xl border border-slate-200/80 bg-white shadow-sm overflow-hidden">
-            <div className="px-4 md:px-5 py-4 border-b border-slate-100">
-              <h3 className="text-lg font-bold text-slate-900">{t("profile.analyticsTop")}</h3>
-              <p className="text-sm text-slate-500">{t("profile.analyticsTopHint")}</p>
-            </div>
-
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[640px] text-sm">
-                <thead>
-                  <tr className="text-2xs uppercase tracking-wide text-slate-400 border-b border-slate-100">
-                    <th className="text-left font-semibold px-4 py-3">
-                      {t("profile.analyticsColAd")}
-                    </th>
-                    <th className="text-right font-semibold px-3 py-3">
-                      {t("profile.analyticsViews")}
-                    </th>
-                    <th className="text-right font-semibold px-3 py-3">
-                      {t("profile.analyticsFavorites")}
-                    </th>
-                    <th className="text-right font-semibold px-3 py-3">
-                      {t("profile.analyticsColNumber")}
-                    </th>
-                    <th className="text-right font-semibold px-4 py-3">
-                      {t("profile.analyticsColConversion")}
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {topListings.length === 0 ? (
-                    <tr>
-                      <td colSpan={5} className="px-4 py-10 text-center text-slate-400">
-                        {t("profile.analyticsEmptyTop")}
-                      </td>
+          <SectionCard
+            title={t("profile.analyticsTop")}
+            description={t("profile.analyticsTopHint")}
+            icon={Trophy}
+            headingLevel="h3"
+          >
+            {topListings.length === 0 ? (
+              <EmptyState
+                bare
+                icon={Trophy}
+                title={t("profile.analyticsEmptyTop")}
+                description={t("profile.analyticsEmptyTopHint")}
+              />
+            ) : (
+              <div className="-mx-4 overflow-x-auto sm:-mx-5">
+                <table className="w-full min-w-[640px] text-sm">
+                  <caption className="sr-only">
+                    {t("profile.analyticsTop")} — {periodLabel}
+                  </caption>
+                  <thead>
+                    <tr className="border-b border-ink-200 text-2xs uppercase tracking-wide text-ink-400">
+                      <th scope="col" className="px-4 py-3 text-left font-semibold">
+                        {t("profile.analyticsColAd")}
+                      </th>
+                      <th scope="col" className="px-3 py-3 text-right font-semibold">
+                        {t("profile.analyticsViews")}
+                      </th>
+                      <th scope="col" className="px-3 py-3 text-right font-semibold">
+                        {t("profile.analyticsFavorites")}
+                      </th>
+                      <th scope="col" className="px-3 py-3 text-right font-semibold">
+                        {t("profile.analyticsColNumber")}
+                      </th>
+                      <th scope="col" className="px-4 py-3 text-right font-semibold">
+                        {t("profile.analyticsColConversion")}
+                      </th>
                     </tr>
-                  ) : (
-                    topListings.map((ad) => {
+                  </thead>
+                  <tbody>
+                    {topListings.map((ad) => {
                       const id = getId(ad);
-                      const thumb = getListingThumb(ad, { width: 96 });
                       const conv = Number(ad.conversion || 0);
+
                       return (
                         <tr
                           key={id}
-                          className="border-b border-slate-50 hover:bg-slate-50/70 transition"
+                          className="border-b border-ink-200 transition-colors last:border-0 hover:bg-mist-50"
                         >
                           <td className="px-4 py-3">
                             <Link
                               to={`/ad/${id}`}
-                              className="flex items-center gap-3 min-w-0 group"
+                              className="group flex min-w-0 items-center gap-3"
                             >
                               <img
-                                src={thumb}
+                                src={getListingThumb(ad, { width: 96 })}
                                 alt=""
-                                className="w-11 h-11 rounded-lg object-cover bg-slate-100 shrink-0"
+                                className="h-11 w-11 shrink-0 rounded-lg bg-mist-200 object-cover"
                               />
-                              <div className="min-w-0">
-                                <div className="font-semibold text-slate-900 truncate group-hover:text-sun">
+                              <span className="min-w-0">
+                                <span className="block truncate font-semibold text-ink-900 group-hover:text-sun-700">
                                   {ad.title}
-                                </div>
-                                <div className="text-xs text-slate-400 truncate">
+                                </span>
+                                <span className="block truncate text-xs text-ink-400">
                                   {[ad.cat, ad.location].filter(Boolean).join(" · ")}
-                                </div>
-                              </div>
+                                </span>
+                              </span>
                             </Link>
                           </td>
-                          <td className="px-3 py-3 text-right tabular-nums font-medium">
+                          <td className="px-3 py-3 text-right font-medium tabular-nums text-ink-700">
                             {formatViewCount(ad.views)}
                           </td>
-                          <td className="px-3 py-3 text-right tabular-nums font-medium">
+                          <td className="px-3 py-3 text-right font-medium tabular-nums text-ink-700">
                             {ad.favorites}
                           </td>
-                          <td className="px-3 py-3 text-right tabular-nums font-medium">
+                          <td className="px-3 py-3 text-right font-medium tabular-nums text-ink-700">
                             {ad.reveals}
                           </td>
                           <td
-                            className={`px-4 py-3 text-right tabular-nums font-bold ${
-                              conv >= 10 ? "text-emerald-600" : "text-red-500"
-                            }`}
+                            className={cn(
+                              "px-4 py-3 text-right font-bold tabular-nums",
+                              conv >= 10 ? "text-success-700" : "text-ink-500"
+                            )}
                           >
                             {String(conv).replace(".", ",")}%
                           </td>
                         </tr>
                       );
-                    })
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </section>
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </SectionCard>
         </>
       )}
     </div>

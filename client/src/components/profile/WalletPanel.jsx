@@ -1,10 +1,16 @@
 import React from "react";
-import { TrendingUp, Wallet } from "lucide-react";
+import { ArrowDownLeft, ArrowUpRight, Receipt, TrendingUp, Wallet } from "lucide-react";
+import { Alert, Button, EmptyState, SectionCard } from "../../ui";
 import WalletTopUp from "./WalletTopUp";
 import { WALLET_TYPE_LABELS } from "./profileUtils";
 import { useI18n } from "../../i18n";
 
 const LOW_BALANCE_THRESHOLD = 15;
+const HISTORY_LIMIT = 10;
+
+function formatAmount(value) {
+  return Math.abs(value).toLocaleString("ru-RU", { maximumFractionDigits: 2 });
+}
 
 export default function WalletPanel({
   walletBalance,
@@ -16,89 +22,100 @@ export default function WalletPanel({
 }) {
   const { t } = useI18n();
   const isLowBalance = walletBalance < LOW_BALANCE_THRESHOLD;
+  const operations = walletHistory.slice(0, HISTORY_LIMIT);
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4 sm:space-y-5">
       {isLowBalance && (
-        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 flex flex-col sm:flex-row sm:items-center gap-3">
-          <div className="flex-1">
-            <div className="font-semibold text-amber-900">Низкий баланс</div>
-            <p className="text-sm text-amber-800 mt-1">
-              Для продвижения объявлений пополните кошелёк или выберите бесплатные опции.
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={onOpenPromote}
-            className="mobile-btn bg-sun text-white hover:bg-sun-600 shrink-0"
-          >
-            <TrendingUp size={18} />
-            Продвижение
-          </button>
-        </div>
+        <Alert tone="warning" live={false} title={t("wallet.lowBalanceTitle")}>
+          <p className="leading-relaxed">{t("wallet.lowBalanceDesc")}</p>
+          <Button icon={TrendingUp} onClick={onOpenPromote} className="mt-3">
+            {t("wallet.promotion")}
+          </Button>
+        </Alert>
       )}
 
-      <div className="rounded-2xl border bg-white p-4 md:p-5 space-y-4">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-sun-50 grid place-items-center">
-            <Wallet className="text-sun" size={22} />
-          </div>
-          <div>
-            <div className="text-sm text-slate-500">Баланс кошелька</div>
-            <div className="text-3xl font-extrabold text-slate-900">
-              {walletBalance.toLocaleString("ru-RU")} TJS
-            </div>
-          </div>
+      <SectionCard
+        title={t("wallet.title")}
+        description={t("wallet.topUpHint")}
+        icon={Wallet}
+        bodyClassName="space-y-5"
+      >
+        <div>
+          <p className="text-sm text-ink-400">{t("wallet.balanceLabel")}</p>
+          <p className="mt-1 font-display text-4xl font-extrabold tracking-tight text-ink-900 tabular-nums sm:text-5xl">
+            {walletBalance.toLocaleString("ru-RU")}{" "}
+            <span className="text-xl font-bold text-ink-400 sm:text-2xl">TJS</span>
+          </p>
         </div>
 
-        {paymentReturnMessage && (
-          <div className="rounded-xl border border-blue-200 bg-blue-50 text-blue-800 p-3 text-sm">
-            {paymentReturnMessage}
-          </div>
-        )}
+        {paymentReturnMessage && <Alert tone="info">{paymentReturnMessage}</Alert>}
+
+        <div className="divider" />
 
         <WalletTopUp token={token} onSuccess={onWalletSuccess} />
-      </div>
+      </SectionCard>
 
-      <div className="rounded-2xl border bg-white p-4 md:p-5 space-y-3">
-        <h3 className="text-lg font-semibold">Последние операции</h3>
-
-        {walletHistory.length === 0 ? (
-          <div className="rounded-xl border bg-slate-50 p-5 text-center text-slate-500 text-sm">
-            Операций пока нет.
-          </div>
+      <SectionCard title={t("wallet.historyTitle")} icon={Receipt} bodyClassName="pt-2">
+        {operations.length === 0 ? (
+          <EmptyState
+            bare
+            icon={Receipt}
+            title={t("wallet.historyEmpty")}
+            description={t("wallet.historyEmptyHint")}
+          />
         ) : (
-          <div className="space-y-2">
-            {walletHistory.slice(0, 10).map((operation) => (
-              <div
-                key={operation.id || operation._id}
-                className="rounded-xl border p-3 flex items-center justify-between gap-3"
-              >
-                <div>
-                  <div className="font-medium text-sm">
-                    {WALLET_TYPE_LABELS[operation.type] ||
-                      operation.description ||
-                      t("wallet.operation")}
-                  </div>
-                  <div className="text-xs text-slate-500">
-                    {operation.createdAt
-                      ? new Date(operation.createdAt).toLocaleString("ru-RU")
-                      : ""}
-                  </div>
-                </div>
-                <div
-                  className={`font-bold text-sm ${
-                    Number(operation.amount || 0) >= 0 ? "text-emerald-700" : "text-red-600"
-                  }`}
+          <ul className="divide-y divide-ink-200">
+            {operations.map((operation) => {
+              const amount = Number(operation.amount || 0);
+              const credit = amount >= 0;
+              const Icon = credit ? ArrowDownLeft : ArrowUpRight;
+
+              return (
+                <li
+                  key={operation.id || operation._id}
+                  className="flex items-center gap-3 py-3 first:pt-0 last:pb-0"
                 >
-                  {Number(operation.amount || 0) >= 0 ? "+" : ""}
-                  {Number(operation.amount || 0).toLocaleString("ru-RU")} TJS
-                </div>
-              </div>
-            ))}
-          </div>
+                  <span
+                    className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl ring-1 ${
+                      credit
+                        ? "bg-success-50 text-success-700 ring-success-200"
+                        : "bg-mist-100 text-ink-600 ring-ink-200"
+                    }`}
+                  >
+                    <Icon size={16} strokeWidth={2.2} aria-hidden="true" />
+                  </span>
+
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium text-ink-900">
+                      {WALLET_TYPE_LABELS[operation.type] ||
+                        operation.description ||
+                        t("wallet.operation")}
+                    </p>
+                    <p className="mt-0.5 text-xs text-ink-400">
+                      {operation.createdAt
+                        ? new Date(operation.createdAt).toLocaleString("ru-RU")
+                        : ""}
+                    </p>
+                  </div>
+
+                  <p
+                    className={`shrink-0 text-sm font-bold tabular-nums ${
+                      credit ? "text-success-700" : "text-ink-900"
+                    }`}
+                  >
+                    <span className="sr-only">
+                      {credit ? t("wallet.credit") : t("wallet.debit")}{" "}
+                    </span>
+                    <span aria-hidden="true">{credit ? "+" : "−"}</span>
+                    {formatAmount(amount)} TJS
+                  </p>
+                </li>
+              );
+            })}
+          </ul>
         )}
-      </div>
+      </SectionCard>
     </div>
   );
 }
