@@ -25,26 +25,26 @@ export default function ListingFormPublicationSidebar({
     <aside className="hidden lg:block">
       <div className="listing-form-sidebar">
         <div className="flex items-center gap-2">
-          <Tag className="w-5 h-5 text-sun" />
-          <h2 className="font-display text-lg font-semibold text-ink tracking-tight">
+          <Tag className="h-5 w-5 text-sun-600" aria-hidden />
+          <h2 className="font-display text-lg font-semibold tracking-tight text-ink-900">
             {t("listing.publication")}
           </h2>
         </div>
 
-        <div className="rounded-xl border border-ink/8 bg-mist/50 p-3 space-y-2 text-sm">
+        <dl className="space-y-2 rounded-xl border border-ink-200 bg-mist-50 p-3 text-sm">
           <div className="flex items-center justify-between gap-3">
-            <span className="text-ink-400">{t("listing.category")}</span>
-            <span className="font-semibold text-ink text-right">
+            <dt className="text-ink-400">{t("listing.category")}</dt>
+            <dd className="text-right font-semibold text-ink-900">
               {categoryTitle || "—"}
-            </span>
+            </dd>
           </div>
           <div className="flex items-center justify-between gap-3">
-            <span className="text-ink-400">{t("listing.subcategory")}</span>
-            <span className="font-semibold text-ink text-right">
+            <dt className="text-ink-400">{t("listing.subcategory")}</dt>
+            <dd className="text-right font-semibold text-ink-900">
               {subcategory || "—"}
-            </span>
+            </dd>
           </div>
-        </div>
+        </dl>
 
         {previewItem ? <ListingFormPreview item={previewItem} /> : null}
 
@@ -81,15 +81,15 @@ export default function ListingFormPublicationSidebar({
         {requirePhone && !hasPhone ? (
           <Link
             to="/profile?tab=profile"
-            className="block rounded-xl border border-sun/20 bg-sun-50 px-3 py-2.5 text-xs font-medium text-sun-800 hover:bg-sun-50/80"
+            className="block rounded-xl border border-sun-200 bg-sun-50 px-3 py-2.5 text-xs font-medium text-sun-800 transition-colors hover:bg-sun-100"
           >
             {t("listing.addPhoneHint")}
           </Link>
         ) : null}
 
         {moderationHint ? (
-          <div className="flex gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-xs text-amber-900 leading-relaxed">
-            <ShieldAlert className="w-4 h-4 shrink-0 mt-0.5" />
+          <div className="flex gap-2 rounded-xl border border-warning-200 bg-warning-50 px-3 py-2.5 text-xs leading-relaxed text-warning-800">
+            <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
             <span>{moderationHint}</span>
           </div>
         ) : null}
@@ -97,13 +97,16 @@ export default function ListingFormPublicationSidebar({
         <button
           type="submit"
           disabled={!canPublish}
+          aria-describedby={
+            !canPublish && publishHint ? "listing-publish-hint" : undefined
+          }
           className={`listing-form-publish-btn ${
             canPublish
               ? "listing-form-publish-btn--ready"
               : "listing-form-publish-btn--disabled"
           }`}
         >
-          <CheckCircle2 className="w-5 h-5" />
+          <CheckCircle2 className="h-5 w-5" aria-hidden />
           {saving
             ? isEdit
               ? t("listing.savingShort")
@@ -114,15 +117,16 @@ export default function ListingFormPublicationSidebar({
         </button>
 
         {!canPublish && publishHint ? (
-          <p className="text-xs text-red-600">{publishHint}</p>
+          <p
+            id="listing-publish-hint"
+            className="text-xs leading-relaxed text-danger-600"
+          >
+            {publishHint}
+          </p>
         ) : null}
 
-        <button
-          type="button"
-          onClick={onReset}
-          className="w-full inline-flex items-center justify-center gap-2 rounded-xl border border-ink/10 px-4 py-2.5 text-sm font-medium text-ink-600 hover:bg-mist transition"
-        >
-          <RotateCcw className="w-4 h-4" />
+        <button type="button" onClick={onReset} className="btn btn-block">
+          <RotateCcw className="h-4 w-4" aria-hidden />
           {t("listing.resetForm")}
         </button>
 

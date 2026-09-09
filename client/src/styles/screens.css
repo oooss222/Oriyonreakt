@@ -275,6 +275,35 @@
     @apply flex items-start gap-3 border-b border-ink-200 px-4 py-3.5 sm:px-5;
   }
 
+  .composer-photo {
+    @apply relative overflow-hidden rounded-xl border border-ink-200 bg-mist-100;
+  }
+
+  .composer-photo__img {
+    @apply h-28 w-full object-cover;
+  }
+
+  .composer-photo__cover {
+    @apply absolute bottom-1.5 left-1.5 rounded-full bg-ink-900/75 px-2 py-0.5
+           text-2xs font-semibold text-white backdrop-blur-sm;
+  }
+
+  .composer-photo__remove {
+    @apply absolute right-1 top-1 grid h-9 w-9 place-items-center rounded-full
+           bg-ink-900/60 text-white backdrop-blur-sm transition
+           hover:bg-danger-600 focus-visible:bg-danger-600;
+  }
+
+  .composer-photo__tools {
+    @apply absolute bottom-1 right-1 flex items-center gap-0.5 rounded-full
+           bg-ink-900/60 p-0.5 backdrop-blur-sm;
+  }
+
+  .composer-photo__tool {
+    @apply grid h-8 w-8 place-items-center rounded-full text-white transition
+           hover:bg-white/25 disabled:pointer-events-none disabled:opacity-35;
+  }
+
   .listing-form-section__step {
     @apply mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-full bg-mist-200
            text-xs font-bold text-ink-600;
@@ -702,52 +731,136 @@
     }
   }
 
-  /* ================================================================= messages */
+  /* ===================================================================== chat */
 
-  .messages-workspace {
-    @apply overflow-hidden rounded-2xl border border-ink-200 bg-white shadow-sm;
-    min-height: calc(100vh - 7.5rem);
+  /* Chat is height-constrained instead of page-scrolled, so the composer stays
+     pinned. The mobile nav is fixed over the page, so its height and the safe
+     area come off the top-level box rather than off the composer. */
+  .chat-shell {
+    @apply mx-auto flex w-full max-w-content flex-col gap-2 lg:gap-3 lg:px-6 lg:py-4;
+    height: calc(100vh - 3.5rem - var(--mobile-nav-height) - env(safe-area-inset-bottom, 0px));
+    height: calc(100dvh - 3.5rem - var(--mobile-nav-height) - env(safe-area-inset-bottom, 0px));
   }
 
-  .messages-layout {
-    @apply grid min-h-[calc(100vh-7.5rem)] grid-cols-1 xl:grid-cols-[380px_minmax(0,1fr)];
+  @media (min-width: 1024px) {
+    .chat-shell {
+      height: calc(100vh - var(--header-height));
+      height: calc(100dvh - var(--header-height));
+      min-height: 34rem;
+    }
   }
 
-  .messages-inbox {
-    @apply bg-white;
-    min-width: 0;
+  .chat-workspace {
+    @apply grid min-h-0 flex-1 grid-cols-1 overflow-hidden border-y border-ink-200 bg-white
+           lg:grid-cols-[19rem_minmax(0,1fr)] lg:rounded-2xl lg:border lg:shadow-xs
+           xl:grid-cols-[22rem_minmax(0,1fr)];
   }
 
-  .messages-inbox-filters {
-    @apply flex flex-wrap gap-1.5;
+  .chat-pane {
+    @apply flex min-h-0 min-w-0 flex-col;
   }
 
-  .messages-inbox-item {
-    @apply transition-colors duration-150;
+  /* Below lg only one pane is on screen: opening a thread replaces the list. */
+  .chat-pane--stacked {
+    @apply hidden lg:flex;
   }
 
-  .messages-inbox-item.is-active {
+  .chat-inbox {
+    @apply lg:border-r lg:border-ink-200;
+  }
+
+  .chat-inbox__head {
+    @apply shrink-0 space-y-2.5 border-b border-ink-200 px-3 py-3 sm:px-4;
+  }
+
+  .chat-inbox__filters {
+    @apply -mx-3 flex gap-1.5 overflow-x-auto px-3 pb-0.5 scrollbar-none sm:-mx-4 sm:px-4;
+  }
+
+  .chat-inbox__list {
+    @apply min-h-0 flex-1 overflow-y-auto overscroll-contain p-2;
+  }
+
+  /* One row is one tap target; 3.5rem keeps it comfortable on touch. */
+  .chat-row {
+    @apply flex min-h-[3.5rem] w-full items-start gap-2.5 rounded-xl border border-transparent
+           p-2.5 text-left transition-colors duration-150;
+  }
+
+  @media (hover: hover) {
+    .chat-row:hover {
+      @apply bg-mist-50;
+    }
+  }
+
+  .chat-row--active {
+    @apply border-sun-200 bg-sun-50;
+  }
+
+  /* Unread threads get a brand rail so the state is not carried by weight alone. */
+  .chat-row--unread {
     box-shadow: inset 3px 0 0 0 var(--sun-500);
   }
 
-  .messages-thread {
-    @apply relative bg-mist-100;
+  .chat-row__preview {
+    @apply truncate text-sm text-ink-400;
   }
 
-  .messages-bubble-mine {
-    @apply bg-sun-500 text-white;
+  .chat-row--unread .chat-row__preview {
+    @apply font-medium text-ink-700;
   }
 
-  .messages-bubble-peer {
-    @apply border border-ink-200 bg-white;
+  .chat-thread {
+    @apply bg-mist-100;
   }
 
-  .messages-composer {
-    @apply border-t border-ink-200 bg-white;
+  .chat-thread__bar {
+    @apply flex shrink-0 items-center gap-2 border-b border-ink-200 bg-white px-2.5 py-2 sm:px-4;
   }
 
-  .messages-day-chip {
+  .chat-thread__context {
+    @apply flex shrink-0 items-center gap-3 border-b border-ink-200 bg-white px-3 py-2 sm:px-4;
+  }
+
+  .chat-log {
+    @apply min-h-0 flex-1 space-y-2 overflow-y-auto overscroll-contain px-3 py-4 sm:px-5;
+  }
+
+  .chat-bubble {
+    @apply max-w-[85%] rounded-2xl px-3.5 py-2 text-sm leading-relaxed sm:max-w-[70%];
+    overflow-wrap: anywhere;
+  }
+
+  .chat-bubble--mine {
+    @apply rounded-br-md bg-sun-500 text-white;
+  }
+
+  .chat-bubble--peer {
+    @apply rounded-bl-md border border-ink-200 bg-white text-ink-800;
+  }
+
+  .chat-bubble__meta {
+    @apply mt-0.5 flex items-center justify-end gap-1 text-2xs tabular-nums;
+  }
+
+  .chat-bubble--mine .chat-bubble__meta {
+    @apply text-white/80;
+  }
+
+  .chat-bubble--peer .chat-bubble__meta {
+    @apply text-ink-400;
+  }
+
+  .chat-day {
     @apply rounded-full border border-ink-200 bg-white px-3 py-1 text-2xs font-bold
            uppercase tracking-[0.12em] text-ink-400;
+  }
+
+  .chat-composer {
+    @apply shrink-0 space-y-2 border-t border-ink-200 bg-white px-3 py-2.5 sm:px-4;
+  }
+
+  .chat-composer__input {
+    @apply max-h-[8rem] min-h-[2.75rem] resize-none py-2 leading-snug;
   }
 }

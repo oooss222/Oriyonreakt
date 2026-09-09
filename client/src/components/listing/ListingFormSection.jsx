@@ -26,6 +26,7 @@ export default function ListingFormSection({
 }) {
   const { t } = useI18n();
   const headingId = `${id}-title`;
+  const showStep = complete || step != null;
 
   return (
     <section
@@ -36,15 +37,17 @@ export default function ListingFormSection({
       className={cn("card scroll-mt-20", className)}
     >
       <header className="listing-form-section__head">
-        <span
-          className={cn(
-            "listing-form-section__step",
-            complete && "listing-form-section__step--done"
-          )}
-          aria-hidden="true"
-        >
-          {complete ? <Check size={15} strokeWidth={3} /> : step}
-        </span>
+        {showStep && (
+          <span
+            className={cn(
+              "listing-form-section__step",
+              complete && "listing-form-section__step--done"
+            )}
+            aria-hidden="true"
+          >
+            {complete ? <Check size={15} strokeWidth={3} /> : step}
+          </span>
+        )}
 
         <div className="min-w-0 flex-1">
           <h2 id={headingId} className="listing-form-section__title">

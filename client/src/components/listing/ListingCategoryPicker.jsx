@@ -17,46 +17,49 @@ export default function ListingCategoryPicker({ onSelect, selected = "" }) {
   const { t } = useI18n();
 
   return (
-    <section className="listing-form-card overflow-hidden">
-      <div className="listing-form-card__head">
-        <div className="listing-form-card__title">
+    <section className="card overflow-hidden" aria-labelledby="listing-pick-cat">
+      <header className="border-b border-ink-200 px-4 py-3.5 sm:px-5">
+        <h2
+          id="listing-pick-cat"
+          className="text-base font-bold text-ink-900"
+        >
           {t("listing.pickCategoryTitle")}
-        </div>
-      </div>
-      <div className="listing-form-card__body">
-        <p className="text-sm text-ink-400 mb-4">
+        </h2>
+        <p className="mt-0.5 text-sm text-ink-400">
           {t("listing.pickCategoryHint")}
         </p>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-          {Object.entries(CATS).map(([key, cat]) => {
-            const active = selected === key;
+      </header>
 
-            return (
-              <button
-                key={key}
-                type="button"
-                onClick={() => onSelect(key)}
-                className={`rounded-2xl border p-4 text-left transition ${
-                  active
-                    ? "border-sun/40 bg-sun-50 shadow-soft"
-                    : "border-ink/10 bg-white hover:border-sun/25 hover:bg-mist/40"
-                }`}
-              >
-                <div className="text-2xl mb-2" aria-hidden>
-                  {CAT_ICONS[key] || "📦"}
-                </div>
-                <div className="font-semibold text-ink text-sm leading-snug">
-                  {cat.shortTitle || cat.title}
-                </div>
-                {cat.desc ? (
-                  <div className="mt-1 text-xs text-ink-400 line-clamp-2">
-                    {cat.desc}
-                  </div>
-                ) : null}
-              </button>
-            );
-          })}
-        </div>
+      <div className="grid grid-cols-2 gap-3 p-4 sm:grid-cols-3 sm:p-5 lg:grid-cols-4">
+        {Object.entries(CATS).map(([key, cat]) => {
+          const active = selected === key;
+
+          return (
+            <button
+              key={key}
+              type="button"
+              onClick={() => onSelect(key)}
+              aria-pressed={active}
+              className={`rounded-2xl border p-4 text-left transition ${
+                active
+                  ? "border-sun-300 bg-sun-50 shadow-xs"
+                  : "border-ink-200 bg-white hover:border-sun-200 hover:bg-mist-50 hover:shadow-xs"
+              }`}
+            >
+              <span className="mb-2 block text-2xl leading-none" aria-hidden>
+                {CAT_ICONS[key] || "📦"}
+              </span>
+              <span className="block text-sm font-semibold leading-snug text-ink-900">
+                {cat.shortTitle || cat.title}
+              </span>
+              {cat.desc ? (
+                <span className="mt-1 block text-xs leading-snug text-ink-400 line-clamp-2">
+                  {cat.desc}
+                </span>
+              ) : null}
+            </button>
+          );
+        })}
       </div>
     </section>
   );

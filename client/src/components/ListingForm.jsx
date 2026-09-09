@@ -60,6 +60,7 @@ import ListingGuidedForm, {
   isGuidedWizardCategory,
 } from "./listing/ListingGuidedForm";
 import ListingFormProgress from "./listing/ListingFormProgress";
+import ListingFormSection from "./listing/ListingFormSection";
 import { Alert, Skeleton } from "../ui";
 import { useI18n } from "../i18n";
 import {
@@ -796,7 +797,17 @@ export default function ListingForm({
     {
       id: "listing-section-basics",
       title: t("form.basicInfo"),
-      complete: Boolean(form.title?.trim() && form.price),
+      complete: hasTitle && hasPrice,
+    },
+    {
+      id: "listing-section-photos",
+      title: t("form.photos"),
+      complete: hasPhotos,
+    },
+    {
+      id: "listing-section-specs",
+      title: t("form.specs"),
+      complete: specsComplete,
     },
     {
       id: "listing-section-description",
@@ -805,21 +816,14 @@ export default function ListingForm({
       optional: true,
     },
     {
-      id: "listing-section-specs",
-      title: t("form.specs"),
-      complete: areListingSpecsComplete(specs),
-    },
-    {
-      id: "listing-section-photos",
-      title: t("form.photos"),
-      complete: photosCount > 0,
-    },
-    {
       id: "listing-section-location",
       title: t("form.location"),
       complete: Boolean(form.location?.trim()),
     },
   ];
+
+  const stepOf = (id) =>
+    composerSections.findIndex((section) => section.id === id) + 1;
 
   if (loading) {
     return (
@@ -913,14 +917,14 @@ export default function ListingForm({
             <button
               type="button"
               onClick={restoreDraft}
-              className="rounded-xl bg-sun text-white px-4 py-2 text-sm font-semibold hover:opacity-90"
+              className="btn btn-primary btn-sm"
             >
               {t("listing.continue")}
             </button>
             <button
               type="button"
               onClick={discardDraft}
-              className="rounded-xl border border-ink/10 bg-white px-4 py-2 text-sm font-medium hover:bg-mist"
+              className="btn btn-sm"
             >
               {t("listing.startOver")}
             </button>
@@ -1034,140 +1038,126 @@ export default function ListingForm({
         className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_20rem] xl:grid-cols-[minmax(0,1fr)_22rem] gap-5"
       >
         <section className="space-y-5 min-w-0">
-          <div id="listing-section-basics" className="listing-form-card" data-field="title">
-            <div className="listing-form-card__head">
-              <div className="listing-form-card__title">
-                <Info className="w-5 h-5 text-sun" />
-                {t("form.basicInfo")}
-              </div>
-            </div>
-
-            <div className="listing-form-card__body">
+          <ListingFormSection
+            id="listing-section-basics"
+            step={stepOf("listing-section-basics")}
+            complete={hasTitle && hasPrice}
+            dataField="title"
+            icon={Info}
+            title={t("form.basicInfo")}
+            hint={t("composer.sectionBasicsHint")}
+          >
+            <div className="grid gap-4 md:grid-cols-2">
               <div>
-                <div className="flex items-center justify-between gap-3 mb-1">
-                  <label className="listing-form-label listing-form-label-required">
-                    {t("form.title")}
-                  </label>
-                  {form.cat === "transport" ? (
-                    <button
-                      type="button"
-                      onClick={suggestTransportTitle}
-                      className="inline-flex items-center gap-1 text-xs font-medium text-sun hover:text-sun-700"
-                    >
-                      <PencilLine className="w-3.5 h-3.5" />
-                      {t("form.generateTitle")}
-                    </button>
-                  ) : null}
-                </div>
-                <input
-                  value={form.title}
-                  onChange={(e) =>
-                    setField("title", e.target.value.slice(0, TITLE_MAX))
-                  }
-                  placeholder={t("form.titlePlaceholder")}
-                  className="listing-form-input"
-                />
-                <div className="listing-form-meta">
-                  {form.title.length}/{TITLE_MAX}
-                </div>
-              </div>
-
-              <div>
-                <label className="listing-form-label listing-form-label-required">
-                  {t("form.price")}
+                <label htmlFor="listing-cat" className="listing-form-label">
+                  {t("form.category")}
                 </label>
-                <div className="listing-form-price-wrap">
-                  <input
-                    value={form.price}
-                    onChange={(e) => handlePriceChange(e.target.value)}
-                    onPaste={(e) => {
-                      e.preventDefault();
-                      handlePriceChange(e.clipboardData.getData("text"));
-                    }}
-                    placeholder={t("form.pricePlaceholder")}
-                    inputMode="numeric"
-                    autoComplete="off"
-                  />
-                  <span className="listing-form-price-suffix">{t("price.currency")}</span>
-                </div>
-                <div className="listing-form-meta">
-                  {priceDigits.length}/{PRICE_MAX_DIGITS} {t("form.digits")}
-                </div>
+                <select
+                  id="listing-cat"
+                  value={form.cat}
+                  onChange={(e) => handleCatChange(e.target.value)}
+                  className="listing-form-select"
+                >
+                  {Object.entries(CATS).map(([key, value]) => (
+                    <option key={key} value={key}>
+                      {value.title}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div>
-                <label className="listing-form-label">{t("form.location")}</label>
-                <div className="listing-form-location-segment">
-                  {LOCATIONS.map((city) => {
-                    const active = form.location === city;
-
-                    return (
-                      <button
-                        key={city}
-                        type="button"
-                        onClick={() => setField("location", city)}
-                        className={`listing-form-location-btn ${
-                          active ? "listing-form-location-btn--active" : ""
-                        }`}
-                      >
-                        <MapPin className="w-4 h-4" />
-                        {city}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <label className="listing-form-label">{t("form.category")}</label>
-                  <select
-                    value={form.cat}
-                    onChange={(e) => handleCatChange(e.target.value)}
-                    className="listing-form-select"
-                  >
-                    {Object.entries(CATS).map(([key, value]) => (
-                      <option key={key} value={key}>
-                        {value.title}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="listing-form-label">{t("form.subcategory")}</label>
-                  <select
-                    value={form.subcategory}
-                    onChange={(e) => handleSubcategoryChange(e.target.value)}
-                    className="listing-form-select"
-                  >
-                    {subs.map((sub) => (
-                      <option key={sub} value={sub}>
-                        {sub}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="listing-form-label">{t("form.description")}</label>
-                <textarea
-                  value={form.description}
-                  onChange={(e) =>
-                    setField("description", e.target.value.slice(0, DESC_MAX))
-                  }
-                  placeholder={t("form.descriptionPlaceholder")}
-                  className="listing-form-textarea"
-                />
-                <div className="listing-form-meta">
-                  {form.description.length}/{DESC_MAX}
-                </div>
+                <label htmlFor="listing-subcat" className="listing-form-label">
+                  {t("form.subcategory")}
+                </label>
+                <select
+                  id="listing-subcat"
+                  value={form.subcategory}
+                  onChange={(e) => handleSubcategoryChange(e.target.value)}
+                  className="listing-form-select"
+                >
+                  {subs.map((sub) => (
+                    <option key={sub} value={sub}>
+                      {sub}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
-          </div>
+
+            <div>
+              <div className="mb-1 flex items-center justify-between gap-3">
+                <label
+                  htmlFor="listing-title"
+                  className="listing-form-label listing-form-label-required mb-0"
+                >
+                  {t("form.title")}
+                </label>
+                {form.cat === "transport" ? (
+                  <button
+                    type="button"
+                    onClick={suggestTransportTitle}
+                    className="btn btn-ghost btn-sm text-sun-700 hover:bg-sun-50"
+                  >
+                    <PencilLine className="h-3.5 w-3.5" aria-hidden />
+                    {t("form.generateTitle")}
+                  </button>
+                ) : null}
+              </div>
+              <input
+                id="listing-title"
+                value={form.title}
+                onChange={(e) =>
+                  setField("title", e.target.value.slice(0, TITLE_MAX))
+                }
+                placeholder={t("form.titlePlaceholder")}
+                aria-describedby="listing-title-count"
+                className="listing-form-input"
+              />
+              <div id="listing-title-count" className="listing-form-meta">
+                {t("composer.titleCounter", {
+                  count: form.title.length,
+                  max: TITLE_MAX,
+                })}
+              </div>
+            </div>
+
+            <div>
+              <label
+                htmlFor="listing-price"
+                className="listing-form-label listing-form-label-required"
+              >
+                {t("form.price")}
+              </label>
+              <div className="listing-form-price-wrap">
+                <input
+                  id="listing-price"
+                  value={form.price}
+                  onChange={(e) => handlePriceChange(e.target.value)}
+                  onPaste={(e) => {
+                    e.preventDefault();
+                    handlePriceChange(e.clipboardData.getData("text"));
+                  }}
+                  placeholder={t("form.pricePlaceholder")}
+                  inputMode="numeric"
+                  autoComplete="off"
+                  aria-describedby="listing-price-count"
+                />
+                <span className="listing-form-price-suffix">
+                  {t("price.currency")}
+                </span>
+              </div>
+              <div id="listing-price-count" className="listing-form-meta">
+                {t("composer.priceCounter", {
+                  count: priceDigits.length,
+                  max: PRICE_MAX_DIGITS,
+                })}
+              </div>
+            </div>
+          </ListingFormSection>
 
           <ListingFormPhotosSection
+            step={stepOf("listing-section-photos")}
             photosCount={photosCount}
             photoLimit={photoLimit}
             minPhotos={minPhotos}
@@ -1195,21 +1185,86 @@ export default function ListingForm({
             onMakeCoverNew={makeCoverNew}
           />
 
-          <div id="listing-section-specs" className="listing-form-card overflow-hidden" data-field="specs">
-            <div className="listing-form-card__head">
-              <div className="listing-form-card__title">
-                <ListChecks className="w-5 h-5 text-sun" />
-                {t("form.specs")}
-              </div>
-            </div>
-
+          <ListingFormSection
+            id="listing-section-specs"
+            step={stepOf("listing-section-specs")}
+            complete={specsComplete}
+            dataField="specs"
+            icon={ListChecks}
+            title={t("form.specs")}
+            hint={t("composer.sectionSpecsHint")}
+            className="overflow-hidden"
+            bodyClassName="space-y-0 p-0 sm:p-0"
+          >
             <ListingFormSpecFields
               specs={specs}
               onUpdate={updateSpec}
               onRemove={removeSpecRow}
               invalid={invalidField === "specs"}
             />
-          </div>
+          </ListingFormSection>
+
+          <ListingFormSection
+            id="listing-section-description"
+            step={stepOf("listing-section-description")}
+            complete={Boolean(form.description.trim())}
+            optional
+            dataField="description"
+            icon={FileText}
+            title={t("form.description")}
+            hint={t("composer.sectionDescriptionHint")}
+          >
+            <label htmlFor="listing-description" className="sr-only">
+              {t("form.description")}
+            </label>
+            <textarea
+              id="listing-description"
+              value={form.description}
+              onChange={(e) =>
+                setField("description", e.target.value.slice(0, DESC_MAX))
+              }
+              placeholder={t("form.descriptionPlaceholder")}
+              aria-describedby="listing-description-count"
+              className="listing-form-textarea"
+            />
+            <div id="listing-description-count" className="listing-form-meta">
+              {t("composer.titleCounter", {
+                count: form.description.length,
+                max: DESC_MAX,
+              })}
+            </div>
+          </ListingFormSection>
+
+          <ListingFormSection
+            id="listing-section-location"
+            step={stepOf("listing-section-location")}
+            complete={Boolean(form.location?.trim())}
+            dataField="location"
+            icon={MapPin}
+            title={t("form.location")}
+            hint={t("composer.sectionLocationHint")}
+          >
+            <div className="listing-form-location-segment">
+              {LOCATIONS.map((city) => {
+                const active = form.location === city;
+
+                return (
+                  <button
+                    key={city}
+                    type="button"
+                    onClick={() => setField("location", city)}
+                    aria-pressed={active}
+                    className={`listing-form-location-btn ${
+                      active ? "listing-form-location-btn--active" : ""
+                    }`}
+                  >
+                    <MapPin className="h-4 w-4" aria-hidden />
+                    {city}
+                  </button>
+                );
+              })}
+            </div>
+          </ListingFormSection>
         </section>
 
         <ListingFormPublicationSidebar
