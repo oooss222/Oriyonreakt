@@ -1,11 +1,54 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { Flag, ExternalLink, Trash2, Ban } from "lucide-react";
+import {
+  Flag,
+  ExternalLink,
+  Trash2,
+  Ban,
+  Check,
+  X,
+  RotateCw,
+  AlertTriangle,
+} from "lucide-react";
 import { api } from "../lib/api";
 import { REPORT_REASON_LABELS } from "../data/reportReasons";
 import { subscribeModerationQueue } from "../lib/moderationSocket";
+import {
+  Alert,
+  Badge,
+  Button,
+  Card,
+  EmptyState,
+  SegmentedControl,
+  useConfirm,
+  useToast,
+} from "../ui";
+import { useI18n } from "../i18n";
+import { CardListSkeleton, SectionHeader } from "./admin/AdminUI";
+
+const STATUS_FILTERS = [
+  { value: "pending", label: "Новые" },
+  { value: "reviewed", label: "Рассмотренные" },
+  { value: "dismissed", label: "Отклонённые" },
+];
+
+function listingTitle(item) {
+  return item?.listingTitle || "Без названия";
+}
+
+function formatDateTime(value) {
+  if (!value) return "";
+
+  const date = new Date(value);
+
+  return Number.isNaN(date.getTime()) ? "" : date.toLocaleString("ru-RU");
+}
 
 export default function ModerationReports({ token }) {
+  const { t } = useI18n();
+  const confirm = useConfirm();
+  const { showToast } = useToast();
+
   const [items, setItems] = React.useState([]);
   const [groups, setGroups] = React.useState([]);
   const [status, setStatus] = React.useState("pending");
@@ -62,8 +105,9 @@ export default function ModerationReports({ token }) {
       await api.moderationReviewReport(token, id);
       if (listingId) removeGroup(listingId);
       else setItems((prev) => prev.filter((item) => item.id !== id));
+      showToast(t("admin.toastReportReviewed"), "success");
     } catch (e) {
-      alert(e.message || "Не удалось обновить жалобу");
+      showToast(e.message || "Не удалось обновить жалобу", "error");
     } finally {
       setActionLoadingId("");
     }
@@ -75,17 +119,22 @@ export default function ModerationReports({ token }) {
       await api.moderationDismissReport(token, id);
       if (listingId) removeGroup(listingId);
       else setItems((prev) => prev.filter((item) => item.id !== id));
+      showToast(t("admin.toastReportDismissed"), "success");
     } catch (e) {
-      alert(e.message || "Не удалось отклонить жалобу");
+      showToast(e.message || "Не удалось отклонить жалобу", "error");
     } finally {
       setActionLoadingId("");
     }
   };
 
   const handleDeleteListing = async (item) => {
-    const ok = confirm(
-      `Удалить объявление «${item.listingTitle || "Без названия"}»? Это действие необратимо.`
-    );
+    const ok = await confirm({
+      title: t("admin.deleteListingTitle"),
+      message: t("admin.deleteListingMessage", { title: listingTitle(item) }),
+      confirmLabel: t("admin.deleteConfirm"),
+      tone: "danger",
+    });
+
     if (!ok) return;
 
     try {
@@ -93,16 +142,24 @@ export default function ModerationReports({ token }) {
       await api.moderationReportDeleteListing(token, item.id);
       if (item.listingId) removeGroup(item.listingId);
       else setItems((prev) => prev.filter((row) => row.id !== item.id));
+      showToast(t("admin.toastListingDeleted"), "success");
     } catch (e) {
-      alert(e.message || "Не удалось удалить объявление");
+      showToast(e.message || "Не удалось удалить объявление", "error");
     } finally {
       setActionLoadingId("");
     }
   };
 
   const handleBlockOwner = async (item) => {
-    const ownerLabel = item.listingOwnerName || "продавца";
-    const ok = confirm(`Заблокировать ${ownerLabel}?`);
+    const ownerLabel = item.listingOwnerName || t("admin.ownerFallback");
+
+    const ok = await confirm({
+      title: t("admin.blockOwnerTitle"),
+      message: t("admin.blockOwnerMessage", { name: ownerLabel }),
+      confirmLabel: t("admin.blockConfirm"),
+      tone: "danger",
+    });
+
     if (!ok) return;
 
     try {
@@ -110,298 +167,290 @@ export default function ModerationReports({ token }) {
       await api.moderationReportBlockOwner(token, item.id);
       if (item.listingId) removeGroup(item.listingId);
       else setItems((prev) => prev.filter((row) => row.id !== item.id));
+      showToast(t("admin.toastOwnerBlocked"), "success");
     } catch (e) {
-      alert(e.message || "Не удалось заблокировать продавца");
+      showToast(e.message || "Не удалось заблокировать продавца", "error");
     } finally {
       setActionLoadingId("");
     }
   };
 
-  const statusLabel = {
-    pending: "Новые",
-    reviewed: "Рассмотренные",
-    dismissed: "Отклонённые",
-  };
-
-  if (loading) {
-    return (
-      <div className="rounded-2xl border bg-white p-4 md:p-5 text-sm text-slate-500">
-        Загрузка жалоб...
-      </div>
-    );
-  }
+  const pendingCount = groups.length;
+  const isEmpty = status === "pending" ? pendingCount === 0 : items.length === 0;
 
   return (
-    <div className="rounded-2xl border bg-white p-4 md:p-5 space-y-5">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-        <div>
-          <div className="inline-flex items-center gap-2 text-sm text-red-700 bg-red-50 border border-red-100 rounded-full px-3 py-1 mb-2">
-            <Flag className="w-4 h-4" />
-            Жалобы пользователей
-          </div>
+    <Card className="space-y-5">
+      <SectionHeader
+        eyebrow="Жалобы пользователей"
+        icon={Flag}
+        title="Жалобы на объявления"
+        description="Проверяйте жалобы и принимайте решение по объявлениям."
+        action={
+          <Button icon={RotateCw} loading={refreshing} onClick={load}>
+            Обновить
+          </Button>
+        }
+      />
 
-          <h2 className="text-xl font-bold">Жалобы на объявления</h2>
+      {error && <Alert tone="danger">{error}</Alert>}
 
-          <p className="text-sm text-slate-500 mt-1">
-            Проверяйте жалобы и принимайте решение по объявлениям.
-          </p>
-        </div>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <SegmentedControl
+          label={t("admin.statusLabel")}
+          value={status}
+          onChange={setStatus}
+          items={STATUS_FILTERS}
+          className="w-full sm:w-auto"
+        />
 
-        <button
-          type="button"
-          onClick={load}
-          disabled={refreshing}
-          className="px-4 py-2 rounded-xl border hover:bg-slate-50 disabled:opacity-60"
-        >
-          {refreshing ? "Обновляем..." : "Обновить"}
-        </button>
-      </div>
-
-      {error && (
-        <div className="rounded-xl border border-red-200 bg-red-50 text-red-700 p-3">
-          {error}
-        </div>
-      )}
-
-      <div className="flex flex-wrap gap-2">
-        {["pending", "reviewed", "dismissed"].map((value) => (
-          <button
-            key={value}
-            type="button"
-            onClick={() => setStatus(value)}
-            className={`px-4 py-2 rounded-xl border text-sm font-medium transition ${
-              status === value
-                ? "bg-slate-900 text-white border-slate-900"
-                : "bg-white text-slate-700 hover:bg-slate-50"
-            }`}
+        {status === "pending" && (
+          <p
+            aria-live="polite"
+            className="text-sm font-semibold text-ink-600"
           >
-            {statusLabel[value]}
-          </button>
-        ))}
+            {t("admin.reportsAnnounce", { count: pendingCount })}
+          </p>
+        )}
       </div>
 
-      {status === "pending" && groups.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-slate-200 p-8 text-center text-slate-500">
-          Жалоб в этой категории нет.
-        </div>
-      ) : status !== "pending" && items.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-slate-200 p-8 text-center text-slate-500">
-          Жалоб в этой категории нет.
-        </div>
+      {loading ? (
+        <CardListSkeleton count={3} />
+      ) : isEmpty ? (
+        <EmptyState
+          bare
+          icon={Flag}
+          title={t("admin.reportsEmptyTitle")}
+          description={t("admin.reportsEmptyDescription")}
+        />
       ) : status === "pending" ? (
-        <div className="space-y-4">
+        <ul className="space-y-3">
           {groups.map((group) => {
             const primary = group.reports?.[0];
             if (!primary) return null;
 
+            const busy = actionLoadingId === primary.id;
+
             return (
-              <div
-                key={group.listingId}
-                className={`rounded-2xl border p-4 space-y-3 ${
-                  group.highPriority
-                    ? "border-red-300 bg-red-50/40"
-                    : "border-slate-200 bg-white"
-                }`}
-              >
-                <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
-                  <div className="min-w-0 space-y-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <div className="font-semibold text-slate-900">
-                        {group.listingTitle || "Без названия"}
+              <li key={group.listingId}>
+                <article
+                  className={
+                    group.highPriority
+                      ? "rounded-2xl border border-danger-300 bg-danger-50/40 p-4"
+                      : "surface-panel p-4"
+                  }
+                >
+                  <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                    <div className="min-w-0 space-y-1.5">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h3 className="text-base font-semibold text-ink-900">
+                          {listingTitle(group)}
+                        </h3>
+
+                        <Badge tone="danger" icon={Flag}>
+                          {t("admin.reportCount", {
+                            count: group.reportCount,
+                          })}
+                        </Badge>
+
+                        {group.highPriority && (
+                          <Badge tone="danger" icon={AlertTriangle}>
+                            Приоритет
+                          </Badge>
+                        )}
                       </div>
-                      <span className="inline-flex px-2 py-0.5 text-xs rounded-full border bg-red-100 text-red-700 border-red-200">
-                        {group.reportCount} жалоб
-                      </span>
-                      {group.highPriority && (
-                        <span className="inline-flex px-2 py-0.5 text-xs rounded-full border bg-red-600 text-white border-red-600">
-                          Приоритет
-                        </span>
+
+                      {group.listingOwnerName && (
+                        <p className="text-sm text-ink-400">
+                          Продавец:{" "}
+                          <span className="font-medium text-ink-600">
+                            {group.listingOwnerName}
+                          </span>
+                        </p>
                       )}
+
+                      <ul className="flex flex-wrap gap-1 pt-1">
+                        {(group.reasons || []).map((reason, idx) => (
+                          <li key={`${group.listingId}-${reason}-${idx}`}>
+                            <Badge tone="neutral">
+                              {REPORT_REASON_LABELS[reason] || reason}
+                            </Badge>
+                          </li>
+                        ))}
+                      </ul>
                     </div>
 
-                    {group.listingOwnerName && (
-                      <div className="text-sm text-slate-500">
-                        Продавец: {group.listingOwnerName}
-                      </div>
-                    )}
-
-                    <div className="flex flex-wrap gap-1 mt-2">
-                      {(group.reasons || []).map((reason, idx) => (
-                        <span
-                          key={`${group.listingId}-${reason}-${idx}`}
-                          className="inline-flex px-2 py-0.5 text-2xs rounded-full border bg-white text-slate-700"
-                        >
-                          {REPORT_REASON_LABELS[reason] || reason}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="flex flex-wrap gap-2 shrink-0">
-                    <Link
-                      to={`/ad/${group.listingId}`}
-                      className="btn py-2 rounded-xl"
-                    >
-                      <ExternalLink className="w-4 h-4" />
-                      Открыть
-                    </Link>
-
-                    <button
-                      type="button"
-                      className="btn py-2 rounded-xl disabled:opacity-60 text-red-700 border-red-200 hover:bg-red-50"
-                      disabled={actionLoadingId === primary.id}
-                      onClick={() => handleDeleteListing(primary)}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                      Удалить объявление
-                    </button>
-
-                    {group.listingOwnerId && (
-                      <button
-                        type="button"
-                        className="btn py-2 rounded-xl disabled:opacity-60 text-red-700 border-red-200 hover:bg-red-50"
-                        disabled={actionLoadingId === primary.id}
-                        onClick={() => handleBlockOwner(primary)}
+                    <div className="flex flex-wrap gap-2 lg:shrink-0">
+                      <Button
+                        to={`/ad/${group.listingId}`}
+                        icon={ExternalLink}
+                        size="sm"
                       >
-                        <Ban className="w-4 h-4" />
-                        Заблокировать
-                      </button>
-                    )}
+                        Открыть
+                      </Button>
 
-                    <button
-                      type="button"
-                      className="btn btn-primary py-2 rounded-xl disabled:opacity-60"
-                      disabled={actionLoadingId === primary.id}
-                      onClick={() => handleReview(primary.id, group.listingId)}
-                    >
-                      Рассмотрено
-                    </button>
-                  </div>
-                </div>
-
-                <div className="space-y-2 border-t pt-3">
-                  {group.reports.map((item) => (
-                    <div key={item.id} className="rounded-xl bg-slate-50 p-3 text-sm">
-                      <div className="font-medium">
-                        {REPORT_REASON_LABELS[item.reason] || item.reason}
-                      </div>
-                      <div className="text-slate-500">
-                        {item.reporterName || "Пользователь"} ·{" "}
-                        {item.createdAt
-                          ? new Date(item.createdAt).toLocaleString("ru-RU")
-                          : ""}
-                      </div>
-                      {item.details && (
-                        <p className="text-slate-700 mt-1">{item.details}</p>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {items.map((item) => (
-            <div
-              key={item.id}
-              className="rounded-2xl border border-slate-200 p-4 space-y-3"
-            >
-              <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
-                <div className="min-w-0 space-y-1">
-                  <div className="font-semibold text-slate-900">
-                    {REPORT_REASON_LABELS[item.reason] || item.reason}
-                  </div>
-
-                  <div className="text-sm text-slate-600">
-                    Объявление:{" "}
-                    <Link
-                      to={`/ad/${item.listingId}`}
-                      className="text-sun hover:text-sun-600 font-medium"
-                    >
-                      {item.listingTitle || "Без названия"}
-                    </Link>
-                  </div>
-
-                  <div className="text-sm text-slate-500">
-                    От: {item.reporterName || "Пользователь"} ·{" "}
-                    {item.createdAt
-                      ? new Date(item.createdAt).toLocaleString("ru-RU")
-                      : ""}
-                  </div>
-
-                  {item.listingOwnerName && (
-                    <div className="text-sm text-slate-500">
-                      Продавец: {item.listingOwnerName}
-                    </div>
-                  )}
-
-                  {item.details && (
-                    <p className="text-sm text-slate-700 bg-slate-50 rounded-xl p-3 mt-2">
-                      {item.details}
-                    </p>
-                  )}
-                </div>
-
-                <div className="flex flex-wrap gap-2 shrink-0">
-                  <Link
-                    to={`/ad/${item.listingId}`}
-                    className="btn py-2 rounded-xl"
-                  >
-                    <ExternalLink className="w-4 h-4" />
-                    Открыть
-                  </Link>
-
-                  {status === "pending" && (
-                    <>
-                      <button
-                        type="button"
-                        className="btn py-2 rounded-xl disabled:opacity-60 text-red-700 border-red-200 hover:bg-red-50"
-                        disabled={actionLoadingId === item.id}
-                        onClick={() => handleDeleteListing(item)}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                        Удалить объявление
-                      </button>
-
-                      {item.listingOwnerId && (
-                        <button
-                          type="button"
-                          className="btn py-2 rounded-xl disabled:opacity-60 text-red-700 border-red-200 hover:bg-red-50"
-                          disabled={actionLoadingId === item.id}
-                          onClick={() => handleBlockOwner(item)}
-                        >
-                          <Ban className="w-4 h-4" />
-                          Заблокировать продавца
-                        </button>
-                      )}
-
-                      <button
-                        type="button"
-                        className="btn btn-primary py-2 rounded-xl disabled:opacity-60"
-                        disabled={actionLoadingId === item.id}
-                        onClick={() => handleReview(item.id)}
+                      <Button
+                        size="sm"
+                        variant="primary"
+                        icon={Check}
+                        disabled={busy}
+                        onClick={() => handleReview(primary.id, group.listingId)}
                       >
                         Рассмотрено
-                      </button>
+                      </Button>
 
-                      <button
-                        type="button"
-                        className="btn py-2 rounded-xl disabled:opacity-60"
-                        disabled={actionLoadingId === item.id}
-                        onClick={() => handleDismiss(item.id)}
+                      <Button
+                        size="sm"
+                        variant="danger"
+                        icon={Trash2}
+                        disabled={busy}
+                        onClick={() => handleDeleteListing(primary)}
                       >
-                        Отклонить
-                      </button>
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+                        Удалить объявление
+                      </Button>
+
+                      {group.listingOwnerId && (
+                        <Button
+                          size="sm"
+                          variant="danger"
+                          icon={Ban}
+                          disabled={busy}
+                          onClick={() => handleBlockOwner(primary)}
+                        >
+                          Заблокировать
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+
+                  <ul className="mt-3 space-y-2 border-t border-ink-200 pt-3">
+                    {group.reports.map((item) => (
+                      <li
+                        key={item.id}
+                        className="surface-muted p-3 text-sm"
+                      >
+                        <p className="font-medium text-ink-800">
+                          {REPORT_REASON_LABELS[item.reason] || item.reason}
+                        </p>
+                        <p className="text-xs text-ink-400">
+                          {item.reporterName || "Пользователь"}
+                          {item.createdAt ? ` · ${formatDateTime(item.createdAt)}` : ""}
+                        </p>
+                        {item.details && (
+                          <p className="mt-1 text-ink-600 break-anywhere">
+                            {item.details}
+                          </p>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </article>
+              </li>
+            );
+          })}
+        </ul>
+      ) : (
+        <ul className="space-y-3">
+          {items.map((item) => {
+            const busy = actionLoadingId === item.id;
+
+            return (
+              <li key={item.id}>
+                <article className="surface-panel p-4">
+                  <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                    <div className="min-w-0 space-y-1">
+                      <h3 className="text-base font-semibold text-ink-900">
+                        {REPORT_REASON_LABELS[item.reason] || item.reason}
+                      </h3>
+
+                      <p className="text-sm text-ink-500">
+                        Объявление:{" "}
+                        <Link
+                          to={`/ad/${item.listingId}`}
+                          className="font-medium text-sun-700 hover:text-sun-800"
+                        >
+                          {listingTitle(item)}
+                        </Link>
+                      </p>
+
+                      <p className="text-sm text-ink-400">
+                        От: {item.reporterName || "Пользователь"}
+                        {item.createdAt ? ` · ${formatDateTime(item.createdAt)}` : ""}
+                      </p>
+
+                      {item.listingOwnerName && (
+                        <p className="text-sm text-ink-400">
+                          Продавец: {item.listingOwnerName}
+                        </p>
+                      )}
+
+                      {item.details && (
+                        <p className="surface-muted mt-2 p-3 text-sm text-ink-600 break-anywhere">
+                          {item.details}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="flex flex-wrap gap-2 lg:shrink-0">
+                      <Button
+                        to={`/ad/${item.listingId}`}
+                        icon={ExternalLink}
+                        size="sm"
+                      >
+                        Открыть
+                      </Button>
+
+                      {status === "pending" && (
+                        <>
+                          <Button
+                            size="sm"
+                            variant="primary"
+                            icon={Check}
+                            disabled={busy}
+                            onClick={() => handleReview(item.id)}
+                          >
+                            Рассмотрено
+                          </Button>
+
+                          <Button
+                            size="sm"
+                            icon={X}
+                            disabled={busy}
+                            onClick={() => handleDismiss(item.id)}
+                          >
+                            Отклонить
+                          </Button>
+
+                          <Button
+                            size="sm"
+                            variant="danger"
+                            icon={Trash2}
+                            disabled={busy}
+                            onClick={() => handleDeleteListing(item)}
+                          >
+                            Удалить объявление
+                          </Button>
+
+                          {item.listingOwnerId && (
+                            <Button
+                              size="sm"
+                              variant="danger"
+                              icon={Ban}
+                              disabled={busy}
+                              onClick={() => handleBlockOwner(item)}
+                            >
+                              Заблокировать продавца
+                            </Button>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </article>
+              </li>
+            );
+          })}
+        </ul>
       )}
-    </div>
+    </Card>
   );
 }

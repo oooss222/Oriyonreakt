@@ -1,5 +1,5 @@
 import React from "react";
-import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
+import { Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import {
   LayoutDashboard,
   Users,
@@ -24,9 +24,11 @@ import {
   canAccessAdminSection,
   canAccessAccountant,
   defaultAdminSection,
-  roleBadgeClass,
   roleLabel,
 } from "../lib/adminUtils";
+import { Badge, Button, Card, Tabs } from "../ui";
+import { roleTone } from "../components/admin/AdminUI";
+import { useI18n } from "../i18n";
 import AdminDashboard from "../components/admin/AdminDashboard";
 import AdminUsersSection from "../components/admin/AdminUsersSection";
 import AdminListingsSection from "../components/admin/AdminListingsSection";
@@ -38,6 +40,8 @@ import AdminFinancePanel from "../components/admin/AdminFinancePanel";
 import ModerationListingsPanel from "../components/admin/ModerationListingsPanel";
 import ModerationReports from "../components/ModerationReports";
 import AdminAdsSection from "../components/admin/AdminAdsSection";
+
+const PANEL_ID = "admin-section-panel";
 
 const SECTIONS = [
   { id: "dashboard", label: "Обзор", icon: LayoutDashboard },
@@ -74,6 +78,7 @@ function getSectionBadge(sectionId, stats) {
 export default function Admin() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
+  const { t } = useI18n();
 
   const [token] = React.useState(() => localStorage.getItem(TOKEN_KEY) || "");
   const [me, setMe] = React.useState(() => {
@@ -185,29 +190,40 @@ export default function Admin() {
     setSection(id, extra);
   };
 
+  const tabItems = visibleSections.map((item) => ({
+    value: item.id,
+    label: item.label,
+    icon: item.icon,
+    count: getSectionBadge(item.id, stats),
+    panelId: PANEL_ID,
+  }));
+
+  const activeSection = visibleSections.find((item) => item.id === section);
+
   return (
-    <div className="page-container py-6 md:py-8">
-      <div className="mb-5 flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
-        <div>
-          <Link
+    <div className="page-container stack-page">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div className="min-w-0">
+          <Button
+            variant="ghost"
+            size="sm"
+            icon={ArrowLeft}
             to="/profile"
-            className="inline-flex items-center gap-1 text-sm text-slate-500 hover:text-slate-800 mb-2"
+            className="-ml-3 mb-1"
           >
-            <ArrowLeft size={16} />
             Назад в профиль
-          </Link>
+          </Button>
+
           <div className="flex flex-wrap items-center gap-2">
-            <h1 className="font-display text-2xl md:text-3xl font-bold text-ink flex items-center gap-2">
-              <Shield className="text-sun" />
+            <h1 className="flex items-center gap-2 font-display text-2xl font-bold text-ink-900 sm:text-3xl">
+              <Shield className="text-sun-500" aria-hidden="true" />
               Админ-панель
             </h1>
-            <span
-              className={`px-2.5 py-1 rounded-full text-xs font-semibold border ${roleBadgeClass(role)}`}
-            >
-              {roleLabel(role)}
-            </span>
+
+            <Badge tone={roleTone(role)}>{roleLabel(role)}</Badge>
           </div>
-          <p className="text-sm text-slate-500 mt-1 max-w-2xl">
+
+          <p className="mt-1 max-w-2xl text-sm text-ink-400">
             {isSuperAdmin
               ? "Полный доступ: пользователи, модерация, финансы и настройки."
               : isAdmin
@@ -218,120 +234,82 @@ export default function Admin() {
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          <Link
-            to="/messages"
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border bg-white hover:bg-slate-50 text-sm font-semibold"
-          >
-            <MessageCircle size={16} />
-            Сообщения
-          </Link>
-        </div>
+        <Button to="/messages" icon={MessageCircle} className="shrink-0">
+          Сообщения
+        </Button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[250px_1fr] gap-5">
-        <aside className="rounded-2xl border bg-white p-3 h-fit lg:sticky lg:top-24">
-          <nav className="flex lg:flex-col gap-1 overflow-x-auto pb-1 lg:pb-0">
-            {visibleSections.map((item) => {
-              const Icon = item.icon;
-              const active = section === item.id;
-              const badge = getSectionBadge(item.id, stats);
+      <Tabs
+        items={tabItems}
+        value={section}
+        onChange={(id) => setSection(id)}
+        label={t("admin.panelNav")}
+      />
 
-              return (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => setSection(item.id)}
-                  className={`inline-flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl text-sm font-medium whitespace-nowrap transition w-full ${
-                    active
-                      ? "bg-slate-900 text-white"
-                      : "hover:bg-slate-50 text-slate-700"
-                  }`}
-                >
-                  <span className="inline-flex items-center gap-2 min-w-0">
-                    <Icon size={16} className="shrink-0" />
-                    {item.label}
-                  </span>
-                  {badge > 0 && (
-                    <span
-                      className={`min-w-[20px] h-5 px-1.5 rounded-full text-2xs font-bold flex items-center justify-center ${
-                        active
-                          ? "bg-sun text-white"
-                          : "bg-red-100 text-red-700"
-                      }`}
-                    >
-                      {badge > 99 ? "99+" : badge}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </nav>
-        </aside>
-
-        <main>
-          {section === "dashboard" && isAdmin && (
-            <div className="rounded-2xl border bg-white p-4 md:p-5">
-              <AdminDashboard
-                stats={stats}
-                loading={statsLoading}
-                error={statsError}
-                role={role}
-                onGoToSection={goToSection}
-              />
-            </div>
-          )}
-
-          {section === "analytics" && isAdmin && (
-            <AdminAnalyticsSection token={token} />
-          )}
-
-          {section === "users" && isAdmin && (
-            <AdminUsersSection
-              token={token}
-              currentUser={me}
-              initialBusinessFilter={businessFilter}
+      <div
+        id={PANEL_ID}
+        role="tabpanel"
+        aria-label={activeSection?.label}
+        tabIndex={-1}
+        className="outline-none"
+      >
+        {section === "dashboard" && isAdmin && (
+          <Card padding="md">
+            <AdminDashboard
+              stats={stats}
+              loading={statsLoading}
+              error={statsError}
+              role={role}
+              onGoToSection={goToSection}
             />
-          )}
+          </Card>
+        )}
 
-          {section === "listings" && isAdmin && (
-            <AdminListingsSection token={token} />
-          )}
+        {section === "analytics" && isAdmin && (
+          <AdminAnalyticsSection token={token} />
+        )}
 
-          {section === "ads" && isAdmin && (
-            <AdminAdsSection token={token} />
-          )}
+        {section === "users" && isAdmin && (
+          <AdminUsersSection
+            token={token}
+            currentUser={me}
+            initialBusinessFilter={businessFilter}
+          />
+        )}
 
-          {section === "moderation" && (
-            <ModerationListingsPanel token={token} embedded />
-          )}
+        {section === "listings" && isAdmin && (
+          <AdminListingsSection token={token} />
+        )}
 
-          {section === "reports" && <ModerationReports token={token} />}
+        {section === "ads" && isAdmin && <AdminAdsSection token={token} />}
 
-          {section === "finance" && (isSuperAdmin || isAccountant) && (
-            <AdminFinancePanel
-              token={token}
-              currentUser={me}
-              isSuperAdmin={isSuperAdmin}
-            />
-          )}
+        {section === "moderation" && (
+          <ModerationListingsPanel token={token} embedded />
+        )}
 
-          {section === "audit" && isAdmin && (
-            <AdminAuditSection token={token} />
-          )}
+        {section === "reports" && <ModerationReports token={token} />}
 
-          {section === "settings" && isSuperAdmin && (
-            <AdminSettingsSection token={token} />
-          )}
+        {section === "finance" && (isSuperAdmin || isAccountant) && (
+          <AdminFinancePanel
+            token={token}
+            currentUser={me}
+            isSuperAdmin={isSuperAdmin}
+          />
+        )}
 
-          {section === "export" && canAccessAdminSection(role, "export") && (
-            <AdminExportSection token={token} role={role} />
-          )}
+        {section === "audit" && isAdmin && <AdminAuditSection token={token} />}
 
-          {!isSectionAllowed && (
-            <Navigate to={`/admin?section=${defaultSection}`} replace />
-          )}
-        </main>
+        {section === "settings" && isSuperAdmin && (
+          <AdminSettingsSection token={token} />
+        )}
+
+        {section === "export" && canAccessAdminSection(role, "export") && (
+          <AdminExportSection token={token} role={role} />
+        )}
+
+        {!isSectionAllowed && (
+          <Navigate to={`/admin?section=${defaultSection}`} replace />
+        )}
       </div>
     </div>
   );

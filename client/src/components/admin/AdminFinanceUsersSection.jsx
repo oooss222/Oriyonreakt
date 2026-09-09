@@ -1,8 +1,31 @@
 import React from "react";
-import { Users, ChevronLeft, ChevronRight } from "lucide-react";
+import { Users, Search, RotateCw } from "lucide-react";
 import { api } from "../../lib/api";
-import { getId, roleLabel, roleBadgeClass } from "../../lib/adminUtils";
+import { getId, roleLabel } from "../../lib/adminUtils";
+import {
+  Alert,
+  Badge,
+  Button,
+  Card,
+  EmptyState,
+  Field,
+  Input,
+  Select,
+  SimplePagination,
+} from "../../ui";
+import { useI18n } from "../../i18n";
 import UserDetailModal from "./UserDetailModal";
+import {
+  DataTable,
+  FilterBar,
+  ResultsBar,
+  SectionHeader,
+  TableRow,
+  TableSkeleton,
+  Td,
+  Th,
+  roleTone,
+} from "./AdminUI";
 
 const PAGE_SIZE = 25;
 
@@ -25,6 +48,8 @@ function useDebouncedValue(value, delay = 350) {
 }
 
 export default function AdminFinanceUsersSection({ token, currentUser }) {
+  const { t } = useI18n();
+
   const [users, setUsers] = React.useState([]);
   const [total, setTotal] = React.useState(0);
   const [totalPages, setTotalPages] = React.useState(1);
@@ -70,164 +95,157 @@ export default function AdminFinanceUsersSection({ token, currentUser }) {
     setPage(1);
   }, [debouncedQuery, sortKey]);
 
-  if (loading) {
-    return (
-      <div className="rounded-2xl border bg-white p-4 space-y-4 animate-pulse">
-        <div className="h-7 bg-mist-200 rounded w-48" />
-        <div className="h-12 bg-mist-200 rounded-xl" />
-        <div className="space-y-2">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="h-14 bg-mist-200 rounded-xl" />
-          ))}
-        </div>
-      </div>
-    );
-  }
+  const filtersActive = Boolean(query) || sortKey !== "balance_desc";
+
+  const resetFilters = () => {
+    setQuery("");
+    setSortKey("balance_desc");
+  };
 
   return (
     <>
-      <div className="rounded-2xl border bg-white p-4 space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div>
-            <div className="inline-flex items-center gap-2 text-sm text-amber-700 bg-amber-50 border border-amber-100 rounded-full px-3 py-1 mb-2">
-              <Users className="w-4 h-4" />
-              Кошельки пользователей
-            </div>
-            <p className="text-sm text-slate-500">
-              Просмотр балансов и истории операций. Режим только для чтения.
-            </p>
-          </div>
+      <Card className="space-y-4">
+        <SectionHeader
+          eyebrow="Кошельки пользователей"
+          icon={Users}
+          title="Балансы"
+          description="Просмотр балансов и истории операций. Режим только для чтения."
+          action={
+            <Button icon={RotateCw} loading={refreshing} onClick={loadUsers}>
+              Обновить
+            </Button>
+          }
+        />
 
-          <button
-            type="button"
-            onClick={loadUsers}
-            disabled={refreshing}
-            className="px-4 py-2 rounded-xl border hover:bg-slate-50 disabled:opacity-60"
+        {error && <Alert tone="danger">{error}</Alert>}
+
+        <FilterBar
+          gridClassName="grid-cols-1 sm:grid-cols-3"
+          onReset={resetFilters}
+          resetDisabled={!filtersActive}
+        >
+          <Field
+            label={t("admin.searchLabel")}
+            labelClassName="sr-only"
+            className="sm:col-span-2"
           >
-            {refreshing ? "Обновляем..." : "Обновить"}
-          </button>
-        </div>
+            {(props) => (
+              <Input
+                {...props}
+                type="search"
+                iconLeft={Search}
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Поиск: имя, email, телефон"
+              />
+            )}
+          </Field>
 
-        {error && (
-          <div className="rounded-xl border border-red-200 bg-red-50 text-red-700 p-3">
-            {error}
-          </div>
-        )}
+          <Field label={t("admin.sortLabel")} labelClassName="sr-only">
+            {(props) => (
+              <Select
+                {...props}
+                value={sortKey}
+                onChange={(e) => setSortKey(e.target.value)}
+                options={SORT_OPTIONS}
+              />
+            )}
+          </Field>
+        </FilterBar>
 
-        <div className="rounded-2xl border bg-slate-50 p-3 grid grid-cols-1 md:grid-cols-3 gap-3">
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Поиск: имя, email, телефон"
-            className="h-11 rounded-xl border px-3 outline-none focus:ring-2 focus:ring-sun/40 md:col-span-2"
+        <ResultsBar
+          pager={
+            <SimplePagination
+              page={page}
+              totalPages={totalPages}
+              onPageChange={setPage}
+              disabled={refreshing}
+            />
+          }
+        >
+          Показано: {users.length} из {total}
+          {query !== debouncedQuery ? " · ищем…" : ""}
+        </ResultsBar>
+
+        {loading ? (
+          <TableSkeleton label={t("admin.tableWallets")} rows={8} columns={5} />
+        ) : users.length === 0 ? (
+          <EmptyState
+            bare
+            icon={Users}
+            title="Пользователи не найдены"
+            description={t("admin.emptyFiltersHint")}
+            secondaryAction={
+              filtersActive ? (
+                <Button onClick={resetFilters}>{t("admin.reset")}</Button>
+              ) : null
+            }
           />
-
-          <select
-            value={sortKey}
-            onChange={(e) => setSortKey(e.target.value)}
-            className="h-11 rounded-xl border px-3 outline-none focus:ring-2 focus:ring-sun/40"
-          >
-            {SORT_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-sm text-slate-500">
-          <div>
-            Показано: {users.length} из {total}
-            {query !== debouncedQuery ? " · ищем..." : ""}
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              disabled={page <= 1 || refreshing}
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border disabled:opacity-40"
-            >
-              <ChevronLeft size={16} />
-              Назад
-            </button>
-            <span>
-              {page} / {totalPages}
-            </span>
-            <button
-              type="button"
-              disabled={page >= totalPages || refreshing}
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border disabled:opacity-40"
-            >
-              Вперёд
-              <ChevronRight size={16} />
-            </button>
-          </div>
-        </div>
-
-        {users.length === 0 ? (
-          <div className="rounded-2xl border bg-slate-50 p-8 text-center text-slate-500">
-            Пользователи не найдены.
-          </div>
         ) : (
-          <div className="overflow-x-auto rounded-2xl border">
-            <table className="w-full text-sm border-collapse bg-white">
-              <thead className="bg-slate-50">
-                <tr className="border-b text-left text-slate-500">
-                  <th className="py-3 px-3">Пользователь</th>
-                  <th className="py-3 px-3">Email</th>
-                  <th className="py-3 px-3">Роль</th>
-                  <th className="py-3 px-3">Баланс</th>
-                  <th className="py-3 px-3">Статус</th>
-                </tr>
-              </thead>
+          <DataTable
+            label={t("admin.tableWallets")}
+            minWidth="46rem"
+            scrollHeight="70vh"
+          >
+            <thead>
+              <tr>
+                <Th>Пользователь</Th>
+                <Th>Email</Th>
+                <Th>Роль</Th>
+                <Th align="right">Баланс</Th>
+                <Th>Статус</Th>
+              </tr>
+            </thead>
 
-              <tbody>
-                {users.map((user) => {
-                  const id = getId(user);
-                  const role = user.role || "user";
+            <tbody>
+              {users.map((user) => {
+                const id = getId(user);
+                const role = user.role || "user";
 
-                  return (
-                    <tr
-                      key={id}
-                      className="border-b last:border-b-0 hover:bg-slate-50 cursor-pointer"
-                      onClick={() => setSelectedUserId(id)}
-                    >
-                      <td className="py-3 px-3">
-                        <div className="font-semibold">{user.name || "Без имени"}</div>
-                      </td>
-                      <td className="py-3 px-3">{user.email}</td>
-                      <td className="py-3 px-3">
-                        <span
-                          className={`inline-flex px-2 py-0.5 text-xs rounded-full border ${roleBadgeClass(
-                            role
-                          )}`}
-                        >
-                          {roleLabel(role)}
+                return (
+                  <TableRow
+                    key={id}
+                    className="cursor-pointer"
+                    onClick={() => setSelectedUserId(id)}
+                  >
+                    <Td>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedUserId(id)}
+                        className="rounded text-left font-semibold text-ink-900 hover:text-sun-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sun/50"
+                      >
+                        {user.name || "Без имени"}
+                        <span className="sr-only">
+                          {" "}
+                          — {t("admin.openUserCard")}
                         </span>
-                      </td>
-                      <td className="py-3 px-3 font-medium">
-                        {Number(user.walletBalance || 0).toLocaleString("ru-RU")} TJS
-                      </td>
-                      <td className="py-3 px-3">
-                        {user.isBlocked ? (
-                          <span className="inline-flex px-2 py-0.5 text-xs rounded-full bg-red-50 text-red-700 border border-red-200">
-                            Заблокирован
-                          </span>
-                        ) : (
-                          <span className="inline-flex px-2 py-0.5 text-xs rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-                            Активен
-                          </span>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                      </button>
+                    </Td>
+
+                    <Td className="text-ink-700 break-anywhere">{user.email}</Td>
+
+                    <Td>
+                      <Badge tone={roleTone(role)}>{roleLabel(role)}</Badge>
+                    </Td>
+
+                    <Td className="whitespace-nowrap text-right font-semibold text-ink-800">
+                      {Number(user.walletBalance || 0).toLocaleString("ru-RU")} TJS
+                    </Td>
+
+                    <Td>
+                      {user.isBlocked ? (
+                        <Badge tone="danger">Заблокирован</Badge>
+                      ) : (
+                        <Badge tone="success">Активен</Badge>
+                      )}
+                    </Td>
+                  </TableRow>
+                );
+              })}
+            </tbody>
+          </DataTable>
         )}
-      </div>
+      </Card>
 
       {selectedUserId && (
         <UserDetailModal

@@ -4,11 +4,36 @@ import {
   ScrollText,
   CreditCard,
   Crown,
-  ChevronLeft,
-  ChevronRight,
+  RefreshCw,
 } from "lucide-react";
 import { api } from "../../lib/api";
 import { AUDIT_ACTION_LABELS, WALLET_TYPE_LABELS } from "../../lib/adminUtils";
+import {
+  Alert,
+  Button,
+  Card,
+  EmptyState,
+  Field,
+  Input,
+  SimplePagination,
+  Skeleton,
+  useToast,
+} from "../../ui";
+import { useI18n } from "../../i18n";
+import {
+  DataTable,
+  ResultsBar,
+  SectionHeader,
+  StatTile,
+  TableRow,
+  TableSkeleton,
+  Td,
+  Th,
+} from "./AdminUI";
+
+function money(value) {
+  return `${Number(value || 0).toLocaleString("ru-RU")} TJS`;
+}
 
 function formatAuditDetails(item) {
   const details = item.details || {};
@@ -24,41 +49,58 @@ function formatAuditDetails(item) {
 }
 
 function PeriodFilters({ from, to, onFrom, onTo, onApply, loading }) {
+  const { t } = useI18n();
+
   return (
-    <div className="rounded-2xl border bg-slate-50 p-3 grid grid-cols-1 md:grid-cols-4 gap-3">
-      <label className="text-sm">
-        <span className="text-slate-500 block mb-1">С даты</span>
-        <input
-          type="date"
-          value={from}
-          onChange={(e) => onFrom(e.target.value)}
-          className="h-11 w-full rounded-xl border px-3 bg-white"
-        />
-      </label>
-      <label className="text-sm">
-        <span className="text-slate-500 block mb-1">По дату</span>
-        <input
-          type="date"
-          value={to}
-          onChange={(e) => onTo(e.target.value)}
-          className="h-11 w-full rounded-xl border px-3 bg-white"
-        />
-      </label>
-      <div className="md:col-span-2 flex items-end">
-        <button
-          type="button"
-          disabled={loading}
-          onClick={onApply}
-          className="h-11 px-4 rounded-xl bg-slate-900 text-white hover:bg-slate-800 disabled:opacity-60"
-        >
-          {loading ? "Считаем..." : "Построить отчёт"}
-        </button>
+    <section
+      aria-label={t("admin.periodLabel")}
+      className="surface-muted grid grid-cols-1 gap-3 p-3 sm:grid-cols-2 lg:grid-cols-4"
+    >
+      <Field label="С даты">
+        {(props) => (
+          <Input
+            {...props}
+            type="date"
+            value={from}
+            onChange={(e) => onFrom(e.target.value)}
+          />
+        )}
+      </Field>
+
+      <Field label="По дату">
+        {(props) => (
+          <Input
+            {...props}
+            type="date"
+            value={to}
+            onChange={(e) => onTo(e.target.value)}
+          />
+        )}
+      </Field>
+
+      <div className="flex items-end gap-2 lg:col-span-2">
+        <Button variant="accent" loading={loading} onClick={onApply}>
+          Построить отчёт
+        </Button>
+
+        {(from || to) && (
+          <Button
+            variant="ghost"
+            onClick={() => {
+              onFrom("");
+              onTo("");
+            }}
+          >
+            {t("admin.reset")}
+          </Button>
+        )}
       </div>
-    </div>
+    </section>
   );
 }
 
 export function FinanceReportsTab({ token }) {
+  const { t } = useI18n();
   const [from, setFrom] = React.useState("");
   const [to, setTo] = React.useState("");
   const [report, setReport] = React.useState(null);
@@ -83,16 +125,13 @@ export function FinanceReportsTab({ token }) {
   }, [load]);
 
   return (
-    <div className="rounded-2xl border bg-white p-4 space-y-4">
-      <div>
-        <div className="inline-flex items-center gap-2 text-sm text-blue-700 bg-blue-50 border border-blue-100 rounded-full px-3 py-1 mb-2">
-          <FileBarChart className="w-4 h-4" />
-          Отчёты
-        </div>
-        <p className="text-sm text-slate-500">
-          Оборот за период: пополнения, списания и корректировки.
-        </p>
-      </div>
+    <Card className="space-y-4">
+      <SectionHeader
+        eyebrow="Отчёты"
+        icon={FileBarChart}
+        title="Оборот за период"
+        description="Пополнения, списания и корректировки за выбранные даты."
+      />
 
       <PeriodFilters
         from={from}
@@ -103,75 +142,63 @@ export function FinanceReportsTab({ token }) {
         loading={loading}
       />
 
-      {error && (
-        <div className="rounded-xl border border-red-200 bg-red-50 text-red-700 p-3">
-          {error}
-        </div>
-      )}
+      {error && <Alert tone="danger">{error}</Alert>}
 
       {report && (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-            <div className="rounded-xl border p-4 bg-slate-50">
-              <div className="text-sm text-slate-500">Операций</div>
-              <div className="text-2xl font-bold mt-1">{report.totalTransactions}</div>
-            </div>
-            <div className="rounded-xl border p-4 bg-emerald-50">
-              <div className="text-sm text-emerald-700">Пополнения</div>
-              <div className="text-2xl font-bold mt-1 text-emerald-800">
-                +{Number(report.credits || 0).toLocaleString("ru-RU")} TJS
-              </div>
-            </div>
-            <div className="rounded-xl border p-4 bg-red-50">
-              <div className="text-sm text-red-700">Списания</div>
-              <div className="text-2xl font-bold mt-1 text-red-800">
-                {Number(report.debits || 0).toLocaleString("ru-RU")} TJS
-              </div>
-            </div>
-            <div className="rounded-xl border p-4 bg-amber-50">
-              <div className="text-sm text-amber-700">Корректировки</div>
-              <div className="text-2xl font-bold mt-1 text-amber-800">
-                {report.manualAdjustments}
-              </div>
-              <div className="text-xs text-amber-700 mt-1">
-                {Number(report.manualAdjustmentsSum || 0).toLocaleString("ru-RU")} TJS
-              </div>
-            </div>
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+            <StatTile label="Операций" value={report.totalTransactions} />
+            <StatTile
+              label="Пополнения"
+              value={`+${money(report.credits)}`}
+              tone="success"
+            />
+            <StatTile
+              label="Списания"
+              value={money(report.debits)}
+              tone="danger"
+            />
+            <StatTile
+              label="Корректировки"
+              value={report.manualAdjustments}
+              hint={money(report.manualAdjustmentsSum)}
+              tone="warning"
+            />
           </div>
 
           {Array.isArray(report.byType) && report.byType.length > 0 && (
-            <div className="overflow-x-auto rounded-2xl border">
-              <table className="w-full text-sm border-collapse bg-white">
-                <thead className="bg-slate-50">
-                  <tr className="border-b text-left text-slate-500">
-                    <th className="py-3 px-3">Тип</th>
-                    <th className="py-3 px-3">Кол-во</th>
-                    <th className="py-3 px-3">Сумма</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {report.byType.map((row) => (
-                    <tr key={row.type} className="border-b last:border-b-0">
-                      <td className="py-3 px-3">
-                        {WALLET_TYPE_LABELS[row.type] || row.type}
-                      </td>
-                      <td className="py-3 px-3">{row.count}</td>
-                      <td className="py-3 px-3 font-medium">
-                        {Number(row.sum || 0).toLocaleString("ru-RU")} TJS
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <DataTable label={t("admin.tableReportTypes")} minWidth="32rem">
+              <thead>
+                <tr>
+                  <Th>Тип</Th>
+                  <Th align="right">Кол-во</Th>
+                  <Th align="right">Сумма</Th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {report.byType.map((row) => (
+                  <TableRow key={row.type}>
+                    <Td className="text-ink-700">
+                      {WALLET_TYPE_LABELS[row.type] || row.type}
+                    </Td>
+                    <Td className="text-right text-ink-700">{row.count}</Td>
+                    <Td className="whitespace-nowrap text-right font-semibold text-ink-900">
+                      {money(row.sum)}
+                    </Td>
+                  </TableRow>
+                ))}
+              </tbody>
+            </DataTable>
           )}
         </>
       )}
-    </div>
+    </Card>
   );
 }
 
 export function FinanceAuditTab({ token }) {
+  const { t } = useI18n();
   const [from, setFrom] = React.useState("");
   const [to, setTo] = React.useState("");
   const [items, setItems] = React.useState([]);
@@ -208,16 +235,13 @@ export function FinanceAuditTab({ token }) {
   }, [from, to]);
 
   return (
-    <div className="rounded-2xl border bg-white p-4 space-y-4">
-      <div>
-        <div className="inline-flex items-center gap-2 text-sm text-indigo-700 bg-indigo-50 border border-indigo-100 rounded-full px-3 py-1 mb-2">
-          <ScrollText className="w-4 h-4" />
-          Финансовый журнал
-        </div>
-        <p className="text-sm text-slate-500">
-          Корректировки баланса супер-админом. Полная история операций — во вкладке «Операции».
-        </p>
-      </div>
+    <Card className="space-y-4">
+      <SectionHeader
+        eyebrow="Финансовый журнал"
+        icon={ScrollText}
+        title="Корректировки баланса"
+        description="Ручные корректировки супер-админом. Полная история операций — во вкладке «Операции»."
+      />
 
       <PeriodFilters
         from={from}
@@ -228,78 +252,83 @@ export function FinanceAuditTab({ token }) {
         loading={loading}
       />
 
-      {error && (
-        <div className="rounded-xl border border-red-200 bg-red-50 text-red-700 p-3">
-          {error}
-        </div>
-      )}
+      {error && <Alert tone="danger">{error}</Alert>}
 
-      <div className="flex items-center justify-end gap-2 text-sm text-slate-500">
-        <button
-          type="button"
-          disabled={page <= 1 || loading}
-          onClick={() => setPage((p) => Math.max(1, p - 1))}
-          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border disabled:opacity-40"
-        >
-          <ChevronLeft size={16} />
-          Назад
-        </button>
-        <span>{page}</span>
-        <button
-          type="button"
-          disabled={items.length < PAGE_SIZE || loading}
-          onClick={() => setPage((p) => p + 1)}
-          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border disabled:opacity-40"
-        >
-          Вперёд
-          <ChevronRight size={16} />
-        </button>
-      </div>
+      <ResultsBar
+        pager={
+          <SimplePagination
+            page={page}
+            totalPages={items.length < PAGE_SIZE ? page : page + 1}
+            onPageChange={setPage}
+            disabled={loading}
+          />
+        }
+      >
+        Показано: {items.length}
+      </ResultsBar>
 
       {loading ? (
-        <div className="animate-pulse h-32 rounded-xl bg-slate-100" />
+        <TableSkeleton label={t("admin.tableFinanceAudit")} rows={6} columns={4} />
       ) : items.length === 0 ? (
-        <div className="rounded-2xl border bg-slate-50 p-8 text-center text-slate-500">
-          Записей не найдено.
-        </div>
+        <EmptyState
+          bare
+          icon={ScrollText}
+          title="Записей не найдено"
+          description={t("admin.auditEmptyDescription")}
+        />
       ) : (
-        <div className="overflow-x-auto rounded-2xl border">
-          <table className="w-full text-sm border-collapse bg-white">
-            <thead className="bg-slate-50">
-              <tr className="border-b text-left text-slate-500">
-                <th className="py-3 px-3">Когда</th>
-                <th className="py-3 px-3">Кто</th>
-                <th className="py-3 px-3">Действие</th>
-                <th className="py-3 px-3">Детали</th>
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((item) => (
-                <tr key={item.id} className="border-b last:border-b-0">
-                  <td className="py-3 px-3 text-slate-500 whitespace-nowrap">
-                    {item.createdAt
-                      ? new Date(item.createdAt).toLocaleString("ru-RU")
-                      : "—"}
-                  </td>
-                  <td className="py-3 px-3">
-                    <div className="font-medium">{item.actorName || "—"}</div>
-                    <div className="text-xs text-slate-500">{item.actorEmail}</div>
-                  </td>
-                  <td className="py-3 px-3">
-                    {AUDIT_ACTION_LABELS[item.action] || item.action}
-                  </td>
-                  <td className="py-3 px-3 text-slate-600">{formatAuditDetails(item)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <DataTable
+          label={t("admin.tableFinanceAudit")}
+          minWidth="48rem"
+          scrollHeight="70vh"
+        >
+          <thead>
+            <tr>
+              <Th>Когда</Th>
+              <Th>Кто</Th>
+              <Th>Действие</Th>
+              <Th>Детали</Th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {items.map((item) => (
+              <TableRow key={item.id}>
+                <Td className="whitespace-nowrap text-ink-400">
+                  {item.createdAt
+                    ? new Date(item.createdAt).toLocaleString("ru-RU")
+                    : "—"}
+                </Td>
+
+                <Td>
+                  <div className="font-medium text-ink-800">
+                    {item.actorName || "—"}
+                  </div>
+                  <div className="text-xs text-ink-400 break-anywhere">
+                    {item.actorEmail}
+                  </div>
+                </Td>
+
+                <Td className="text-ink-700">
+                  {AUDIT_ACTION_LABELS[item.action] || item.action}
+                </Td>
+
+                <Td className="text-ink-500 break-anywhere">
+                  {formatAuditDetails(item)}
+                </Td>
+              </TableRow>
+            ))}
+          </tbody>
+        </DataTable>
       )}
-    </div>
+    </Card>
   );
 }
 
 export function FinanceAlifOrdersTab({ token }) {
+  const { t } = useI18n();
+  const { showToast } = useToast();
+
   const [data, setData] = React.useState(null);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState("");
@@ -325,6 +354,7 @@ export function FinanceAlifOrdersTab({ token }) {
       setSyncingId(orderId);
       await api.adminSyncAlifOrder(token, orderId);
       load();
+      showToast(t("admin.toastAlifSynced"), "success");
     } catch (e) {
       setError(e.message || "Не удалось синхронизировать заказ");
     } finally {
@@ -332,97 +362,116 @@ export function FinanceAlifOrdersTab({ token }) {
     }
   };
 
-  if (loading) {
-    return <div className="rounded-2xl border bg-white p-6 animate-pulse h-40" />;
-  }
-
   return (
-    <div className="rounded-2xl border bg-white p-4 space-y-4">
-      <div>
-        <div className="inline-flex items-center gap-2 text-sm text-violet-700 bg-violet-50 border border-violet-100 rounded-full px-3 py-1 mb-2">
-          <CreditCard className="w-4 h-4" />
-          Alif orders
-        </div>
-        <p className="text-sm text-slate-500">
-          Сверка платежей Alif Acquiring и статусов пополнения кошелька.
-        </p>
-      </div>
+    <Card className="space-y-4">
+      <SectionHeader
+        eyebrow="Alif orders"
+        icon={CreditCard}
+        title="Сверка платежей"
+        description="Заказы Alif Acquiring и статусы пополнения кошелька."
+      />
 
-      {error && (
-        <div className="rounded-xl border border-red-200 bg-red-50 text-red-700 p-3">
-          {error}
-        </div>
-      )}
+      {error && <Alert tone="danger">{error}</Alert>}
 
-      {data && (
-        <>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {(data.byStatus || []).map((row) => (
-              <div key={row.status} className="rounded-xl border p-4 bg-slate-50">
-                <div className="text-sm text-slate-500 capitalize">{row.status}</div>
-                <div className="text-2xl font-bold mt-1">{row.count}</div>
-                <div className="text-xs text-slate-500 mt-1">
-                  {Number(row.sum || 0).toLocaleString("ru-RU")} TJS
-                </div>
-              </div>
-            ))}
-          </div>
+      {loading ? (
+        <TableSkeleton label={t("admin.tableAlif")} rows={6} columns={5} />
+      ) : (
+        data && (
+          <>
+            <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+              {(data.byStatus || []).map((row) => (
+                <StatTile
+                  key={row.status}
+                  label={<span className="capitalize">{row.status}</span>}
+                  value={row.count}
+                  hint={money(row.sum)}
+                />
+              ))}
+            </div>
 
-          <div className="rounded-xl border overflow-x-auto">
-            <table className="min-w-full text-sm">
-              <thead className="bg-slate-50 text-slate-500">
-                <tr>
-                  <th className="text-left py-3 px-3">Order ID</th>
-                  <th className="text-left py-3 px-3">Пользователь</th>
-                  <th className="text-left py-3 px-3">Сумма</th>
-                  <th className="text-left py-3 px-3">Статус</th>
-                  <th className="text-left py-3 px-3">Provider</th>
-                  <th className="text-left py-3 px-3">Дата</th>
-                  <th className="text-left py-3 px-3"></th>
-                </tr>
-              </thead>
-              <tbody>
-                {(data.items || []).map((order) => (
-                  <tr key={order.id} className="border-t">
-                    <td className="py-3 px-3 font-mono text-xs">{order.orderId}</td>
-                    <td className="py-3 px-3">
-                      <div className="font-medium">{order.userName || "—"}</div>
-                      <div className="text-xs text-slate-500">{order.userEmail}</div>
-                    </td>
-                    <td className="py-3 px-3 font-semibold">
-                      {Number(order.amount || 0).toLocaleString("ru-RU")} TJS
-                    </td>
-                    <td className="py-3 px-3 capitalize">{order.status}</td>
-                    <td className="py-3 px-3">{order.providerStatus || "—"}</td>
-                    <td className="py-3 px-3">
-                      {order.createdAt
-                        ? new Date(order.createdAt).toLocaleString("ru-RU")
-                        : "—"}
-                    </td>
-                    <td className="py-3 px-3">
-                      {order.status !== "paid" && (
-                        <button
-                          type="button"
-                          className="text-sun-700 hover:underline"
-                          disabled={syncingId === order.orderId}
-                          onClick={() => syncOrder(order.orderId)}
-                        >
-                          {syncingId === order.orderId ? "..." : "Sync"}
-                        </button>
-                      )}
-                    </td>
+            {(data.items || []).length === 0 ? (
+              <EmptyState
+                bare
+                icon={CreditCard}
+                title="Заказов пока нет"
+                description={t("admin.alifEmptyDescription")}
+              />
+            ) : (
+              <DataTable
+                label={t("admin.tableAlif")}
+                minWidth="60rem"
+                scrollHeight="70vh"
+              >
+                <thead>
+                  <tr>
+                    <Th>Order ID</Th>
+                    <Th>Пользователь</Th>
+                    <Th align="right">Сумма</Th>
+                    <Th>Статус</Th>
+                    <Th>Provider</Th>
+                    <Th>Дата</Th>
+                    <Th align="right">Действия</Th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </>
+                </thead>
+
+                <tbody>
+                  {(data.items || []).map((order) => (
+                    <TableRow key={order.id}>
+                      <Td className="font-mono text-xs text-ink-600">
+                        {order.orderId}
+                      </Td>
+
+                      <Td>
+                        <div className="font-medium text-ink-800">
+                          {order.userName || "—"}
+                        </div>
+                        <div className="text-xs text-ink-400 break-anywhere">
+                          {order.userEmail}
+                        </div>
+                      </Td>
+
+                      <Td className="whitespace-nowrap text-right font-semibold text-ink-900">
+                        {money(order.amount)}
+                      </Td>
+
+                      <Td className="capitalize text-ink-700">{order.status}</Td>
+
+                      <Td className="text-ink-500">
+                        {order.providerStatus || "—"}
+                      </Td>
+
+                      <Td className="whitespace-nowrap text-ink-400">
+                        {order.createdAt
+                          ? new Date(order.createdAt).toLocaleString("ru-RU")
+                          : "—"}
+                      </Td>
+
+                      <Td className="text-right">
+                        {order.status !== "paid" && (
+                          <Button
+                            size="sm"
+                            icon={RefreshCw}
+                            loading={syncingId === order.orderId}
+                            onClick={() => syncOrder(order.orderId)}
+                          >
+                            {t("admin.syncOrder")}
+                          </Button>
+                        )}
+                      </Td>
+                    </TableRow>
+                  ))}
+                </tbody>
+              </DataTable>
+            )}
+          </>
+        )
       )}
-    </div>
+    </Card>
   );
 }
 
 export function FinancePaymentsTab({ token }) {
+  const { t } = useI18n();
   const [data, setData] = React.useState(null);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState("");
@@ -447,81 +496,92 @@ export function FinancePaymentsTab({ token }) {
     };
   }, [token]);
 
-  if (loading) {
-    return <div className="rounded-2xl border bg-white p-6 animate-pulse h-40" />;
-  }
-
   return (
-    <div className="rounded-2xl border bg-white p-4 space-y-4">
-      <div>
-        <div className="inline-flex items-center gap-2 text-sm text-violet-700 bg-violet-50 border border-violet-100 rounded-full px-3 py-1 mb-2">
-          <CreditCard className="w-4 h-4" />
-          Платежи
+    <Card className="space-y-4">
+      <SectionHeader
+        eyebrow="Платежи"
+        icon={CreditCard}
+        title="Статусы транзакций"
+        description="Pending, failed и cancelled операции кошелька для сверки."
+      />
+
+      {error && <Alert tone="danger">{error}</Alert>}
+
+      {loading ? (
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <p className="sr-only" role="status">
+            {t("common.loading")}
+          </p>
+          {Array.from({ length: 4 }).map((_, index) => (
+            <Skeleton key={index} className="h-20" rounded="rounded-2xl" />
+          ))}
         </div>
-        <p className="text-sm text-slate-500">
-          Статусы транзакций кошелька. После подключения платёжного шлюза здесь появятся
-          pending и failed операции для сверки.
-        </p>
-      </div>
-
-      {error && (
-        <div className="rounded-xl border border-red-200 bg-red-50 text-red-700 p-3">
-          {error}
-        </div>
-      )}
-
-      {data && (
-        <>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {(data.byStatus || []).map((row) => (
-              <div key={row.status} className="rounded-xl border p-4 bg-slate-50">
-                <div className="text-sm text-slate-500 capitalize">{row.status}</div>
-                <div className="text-2xl font-bold mt-1">{row.count}</div>
-                <div className="text-xs text-slate-500 mt-1">
-                  {Number(row.sum || 0).toLocaleString("ru-RU")} TJS
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {!data.gatewayConfigured && (
-            <div className="rounded-xl border border-amber-200 bg-amber-50 text-amber-800 p-3 text-sm">
-              Alif не активен в конфигурации сервера — проверьте переменные окружения.
-            </div>
-          )}
-
-          {Array.isArray(data.attention) && data.attention.length > 0 ? (
-            <div className="space-y-2">
-              <div className="text-sm font-medium">Требуют внимания</div>
-              {data.attention.map((tx) => (
-                <div
-                  key={tx.id}
-                  className="flex items-center justify-between gap-3 rounded-xl border p-3 text-sm"
-                >
-                  <div>
-                    <div className="font-medium">{tx.userEmail || "—"}</div>
-                    <div className="text-xs text-slate-500">
-                      {WALLET_TYPE_LABELS[tx.type] || tx.type} · {tx.status}
-                    </div>
-                  </div>
-                  <div className="font-bold">
-                    {Number(tx.amount || 0).toLocaleString("ru-RU")} TJS
-                  </div>
-                </div>
+      ) : (
+        data && (
+          <>
+            <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+              {(data.byStatus || []).map((row) => (
+                <StatTile
+                  key={row.status}
+                  label={<span className="capitalize">{row.status}</span>}
+                  value={row.count}
+                  hint={money(row.sum)}
+                />
               ))}
             </div>
-          ) : (
-            <div className="rounded-xl border bg-slate-50 p-4 text-sm text-slate-500">
-              Нет pending, failed или cancelled операций.
-            </div>
-          )}
-        </>
+
+            {!data.gatewayConfigured && (
+              <Alert tone="warning">
+                Alif не активен в конфигурации сервера — проверьте переменные
+                окружения.
+              </Alert>
+            )}
+
+            {Array.isArray(data.attention) && data.attention.length > 0 ? (
+              <section className="space-y-2">
+                <h3 className="text-sm font-semibold text-ink-700">
+                  Требуют внимания
+                </h3>
+
+                <ul className="space-y-2">
+                  {data.attention.map((tx) => (
+                    <li
+                      key={tx.id}
+                      className="surface-panel flex items-center justify-between gap-3 p-3 text-sm"
+                    >
+                      <div className="min-w-0">
+                        <p className="font-medium text-ink-800 break-anywhere">
+                          {tx.userEmail || "—"}
+                        </p>
+                        <p className="text-xs text-ink-400">
+                          {WALLET_TYPE_LABELS[tx.type] || tx.type} · {tx.status}
+                        </p>
+                      </div>
+
+                      <p className="shrink-0 font-bold text-ink-900">
+                        {money(tx.amount)}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ) : (
+              <EmptyState
+                bare
+                icon={CreditCard}
+                title="Всё сходится"
+                description="Нет pending, failed или cancelled операций."
+              />
+            )}
+          </>
+        )
       )}
-    </div>
+    </Card>
   );
 }
 
 export function FinancePromotionsTab({ token }) {
+  const { t } = useI18n();
   const [from, setFrom] = React.useState("");
   const [to, setTo] = React.useState("");
   const [data, setData] = React.useState(null);
@@ -546,16 +606,13 @@ export function FinancePromotionsTab({ token }) {
   }, [load]);
 
   return (
-    <div className="rounded-2xl border bg-white p-4 space-y-4">
-      <div>
-        <div className="inline-flex items-center gap-2 text-sm text-sun-700 bg-sun-50 border border-sun-100 rounded-full px-3 py-1 mb-2">
-          <Crown className="w-4 h-4" />
-          VIP / TOP
-        </div>
-        <p className="text-sm text-slate-500">
-          Доход от продвижения объявлений (списания с описанием VIP/TOP).
-        </p>
-      </div>
+    <Card className="space-y-4">
+      <SectionHeader
+        eyebrow="VIP / TOP"
+        icon={Crown}
+        title="Доход от продвижения"
+        description="Списания с описанием VIP/TOP за выбранный период."
+      />
 
       <PeriodFilters
         from={from}
@@ -566,72 +623,64 @@ export function FinancePromotionsTab({ token }) {
         loading={loading}
       />
 
-      {error && (
-        <div className="rounded-xl border border-red-200 bg-red-50 text-red-700 p-3">
-          {error}
-        </div>
-      )}
+      {error && <Alert tone="danger">{error}</Alert>}
 
       {data && (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <div className="rounded-xl border p-4 bg-slate-50">
-              <div className="text-sm text-slate-500">Покупок продвижения</div>
-              <div className="text-2xl font-bold mt-1">{data.count || 0}</div>
-            </div>
-            <div className="rounded-xl border p-4 bg-sun-50">
-              <div className="text-sm text-sun-700">Выручка</div>
-              <div className="text-2xl font-bold mt-1 text-sun-800">
-                {Number(data.revenue || 0).toLocaleString("ru-RU")} TJS
-              </div>
-            </div>
-            <div className="rounded-xl border p-4 bg-white">
-              <div className="text-sm text-slate-500">Тарифы</div>
-              <div className="text-sm mt-2">
-                VIP: {Number(data.vipPrice || 0).toLocaleString("ru-RU")} TJS
-              </div>
-              <div className="text-sm">
-                TOP: {Number(data.topPrice || 0).toLocaleString("ru-RU")} TJS
-              </div>
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+            <StatTile label="Покупок продвижения" value={data.count || 0} />
+            <StatTile label="Выручка" value={money(data.revenue)} tone="sun" />
+            <div className="surface-panel p-4">
+              <p className="text-xs font-medium text-ink-400">Тарифы</p>
+              <p className="mt-1 text-sm text-ink-700">
+                VIP: {money(data.vipPrice)}
+              </p>
+              <p className="text-sm text-ink-700">TOP: {money(data.topPrice)}</p>
             </div>
           </div>
 
           {Array.isArray(data.recent) && data.recent.length > 0 ? (
-            <div className="overflow-x-auto rounded-2xl border">
-              <table className="w-full text-sm border-collapse bg-white">
-                <thead className="bg-slate-50">
-                  <tr className="border-b text-left text-slate-500">
-                    <th className="py-3 px-3">Дата</th>
-                    <th className="py-3 px-3">Пользователь</th>
-                    <th className="py-3 px-3">Сумма</th>
-                    <th className="py-3 px-3">Описание</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {data.recent.map((tx) => (
-                    <tr key={tx.id} className="border-b last:border-b-0">
-                      <td className="py-3 px-3 text-slate-500 whitespace-nowrap">
-                        {tx.createdAt
-                          ? new Date(tx.createdAt).toLocaleString("ru-RU")
-                          : "—"}
-                      </td>
-                      <td className="py-3 px-3">{tx.userEmail || "—"}</td>
-                      <td className="py-3 px-3 font-bold text-red-700">
-                        {Number(tx.amount || 0).toLocaleString("ru-RU")} TJS
-                      </td>
-                      <td className="py-3 px-3 text-slate-500">{tx.description || "—"}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <DataTable label={t("admin.tablePromotions")} minWidth="44rem">
+              <thead>
+                <tr>
+                  <Th>Дата</Th>
+                  <Th>Пользователь</Th>
+                  <Th align="right">Сумма</Th>
+                  <Th>Описание</Th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {data.recent.map((tx) => (
+                  <TableRow key={tx.id}>
+                    <Td className="whitespace-nowrap text-ink-400">
+                      {tx.createdAt
+                        ? new Date(tx.createdAt).toLocaleString("ru-RU")
+                        : "—"}
+                    </Td>
+                    <Td className="text-ink-700 break-anywhere">
+                      {tx.userEmail || "—"}
+                    </Td>
+                    <Td className="whitespace-nowrap text-right font-bold text-danger-700">
+                      {money(tx.amount)}
+                    </Td>
+                    <Td className="text-ink-500 break-anywhere">
+                      {tx.description || "—"}
+                    </Td>
+                  </TableRow>
+                ))}
+              </tbody>
+            </DataTable>
           ) : (
-            <div className="rounded-xl border bg-slate-50 p-4 text-sm text-slate-500">
-              За выбранный период покупок VIP/TOP не найдено.
-            </div>
+            <EmptyState
+              bare
+              icon={Crown}
+              title="Покупок VIP/TOP не найдено"
+              description="За выбранный период продвижение не покупали."
+            />
           )}
         </>
       )}
-    </div>
+    </Card>
   );
 }

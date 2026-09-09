@@ -2,6 +2,9 @@ import React from "react";
 import { Download, FileSpreadsheet, CalendarRange, Mail } from "lucide-react";
 import { api } from "../../lib/api";
 import { getExportTypesForRole } from "../../lib/adminUtils";
+import { Alert, Badge, Button, Card, Field, Input, useToast } from "../../ui";
+import { useI18n } from "../../i18n";
+import { SectionHeader } from "./AdminUI";
 
 const EXPORT_META = {
   users: {
@@ -22,10 +25,12 @@ const EXPORT_META = {
 };
 
 export default function AdminExportSection({ token, role = "admin" }) {
+  const { t } = useI18n();
+  const { showToast } = useToast();
+
   const [loadingType, setLoadingType] = React.useState("");
   const [sendingReport, setSendingReport] = React.useState(false);
   const [error, setError] = React.useState("");
-  const [success, setSuccess] = React.useState("");
   const [from, setFrom] = React.useState("");
   const [to, setTo] = React.useState("");
   const [reportEmail, setReportEmail] = React.useState("");
@@ -40,7 +45,6 @@ export default function AdminExportSection({ token, role = "admin" }) {
     try {
       setLoadingType(type);
       setError("");
-      setSuccess("");
 
       const params = {};
 
@@ -59,7 +63,6 @@ export default function AdminExportSection({ token, role = "admin" }) {
     try {
       setSendingReport(true);
       setError("");
-      setSuccess("");
 
       const result = await api.adminFinanceSendReport(token, {
         from,
@@ -67,8 +70,12 @@ export default function AdminExportSection({ token, role = "admin" }) {
         email: reportEmail.trim(),
       });
 
-      setSuccess(
-        `Отчёт отправлен на ${result.sentTo}. Транзакций: ${result.transactions}.`
+      showToast(
+        t("admin.reportSent", {
+          email: result.sentTo,
+          count: result.transactions,
+        }),
+        "success"
       );
     } catch (e) {
       setError(e.message || "Не удалось отправить отчёт");
@@ -78,117 +85,125 @@ export default function AdminExportSection({ token, role = "admin" }) {
   };
 
   return (
-    <div className="rounded-2xl border bg-white p-4 md:p-5 space-y-5">
-      <div>
-        <div className="inline-flex items-center gap-2 text-sm text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-full px-3 py-1 mb-2">
-          <FileSpreadsheet className="w-4 h-4" />
-          Экспорт данных
-        </div>
-        <h2 className="text-xl font-bold">CSV-выгрузки</h2>
-        <p className="text-sm text-slate-500 mt-1">
-          {role === "accountant"
+    <Card className="space-y-5">
+      <SectionHeader
+        eyebrow="Экспорт данных"
+        icon={FileSpreadsheet}
+        title="CSV-выгрузки"
+        description={
+          role === "accountant"
             ? "Доступны только пользователи и транзакции кошелька."
-            : "Скачайте таблицы для отчётности и бухгалтерии."}
-        </p>
-      </div>
+            : "Скачайте таблицы для отчётности и бухгалтерии."
+        }
+      />
 
-      <div className="rounded-2xl border bg-slate-50 p-4 space-y-3">
-        <div className="flex items-center gap-2 text-sm font-medium text-slate-700">
-          <CalendarRange size={16} />
+      {error && <Alert tone="danger">{error}</Alert>}
+
+      <fieldset className="surface-muted space-y-3 p-4">
+        <legend className="label-caps flex items-center gap-1.5 px-1">
+          <CalendarRange size={13} aria-hidden="true" />
           Период (необязательно)
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <label className="text-sm">
-            <span className="text-slate-500 block mb-1">С даты</span>
-            <input
-              type="date"
-              value={from}
-              onChange={(e) => setFrom(e.target.value)}
-              className="h-11 w-full rounded-xl border px-3 bg-white"
-            />
-          </label>
-          <label className="text-sm">
-            <span className="text-slate-500 block mb-1">По дату</span>
-            <input
-              type="date"
-              value={to}
-              onChange={(e) => setTo(e.target.value)}
-              className="h-11 w-full rounded-xl border px-3 bg-white"
-            />
-          </label>
-        </div>
-        <p className="text-xs text-slate-500">
-          Фильтр по дате применяется к пользователям (регистрация) и транзакциям кошелька.
-        </p>
-      </div>
+        </legend>
 
-      <div className="rounded-2xl border bg-blue-50 p-4 space-y-3">
-        <div className="flex items-center gap-2 text-sm font-medium text-blue-800">
-          <Mail size={16} />
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <Field label="С даты">
+            {(props) => (
+              <Input
+                {...props}
+                type="date"
+                value={from}
+                onChange={(e) => setFrom(e.target.value)}
+              />
+            )}
+          </Field>
+
+          <Field label="По дату">
+            {(props) => (
+              <Input
+                {...props}
+                type="date"
+                value={to}
+                onChange={(e) => setTo(e.target.value)}
+              />
+            )}
+          </Field>
+        </div>
+
+        <p className="text-xs text-ink-400">
+          Фильтр по дате применяется к пользователям (регистрация) и транзакциям
+          кошелька.
+        </p>
+      </fieldset>
+
+      <fieldset className="rounded-2xl border border-info-200 bg-info-50 p-4">
+        <legend className="label-caps flex items-center gap-1.5 px-1 text-info-700">
+          <Mail size={13} aria-hidden="true" />
           Отправить отчёт на email
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-3">
-          <input
-            type="email"
-            value={reportEmail}
-            onChange={(e) => setReportEmail(e.target.value)}
-            placeholder="email бухгалтера (если не задан в настройках)"
-            className="h-11 rounded-xl border px-3 bg-white"
-          />
-          <button
-            type="button"
-            disabled={sendingReport}
-            onClick={sendReport}
-            className="h-11 px-4 rounded-xl bg-blue-700 text-white hover:bg-blue-800 disabled:opacity-60"
+        </legend>
+
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+          <Field
+            label="Email получателя"
+            labelClassName="text-info-800"
+            hint="Если не задан, письмо уйдёт на email из настроек."
           >
-            {sendingReport ? "Отправляем..." : "Отправить CSV"}
-          </button>
+            {(props) => (
+              <Input
+                {...props}
+                type="email"
+                value={reportEmail}
+                onChange={(e) => setReportEmail(e.target.value)}
+                placeholder="accountant@example.com"
+              />
+            )}
+          </Field>
+
+          <Button
+            variant="accent"
+            icon={Mail}
+            loading={sendingReport}
+            onClick={sendReport}
+          >
+            Отправить CSV
+          </Button>
         </div>
-        <p className="text-xs text-blue-700">
-          Нужны SMTP-переменные на сервере (SMTP_HOST, SMTP_FROM, …). Автоотчёт 1-го числа
-          настраивается супер-админом.
+
+        <p className="mt-3 text-xs text-info-700">
+          Нужны SMTP-переменные на сервере (SMTP_HOST, SMTP_FROM, …). Автоотчёт
+          1-го числа настраивается супер-админом.
         </p>
-      </div>
+      </fieldset>
 
-      {error && (
-        <div className="rounded-xl border border-red-200 bg-red-50 text-red-700 p-3">
-          {error}
-        </div>
-      )}
-
-      {success && (
-        <div className="rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-700 p-3">
-          {success}
-        </div>
-      )}
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <ul className="grid grid-cols-1 gap-3 md:grid-cols-3">
         {exportItems.map((item) => (
-          <div key={item.type} className="rounded-2xl border p-4 space-y-3 bg-slate-50">
-            <div>
-              <div className="font-semibold">{item.title}</div>
-              <div className="text-sm text-slate-500 mt-1">{item.description}</div>
+          <li key={item.type} className="surface-muted flex flex-col gap-3 p-4">
+            <div className="min-w-0">
+              <h3 className="font-semibold text-ink-900">{item.title}</h3>
+              <p className="mt-1 text-sm text-ink-400">{item.description}</p>
+
               {item.dateFilter && (from || to) && (
-                <div className="text-xs text-emerald-700 mt-2">
-                  Будет выгружено за период
-                  {from ? ` с ${from}` : ""}
-                  {to ? ` по ${to}` : ""}
-                </div>
+                <p className="mt-2">
+                  <Badge tone="success">
+                    {t("admin.exportPeriod", {
+                      from: from || "—",
+                      to: to || "—",
+                    })}
+                  </Badge>
+                </p>
               )}
             </div>
 
-            <button
-              type="button"
-              disabled={loadingType === item.type}
+            <Button
+              icon={Download}
+              loading={loadingType === item.type}
               onClick={() => download(item.type)}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border hover:bg-slate-100 disabled:opacity-60"
+              className="mt-auto w-full"
             >
-              <Download size={16} />
-              {loadingType === item.type ? "Готовим..." : "Скачать CSV"}
-            </button>
-          </div>
+              Скачать CSV
+            </Button>
+          </li>
         ))}
-      </div>
-    </div>
+      </ul>
+    </Card>
   );
 }

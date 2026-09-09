@@ -5,6 +5,7 @@ import {
   Pencil,
   Trash2,
   BarChart3,
+  MousePointerClick,
   Image as ImageIcon,
 } from "lucide-react";
 import { api } from "../../lib/api";
@@ -17,6 +18,34 @@ import {
 } from "../../lib/adPlacements";
 import { formatAdCtr } from "../../lib/adFeed";
 import { HOME_CATEGORIES } from "../../data/categories";
+import {
+  Alert,
+  Badge,
+  Button,
+  Card,
+  Checkbox,
+  EmptyState,
+  Field,
+  IconButton,
+  Input,
+  Modal,
+  Select,
+  Textarea,
+  useConfirm,
+  useToast,
+} from "../../ui";
+import { useI18n } from "../../i18n";
+import {
+  DataTable,
+  SectionHeader,
+  StatTile,
+  TableRow,
+  TableSkeleton,
+  Td,
+  Th,
+} from "./AdminUI";
+
+const FORM_ID = "admin-ad-form";
 
 const EMPTY_FORM = {
   title: "",
@@ -34,6 +63,21 @@ const EMPTY_FORM = {
   startsAt: "",
   endsAt: "",
 };
+
+const PLACEMENT_OPTIONS = AD_PLACEMENTS.map((item) => ({
+  value: item.id,
+  label: item.label,
+}));
+
+const FORMAT_OPTIONS = AD_FORMATS.map((item) => ({
+  value: item.id,
+  label: item.label,
+}));
+
+const CATEGORY_OPTIONS = [
+  { value: "", label: "Все категории" },
+  ...HOME_CATEGORIES.map((item) => ({ value: item.slug, label: item.title })),
+];
 
 function toLocalInput(value) {
   if (!value) return "";
@@ -62,12 +106,17 @@ function fromLocalInput(value) {
 }
 
 export default function AdminAdsSection({ token }) {
+  const { t } = useI18n();
+  const confirm = useConfirm();
+  const { showToast } = useToast();
+
   const [items, setItems] = React.useState([]);
   const [stats, setStats] = React.useState(null);
   const [loading, setLoading] = React.useState(true);
   const [saving, setSaving] = React.useState(false);
   const [uploading, setUploading] = React.useState(false);
   const [error, setError] = React.useState("");
+  const [titleError, setTitleError] = React.useState("");
   const [editorOpen, setEditorOpen] = React.useState(false);
   const [editingId, setEditingId] = React.useState("");
   const [form, setForm] = React.useState(EMPTY_FORM);
@@ -94,9 +143,14 @@ export default function AdminAdsSection({ token }) {
     load();
   }, [load]);
 
+  const setField = (key) => (event) =>
+    setForm((prev) => ({ ...prev, [key]: event.target.value }));
+
   const openCreate = () => {
     setEditingId("");
     setForm(EMPTY_FORM);
+    setTitleError("");
+    setError("");
     setEditorOpen(true);
   };
 
@@ -118,6 +172,8 @@ export default function AdminAdsSection({ token }) {
       startsAt: toLocalInput(item.startsAt),
       endsAt: toLocalInput(item.endsAt),
     });
+    setTitleError("");
+    setError("");
     setEditorOpen(true);
   };
 
@@ -125,6 +181,7 @@ export default function AdminAdsSection({ token }) {
     setEditorOpen(false);
     setEditingId("");
     setForm(EMPTY_FORM);
+    setTitleError("");
   };
 
   const uploadBanner = async (event) => {
@@ -158,30 +215,32 @@ export default function AdminAdsSection({ token }) {
   const submit = async (event) => {
     event.preventDefault();
 
+    const payload = {
+      title: form.title.trim(),
+      advertiser: form.advertiser.trim(),
+      placement: form.placement,
+      format: form.format,
+      imageUrl: form.imageUrl.trim(),
+      linkUrl: form.linkUrl.trim(),
+      headline: form.headline.trim(),
+      description: form.description.trim(),
+      htmlCode: form.htmlCode.trim(),
+      cat: form.cat,
+      priority: Number(form.priority || 0),
+      active: form.active,
+      startsAt: fromLocalInput(form.startsAt),
+      endsAt: fromLocalInput(form.endsAt),
+    };
+
+    if (!payload.title) {
+      setTitleError("Укажите название кампании");
+      return;
+    }
+
     try {
       setSaving(true);
       setError("");
-
-      const payload = {
-        title: form.title.trim(),
-        advertiser: form.advertiser.trim(),
-        placement: form.placement,
-        format: form.format,
-        imageUrl: form.imageUrl.trim(),
-        linkUrl: form.linkUrl.trim(),
-        headline: form.headline.trim(),
-        description: form.description.trim(),
-        htmlCode: form.htmlCode.trim(),
-        cat: form.cat,
-        priority: Number(form.priority || 0),
-        active: form.active,
-        startsAt: fromLocalInput(form.startsAt),
-        endsAt: fromLocalInput(form.endsAt),
-      };
-
-      if (!payload.title) {
-        throw new Error("Укажите название кампании");
-      }
+      setTitleError("");
 
       if (editingId) {
         await api.adminUpdateAd(token, editingId, payload);
@@ -191,6 +250,7 @@ export default function AdminAdsSection({ token }) {
 
       closeEditor();
       await load();
+      showToast(t("admin.toastAdSaved"), "success");
     } catch (e) {
       setError(e.message || "Не удалось сохранить рекламу");
     } finally {
@@ -198,381 +258,364 @@ export default function AdminAdsSection({ token }) {
     }
   };
 
-  const removeItem = async (id) => {
-    const ok = confirm("Удалить рекламную кампанию?");
+  const removeItem = async (item) => {
+    const id = getId(item);
+
+    const ok = await confirm({
+      title: t("admin.deleteAdTitle"),
+      message: t("admin.deleteAdMessage", { title: item.title || "—" }),
+      confirmLabel: t("admin.deleteConfirm"),
+      tone: "danger",
+    });
 
     if (!ok) return;
 
     try {
       setError("");
       await api.adminDeleteAd(token, id);
-      setItems((prev) => prev.filter((item) => String(getId(item)) !== String(id)));
+      setItems((prev) => prev.filter((row) => String(getId(row)) !== String(id)));
       await load();
+      showToast(t("admin.toastAdDeleted"), "success");
     } catch (e) {
       setError(e.message || "Не удалось удалить рекламу");
     }
   };
 
-  if (loading) {
-    return (
-      <div className="rounded-2xl border bg-white p-6 text-sm text-slate-500">
-        Загрузка рекламных кампаний...
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-5">
-      <div className="rounded-2xl border bg-white p-4 md:p-5">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
-            <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-              <Megaphone className="text-sun" size={22} />
-              Реклама
-            </h2>
-            <p className="text-sm text-slate-500 mt-1">
-              Управление баннерами, native-блоками и HTML-кодом рекламных сетей.
-            </p>
-          </div>
-
-          <button type="button" className="btn btn-primary rounded-xl" onClick={openCreate}>
-            <Plus size={18} />
-            Новая кампания
-          </button>
-        </div>
+    <div className="space-y-4">
+      <Card className="space-y-5">
+        <SectionHeader
+          eyebrow="Рекламные места"
+          icon={Megaphone}
+          title="Реклама"
+          description="Управление баннерами, native-блоками и HTML-кодом рекламных сетей."
+          action={
+            <Button variant="primary" icon={Plus} onClick={openCreate}>
+              Новая кампания
+            </Button>
+          }
+        />
 
         {stats && (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-5">
-            <div className="rounded-2xl border bg-slate-50 p-4">
-              <div className="text-xs text-slate-500">Кампаний</div>
-              <div className="text-2xl font-bold text-slate-900">{stats.total || 0}</div>
-            </div>
-            <div className="rounded-2xl border bg-emerald-50 p-4">
-              <div className="text-xs text-emerald-700">Активных</div>
-              <div className="text-2xl font-bold text-emerald-900">{stats.active || 0}</div>
-            </div>
-            <div className="rounded-2xl border bg-white p-4">
-              <div className="text-xs text-slate-500 flex items-center gap-1">
-                <BarChart3 size={14} />
-                Показы
-              </div>
-              <div className="text-2xl font-bold text-slate-900">
-                {Number(stats.impressions || 0).toLocaleString("ru-RU")}
-              </div>
-            </div>
-            <div className="rounded-2xl border bg-white p-4">
-              <div className="text-xs text-slate-500">CTR</div>
-              <div className="text-2xl font-bold text-slate-900">
-                {formatAdCtr(stats.clicks, stats.impressions)}
-              </div>
-              <div className="text-xs text-slate-400 mt-1">
-                {Number(stats.clicks || 0).toLocaleString("ru-RU")} кликов
-              </div>
-            </div>
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+            <StatTile label="Кампаний" value={stats.total || 0} />
+            <StatTile
+              label="Активных"
+              value={stats.active || 0}
+              tone="success"
+            />
+            <StatTile
+              icon={BarChart3}
+              label="Показы"
+              value={Number(stats.impressions || 0).toLocaleString("ru-RU")}
+            />
+            <StatTile
+              icon={MousePointerClick}
+              label="CTR"
+              value={formatAdCtr(stats.clicks, stats.impressions)}
+              hint={`${Number(stats.clicks || 0).toLocaleString("ru-RU")} кликов`}
+            />
           </div>
         )}
-      </div>
 
-      {error && (
-        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {error}
-        </div>
-      )}
+        {error && !editorOpen && <Alert tone="danger">{error}</Alert>}
 
-      <div className="rounded-2xl border bg-white overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-sm">
-            <thead className="bg-slate-50 text-slate-500">
+        {loading ? (
+          <TableSkeleton label={t("admin.tableAds")} rows={5} columns={5} />
+        ) : items.length === 0 ? (
+          <EmptyState
+            bare
+            icon={Megaphone}
+            title="Рекламных кампаний пока нет"
+            description={t("admin.adsEmptyDescription")}
+            actionLabel="Новая кампания"
+            onAction={openCreate}
+          />
+        ) : (
+          <DataTable label={t("admin.tableAds")} minWidth="56rem">
+            <thead>
               <tr>
-                <th className="text-left px-4 py-3 font-medium">Кампания</th>
-                <th className="text-left px-4 py-3 font-medium">Зона</th>
-                <th className="text-left px-4 py-3 font-medium">Формат</th>
-                <th className="text-left px-4 py-3 font-medium">Статистика</th>
-                <th className="text-left px-4 py-3 font-medium">Статус</th>
-                <th className="text-right px-4 py-3 font-medium">Действия</th>
+                <Th>Кампания</Th>
+                <Th>Зона</Th>
+                <Th>Формат</Th>
+                <Th>Статистика</Th>
+                <Th>Статус</Th>
+                <Th align="right">Действия</Th>
               </tr>
             </thead>
+
             <tbody>
-              {items.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="px-4 py-8 text-center text-slate-500">
-                    Рекламных кампаний пока нет.
-                  </td>
-                </tr>
-              ) : (
-                items.map((item) => (
-                  <tr key={getId(item)} className="border-t border-slate-100">
-                    <td className="px-4 py-3">
-                      <div className="font-medium text-slate-900">{item.title}</div>
-                      <div className="text-xs text-slate-500">
-                        {item.advertiser || "Без рекламодателя"}
-                        {item.cat ? ` · ${item.cat}` : " · все категории"}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-slate-600">
-                      {PLACEMENT_LABELS[item.placement] || item.placement}
-                    </td>
-                    <td className="px-4 py-3 text-slate-600">
-                      {FORMAT_LABELS[item.format] || item.format}
-                    </td>
-                    <td className="px-4 py-3 text-slate-600">
-                      <div>{Number(item.impressions || 0).toLocaleString("ru-RU")} показов</div>
-                      <div className="text-xs text-slate-400">
-                        {Number(item.clicks || 0).toLocaleString("ru-RU")} кликов ·{" "}
-                        {formatAdCtr(item.clicks, item.impressions)}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span
-                        className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${
-                          item.active
-                            ? "bg-emerald-50 text-emerald-700"
-                            : "bg-slate-100 text-slate-500"
-                        }`}
-                      >
-                        {item.active ? "Активна" : "Выключена"}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex justify-end gap-2">
-                        <button
-                          type="button"
-                          className="p-2 rounded-xl border hover:bg-slate-50"
-                          onClick={() => openEdit(item)}
-                          aria-label="Редактировать"
-                        >
-                          <Pencil size={16} />
-                        </button>
-                        <button
-                          type="button"
-                          className="p-2 rounded-xl border border-red-200 text-red-600 hover:bg-red-50"
-                          onClick={() => removeItem(getId(item))}
-                          aria-label="Удалить"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
+              {items.map((item) => (
+                <TableRow key={getId(item)}>
+                  <Td>
+                    <div className="font-semibold text-ink-900">{item.title}</div>
+                    <div className="text-xs text-ink-400">
+                      {item.advertiser || "Без рекламодателя"}
+                      {item.cat ? ` · ${item.cat}` : " · все категории"}
+                    </div>
+                  </Td>
+
+                  <Td className="text-ink-600">
+                    {PLACEMENT_LABELS[item.placement] || item.placement}
+                  </Td>
+
+                  <Td className="text-ink-600">
+                    {FORMAT_LABELS[item.format] || item.format}
+                  </Td>
+
+                  <Td className="text-ink-600">
+                    <div>
+                      {Number(item.impressions || 0).toLocaleString("ru-RU")}{" "}
+                      показов
+                    </div>
+                    <div className="text-xs text-ink-400">
+                      {Number(item.clicks || 0).toLocaleString("ru-RU")} кликов ·{" "}
+                      {formatAdCtr(item.clicks, item.impressions)}
+                    </div>
+                  </Td>
+
+                  <Td>
+                    <Badge tone={item.active ? "success" : "neutral"}>
+                      {item.active ? "Активна" : "Выключена"}
+                    </Badge>
+                  </Td>
+
+                  <Td className="text-right">
+                    <div className="flex justify-end gap-2">
+                      <IconButton
+                        size="sm"
+                        icon={Pencil}
+                        label={t("admin.editAd", { title: item.title || "—" })}
+                        onClick={() => openEdit(item)}
+                      />
+                      <IconButton
+                        size="sm"
+                        variant="danger"
+                        icon={Trash2}
+                        label={t("admin.deleteAd", { title: item.title || "—" })}
+                        onClick={() => removeItem(item)}
+                      />
+                    </div>
+                  </Td>
+                </TableRow>
+              ))}
             </tbody>
-          </table>
-        </div>
-      </div>
+          </DataTable>
+        )}
+      </Card>
 
-      {editorOpen && (
-        <div className="fixed inset-0 z-[80] flex items-end md:items-center justify-center p-0 md:p-4">
-          <button
-            type="button"
-            className="absolute inset-0 bg-black/40"
-            aria-label="Закрыть"
-            onClick={closeEditor}
-          />
+      <Modal
+        open={editorOpen}
+        onClose={closeEditor}
+        size="lg"
+        title={editingId ? "Редактировать кампанию" : "Новая рекламная кампания"}
+        footer={
+          <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+            <Button onClick={closeEditor}>Отмена</Button>
+            <Button
+              type="submit"
+              form={FORM_ID}
+              variant="primary"
+              loading={saving}
+            >
+              {editingId ? "Сохранить" : "Создать"}
+            </Button>
+          </div>
+        }
+      >
+        <form id={FORM_ID} onSubmit={submit} className="space-y-4">
+          {error && <Alert tone="danger">{error}</Alert>}
 
-          <form
-            onSubmit={submit}
-            className="relative w-full md:max-w-3xl max-h-[92vh] overflow-y-auto rounded-t-3xl md:rounded-3xl bg-white p-5 md:p-6 shadow-2xl"
-          >
-            <h3 className="text-lg font-bold text-slate-900 mb-4">
-              {editingId ? "Редактировать кампанию" : "Новая рекламная кампания"}
-            </h3>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <label className="block space-y-1">
-                <span className="text-sm text-slate-600">Название кампании</span>
-                <input
-                  className="input w-full"
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Field label="Название кампании" required error={titleError}>
+              {(props) => (
+                <Input
+                  {...props}
                   value={form.title}
-                  onChange={(e) => setForm((prev) => ({ ...prev, title: e.target.value }))}
-                  required
+                  onChange={(e) => {
+                    setTitleError("");
+                    setForm((prev) => ({ ...prev, title: e.target.value }));
+                  }}
+                  invalid={Boolean(titleError)}
                 />
-              </label>
+              )}
+            </Field>
 
-              <label className="block space-y-1">
-                <span className="text-sm text-slate-600">Рекламодатель</span>
-                <input
-                  className="input w-full"
+            <Field label="Рекламодатель">
+              {(props) => (
+                <Input
+                  {...props}
                   value={form.advertiser}
-                  onChange={(e) => setForm((prev) => ({ ...prev, advertiser: e.target.value }))}
+                  onChange={setField("advertiser")}
                 />
-              </label>
+              )}
+            </Field>
 
-              <label className="block space-y-1">
-                <span className="text-sm text-slate-600">Зона показа</span>
-                <select
-                  className="input w-full"
+            <Field label="Зона показа">
+              {(props) => (
+                <Select
+                  {...props}
                   value={form.placement}
-                  onChange={(e) => setForm((prev) => ({ ...prev, placement: e.target.value }))}
-                >
-                  {AD_PLACEMENTS.map((item) => (
-                    <option key={item.id} value={item.id}>
-                      {item.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
+                  onChange={setField("placement")}
+                  options={PLACEMENT_OPTIONS}
+                />
+              )}
+            </Field>
 
-              <label className="block space-y-1">
-                <span className="text-sm text-slate-600">Формат</span>
-                <select
-                  className="input w-full"
+            <Field label="Формат">
+              {(props) => (
+                <Select
+                  {...props}
                   value={form.format}
-                  onChange={(e) => setForm((prev) => ({ ...prev, format: e.target.value }))}
-                >
-                  {AD_FORMATS.map((item) => (
-                    <option key={item.id} value={item.id}>
-                      {item.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
+                  onChange={setField("format")}
+                  options={FORMAT_OPTIONS}
+                />
+              )}
+            </Field>
 
-              <label className="block space-y-1">
-                <span className="text-sm text-slate-600">Категория (опционально)</span>
-                <select
-                  className="input w-full"
+            <Field label="Категория" hint={t("admin.optional")}>
+              {(props) => (
+                <Select
+                  {...props}
                   value={form.cat}
-                  onChange={(e) => setForm((prev) => ({ ...prev, cat: e.target.value }))}
-                >
-                  <option value="">Все категории</option>
-                  {HOME_CATEGORIES.map((item) => (
-                    <option key={item.slug} value={item.slug}>
-                      {item.title}
-                    </option>
-                  ))}
-                </select>
-              </label>
+                  onChange={setField("cat")}
+                  options={CATEGORY_OPTIONS}
+                />
+              )}
+            </Field>
 
-              <label className="block space-y-1">
-                <span className="text-sm text-slate-600">Приоритет</span>
-                <input
+            <Field label="Приоритет" hint={t("admin.priorityHint")}>
+              {(props) => (
+                <Input
+                  {...props}
                   type="number"
-                  className="input w-full"
                   value={form.priority}
                   onChange={(e) =>
-                    setForm((prev) => ({ ...prev, priority: Number(e.target.value || 0) }))
+                    setForm((prev) => ({
+                      ...prev,
+                      priority: Number(e.target.value || 0),
+                    }))
                   }
                 />
-              </label>
+              )}
+            </Field>
 
-              <label className="block space-y-1">
-                <span className="text-sm text-slate-600">Старт</span>
-                <input
+            <Field label="Старт">
+              {(props) => (
+                <Input
+                  {...props}
                   type="datetime-local"
-                  className="input w-full"
                   value={form.startsAt}
-                  onChange={(e) => setForm((prev) => ({ ...prev, startsAt: e.target.value }))}
+                  onChange={setField("startsAt")}
                 />
-              </label>
+              )}
+            </Field>
 
-              <label className="block space-y-1">
-                <span className="text-sm text-slate-600">Окончание</span>
-                <input
+            <Field label="Окончание">
+              {(props) => (
+                <Input
+                  {...props}
                   type="datetime-local"
-                  className="input w-full"
                   value={form.endsAt}
-                  onChange={(e) => setForm((prev) => ({ ...prev, endsAt: e.target.value }))}
+                  onChange={setField("endsAt")}
                 />
-              </label>
-            </div>
+              )}
+            </Field>
+          </div>
 
-            {form.format !== "html" && (
-              <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                <label className="block space-y-1 md:col-span-2">
-                  <span className="text-sm text-slate-600">Заголовок для пользователя</span>
-                  <input
-                    className="input w-full"
+          {form.format !== "html" ? (
+            <div className="space-y-4">
+              <Field label="Заголовок для пользователя">
+                {(props) => (
+                  <Input
+                    {...props}
                     value={form.headline}
-                    onChange={(e) => setForm((prev) => ({ ...prev, headline: e.target.value }))}
+                    onChange={setField("headline")}
                   />
-                </label>
+                )}
+              </Field>
 
-                <label className="block space-y-1 md:col-span-2">
-                  <span className="text-sm text-slate-600">Описание</span>
-                  <textarea
-                    className="input w-full min-h-[90px]"
+              <Field label="Описание">
+                {(props) => (
+                  <Textarea
+                    {...props}
                     value={form.description}
-                    onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
+                    onChange={setField("description")}
+                    className="min-h-[5.5rem]"
                   />
-                </label>
+                )}
+              </Field>
 
-                <label className="block space-y-1 md:col-span-2">
-                  <span className="text-sm text-slate-600">Ссылка</span>
-                  <input
-                    className="input w-full"
+              <Field label="Ссылка">
+                {(props) => (
+                  <Input
+                    {...props}
+                    type="url"
                     value={form.linkUrl}
-                    onChange={(e) => setForm((prev) => ({ ...prev, linkUrl: e.target.value }))}
+                    onChange={setField("linkUrl")}
                     placeholder="https://"
                   />
-                </label>
+                )}
+              </Field>
 
-                <label className="block space-y-1 md:col-span-2">
-                  <span className="text-sm text-slate-600">URL изображения</span>
-                  <input
-                    className="input w-full"
+              <Field label="URL изображения" hint={t("admin.bannerHint")}>
+                {(props) => (
+                  <Input
+                    {...props}
                     value={form.imageUrl}
-                    onChange={(e) => setForm((prev) => ({ ...prev, imageUrl: e.target.value }))}
+                    onChange={setField("imageUrl")}
                     placeholder="https://..."
+                  />
+                )}
+              </Field>
+
+              <div>
+                <label className="btn inline-flex cursor-pointer focus-within:ring-2 focus-within:ring-sun/40">
+                  <ImageIcon size={16} aria-hidden="true" />
+                  {uploading ? "Загрузка…" : "Загрузить баннер"}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="sr-only"
+                    onChange={uploadBanner}
+                    disabled={uploading}
                   />
                 </label>
 
-                <div className="md:col-span-2">
-                  <label className="inline-flex items-center gap-2 btn rounded-xl cursor-pointer">
-                    <ImageIcon size={16} />
-                    {uploading ? "Загрузка..." : "Загрузить баннер"}
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={uploadBanner}
-                      disabled={uploading}
-                    />
-                  </label>
-
-                  {form.imageUrl ? (
-                    <img
-                      src={form.imageUrl}
-                      alt="Preview"
-                      className="mt-3 max-h-40 rounded-2xl border object-cover"
-                    />
-                  ) : null}
-                </div>
+                {form.imageUrl ? (
+                  <img
+                    src={form.imageUrl}
+                    alt=""
+                    className="mt-3 max-h-40 rounded-2xl border border-ink-200 object-cover"
+                  />
+                ) : null}
               </div>
-            )}
-
-            {form.format === "html" && (
-              <label className="block space-y-1 mt-4">
-                <span className="text-sm text-slate-600">HTML / код рекламной сети</span>
-                <textarea
-                  className="input w-full min-h-[160px] font-mono text-xs"
-                  value={form.htmlCode}
-                  onChange={(e) => setForm((prev) => ({ ...prev, htmlCode: e.target.value }))}
-                  placeholder="<script>...</script> или iframe"
-                />
-              </label>
-            )}
-
-            <label className="mt-4 inline-flex items-center gap-2 text-sm text-slate-700">
-              <input
-                type="checkbox"
-                checked={form.active}
-                onChange={(e) => setForm((prev) => ({ ...prev, active: e.target.checked }))}
-              />
-              Кампания активна
-            </label>
-
-            <div className="mt-6 flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
-              <button type="button" className="btn rounded-xl" onClick={closeEditor}>
-                Отмена
-              </button>
-              <button type="submit" className="btn btn-primary rounded-xl" disabled={saving}>
-                {saving ? "Сохраняем..." : editingId ? "Сохранить" : "Создать"}
-              </button>
             </div>
-          </form>
-        </div>
-      )}
+          ) : (
+            <Field label="HTML / код рекламной сети">
+              {(props) => (
+                <Textarea
+                  {...props}
+                  value={form.htmlCode}
+                  onChange={setField("htmlCode")}
+                  placeholder="<script>...</script> или iframe"
+                  className="min-h-[10rem] font-mono text-xs"
+                />
+              )}
+            </Field>
+          )}
+
+          <Checkbox
+            boxed
+            label="Кампания активна"
+            description={t("admin.adActiveHint")}
+            checked={form.active}
+            onChange={(e) =>
+              setForm((prev) => ({ ...prev, active: e.target.checked }))
+            }
+          />
+        </form>
+      </Modal>
     </div>
   );
 }

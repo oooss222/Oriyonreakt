@@ -1,7 +1,27 @@
 import React from "react";
-import { ScrollText, ChevronLeft, ChevronRight } from "lucide-react";
+import { ScrollText, RotateCw } from "lucide-react";
 import { api } from "../../lib/api";
 import { AUDIT_ACTION_LABELS } from "../../lib/adminUtils";
+import {
+  Alert,
+  Button,
+  Card,
+  EmptyState,
+  Field,
+  Select,
+  SimplePagination,
+} from "../../ui";
+import { useI18n } from "../../i18n";
+import {
+  DataTable,
+  FilterBar,
+  ResultsBar,
+  SectionHeader,
+  TableRow,
+  TableSkeleton,
+  Td,
+  Th,
+} from "./AdminUI";
 
 const PAGE_SIZE = 50;
 
@@ -31,6 +51,8 @@ function formatDetails(item) {
 }
 
 export default function AdminAuditSection({ token }) {
+  const { t } = useI18n();
+
   const [items, setItems] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [refreshing, setRefreshing] = React.useState(false);
@@ -66,117 +88,106 @@ export default function AdminAuditSection({ token }) {
     setPage(1);
   }, [actionFilter]);
 
-  if (loading) {
-    return (
-      <div className="rounded-2xl border bg-white p-5 animate-pulse h-48" />
-    );
-  }
-
   return (
-    <div className="rounded-2xl border bg-white p-4 md:p-5 space-y-5">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-        <div>
-          <div className="inline-flex items-center gap-2 text-sm text-indigo-700 bg-indigo-50 border border-indigo-100 rounded-full px-3 py-1 mb-2">
-            <ScrollText className="w-4 h-4" />
-            Audit log
-          </div>
-          <h2 className="text-xl font-bold">Журнал действий</h2>
-          <p className="text-sm text-slate-500 mt-1">
-            Блокировки, смена ролей, удаления объявлений и решения по жалобам.
-          </p>
-        </div>
+    <Card className="space-y-5">
+      <SectionHeader
+        eyebrow="Audit log"
+        icon={ScrollText}
+        title="Журнал действий"
+        description="Блокировки, смена ролей, удаления объявлений и решения по жалобам."
+        action={
+          <Button icon={RotateCw} loading={refreshing} onClick={load}>
+            Обновить
+          </Button>
+        }
+      />
 
-        <button
-          type="button"
-          onClick={load}
-          disabled={refreshing}
-          className="px-4 py-2 rounded-xl border hover:bg-slate-50 disabled:opacity-60"
-        >
-          {refreshing ? "Обновляем..." : "Обновить"}
-        </button>
-      </div>
+      {error && <Alert tone="danger">{error}</Alert>}
 
-      {error && (
-        <div className="rounded-xl border border-red-200 bg-red-50 text-red-700 p-3">
-          {error}
-        </div>
-      )}
+      <FilterBar
+        gridClassName="grid-cols-1 sm:max-w-md"
+        onReset={() => setActionFilter("")}
+        resetDisabled={!actionFilter}
+      >
+        <Field label={t("admin.actionFilterLabel")}>
+          {(props) => (
+            <Select
+              {...props}
+              value={actionFilter}
+              onChange={(e) => setActionFilter(e.target.value)}
+              options={ACTION_FILTER_OPTIONS}
+            />
+          )}
+        </Field>
+      </FilterBar>
 
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <select
-          value={actionFilter}
-          onChange={(e) => setActionFilter(e.target.value)}
-          className="h-11 rounded-xl border px-3 outline-none focus:ring-2 focus:ring-sun/40 max-w-md"
-        >
-          {ACTION_FILTER_OPTIONS.map((option) => (
-            <option key={option.value || "all"} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
+      <ResultsBar
+        pager={
+          <SimplePagination
+            page={page}
+            totalPages={items.length < PAGE_SIZE ? page : page + 1}
+            onPageChange={setPage}
+            disabled={refreshing}
+          />
+        }
+      >
+        Показано: {items.length}
+      </ResultsBar>
 
-        <div className="flex items-center gap-2 text-sm text-slate-500">
-          <button
-            type="button"
-            disabled={page <= 1}
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border disabled:opacity-40"
-          >
-            <ChevronLeft size={16} />
-            Назад
-          </button>
-          <span>{page}</span>
-          <button
-            type="button"
-            disabled={items.length < PAGE_SIZE}
-            onClick={() => setPage((p) => p + 1)}
-            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border disabled:opacity-40"
-          >
-            Вперёд
-            <ChevronRight size={16} />
-          </button>
-        </div>
-      </div>
-
-      {items.length === 0 ? (
-        <div className="rounded-2xl border bg-slate-50 p-8 text-center text-slate-500">
-          Записей пока нет.
-        </div>
+      {loading ? (
+        <TableSkeleton label={t("admin.tableAudit")} rows={8} columns={4} />
+      ) : items.length === 0 ? (
+        <EmptyState
+          bare
+          icon={ScrollText}
+          title="Записей пока нет"
+          description={t("admin.auditEmptyDescription")}
+        />
       ) : (
-        <div className="overflow-x-auto rounded-2xl border">
-          <table className="w-full text-sm border-collapse bg-white">
-            <thead className="bg-slate-50">
-              <tr className="border-b text-left text-slate-500">
-                <th className="py-3 px-3">Когда</th>
-                <th className="py-3 px-3">Кто</th>
-                <th className="py-3 px-3">Действие</th>
-                <th className="py-3 px-3">Детали</th>
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((item) => (
-                <tr key={item.id} className="border-b last:border-b-0">
-                  <td className="py-3 px-3 text-slate-500 whitespace-nowrap">
-                    {item.createdAt
-                      ? new Date(item.createdAt).toLocaleString("ru-RU")
-                      : "—"}
-                  </td>
-                  <td className="py-3 px-3">
-                    <div className="font-medium">{item.actorName || "—"}</div>
-                    <div className="text-xs text-slate-500">{item.actorEmail}</div>
-                  </td>
-                  <td className="py-3 px-3">
-                    {AUDIT_ACTION_LABELS[item.action] || item.action}
-                  </td>
-                  <td className="py-3 px-3 text-slate-600">
-                    {formatDetails(item)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <DataTable
+          label={t("admin.tableAudit")}
+          minWidth="52rem"
+          scrollHeight="70vh"
+        >
+          <thead>
+            <tr>
+              <Th>Когда</Th>
+              <Th>Кто</Th>
+              <Th>Действие</Th>
+              <Th>Детали</Th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {items.map((item) => (
+              <TableRow key={item.id}>
+                <Td className="whitespace-nowrap text-ink-400">
+                  {item.createdAt
+                    ? new Date(item.createdAt).toLocaleString("ru-RU")
+                    : "—"}
+                </Td>
+
+                <Td>
+                  <div className="font-medium text-ink-800">
+                    {item.actorName || "—"}
+                  </div>
+                  <div className="text-xs text-ink-400 break-anywhere">
+                    {item.actorEmail}
+                  </div>
+                </Td>
+
+                <Td className="text-ink-700">
+                  {AUDIT_ACTION_LABELS[item.action] || item.action}
+                </Td>
+
+                <Td className="text-ink-500 break-anywhere">
+                  {formatDetails(item)}
+                </Td>
+              </TableRow>
+            ))}
+          </tbody>
+        </DataTable>
       )}
-    </div>
+    </Card>
   );
 }

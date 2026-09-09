@@ -1,12 +1,27 @@
 import React from "react";
 import { Settings, Save } from "lucide-react";
 import { api } from "../../lib/api";
+import {
+  Alert,
+  Button,
+  Card,
+  Checkbox,
+  Field,
+  Input,
+  Skeleton,
+  Textarea,
+  useToast,
+} from "../../ui";
+import { useI18n } from "../../i18n";
+import { SectionHeader } from "./AdminUI";
 
 export default function AdminSettingsSection({ token }) {
+  const { t } = useI18n();
+  const { showToast } = useToast();
+
   const [loading, setLoading] = React.useState(true);
   const [saving, setSaving] = React.useState(false);
   const [error, setError] = React.useState("");
-  const [success, setSuccess] = React.useState("");
   const [form, setForm] = React.useState({
     vipPrice: 25,
     topPrice: 15,
@@ -53,7 +68,6 @@ export default function AdminSettingsSection({ token }) {
     try {
       setSaving(true);
       setError("");
-      setSuccess("");
 
       const updated = await api.adminUpdateSettings(token, {
         vipPrice: Number(form.vipPrice),
@@ -75,7 +89,7 @@ export default function AdminSettingsSection({ token }) {
         monthlyReportEnabled: Boolean(updated.monthlyReportEnabled),
       });
 
-      setSuccess("Настройки сохранены");
+      showToast(t("admin.toastSettingsSaved"), "success");
     } catch (e) {
       setError(e.message || "Не удалось сохранить настройки");
     } finally {
@@ -84,161 +98,136 @@ export default function AdminSettingsSection({ token }) {
   };
 
   if (loading) {
-    return <div className="rounded-2xl border bg-white p-5 animate-pulse h-56" />;
+    return (
+      <Card className="space-y-4">
+        <p className="sr-only" role="status">
+          {t("common.loading")}
+        </p>
+        <Skeleton className="h-6 w-56" />
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+          {Array.from({ length: 3 }).map((_, index) => (
+            <Skeleton key={index} className="h-16" rounded="rounded-xl" />
+          ))}
+        </div>
+        <Skeleton className="h-40" rounded="rounded-2xl" />
+      </Card>
+    );
   }
 
+  const priceField = (key, label, hint) => (
+    <Field label={label} hint={hint}>
+      {(props) => (
+        <Input
+          {...props}
+          type="number"
+          min="0"
+          step="0.01"
+          value={form[key]}
+          onChange={(e) =>
+            setForm((prev) => ({ ...prev, [key]: e.target.value }))
+          }
+        />
+      )}
+    </Field>
+  );
+
   return (
-    <div className="rounded-2xl border bg-white p-4 md:p-5 space-y-5">
-      <div>
-        <div className="inline-flex items-center gap-2 text-sm text-sun-700 bg-sun-50 border border-sun-100 rounded-full px-3 py-1 mb-2">
-          <Settings className="w-4 h-4" />
-          Настройки сайта
-        </div>
-        <h2 className="text-xl font-bold">Конфигурация платформы</h2>
-        <p className="text-sm text-slate-500 mt-1">
-          Тарифы VIP/TOP, регистрация и текст политики конфиденциальности.
-        </p>
-      </div>
+    <Card className="space-y-5">
+      <SectionHeader
+        eyebrow="Настройки сайта"
+        icon={Settings}
+        title="Конфигурация платформы"
+        description="Тарифы VIP/TOP, регистрация и текст политики конфиденциальности."
+      />
 
-      {error && (
-        <div className="rounded-xl border border-red-200 bg-red-50 text-red-700 p-3">
-          {error}
-        </div>
-      )}
-
-      {success && (
-        <div className="rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-700 p-3">
-          {success}
-        </div>
-      )}
+      {error && <Alert tone="danger">{error}</Alert>}
 
       <form onSubmit={submit} className="space-y-5">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <label className="block">
-            <div className="text-sm font-medium mb-1">VIP, TJS</div>
-            <input
-              type="number"
-              min="0"
-              step="0.01"
-              value={form.vipPrice}
-              onChange={(e) =>
-                setForm((prev) => ({ ...prev, vipPrice: e.target.value }))
-              }
-              className="h-11 w-full rounded-xl border px-3"
-            />
-          </label>
-
-          <label className="block">
-            <div className="text-sm font-medium mb-1">TOP, TJS</div>
-            <input
-              type="number"
-              min="0"
-              step="0.01"
-              value={form.topPrice}
-              onChange={(e) =>
-                setForm((prev) => ({ ...prev, topPrice: e.target.value }))
-              }
-              className="h-11 w-full rounded-xl border px-3"
-            />
-          </label>
-
-          <label className="block">
-            <div className="text-sm font-medium mb-1">Обновление даты, TJS</div>
-            <input
-              type="number"
-              min="0"
-              step="0.01"
-              value={form.bumpPrice}
-              onChange={(e) =>
-                setForm((prev) => ({ ...prev, bumpPrice: e.target.value }))
-              }
-              className="h-11 w-full rounded-xl border px-3"
-            />
-            <div className="text-xs text-slate-500 mt-1">
-              Можно указать дробное значение, например 0.25. 0 = бесплатно.
-            </div>
-          </label>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          {priceField("vipPrice", "VIP, TJS")}
+          {priceField("topPrice", "TOP, TJS")}
+          {priceField(
+            "bumpPrice",
+            "Обновление даты, TJS",
+            "Можно указать дробное значение, например 0.25. 0 = бесплатно."
+          )}
         </div>
 
-        <div className="rounded-2xl border bg-slate-50 p-4 space-y-3">
-          <div className="font-medium">Бухгалтерия</div>
-          <label className="block">
-            <div className="text-sm font-medium mb-1">Email для отчётов</div>
-            <input
-              type="email"
-              value={form.accountantReportEmail}
-              onChange={(e) =>
-                setForm((prev) => ({
-                  ...prev,
-                  accountantReportEmail: e.target.value,
-                }))
-              }
-              placeholder="accountant@example.com"
-              className="h-11 w-full rounded-xl border px-3 bg-white"
-            />
-          </label>
-          <label className="flex items-center gap-3 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={form.monthlyReportEnabled}
-              onChange={(e) =>
-                setForm((prev) => ({
-                  ...prev,
-                  monthlyReportEnabled: e.target.checked,
-                }))
-              }
-              className="w-4 h-4"
-            />
-            <div>
-              <div className="font-medium">Автоотчёт 1-го числа</div>
-              <div className="text-sm text-slate-500">
-                CSV транзакций за прошлый месяц на email бухгалтера (нужен SMTP на сервере).
-              </div>
-            </div>
-          </label>
-        </div>
+        <fieldset className="surface-muted space-y-3 p-4">
+          <legend className="label-caps px-1">Бухгалтерия</legend>
 
-        <label className="flex items-center gap-3 rounded-xl border bg-slate-50 p-4 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={form.registrationEnabled}
+          <Field label="Email для отчётов">
+            {(props) => (
+              <Input
+                {...props}
+                type="email"
+                value={form.accountantReportEmail}
+                onChange={(e) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    accountantReportEmail: e.target.value,
+                  }))
+                }
+                placeholder="accountant@example.com"
+              />
+            )}
+          </Field>
+
+          <Checkbox
+            boxed
+            className="bg-white"
+            label="Автоотчёт 1-го числа"
+            description="CSV транзакций за прошлый месяц на email бухгалтера (нужен SMTP на сервере)."
+            checked={form.monthlyReportEnabled}
             onChange={(e) =>
               setForm((prev) => ({
                 ...prev,
-                registrationEnabled: e.target.checked,
+                monthlyReportEnabled: e.target.checked,
               }))
             }
-            className="w-4 h-4"
           />
-          <div>
-            <div className="font-medium">Регистрация открыта</div>
-            <div className="text-sm text-slate-500">
-              Если выключено, новые пользователи не смогут создать аккаунт.
-            </div>
-          </div>
-        </label>
+        </fieldset>
 
-        <label className="block">
-          <div className="text-sm font-medium mb-1">Текст политики (/policy)</div>
-          <textarea
-            value={form.policyContent}
-            onChange={(e) =>
-              setForm((prev) => ({ ...prev, policyContent: e.target.value }))
-            }
-            rows={14}
-            className="w-full rounded-xl border px-3 py-2 outline-none focus:ring-2 focus:ring-sun/40 resize-y font-mono text-sm"
-          />
-        </label>
+        <Checkbox
+          boxed
+          label="Регистрация открыта"
+          description="Если выключено, новые пользователи не смогут создать аккаунт."
+          checked={form.registrationEnabled}
+          onChange={(e) =>
+            setForm((prev) => ({
+              ...prev,
+              registrationEnabled: e.target.checked,
+            }))
+          }
+        />
 
-        <button
-          type="submit"
-          disabled={saving}
-          className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-slate-900 text-white hover:bg-slate-800 disabled:opacity-60"
+        <Field
+          label="Текст политики (/policy)"
+          hint={t("admin.policyHint")}
         >
-          <Save size={18} />
-          {saving ? "Сохраняем..." : "Сохранить настройки"}
-        </button>
+          {(props) => (
+            <Textarea
+              {...props}
+              value={form.policyContent}
+              onChange={(e) =>
+                setForm((prev) => ({ ...prev, policyContent: e.target.value }))
+              }
+              rows={14}
+              className="min-h-[20rem] font-mono text-xs"
+            />
+          )}
+        </Field>
+
+        <Button
+          type="submit"
+          variant="accent"
+          icon={Save}
+          loading={saving}
+          className="w-full sm:w-auto"
+        >
+          Сохранить настройки
+        </Button>
       </form>
-    </div>
+    </Card>
   );
 }

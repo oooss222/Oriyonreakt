@@ -1,7 +1,5 @@
 import React from "react";
-import { Link, useNavigate } from "react-router-dom";
 import {
-  X,
   ExternalLink,
   Ban,
   Unlock,
@@ -12,6 +10,8 @@ import {
   BadgeCheck,
   Building2,
   Smartphone,
+  Plus,
+  Minus,
 } from "lucide-react";
 import { api } from "../../lib/api";
 import {
@@ -19,10 +19,52 @@ import {
   WALLET_TYPE_LABELS,
   getId,
   roleLabel,
-  roleBadgeClass,
   canManageUser,
   formatRegistrationDevice,
 } from "../../lib/adminUtils";
+import {
+  Alert,
+  Avatar,
+  Badge,
+  Button,
+  Field,
+  Input,
+  Modal,
+  Select,
+  Skeleton,
+  useConfirm,
+  useToast,
+} from "../../ui";
+import { useI18n } from "../../i18n";
+import { StatTile, roleTone } from "./AdminUI";
+
+const LISTING_STATUS_LABELS = {
+  approved: "Опубликованы",
+  pending: "На модерации",
+  rejected: "Отклонены",
+  sold: "Продано",
+  archived: "Сняты",
+};
+
+function formatDateTime(value) {
+  if (!value) return "—";
+
+  const date = new Date(value);
+
+  return Number.isNaN(date.getTime()) ? "—" : date.toLocaleString("ru-RU");
+}
+
+function InfoRow({ icon: Icon, label, children }) {
+  return (
+    <div className="flex items-start gap-2 text-sm text-ink-700">
+      <Icon size={16} className="mt-0.5 shrink-0 text-ink-400" aria-hidden="true" />
+      <span className="min-w-0 break-anywhere">
+        <span className="text-ink-400">{label}: </span>
+        {children}
+      </span>
+    </div>
+  );
+}
 
 export default function UserDetailModal({
   token,
@@ -32,11 +74,16 @@ export default function UserDetailModal({
   onClose,
   onUserUpdated,
 }) {
+  const { t } = useI18n();
+  const confirm = useConfirm();
+  const { showToast } = useToast();
+
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState("");
   const [detail, setDetail] = React.useState(null);
   const [adjustAmount, setAdjustAmount] = React.useState("");
   const [adjustDescription, setAdjustDescription] = React.useState("");
+  const [adjustError, setAdjustError] = React.useState("");
   const [adjustLoading, setAdjustLoading] = React.useState(false);
   const [actionLoading, setActionLoading] = React.useState(false);
 
@@ -66,6 +113,7 @@ export default function UserDetailModal({
   const listings = detail?.listings || {};
   const transactions = detail?.transactions || [];
   const manageable = user ? canManageUser(currentUser, user) : false;
+  const companyLabel = user?.companyName || user?.name || "";
 
   const changeRole = async (nextRole) => {
     if (!isSuperAdmin || !user) return;
@@ -75,8 +123,9 @@ export default function UserDetailModal({
       const updated = await api.adminSetUserRole(token, getId(user), nextRole);
       setDetail((prev) => ({ ...prev, user: { ...prev.user, ...updated } }));
       onUserUpdated?.(updated);
+      showToast(t("admin.toastRoleChanged"), "success");
     } catch (e) {
-      alert(e.message || "Ошибка изменения роли");
+      showToast(e.message || "Ошибка изменения роли", "error");
     } finally {
       setActionLoading(false);
     }
@@ -85,8 +134,21 @@ export default function UserDetailModal({
   const toggleBlock = async () => {
     if (!user || !manageable) return;
 
-    const action = user.isBlocked ? "разблокировать" : "заблокировать";
-    const ok = confirm(`Вы действительно хотите ${action} пользователя ${user.email}?`);
+    const blocking = !user.isBlocked;
+
+    const ok = await confirm({
+      title: blocking
+        ? t("admin.blockUserTitle")
+        : t("admin.unblockUserTitle"),
+      message: blocking
+        ? t("admin.blockUserMessage", { email: user.email })
+        : t("admin.unblockUserMessage", { email: user.email }),
+      confirmLabel: blocking
+        ? t("admin.blockConfirm")
+        : t("admin.unblockConfirm"),
+      tone: blocking ? "danger" : undefined,
+    });
+
     if (!ok) return;
 
     try {
@@ -97,8 +159,12 @@ export default function UserDetailModal({
 
       setDetail((prev) => ({ ...prev, user: { ...prev.user, ...updated } }));
       onUserUpdated?.(updated);
+      showToast(
+        blocking ? t("admin.toastUserBlocked") : t("admin.toastUserUnblocked"),
+        "success"
+      );
     } catch (e) {
-      alert(e.message || "Ошибка блокировки");
+      showToast(e.message || "Ошибка блокировки", "error");
     } finally {
       setActionLoading(false);
     }
@@ -108,11 +174,19 @@ export default function UserDetailModal({
     if (!user || user.sellerType !== "company" || readOnly) return;
 
     const nextVerified = !user.businessVerified;
-    const action = nextVerified ? "верифицировать" : "снять верификацию";
 
-    const ok = confirm(
-      `${action.charAt(0).toUpperCase()}${action.slice(1)} компанию «${user.companyName || user.name}»?`
-    );
+    const ok = await confirm({
+      title: nextVerified
+        ? t("admin.verifyBusinessTitle")
+        : t("admin.unverifyBusinessTitle"),
+      message: nextVerified
+        ? t("admin.verifyBusinessMessage", { name: companyLabel })
+        : t("admin.unverifyBusinessMessage", { name: companyLabel }),
+      confirmLabel: nextVerified
+        ? t("admin.verifyBusinessTitle")
+        : t("admin.unverifyBusinessTitle"),
+      tone: nextVerified ? undefined : "danger",
+    });
 
     if (!ok) return;
 
@@ -126,8 +200,14 @@ export default function UserDetailModal({
 
       setDetail((prev) => ({ ...prev, user: { ...prev.user, ...updated } }));
       onUserUpdated?.(updated);
+      showToast(
+        nextVerified
+          ? t("admin.toastBusinessVerified")
+          : t("admin.toastBusinessUnverified"),
+        "success"
+      );
     } catch (e) {
-      alert(e.message || "Ошибка верификации");
+      showToast(e.message || "Ошибка верификации", "error");
     } finally {
       setActionLoading(false);
     }
@@ -137,9 +217,13 @@ export default function UserDetailModal({
     if (!user || readOnly) return;
 
     if (user.sellerType === "company") {
-      const ok = confirm(
-        `Отключить премиум-аккаунт у «${user.companyName || user.name}»? Пользователь станет частным лицом.`
-      );
+      const ok = await confirm({
+        title: t("admin.disconnectBusinessTitle"),
+        message: t("admin.disconnectBusinessMessage", { name: companyLabel }),
+        confirmLabel: t("admin.disconnectBusinessTitle"),
+        tone: "danger",
+      });
+
       if (!ok) return;
 
       try {
@@ -149,23 +233,29 @@ export default function UserDetailModal({
         });
         setDetail((prev) => ({ ...prev, user: { ...prev.user, ...updated } }));
         onUserUpdated?.(updated);
+        showToast(t("admin.toastBusinessDisconnected"), "success");
       } catch (e) {
-        alert(e.message || "Не удалось отключить премиум-аккаунт");
+        showToast(e.message || "Не удалось отключить премиум-аккаунт", "error");
       } finally {
         setActionLoading(false);
       }
       return;
     }
 
-    const companyName = prompt(
-      "Название компании для премиум-аккаунта:",
-      user.companyName || user.name || ""
-    );
+    const companyName = await confirm({
+      title: t("admin.connectBusinessTitle"),
+      message: t("admin.connectBusinessMessage"),
+      placeholder: t("admin.connectBusinessPlaceholder"),
+      confirmLabel: t("admin.connectBusinessTitle"),
+      defaultValue: user.companyName || user.name || "",
+      prompt: true,
+      requireValue: true,
+    });
 
     if (companyName === null) return;
 
     if (!String(companyName).trim()) {
-      alert("Укажите название компании");
+      showToast(t("admin.companyNameRequired"), "error");
       return;
     }
 
@@ -177,8 +267,9 @@ export default function UserDetailModal({
       });
       setDetail((prev) => ({ ...prev, user: { ...prev.user, ...updated } }));
       onUserUpdated?.(updated);
+      showToast(t("admin.toastBusinessConnected"), "success");
     } catch (e) {
-      alert(e.message || "Не удалось подключить премиум-аккаунт");
+      showToast(e.message || "Не удалось подключить премиум-аккаунт", "error");
     } finally {
       setActionLoading(false);
     }
@@ -190,11 +281,32 @@ export default function UserDetailModal({
     const value = Number(String(adjustAmount).replace(",", "."));
 
     if (!Number.isFinite(value) || value <= 0) {
-      alert("Введите корректную сумму");
+      setAdjustError(t("admin.amountInvalid"));
       return;
     }
 
+    setAdjustError("");
+
     const amount = sign * value;
+
+    const ok = await confirm({
+      title: sign > 0 ? t("admin.adjustCreditTitle") : t("admin.adjustDebitTitle"),
+      message:
+        sign > 0
+          ? t("admin.adjustCreditMessage", {
+              amount: value.toLocaleString("ru-RU"),
+              email: user.email,
+            })
+          : t("admin.adjustDebitMessage", {
+              amount: value.toLocaleString("ru-RU"),
+              email: user.email,
+            }),
+      confirmLabel:
+        sign > 0 ? t("admin.adjustCreditTitle") : t("admin.adjustDebitTitle"),
+      tone: sign > 0 ? undefined : "danger",
+    });
+
+    if (!ok) return;
 
     try {
       setAdjustLoading(true);
@@ -213,318 +325,319 @@ export default function UserDetailModal({
       onUserUpdated?.(result.user);
       setAdjustAmount("");
       setAdjustDescription("");
+      showToast(t("admin.toastBalanceUpdated"), "success");
     } catch (e) {
-      alert(e.message || "Не удалось изменить баланс");
+      showToast(e.message || "Не удалось изменить баланс", "error");
     } finally {
       setAdjustLoading(false);
     }
   };
 
-  const listingStatusLabel = {
-    approved: "Опубликованы",
-    pending: "На модерации",
-    rejected: "Отклонены",
-    sold: "Продано",
-    archived: "Сняты",
-  };
-
   return (
-    <div className="fixed inset-0 z-[120] bg-black/40 flex items-end md:items-center justify-center p-0 md:p-4">
-      <div className="w-full md:max-w-3xl max-h-[92vh] overflow-y-auto rounded-t-3xl md:rounded-2xl bg-white shadow-xl border">
-        <div className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b bg-white px-4 md:px-5 py-4">
-          <div>
-            <h3 className="text-lg font-bold">Карточка пользователя</h3>
-            <p className="text-sm text-slate-500">
-              {readOnly
-                ? "Просмотр баланса и истории операций"
-                : "Подробная информация и управление"}
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="p-2 rounded-xl border hover:bg-slate-50"
-            aria-label="Закрыть"
-          >
-            <X size={18} />
-          </button>
+    <Modal
+      open
+      onClose={onClose}
+      size="lg"
+      title="Карточка пользователя"
+      description={
+        readOnly
+          ? "Просмотр баланса и истории операций"
+          : "Подробная информация и управление"
+      }
+      bodyClassName="space-y-5"
+    >
+      {loading && (
+        <div className="space-y-3">
+          <p className="sr-only" role="status">
+            {t("common.loading")}
+          </p>
+          <Skeleton className="h-24" rounded="rounded-2xl" />
+          <Skeleton className="h-16" rounded="rounded-2xl" />
+          <Skeleton className="h-32" rounded="rounded-2xl" />
         </div>
+      )}
 
-        <div className="p-4 md:p-5 space-y-5">
-          {loading && (
-            <div className="text-sm text-slate-500 animate-pulse">Загрузка...</div>
-          )}
+      {error && <Alert tone="danger">{error}</Alert>}
 
-          {error && (
-            <div className="rounded-xl border border-red-200 bg-red-50 text-red-700 p-3">
-              {error}
-            </div>
-          )}
-
-          {!loading && user && (
-            <>
-              <div className="rounded-2xl border bg-slate-50 p-4 space-y-3">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <div className="text-xl font-bold">{user.name || "Без имени"}</div>
-                    <div className="text-sm text-slate-500 mt-1">ID: {getId(user)}</div>
-                  </div>
-
-                  <span
-                    className={`inline-flex px-2 py-0.5 text-xs rounded-full border ${roleBadgeClass(
-                      user.role
-                    )}`}
-                  >
-                    {roleLabel(user.role)}
-                  </span>
+      {!loading && user && (
+        <>
+          <section className="surface-muted space-y-3 p-4">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div className="flex min-w-0 items-center gap-3">
+                <Avatar name={user.name || user.email} size="md" />
+                <div className="min-w-0">
+                  <h3 className="font-display text-lg font-bold text-ink-900 break-anywhere">
+                    {user.name || "Без имени"}
+                  </h3>
+                  <p className="text-xs text-ink-400 break-anywhere">
+                    ID: {getId(user)}
+                  </p>
                 </div>
+              </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                  <div className="flex items-center gap-2">
-                    <Mail size={16} className="text-slate-400" />
-                    {user.email}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Phone size={16} className="text-slate-400" />
-                    {user.phone || "Телефон не указан"}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Clock size={16} className="text-slate-400" />
-                    Регистрация:{" "}
-                    {user.createdAt
-                      ? new Date(user.createdAt).toLocaleString("ru-RU")
-                      : "—"}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Clock size={16} className="text-slate-400" />
-                    Был онлайн:{" "}
-                    {user.lastSeen
-                      ? new Date(user.lastSeen).toLocaleString("ru-RU")
-                      : "—"}
-                  </div>
-                  {isSuperAdmin ? (
-                    <div className="sm:col-span-2 rounded-xl border bg-white p-3 text-sm space-y-1">
-                      <div className="inline-flex items-center gap-1 font-semibold text-slate-800">
-                        <Smartphone size={15} />
-                        Регистрация с устройства
-                      </div>
-                      <div>{formatRegistrationDevice(user)}</div>
-                      {user.registrationUserAgent ? (
-                        <div className="text-xs text-slate-500 break-all">
-                          {user.registrationUserAgent}
-                        </div>
-                      ) : null}
-                    </div>
-                  ) : null}
-                  {user.sellerType === "company" && (
-                    <div className="rounded-xl border bg-blue-50 p-3 text-sm space-y-1">
-                      <div className="inline-flex items-center gap-1 font-semibold text-blue-800">
-                        <Building2 size={15} />
-                        {user.companyName || "Премиум"}
-                      </div>
-                      {user.companyDescription && (
-                        <p className="text-slate-600">{user.companyDescription}</p>
-                      )}
-                      <div className="text-xs text-slate-500">
-                        {user.businessVerified
-                          ? "Проверенный премиум"
-                          : "Ожидает верификации"}
-                      </div>
-                    </div>
+              <div className="flex flex-wrap items-center gap-1.5">
+                <Badge tone={roleTone(user.role)}>{roleLabel(user.role)}</Badge>
+
+                {user.isBlocked ? (
+                  <Badge tone="danger">Заблокирован</Badge>
+                ) : (
+                  <Badge tone="success">Активен</Badge>
+                )}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+              <InfoRow icon={Mail} label="Email">
+                {user.email}
+              </InfoRow>
+
+              <InfoRow icon={Phone} label="Телефон">
+                {user.phone || "не указан"}
+              </InfoRow>
+
+              <InfoRow icon={Clock} label="Регистрация">
+                {formatDateTime(user.createdAt)}
+              </InfoRow>
+
+              <InfoRow icon={Clock} label="Был онлайн">
+                {formatDateTime(user.lastSeen)}
+              </InfoRow>
+            </div>
+
+            {isSuperAdmin ? (
+              <div className="rounded-xl border border-ink-200 bg-white p-3 text-sm">
+                <p className="inline-flex items-center gap-1.5 font-semibold text-ink-800">
+                  <Smartphone size={15} aria-hidden="true" />
+                  Регистрация с устройства
+                </p>
+                <p className="mt-1 text-ink-700">
+                  {formatRegistrationDevice(user)}
+                </p>
+                {user.registrationUserAgent ? (
+                  <p className="mt-1 text-xs text-ink-400 break-anywhere">
+                    {user.registrationUserAgent}
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
+
+            {user.sellerType === "company" && (
+              <div className="rounded-xl border border-info-200 bg-info-50 p-3 text-sm">
+                <p className="inline-flex items-center gap-1.5 font-semibold text-info-800">
+                  <Building2 size={15} aria-hidden="true" />
+                  {user.companyName || "Премиум"}
+                </p>
+                {user.companyDescription && (
+                  <p className="mt-1 text-ink-600">{user.companyDescription}</p>
+                )}
+                <p className="mt-1.5">
+                  {user.businessVerified ? (
+                    <Badge tone="success" icon={BadgeCheck}>
+                      Проверенный премиум
+                    </Badge>
+                  ) : (
+                    <Badge tone="warning">Ожидает верификации</Badge>
                   )}
+                </p>
+              </div>
+            )}
+
+            <div className="flex flex-wrap gap-2">
+              <Button
+                to={`/seller/${getId(user)}`}
+                icon={ExternalLink}
+                size="sm"
+              >
+                Публичная страница
+              </Button>
+
+              {!readOnly && (
+                <Button
+                  size="sm"
+                  variant={user.isBlocked ? "lagoon" : "danger"}
+                  icon={user.isBlocked ? Unlock : Ban}
+                  disabled={!manageable || actionLoading}
+                  onClick={toggleBlock}
+                >
+                  {user.isBlocked ? "Разблокировать" : "Заблокировать"}
+                </Button>
+              )}
+
+              {!readOnly && user.sellerType === "company" && (
+                <Button
+                  size="sm"
+                  icon={BadgeCheck}
+                  disabled={actionLoading}
+                  onClick={toggleBusinessVerify}
+                >
+                  {user.businessVerified
+                    ? "Снять верификацию"
+                    : "Верифицировать премиум"}
+                </Button>
+              )}
+
+              {!readOnly && (
+                <Button
+                  size="sm"
+                  icon={Building2}
+                  disabled={actionLoading}
+                  onClick={toggleBusinessAccount}
+                >
+                  {user.sellerType === "company"
+                    ? "Отключить премиум-аккаунт"
+                    : "Подключить премиум-аккаунт"}
+                </Button>
+              )}
+            </div>
+
+            {isSuperAdmin && !readOnly && (
+              <Field label="Роль" className="max-w-xs">
+                {(props) => (
+                  <Select
+                    {...props}
+                    value={user.role || "user"}
+                    disabled={actionLoading}
+                    onChange={(e) => changeRole(e.target.value)}
+                    options={ROLES.map((item) => ({
+                      value: item,
+                      label: roleLabel(item),
+                    }))}
+                  />
+                )}
+              </Field>
+            )}
+          </section>
+
+          <section>
+            <h3 className="mb-2 font-display text-base font-bold text-ink-900">
+              Объявления
+            </h3>
+
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+              <StatTile label="Всего" value={listings.total || 0} />
+              {Object.entries(LISTING_STATUS_LABELS).map(([key, label]) => (
+                <StatTile key={key} label={label} value={listings[key] || 0} />
+              ))}
+            </div>
+          </section>
+
+          <section className="surface-panel space-y-4 p-4">
+            <div className="flex items-center gap-2">
+              <Wallet size={18} className="text-sun-600" aria-hidden="true" />
+              <h3 className="font-display text-base font-bold text-ink-900">
+                Кошелёк
+              </h3>
+            </div>
+
+            <p className="text-price text-2xl text-sun-700">
+              {Number(user.walletBalance || 0).toLocaleString("ru-RU")} TJS
+            </p>
+
+            {isSuperAdmin && !readOnly && (
+              <div className="surface-muted space-y-3 p-3">
+                <h4 className="text-sm font-semibold text-ink-800">
+                  Корректировка баланса
+                </h4>
+
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <Field
+                    label="Сумма, TJS"
+                    error={adjustError}
+                    hint={t("admin.amountHint")}
+                  >
+                    {(props) => (
+                      <Input
+                        {...props}
+                        inputMode="decimal"
+                        value={adjustAmount}
+                        onChange={(e) => {
+                          setAdjustError("");
+                          setAdjustAmount(e.target.value.replace(/[^\d.,]/g, ""));
+                        }}
+                        placeholder="0"
+                      />
+                    )}
+                  </Field>
+
+                  <Field label="Комментарий" hint={t("admin.optional")}>
+                    {(props) => (
+                      <Input
+                        {...props}
+                        value={adjustDescription}
+                        onChange={(e) => setAdjustDescription(e.target.value)}
+                      />
+                    )}
+                  </Field>
                 </div>
 
                 <div className="flex flex-wrap gap-2">
-                  <Link
-                    to={`/seller/${getId(user)}`}
-                    className="inline-flex items-center gap-1 px-3 py-2 rounded-xl border hover:bg-white text-sm"
+                  <Button
+                    variant="lagoon"
+                    icon={Plus}
+                    disabled={adjustLoading}
+                    onClick={() => adjustWallet(1)}
                   >
-                    <ExternalLink size={16} />
-                    Публичная страница
-                  </Link>
+                    Начислить
+                  </Button>
 
-                  {!readOnly && (
-                    <button
-                      type="button"
-                      disabled={!manageable || actionLoading}
-                      onClick={toggleBlock}
-                      className={`inline-flex items-center gap-1 px-3 py-2 rounded-xl border text-sm disabled:opacity-40 ${
-                        user.isBlocked
-                          ? "hover:bg-emerald-50 text-emerald-700"
-                          : "hover:bg-red-50 text-red-700"
-                      }`}
-                    >
-                      {user.isBlocked ? <Unlock size={16} /> : <Ban size={16} />}
-                      {user.isBlocked ? "Разблокировать" : "Заблокировать"}
-                    </button>
-                  )}
-
-                  {!readOnly && user.sellerType === "company" && (
-                    <button
-                      type="button"
-                      disabled={actionLoading}
-                      onClick={toggleBusinessVerify}
-                      className={`inline-flex items-center gap-1 px-3 py-2 rounded-xl border text-sm disabled:opacity-40 ${
-                        user.businessVerified
-                          ? "hover:bg-amber-50 text-amber-700"
-                          : "hover:bg-emerald-50 text-emerald-700"
-                      }`}
-                    >
-                      <BadgeCheck size={16} />
-                      {user.businessVerified
-                        ? "Снять верификацию"
-                        : "Верифицировать премиум"}
-                    </button>
-                  )}
-
-                  {!readOnly && (
-                    <button
-                      type="button"
-                      disabled={actionLoading}
-                      onClick={toggleBusinessAccount}
-                      className={`inline-flex items-center gap-1 px-3 py-2 rounded-xl border text-sm disabled:opacity-40 ${
-                        user.sellerType === "company"
-                          ? "hover:bg-red-50 text-red-700"
-                          : "hover:bg-blue-50 text-blue-700"
-                      }`}
-                    >
-                      <Building2 size={16} />
-                      {user.sellerType === "company"
-                        ? "Отключить премиум-аккаунт"
-                        : "Подключить премиум-аккаунт"}
-                    </button>
-                  )}
+                  <Button
+                    variant="danger"
+                    icon={Minus}
+                    disabled={adjustLoading}
+                    onClick={() => adjustWallet(-1)}
+                  >
+                    Списать
+                  </Button>
                 </div>
-
-                {isSuperAdmin && !readOnly && (
-                  <div>
-                    <div className="text-sm font-medium mb-1">Роль</div>
-                    <select
-                      value={user.role || "user"}
-                      disabled={actionLoading}
-                      onChange={(e) => changeRole(e.target.value)}
-                      className="h-10 rounded-xl border px-3 bg-white"
-                    >
-                      {ROLES.map((item) => (
-                        <option key={item} value={item}>
-                          {roleLabel(item)}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )}
               </div>
+            )}
 
-              <div>
-                <h4 className="font-semibold mb-3">Объявления</h4>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
-                  <div className="rounded-xl border p-3 bg-white">
-                    <div className="text-slate-500">Всего</div>
-                    <div className="text-xl font-bold">{listings.total || 0}</div>
-                  </div>
-                  {Object.entries(listingStatusLabel).map(([key, label]) => (
-                    <div key={key} className="rounded-xl border p-3 bg-white">
-                      <div className="text-slate-500">{label}</div>
-                      <div className="text-xl font-bold">{listings[key] || 0}</div>
-                    </div>
+            <div>
+              <h4 className="mb-2 text-sm font-semibold text-ink-800">
+                История операций
+              </h4>
+
+              {transactions.length === 0 ? (
+                <p className="text-sm text-ink-400">Операций пока нет.</p>
+              ) : (
+                <ul className="max-h-56 space-y-2 overflow-y-auto overscroll-contain">
+                  {transactions.map((tx) => (
+                    <li
+                      key={tx.id}
+                      className="flex items-start justify-between gap-3 rounded-xl border border-ink-200 bg-white p-3 text-sm"
+                    >
+                      <div className="min-w-0">
+                        <p className="font-medium text-ink-800">
+                          {WALLET_TYPE_LABELS[tx.type] || tx.type}
+                        </p>
+                        {tx.description && (
+                          <p className="text-ink-500 break-anywhere">
+                            {tx.description}
+                          </p>
+                        )}
+                        <p className="mt-1 text-xs text-ink-400">
+                          {formatDateTime(tx.createdAt)}
+                        </p>
+                      </div>
+
+                      <p
+                        className={`whitespace-nowrap font-bold ${
+                          Number(tx.amount) >= 0
+                            ? "text-success-700"
+                            : "text-danger-700"
+                        }`}
+                      >
+                        {Number(tx.amount) >= 0 ? "+" : ""}
+                        {Number(tx.amount).toLocaleString("ru-RU")} TJS
+                      </p>
+                    </li>
                   ))}
-                </div>
-              </div>
-
-              <div className="rounded-2xl border p-4 space-y-4">
-                <div className="flex items-center gap-2">
-                  <Wallet size={18} className="text-sun-700" />
-                  <h4 className="font-semibold">Кошелёк</h4>
-                </div>
-
-                <div className="text-2xl font-bold text-sun-700">
-                  {Number(user.walletBalance || 0).toLocaleString("ru-RU")} TJS
-                </div>
-
-                {isSuperAdmin && !readOnly && (
-                  <div className="rounded-xl border bg-slate-50 p-3 space-y-3">
-                    <div className="text-sm font-medium">Корректировка баланса</div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <input
-                        value={adjustAmount}
-                        onChange={(e) =>
-                          setAdjustAmount(e.target.value.replace(/[^\d.,]/g, ""))
-                        }
-                        placeholder="Сумма"
-                        className="h-10 rounded-xl border px-3 bg-white"
-                      />
-                      <input
-                        value={adjustDescription}
-                        onChange={(e) => setAdjustDescription(e.target.value)}
-                        placeholder="Комментарий (необязательно)"
-                        className="h-10 rounded-xl border px-3 bg-white"
-                      />
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      <button
-                        type="button"
-                        disabled={adjustLoading}
-                        onClick={() => adjustWallet(1)}
-                        className="px-4 py-2 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-60"
-                      >
-                        Начислить
-                      </button>
-                      <button
-                        type="button"
-                        disabled={adjustLoading}
-                        onClick={() => adjustWallet(-1)}
-                        className="px-4 py-2 rounded-xl bg-red-600 text-white hover:bg-red-700 disabled:opacity-60"
-                      >
-                        Списать
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                <div>
-                  <div className="text-sm font-medium mb-2">История операций</div>
-                  {transactions.length === 0 ? (
-                    <div className="text-sm text-slate-500">Операций пока нет.</div>
-                  ) : (
-                    <div className="space-y-2 max-h-56 overflow-y-auto">
-                      {transactions.map((tx) => (
-                        <div
-                          key={tx.id}
-                          className="flex items-start justify-between gap-3 rounded-xl border bg-white p-3 text-sm"
-                        >
-                          <div>
-                            <div className="font-medium">
-                              {WALLET_TYPE_LABELS[tx.type] || tx.type}
-                            </div>
-                            {tx.description && (
-                              <div className="text-slate-500">{tx.description}</div>
-                            )}
-                            <div className="text-xs text-slate-400 mt-1">
-                              {tx.createdAt
-                                ? new Date(tx.createdAt).toLocaleString("ru-RU")
-                                : "—"}
-                            </div>
-                          </div>
-                          <div
-                            className={`font-bold whitespace-nowrap ${
-                              Number(tx.amount) >= 0
-                                ? "text-emerald-700"
-                                : "text-red-700"
-                            }`}
-                          >
-                            {Number(tx.amount) >= 0 ? "+" : ""}
-                            {Number(tx.amount).toLocaleString("ru-RU")} TJS
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </>
-          )}
-        </div>
-      </div>
-    </div>
+                </ul>
+              )}
+            </div>
+          </section>
+        </>
+      )}
+    </Modal>
   );
 }

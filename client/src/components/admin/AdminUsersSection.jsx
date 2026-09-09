@@ -1,15 +1,39 @@
 import React from "react";
-import { Shield, Ban, Unlock, ChevronLeft, ChevronRight } from "lucide-react";
+import { Shield, Ban, Unlock, Search, RotateCw, Users } from "lucide-react";
 import { api } from "../../lib/api";
 import {
   ROLES,
   getId,
   roleLabel,
-  roleBadgeClass,
   canManageUser,
   formatRegistrationDevice,
 } from "../../lib/adminUtils";
+import {
+  Alert,
+  Badge,
+  Button,
+  Card,
+  EmptyState,
+  Field,
+  Input,
+  Select,
+  SimplePagination,
+  useConfirm,
+  useToast,
+} from "../../ui";
+import { useI18n } from "../../i18n";
 import UserDetailModal from "./UserDetailModal";
+import {
+  DataTable,
+  FilterBar,
+  ResultsBar,
+  SectionHeader,
+  TableRow,
+  TableSkeleton,
+  Td,
+  Th,
+  roleTone,
+} from "./AdminUI";
 
 const PAGE_SIZE = 25;
 
@@ -20,6 +44,24 @@ const SORT_OPTIONS = [
   { value: "balance_asc", label: "Баланс ↑" },
   { value: "role_asc", label: "Роль A→Z" },
   { value: "name_asc", label: "Имя A→Z" },
+];
+
+const ROLE_OPTIONS = [
+  { value: "all", label: "Все роли" },
+  ...ROLES.map((role) => ({ value: role, label: roleLabel(role) })),
+];
+
+const BUSINESS_OPTIONS = [
+  { value: "all", label: "Все аккаунты" },
+  { value: "company", label: "Премиум" },
+  { value: "unverified", label: "Ждут верификации" },
+  { value: "verified", label: "Проверенный премиум" },
+];
+
+const STATUS_OPTIONS = [
+  { value: "all", label: "Все статусы" },
+  { value: "active", label: "Активные" },
+  { value: "blocked", label: "Заблокированные" },
 ];
 
 function useDebouncedValue(value, delay = 350) {
@@ -33,11 +75,23 @@ function useDebouncedValue(value, delay = 350) {
   return debounced;
 }
 
+function userDisplayName(user) {
+  if (user.sellerType === "company" && user.companyName) {
+    return user.companyName;
+  }
+
+  return user.name || "Без имени";
+}
+
 export default function AdminUsersSection({
   token,
   currentUser,
   initialBusinessFilter = "all",
 }) {
+  const { t } = useI18n();
+  const confirm = useConfirm();
+  const { showToast } = useToast();
+
   const [users, setUsers] = React.useState([]);
   const [total, setTotal] = React.useState(0);
   const [totalPages, setTotalPages] = React.useState(1);
@@ -98,29 +152,56 @@ export default function AdminUsersSection({
     setPage(1);
   }, [debouncedQuery, roleFilter, statusFilter, businessFilter, sortKey]);
 
+  const filtersActive =
+    Boolean(query) ||
+    roleFilter !== "all" ||
+    statusFilter !== "all" ||
+    businessFilter !== "all" ||
+    sortKey !== "created_desc";
+
+  const resetFilters = () => {
+    setQuery("");
+    setRoleFilter("all");
+    setStatusFilter("all");
+    setBusinessFilter("all");
+    setSortKey("created_desc");
+  };
+
   const changeRole = async (userId, nextRole) => {
     if (!isSuperAdmin) {
-      alert("Только супер-админ может менять роли");
+      showToast("Только супер-админ может менять роли", "error");
       return;
     }
 
     try {
       await api.adminSetUserRole(token, userId, nextRole);
       await loadUsers();
+      showToast(t("admin.toastRoleChanged"), "success");
     } catch (e) {
-      alert(e.message || "Ошибка изменения роли");
+      showToast(e.message || "Ошибка изменения роли", "error");
     }
   };
 
   const toggleBlock = async (user) => {
     if (!canManageUser(currentUser, user)) {
-      alert("Недостаточно прав для управления этим пользователем");
+      showToast("Недостаточно прав для управления этим пользователем", "error");
       return;
     }
 
     const userId = getId(user);
-    const action = user.isBlocked ? "разблокировать" : "заблокировать";
-    const ok = confirm(`Вы действительно хотите ${action} пользователя ${user.email}?`);
+    const blocking = !user.isBlocked;
+
+    const ok = await confirm({
+      title: blocking ? t("admin.blockUserTitle") : t("admin.unblockUserTitle"),
+      message: blocking
+        ? t("admin.blockUserMessage", { email: user.email })
+        : t("admin.unblockUserMessage", { email: user.email }),
+      confirmLabel: blocking
+        ? t("admin.blockConfirm")
+        : t("admin.unblockConfirm"),
+      tone: blocking ? "danger" : undefined,
+    });
+
     if (!ok) return;
 
     try {
@@ -131,8 +212,12 @@ export default function AdminUsersSection({
       }
 
       await loadUsers();
+      showToast(
+        blocking ? t("admin.toastUserBlocked") : t("admin.toastUserUnblocked"),
+        "success"
+      );
     } catch (e) {
-      alert(e.message || "Ошибка блокировки");
+      showToast(e.message || "Ошибка блокировки", "error");
     }
   };
 
@@ -140,294 +225,261 @@ export default function AdminUsersSection({
     loadUsers();
   };
 
-  if (loading) {
-    return (
-      <div className="rounded-2xl border bg-white p-4 md:p-5 space-y-4 animate-pulse">
-        <div className="h-7 bg-mist-200 rounded w-48" />
-        <div className="h-12 bg-mist-200 rounded-xl" />
-        <div className="space-y-2">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="h-14 bg-mist-200 rounded-xl" />
-          ))}
-        </div>
-      </div>
-    );
-  }
-
   return (
     <>
-      <div className="rounded-2xl border bg-white p-4 md:p-5 space-y-5">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-          <div>
-            <div className="inline-flex items-center gap-2 text-sm text-sun-700 bg-sun-50 border border-sun-100 rounded-full px-3 py-1 mb-2">
-              <Shield className="w-4 h-4" />
-              {isSuperAdmin ? "Панель супер-админа" : "Панель администратора"}
-            </div>
+      <Card className="space-y-5">
+        <SectionHeader
+          eyebrow={isSuperAdmin ? "Панель супер-админа" : "Панель администратора"}
+          icon={Shield}
+          title="Пользователи"
+          description="Нажмите на строку, чтобы открыть карточку пользователя."
+          action={
+            <Button icon={RotateCw} loading={refreshing} onClick={loadUsers}>
+              Обновить
+            </Button>
+          }
+        />
 
-            <h2 className="text-xl font-bold">Пользователи</h2>
-            <p className="text-sm text-slate-500 mt-1">
-              Нажмите на строку, чтобы открыть карточку пользователя.
-            </p>
-          </div>
+        {error && <Alert tone="danger">{error}</Alert>}
 
-          <button
-            type="button"
-            onClick={loadUsers}
-            disabled={refreshing}
-            className="px-4 py-2 rounded-xl border hover:bg-slate-50 disabled:opacity-60"
+        <FilterBar
+          gridClassName="grid-cols-1 sm:grid-cols-2 xl:grid-cols-6"
+          onReset={resetFilters}
+          resetDisabled={!filtersActive}
+        >
+          <Field
+            label={t("admin.searchLabel")}
+            labelClassName="sr-only"
+            className="xl:col-span-2"
           >
-            {refreshing ? "Обновляем..." : "Обновить"}
-          </button>
-        </div>
+            {(props) => (
+              <Input
+                {...props}
+                type="search"
+                iconLeft={Search}
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Поиск: имя, email, телефон, компания"
+              />
+            )}
+          </Field>
 
-        {error && (
-          <div className="rounded-xl border border-red-200 bg-red-50 text-red-700 p-3">
-            {error}
-          </div>
-        )}
+          <Field label={t("admin.roleFilterLabel")} labelClassName="sr-only">
+            {(props) => (
+              <Select
+                {...props}
+                value={roleFilter}
+                onChange={(e) => setRoleFilter(e.target.value)}
+                options={ROLE_OPTIONS}
+              />
+            )}
+          </Field>
 
-        <div className="rounded-2xl border bg-slate-50 p-3 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-6 gap-3">
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Поиск: имя, email, телефон, компания"
-            className="h-11 rounded-xl border px-3 outline-none focus:ring-2 focus:ring-sun/40 xl:col-span-2"
+          <Field label={t("admin.accountFilterLabel")} labelClassName="sr-only">
+            {(props) => (
+              <Select
+                {...props}
+                value={businessFilter}
+                onChange={(e) => setBusinessFilter(e.target.value)}
+                options={BUSINESS_OPTIONS}
+              />
+            )}
+          </Field>
+
+          <Field label={t("admin.statusLabel")} labelClassName="sr-only">
+            {(props) => (
+              <Select
+                {...props}
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                options={STATUS_OPTIONS}
+              />
+            )}
+          </Field>
+
+          <Field label={t("admin.sortLabel")} labelClassName="sr-only">
+            {(props) => (
+              <Select
+                {...props}
+                value={sortKey}
+                onChange={(e) => setSortKey(e.target.value)}
+                options={SORT_OPTIONS}
+              />
+            )}
+          </Field>
+        </FilterBar>
+
+        <ResultsBar
+          pager={
+            <SimplePagination
+              page={page}
+              totalPages={totalPages}
+              onPageChange={setPage}
+              disabled={refreshing}
+            />
+          }
+        >
+          Показано: {users.length} из {total}
+          {query !== debouncedQuery ? " · ищем…" : ""}
+        </ResultsBar>
+
+        {loading ? (
+          <TableSkeleton
+            label={t("admin.tableUsers")}
+            rows={8}
+            columns={isSuperAdmin ? 6 : 5}
           />
-
-          <select
-            value={roleFilter}
-            onChange={(e) => setRoleFilter(e.target.value)}
-            className="h-11 rounded-xl border px-3 outline-none focus:ring-2 focus:ring-sun/40"
-          >
-            <option value="all">Все роли</option>
-            {ROLES.map((role) => (
-              <option key={role} value={role}>
-                {roleLabel(role)}
-              </option>
-            ))}
-          </select>
-
-          <select
-            value={businessFilter}
-            onChange={(e) => setBusinessFilter(e.target.value)}
-            className="h-11 rounded-xl border px-3 outline-none focus:ring-2 focus:ring-sun/40"
-          >
-            <option value="all">Все аккаунты</option>
-            <option value="company">Премиум</option>
-            <option value="unverified">Ждут верификации</option>
-            <option value="verified">Проверенный премиум</option>
-          </select>
-
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="h-11 rounded-xl border px-3 outline-none focus:ring-2 focus:ring-sun/40"
-          >
-            <option value="all">Все статусы</option>
-            <option value="active">Активные</option>
-            <option value="blocked">Заблокированные</option>
-          </select>
-
-          <select
-            value={sortKey}
-            onChange={(e) => setSortKey(e.target.value)}
-            className="h-11 rounded-xl border px-3 outline-none focus:ring-2 focus:ring-sun/40"
-          >
-            {SORT_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-sm text-slate-500">
-          <div>
-            Показано: {users.length} из {total}
-            {query !== debouncedQuery ? " · ищем..." : ""}
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              disabled={page <= 1 || refreshing}
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border disabled:opacity-40"
-            >
-              <ChevronLeft size={16} />
-              Назад
-            </button>
-            <span>
-              {page} / {totalPages}
-            </span>
-            <button
-              type="button"
-              disabled={page >= totalPages || refreshing}
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border disabled:opacity-40"
-            >
-              Вперёд
-              <ChevronRight size={16} />
-            </button>
-          </div>
-        </div>
-
-        {users.length === 0 ? (
-          <div className="rounded-2xl border bg-slate-50 p-8 text-center text-slate-500">
-            Пользователи не найдены.
-          </div>
+        ) : users.length === 0 ? (
+          <EmptyState
+            bare
+            icon={Users}
+            title="Пользователи не найдены"
+            description={t("admin.emptyFiltersHint")}
+            secondaryAction={
+              filtersActive ? (
+                <Button onClick={resetFilters}>{t("admin.reset")}</Button>
+              ) : null
+            }
+          />
         ) : (
-          <div className="overflow-x-auto rounded-2xl border">
-            <table className="w-full text-sm border-collapse bg-white">
-              <thead className="bg-slate-50">
-                <tr className="border-b text-left text-slate-500">
-                  <th className="py-3 px-3">Пользователь</th>
-                  <th className="py-3 px-3">Контакты</th>
-                  <th className="py-3 px-3">Тип</th>
-                  <th className="py-3 px-3">Роль</th>
-                  <th className="py-3 px-3">Баланс</th>
-                  <th className="py-3 px-3">Статус</th>
-                  {isSuperAdmin ? (
-                    <th className="py-3 px-3">Устройство</th>
-                  ) : null}
-                  <th className="py-3 px-3">Дата</th>
-                  <th className="py-3 px-3">Действия</th>
-                </tr>
-              </thead>
+          <DataTable
+            label={t("admin.tableUsers")}
+            minWidth={isSuperAdmin ? "68rem" : "58rem"}
+            scrollHeight="70vh"
+          >
+            <thead>
+              <tr>
+                <Th>Пользователь</Th>
+                <Th>Контакты</Th>
+                <Th>Тип</Th>
+                <Th>Роль</Th>
+                <Th align="right">Баланс</Th>
+                <Th>Статус</Th>
+                {isSuperAdmin ? <Th>Устройство</Th> : null}
+                <Th>Дата</Th>
+                <Th align="right">Действия</Th>
+              </tr>
+            </thead>
 
-              <tbody>
-                {users.map((user) => {
-                  const id = getId(user);
-                  const role = user.role || "user";
-                  const manageable = canManageUser(currentUser, user);
+            <tbody>
+              {users.map((user) => {
+                const id = getId(user);
+                const role = user.role || "user";
+                const manageable = canManageUser(currentUser, user);
 
-                  return (
-                    <tr
-                      key={id}
-                      className="border-b last:border-b-0 hover:bg-slate-50 cursor-pointer"
-                      onClick={() => setSelectedUserId(id)}
+                return (
+                  <TableRow
+                    key={id}
+                    className="cursor-pointer"
+                    onClick={() => setSelectedUserId(id)}
+                  >
+                    <Td>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedUserId(id)}
+                        className="rounded text-left font-semibold text-ink-900 hover:text-sun-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sun/50"
+                      >
+                        {userDisplayName(user)}
+                        <span className="sr-only">
+                          {" "}
+                          — {t("admin.openUserCard")}
+                        </span>
+                      </button>
+
+                      <div className="text-xs text-ink-400">
+                        {user.sellerType === "company" && user.companyName
+                          ? user.name
+                          : `ID: ${String(id).slice(0, 8)}`}
+                      </div>
+                    </Td>
+
+                    <Td>
+                      <div className="text-ink-800 break-anywhere">
+                        {user.email}
+                      </div>
+                      <div className="text-xs text-ink-400">
+                        {user.phone || "Телефон не указан"}
+                      </div>
+                    </Td>
+
+                    <Td>
+                      {user.sellerType === "company" ? (
+                        <Badge tone={user.businessVerified ? "success" : "info"}>
+                          {user.businessVerified ? "Проверен" : "Премиум"}
+                        </Badge>
+                      ) : (
+                        <span className="text-xs text-ink-400">Частник</span>
+                      )}
+                    </Td>
+
+                    <Td onClick={(e) => e.stopPropagation()}>
+                      <div className="flex flex-col gap-2">
+                        <Badge tone={roleTone(role)} className="w-max">
+                          {roleLabel(role)}
+                        </Badge>
+
+                        {isSuperAdmin ? (
+                          <Select
+                            value={role}
+                            onChange={(e) => changeRole(id, e.target.value)}
+                            options={ROLES.map((item) => ({
+                              value: item,
+                              label: roleLabel(item),
+                            }))}
+                            className="h-9 min-w-[9rem] text-xs"
+                            aria-label={t("admin.changeRoleFor", {
+                              name: userDisplayName(user),
+                            })}
+                          />
+                        ) : null}
+                      </div>
+                    </Td>
+
+                    <Td className="whitespace-nowrap text-right font-semibold text-ink-800">
+                      {Number(user.walletBalance || 0).toLocaleString("ru-RU")} TJS
+                    </Td>
+
+                    <Td>
+                      {user.isBlocked ? (
+                        <Badge tone="danger">Заблокирован</Badge>
+                      ) : (
+                        <Badge tone="success">Активен</Badge>
+                      )}
+                    </Td>
+
+                    {isSuperAdmin ? (
+                      <Td className="text-xs text-ink-500">
+                        {formatRegistrationDevice(user)}
+                      </Td>
+                    ) : null}
+
+                    <Td className="whitespace-nowrap text-ink-400">
+                      {user.createdAt
+                        ? new Date(user.createdAt).toLocaleDateString("ru-RU")
+                        : "—"}
+                    </Td>
+
+                    <Td
+                      className="text-right"
+                      onClick={(e) => e.stopPropagation()}
                     >
-                      <td className="py-3 px-3">
-                        <div className="font-semibold">
-                          {user.sellerType === "company" && user.companyName
-                            ? user.companyName
-                            : user.name || "Без имени"}
-                        </div>
-                        <div className="text-xs text-slate-500">
-                          {user.sellerType === "company" && user.companyName
-                            ? user.name
-                            : `ID: ${String(id).slice(0, 8)}...`}
-                        </div>
-                      </td>
-
-                      <td className="py-3 px-3">
-                        <div>{user.email}</div>
-                        <div className="text-xs text-slate-500">
-                          {user.phone || "Телефон не указан"}
-                        </div>
-                      </td>
-
-                      <td className="py-3 px-3">
-                        {user.sellerType === "company" ? (
-                          <span
-                            className={`inline-flex px-2 py-0.5 rounded-full text-xs border ${
-                              user.businessVerified
-                                ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                                : "bg-blue-50 text-blue-700 border-blue-200"
-                            }`}
-                          >
-                            {user.businessVerified ? "Проверен" : "Премиум"}
-                          </span>
-                        ) : (
-                          <span className="text-xs text-slate-400">Частник</span>
-                        )}
-                      </td>
-
-                      <td className="py-3 px-3" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex flex-col gap-2">
-                          <span
-                            className={`inline-flex w-max px-2 py-0.5 text-xs rounded-full border ${roleBadgeClass(
-                              role
-                            )}`}
-                          >
-                            {roleLabel(role)}
-                          </span>
-
-                          {isSuperAdmin ? (
-                            <select
-                              value={role}
-                              onChange={(e) => changeRole(id, e.target.value)}
-                              className="h-9 rounded-lg border px-2 bg-white"
-                            >
-                              {ROLES.map((item) => (
-                                <option key={item} value={item}>
-                                  {roleLabel(item)}
-                                </option>
-                              ))}
-                            </select>
-                          ) : null}
-                        </div>
-                      </td>
-
-                      <td className="py-3 px-3 font-medium">
-                        {Number(user.walletBalance || 0).toLocaleString("ru-RU")} TJS
-                      </td>
-
-                      <td className="py-3 px-3">
-                        {user.isBlocked ? (
-                          <span className="inline-flex px-2 py-0.5 text-xs rounded-full bg-red-50 text-red-700 border border-red-200">
-                            Заблокирован
-                          </span>
-                        ) : (
-                          <span className="inline-flex px-2 py-0.5 text-xs rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-                            Активен
-                          </span>
-                        )}
-                      </td>
-
-                      {isSuperAdmin ? (
-                        <td className="py-3 px-3 text-xs text-slate-600">
-                          {formatRegistrationDevice(user)}
-                        </td>
-                      ) : null}
-
-                      <td className="py-3 px-3 text-slate-500">
-                        {user.createdAt
-                          ? new Date(user.createdAt).toLocaleDateString("ru-RU")
-                          : "—"}
-                      </td>
-
-                      <td className="py-3 px-3" onClick={(e) => e.stopPropagation()}>
-                        <button
-                          type="button"
-                          disabled={!manageable}
-                          onClick={() => toggleBlock(user)}
-                          className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border transition disabled:opacity-40 disabled:cursor-not-allowed ${
-                            user.isBlocked
-                              ? "hover:bg-emerald-50 text-emerald-700"
-                              : "hover:bg-red-50 text-red-700"
-                          }`}
-                        >
-                          {user.isBlocked ? (
-                            <>
-                              <Unlock size={16} />
-                              Разблокировать
-                            </>
-                          ) : (
-                            <>
-                              <Ban size={16} />
-                              Заблокировать
-                            </>
-                          )}
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                      <Button
+                        size="sm"
+                        variant={user.isBlocked ? "secondary" : "danger"}
+                        icon={user.isBlocked ? Unlock : Ban}
+                        disabled={!manageable}
+                        onClick={() => toggleBlock(user)}
+                      >
+                        {user.isBlocked ? "Разблокировать" : "Заблокировать"}
+                      </Button>
+                    </Td>
+                  </TableRow>
+                );
+              })}
+            </tbody>
+          </DataTable>
         )}
-      </div>
+      </Card>
 
       {selectedUserId && (
         <UserDetailModal

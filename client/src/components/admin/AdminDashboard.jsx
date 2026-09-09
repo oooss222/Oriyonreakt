@@ -1,68 +1,67 @@
 import React from "react";
-import { Link } from "react-router-dom";
 import {
   Users,
   FileText,
   Flag,
   Wallet,
   TrendingUp,
-  ShieldAlert,
   Clock,
   ClipboardCheck,
   Building2,
   MessageCircle,
   ArrowRight,
   BadgeCheck,
+  CheckCircle2,
 } from "lucide-react";
 import { roleLabel } from "../../lib/adminUtils";
+import { Alert, Badge, Button, Skeleton } from "../../ui";
+import { useI18n } from "../../i18n";
+import { SectionHeader, StatTile } from "./AdminUI";
 
-function StatCard({ label, value, hint, tone = "slate" }) {
-  const tones = {
-    slate: "bg-slate-50",
-    emerald: "bg-emerald-50",
-    red: "bg-red-50",
-    amber: "bg-amber-50",
-    purple: "bg-purple-50",
-    sun: "bg-sun-50",
-    blue: "bg-blue-50",
-  };
-
-  return (
-    <div className={`rounded-2xl border p-4 ${tones[tone] || tones.slate}`}>
-      <div className="text-xs text-slate-500">{label}</div>
-      <div className="text-2xl font-bold mt-1">{value}</div>
-      {hint && <div className="text-xs text-slate-500 mt-1">{hint}</div>}
-    </div>
-  );
-}
+const PRIORITY_TONES = {
+  warning: "border-warning-200 bg-warning-50 hover:border-warning-300",
+  danger: "border-danger-200 bg-danger-50 hover:border-danger-300",
+  info: "border-info-200 bg-info-50 hover:border-info-300",
+};
 
 function PriorityCard({ icon: Icon, title, count, hint, tone, onClick }) {
-  const tones = {
-    amber: "border-amber-200 bg-amber-50 hover:bg-amber-100/80",
-    red: "border-red-200 bg-red-50 hover:bg-red-100/80",
-    blue: "border-blue-200 bg-blue-50 hover:bg-blue-100/80",
-  };
-
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`rounded-2xl border p-4 text-left transition w-full ${
-        tones[tone] || tones.amber
+      className={`w-full rounded-2xl border p-4 text-left transition-colors ${
+        PRIORITY_TONES[tone] || PRIORITY_TONES.warning
       }`}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <div className="inline-flex items-center gap-2 text-sm font-semibold text-slate-800">
-            <Icon size={16} />
+          <span className="inline-flex items-center gap-2 text-sm font-semibold text-ink-800">
+            <Icon size={16} strokeWidth={2.2} aria-hidden="true" />
             {title}
+          </span>
+          <div className="mt-2 font-display text-3xl font-bold text-ink-900">
+            {count}
           </div>
-          <div className="text-3xl font-bold mt-2">{count}</div>
-          <div className="text-xs text-slate-600 mt-1">{hint}</div>
+          <div className="mt-1 text-xs text-ink-500">{hint}</div>
         </div>
-        <ArrowRight size={18} className="text-slate-400 shrink-0 mt-1" />
+
+        <ArrowRight size={18} className="mt-1 shrink-0 text-ink-400" aria-hidden="true" />
       </div>
     </button>
+  );
+}
+
+function StatGroup({ icon: Icon, title, children }) {
+  return (
+    <section>
+      <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-ink-700">
+        <Icon size={16} aria-hidden="true" />
+        {title}
+      </h3>
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
+        {children}
+      </div>
+    </section>
   );
 }
 
@@ -73,20 +72,25 @@ export default function AdminDashboard({
   role = "admin",
   onGoToSection,
 }) {
+  const { t } = useI18n();
   const isSuperAdmin = role === "super_admin";
 
   if (loading) {
     return (
-      <div className="space-y-4 animate-pulse">
-        <div className="h-7 bg-mist-200 rounded w-48" />
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="h-28 bg-mist-200 rounded-2xl" />
+      <div className="space-y-4">
+        <p className="sr-only" role="status">
+          {t("common.loading")}
+        </p>
+        <Skeleton className="h-6 w-48" />
+        <Skeleton className="h-28 w-full" rounded="rounded-3xl" />
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+          {Array.from({ length: 3 }).map((_, index) => (
+            <Skeleton key={index} className="h-28" rounded="rounded-2xl" />
           ))}
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="h-24 bg-mist-200 rounded-2xl" />
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-6">
+          {Array.from({ length: 12 }).map((_, index) => (
+            <Skeleton key={index} className="h-24" rounded="rounded-2xl" />
           ))}
         </div>
       </div>
@@ -94,11 +98,7 @@ export default function AdminDashboard({
   }
 
   if (error) {
-    return (
-      <div className="rounded-2xl border border-red-200 bg-red-50 text-red-700 p-4">
-        {error}
-      </div>
-    );
+    return <Alert tone="danger">{error}</Alert>;
   }
 
   if (!stats) {
@@ -113,68 +113,71 @@ export default function AdminDashboard({
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-        <div>
-          <div className="inline-flex items-center gap-2 text-sm text-sun-700 bg-sun-50 border border-sun-100 rounded-full px-3 py-1 mb-2">
-            <TrendingUp className="w-4 h-4" />
-            {isSuperAdmin ? "Сводка платформы" : "Рабочий стол администратора"}
-          </div>
-          <h2 className="text-xl font-bold">Обзор</h2>
-          <p className="text-sm text-slate-500 mt-1">
-            {isSuperAdmin
-              ? "Полная статистика пользователей, объявлений и финансов."
-              : "Приоритетные задачи, модерация, пользователи и премиум-аккаунты."}
-          </p>
-        </div>
+      <SectionHeader
+        eyebrow={isSuperAdmin ? "Сводка платформы" : "Рабочий стол администратора"}
+        icon={TrendingUp}
+        title="Обзор"
+        description={
+          isSuperAdmin
+            ? "Полная статистика пользователей, объявлений и финансов."
+            : "Приоритетные задачи, модерация, пользователи и премиум-аккаунты."
+        }
+        action={
+          <Button to="/messages" icon={MessageCircle}>
+            Сообщения и заявки
+          </Button>
+        }
+      />
 
-        <Link
-          to="/messages"
-          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border bg-white hover:bg-slate-50 text-sm font-semibold shrink-0"
-        >
-          <MessageCircle size={16} />
-          Сообщения и заявки
-        </Link>
-      </div>
-
-      <div className="rounded-2xl border bg-gradient-to-r from-ink-800 to-lagoon-800 text-white p-4 md:p-5">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div className="hero-dark p-4 sm:p-5">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <div className="text-sm text-white/70">В очереди на обработку</div>
-            <div className="text-3xl font-bold mt-1">{queueTotal}</div>
-            <div className="text-xs text-white/60 mt-1">
+            <p className="text-sm text-white/70">В очереди на обработку</p>
+            <p
+              className="mt-1 font-display text-3xl font-bold"
+              aria-live="polite"
+            >
+              {queueTotal}
+            </p>
+            <p className="mt-1 text-xs text-white/60">
               объявления · жалобы · верификация премиум
-            </div>
+            </p>
           </div>
+
           <div className="flex flex-wrap gap-2">
             {pendingModeration > 0 && (
               <button
                 type="button"
                 onClick={() => onGoToSection?.("moderation")}
-                className="px-3 py-1.5 rounded-full bg-white/15 hover:bg-white/25 text-xs font-semibold"
+                className="rounded-full bg-white/15 px-3.5 py-2 text-xs font-semibold transition-colors hover:bg-white/25"
               >
                 Модерация: {pendingModeration}
               </button>
             )}
+
             {pendingReports > 0 && (
               <button
                 type="button"
                 onClick={() => onGoToSection?.("reports")}
-                className="px-3 py-1.5 rounded-full bg-white/15 hover:bg-white/25 text-xs font-semibold"
+                className="rounded-full bg-white/15 px-3.5 py-2 text-xs font-semibold transition-colors hover:bg-white/25"
               >
                 Жалобы: {pendingReports}
               </button>
             )}
+
             {pendingBusiness > 0 && (
               <button
                 type="button"
                 onClick={() => onGoToSection?.("users", { business: "unverified" })}
-                className="px-3 py-1.5 rounded-full bg-white/15 hover:bg-white/25 text-xs font-semibold"
+                className="rounded-full bg-white/15 px-3.5 py-2 text-xs font-semibold transition-colors hover:bg-white/25"
               >
                 Премиум: {pendingBusiness}
               </button>
             )}
+
             {queueTotal === 0 && (
-              <span className="px-3 py-1.5 rounded-full bg-emerald-500/20 text-emerald-100 text-xs font-semibold">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-success-500/20 px-3.5 py-2 text-xs font-semibold text-success-100">
+                <CheckCircle2 size={14} aria-hidden="true" />
                 Все задачи закрыты
               </span>
             )}
@@ -182,13 +185,13 @@ export default function AdminDashboard({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
         <PriorityCard
           icon={ClipboardCheck}
           title="На модерации"
           count={pendingModeration}
           hint="Новые и изменённые объявления"
-          tone="amber"
+          tone="warning"
           onClick={() => onGoToSection?.("moderation")}
         />
         <PriorityCard
@@ -196,7 +199,7 @@ export default function AdminDashboard({
           title="Жалобы"
           count={pendingReports}
           hint="Требуют решения модератора"
-          tone="red"
+          tone="danger"
           onClick={() => onGoToSection?.("reports")}
         />
         <PriorityCard
@@ -204,116 +207,98 @@ export default function AdminDashboard({
           title="Премиум без верификации"
           count={pendingBusiness}
           hint="Премиум-аккаунты ждут проверки"
-          tone="blue"
+          tone="info"
           onClick={() => onGoToSection?.("users", { business: "unverified" })}
         />
       </div>
 
-      <div>
-        <h3 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
-          <Users size={16} />
-          Пользователи
-        </h3>
-        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
-          <StatCard label="Всего" value={users.total} tone="slate" />
-          <StatCard label="Активные" value={users.active} tone="emerald" />
-          <StatCard label="Заблокированы" value={users.blocked} tone="red" />
-          <StatCard
-            label="Новые за 7 дней"
-            value={users.newWeek}
-            tone="sun"
-            hint="Регистрации"
-          />
-          <StatCard
-            label="Премиум"
-            value={business?.totalCompanies || 0}
-            tone="blue"
-          />
-          <StatCard
-            label="Модераторы"
-            value={users.moderators}
-            tone="slate"
-          />
-          {isSuperAdmin && (
-            <StatCard
-              label="Супер-админы"
-              value={users.superAdmins}
-              tone="purple"
-            />
-          )}
-        </div>
-      </div>
+      <StatGroup icon={Users} title="Пользователи">
+        <StatTile label="Всего" value={users.total} />
+        <StatTile label="Активные" value={users.active} tone="success" />
+        <StatTile label="Заблокированы" value={users.blocked} tone="danger" />
+        <StatTile
+          label="Новые за 7 дней"
+          value={users.newWeek}
+          tone="sun"
+          hint="Регистрации"
+        />
+        <StatTile
+          label="Премиум"
+          value={business?.totalCompanies || 0}
+          tone="info"
+        />
+        <StatTile label="Модераторы" value={users.moderators} />
+        {isSuperAdmin && (
+          <StatTile label="Супер-админы" value={users.superAdmins} tone="info" />
+        )}
+      </StatGroup>
 
-      <div>
-        <h3 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
-          <FileText size={16} />
-          Объявления
-        </h3>
-        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
-          <StatCard label="Всего" value={listings.total} tone="slate" />
-          <StatCard
-            label="На модерации"
-            value={listings.pending}
-            tone="amber"
-            hint="Требуют проверки"
-          />
-          <StatCard label="Опубликованы" value={listings.approved} tone="emerald" />
-          <StatCard label="Отклонены" value={listings.rejected} tone="red" />
-          <StatCard label="Продано" value={listings.sold} tone="slate" />
-          <StatCard label="Сняты" value={listings.archived} tone="slate" />
-        </div>
-      </div>
+      <StatGroup icon={FileText} title="Объявления">
+        <StatTile label="Всего" value={listings.total} />
+        <StatTile
+          label="На модерации"
+          value={listings.pending}
+          tone="warning"
+          hint="Требуют проверки"
+        />
+        <StatTile label="Опубликованы" value={listings.approved} tone="success" />
+        <StatTile label="Отклонены" value={listings.rejected} tone="danger" />
+        <StatTile label="Продано" value={listings.sold} />
+        <StatTile label="Сняты" value={listings.archived} />
+      </StatGroup>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <div className="rounded-2xl border bg-white p-4">
-          <div className="flex items-center gap-2 text-sm font-semibold text-slate-700 mb-3">
-            <BadgeCheck size={16} />
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+        <section className="surface-panel p-4">
+          <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-ink-700">
+            <BadgeCheck size={16} aria-hidden="true" />
             Премиум-аккаунты
-          </div>
+          </h3>
+
           <div className="flex items-end justify-between gap-3">
             <div>
-              <div className="text-3xl font-bold text-blue-700">
+              <p className="font-display text-3xl font-bold text-info-700">
                 {business?.totalCompanies || 0}
-              </div>
-              <div className="text-sm text-slate-500">компаний на платформе</div>
+              </p>
+              <p className="text-sm text-ink-400">компаний на платформе</p>
             </div>
+
             {pendingBusiness > 0 && (
-              <button
-                type="button"
-                onClick={() =>
-                  onGoToSection?.("users", { business: "unverified" })
-                }
-                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-blue-50 text-blue-700 text-xs border border-blue-200 font-semibold hover:bg-blue-100 transition"
+              <Button
+                size="sm"
+                onClick={() => onGoToSection?.("users", { business: "unverified" })}
               >
                 Проверить {pendingBusiness}
-              </button>
+              </Button>
             )}
           </div>
-        </div>
+        </section>
 
-        <div className="rounded-2xl border bg-white p-4">
-          <div className="flex items-center gap-2 text-sm font-semibold text-slate-700 mb-3">
-            <Wallet size={16} />
+        <section className="surface-panel p-4">
+          <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-ink-700">
+            <Wallet size={16} aria-hidden="true" />
             Кошельки
-          </div>
-          <div>
-            <div className="text-3xl font-bold text-sun-700">
-              {Number(wallet.totalBalance || 0).toLocaleString("ru-RU")} TJS
-            </div>
-            <div className="text-sm text-slate-500 flex items-center gap-1 mt-1">
-              <Clock size={14} />
-              Суммарный баланс пользователей
-            </div>
-          </div>
-        </div>
+          </h3>
+
+          <p className="text-price text-3xl text-sun-700">
+            {Number(wallet.totalBalance || 0).toLocaleString("ru-RU")} TJS
+          </p>
+          <p className="mt-1 flex items-center gap-1.5 text-sm text-ink-400">
+            <Clock size={14} aria-hidden="true" />
+            Суммарный баланс пользователей
+          </p>
+        </section>
       </div>
 
       {!isSuperAdmin && (
-        <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
-          Вы вошли как <strong>{roleLabel(role)}</strong>. Доступны пользователи,
-          объявления, модерация, жалобы, реклама, экспорт и журнал действий.
-          Финансы и настройки сайта — только для супер-админа.
-        </div>
+        <Alert tone="info" live={false}>
+          Вы вошли как{" "}
+          <Badge tone="sun" className="align-middle">
+            {roleLabel(role)}
+          </Badge>{" "}
+          — доступны пользователи, объявления, модерация, жалобы, реклама,
+          экспорт и журнал действий. Финансы и настройки сайта — только для
+          супер-админа.
+        </Alert>
       )}
     </div>
   );

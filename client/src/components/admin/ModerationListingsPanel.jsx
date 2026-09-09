@@ -1,16 +1,70 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { ClipboardCheck } from "lucide-react";
+import {
+  ClipboardCheck,
+  ClipboardList,
+  Check,
+  X,
+  Trash2,
+  ExternalLink,
+  Clock3,
+  Search,
+  RotateCw,
+  ShieldCheck,
+  Flag,
+  Gavel,
+  Image as ImageIcon,
+  ImageOff,
+} from "lucide-react";
 import { api } from "../../lib/api";
 import { getId } from "../../lib/adminUtils";
 import { getListingThumb } from "../../lib/media";
 import { formatPrice } from "../../lib/format";
-import ListingGridSkeleton from "../ListingGridSkeleton";
+import { listingStatusLabel, listingStatusTone } from "../../lib/messagesUtils";
+import {
+  Alert,
+  Badge,
+  Button,
+  Card,
+  EmptyState,
+  Field,
+  Input,
+  SegmentedControl,
+  StatusBadge,
+  useConfirm,
+  useToast,
+} from "../../ui";
+import { useI18n } from "../../i18n";
 import ModerationReports from "../ModerationReports";
 import ModerationStatsPanel from "./ModerationStatsPanel";
+import { CardListSkeleton, FilterBar, SectionHeader, StatTile } from "./AdminUI";
 import { subscribeModerationQueue } from "../../lib/moderationSocket";
 
+const STATUS_FILTERS = [
+  { value: "pending", label: "На проверке" },
+  { value: "approved", label: "Принятые" },
+  { value: "rejected", label: "Отклонённые" },
+];
+
+const MIN_REJECT_REASON = 5;
+
+function adTitle(ad) {
+  return ad?.title || "Без названия";
+}
+
+function formatDateTime(value) {
+  if (!value) return "—";
+
+  const date = new Date(value);
+
+  return Number.isNaN(date.getTime()) ? "—" : date.toLocaleString("ru-RU");
+}
+
 export default function ModerationListingsPanel({ token, embedded = false }) {
+  const { t } = useI18n();
+  const confirm = useConfirm();
+  const { showToast } = useToast();
+
   const [panelMode, setPanelMode] = React.useState("listings");
   const [items, setItems] = React.useState([]);
   const [status, setStatus] = React.useState("pending");
@@ -19,8 +73,6 @@ export default function ModerationListingsPanel({ token, embedded = false }) {
   const [refreshing, setRefreshing] = React.useState(false);
   const [error, setError] = React.useState("");
 
-  const [rejectTarget, setRejectTarget] = React.useState(null);
-  const [rejectReason, setRejectReason] = React.useState("");
   const [actionLoadingId, setActionLoadingId] = React.useState("");
 
   const load = React.useCallback(async () => {
@@ -105,182 +157,171 @@ export default function ModerationListingsPanel({ token, embedded = false }) {
     });
   }, [load]);
 
+  const dropItem = React.useCallback((id) => {
+    setItems((arr) => arr.filter((item) => String(getId(item)) !== String(id)));
+  }, []);
+
   const approveAppeal = React.useCallback(
-    async (id) => {
-      const ok = confirm("Одобрить апелляцию и опубликовать объявление?");
+    async (ad) => {
+      const id = getId(ad);
+
+      const ok = await confirm({
+        title: t("admin.appealApproveTitle"),
+        message: t("admin.appealApproveMessage", { title: adTitle(ad) }),
+        confirmLabel: t("admin.appealApproveConfirm"),
+      });
+
       if (!ok) return;
 
       try {
         setActionLoadingId(id);
         await api.moderationApproveAppeal(token, id);
-        setItems((arr) =>
-          arr.filter((item) => String(getId(item)) !== String(id))
-        );
+        dropItem(id);
+        showToast(t("admin.toastAppealApproved"), "success");
       } catch (e) {
-        alert(e.message || "Ошибка одобрения апелляции");
+        showToast(e.message || "Ошибка одобрения апелляции", "error");
       } finally {
         setActionLoadingId("");
       }
     },
-    [token]
+    [token, confirm, showToast, t, dropItem]
   );
 
   const rejectAppeal = React.useCallback(
-    async (id) => {
-      const note = prompt("Комментарий по апелляции (необязательно):") || "";
+    async (ad) => {
+      const id = getId(ad);
+
+      const note = await confirm({
+        title: t("admin.appealRejectTitle"),
+        message: t("admin.appealRejectMessage", { title: adTitle(ad) }),
+        placeholder: t("admin.appealRejectPlaceholder"),
+        confirmLabel: t("admin.appealRejectConfirm"),
+        prompt: true,
+        multiline: true,
+        tone: "danger",
+      });
+
+      if (note === null) return;
 
       try {
         setActionLoadingId(id);
         await api.moderationRejectAppeal(token, id, note);
-        setItems((arr) =>
-          arr.filter((item) => String(getId(item)) !== String(id))
-        );
+        dropItem(id);
+        showToast(t("admin.toastAppealRejected"), "success");
       } catch (e) {
-        alert(e.message || "Ошибка отклонения апелляции");
+        showToast(e.message || "Ошибка отклонения апелляции", "error");
       } finally {
         setActionLoadingId("");
       }
     },
-    [token]
+    [token, confirm, showToast, t, dropItem]
   );
 
   const approve = React.useCallback(
-    async (id) => {
-      const ok = confirm("Принять это объявление и опубликовать его?");
+    async (ad) => {
+      const id = getId(ad);
+
+      const ok = await confirm({
+        title: t("admin.approveTitle"),
+        message: t("admin.approveMessage", { title: adTitle(ad) }),
+        confirmLabel: t("admin.approveConfirm"),
+      });
+
       if (!ok) return;
 
       try {
         setActionLoadingId(id);
-
         await api.moderationApproveListing(token, id);
-
-        setItems((arr) =>
-          arr.filter((item) => String(getId(item)) !== String(id))
-        );
+        dropItem(id);
+        showToast(t("admin.toastApproved"), "success");
       } catch (e) {
-        alert(e.message || "Ошибка принятия объявления");
+        showToast(e.message || "Ошибка принятия объявления", "error");
       } finally {
         setActionLoadingId("");
       }
     },
-    [token]
+    [token, confirm, showToast, t, dropItem]
+  );
+
+  const reject = React.useCallback(
+    async (ad) => {
+      const id = getId(ad);
+
+      const reason = await confirm({
+        title: t("admin.rejectTitle"),
+        message: t("admin.rejectMessage", { title: adTitle(ad) }),
+        placeholder: t("admin.rejectPlaceholder"),
+        confirmLabel: t("admin.rejectConfirm"),
+        prompt: true,
+        multiline: true,
+        requireValue: true,
+        tone: "danger",
+      });
+
+      if (reason === null) return;
+
+      if (String(reason).trim().length < MIN_REJECT_REASON) {
+        showToast(t("admin.rejectTooShort", { min: MIN_REJECT_REASON }), "error");
+        return;
+      }
+
+      try {
+        setActionLoadingId(id);
+        await api.moderationRejectListing(token, id, String(reason).trim());
+        dropItem(id);
+        showToast(t("admin.toastRejected"), "success");
+      } catch (e) {
+        showToast(e.message || "Ошибка отклонения объявления", "error");
+      } finally {
+        setActionLoadingId("");
+      }
+    },
+    [token, confirm, showToast, t, dropItem]
   );
 
   const removeListing = React.useCallback(
-    async (id) => {
-      const ok = confirm("Удалить объявление полностью?");
+    async (ad) => {
+      const id = getId(ad);
+
+      const ok = await confirm({
+        title: t("admin.deleteListingTitle"),
+        message: t("admin.deleteListingMessage", { title: adTitle(ad) }),
+        confirmLabel: t("admin.deleteConfirm"),
+        tone: "danger",
+      });
 
       if (!ok) return;
 
       try {
         setActionLoadingId(id);
-
         await api.adminDeleteListing(token, id);
-
-        setItems((arr) =>
-          arr.filter((item) => String(getId(item)) !== String(id))
-        );
+        dropItem(id);
+        showToast(t("admin.toastListingDeleted"), "success");
       } catch (e) {
-        alert(e.message || "Ошибка удаления");
+        showToast(e.message || "Ошибка удаления", "error");
       } finally {
         setActionLoadingId("");
       }
     },
-    [token]
+    [token, confirm, showToast, t, dropItem]
   );
 
-  const openReject = React.useCallback((ad) => {
-    setRejectTarget(ad);
-    setRejectReason("");
-  }, []);
-
-  const closeReject = React.useCallback(() => {
-    setRejectTarget(null);
-    setRejectReason("");
-  }, []);
-
-  const submitReject = React.useCallback(async () => {
-    if (!rejectTarget) return;
-
-    const id = getId(rejectTarget);
-    const reason = rejectReason.trim();
-
-    if (reason.length < 5) {
-      alert("Причина должна быть не короче 5 символов");
-      return;
-    }
-
-    try {
-      setActionLoadingId(id);
-
-      await api.moderationRejectListing(token, id, reason);
-
-      setItems((arr) =>
-        arr.filter((item) => String(getId(item)) !== String(id))
-      );
-
-      closeReject();
-    } catch (e) {
-      alert(e.message || "Ошибка отклонения объявления");
-    } finally {
-      setActionLoadingId("");
-    }
-  }, [token, rejectTarget, rejectReason, closeReject]);
-
-  const statusLabel = {
-    pending: "На проверке",
-    approved: "Принятые",
-    rejected: "Отклонённые",
-  };
-
-  const statusBadgeClass = {
-    pending: "bg-amber-50 text-amber-700 border-amber-200",
-    approved: "bg-emerald-50 text-emerald-700 border-emerald-200",
-    rejected: "bg-red-50 text-red-700 border-red-200",
+  const openPreview = (ad) => {
+    sessionStorage.setItem("ad_preview", JSON.stringify(ad));
   };
 
   const modeSwitch = (
-    <div className="flex flex-wrap gap-2">
-      <button
-        type="button"
-        onClick={() => setPanelMode("listings")}
-        className={`px-4 py-2 rounded-xl border text-sm font-medium ${
-          panelMode === "listings"
-            ? "bg-slate-900 text-white border-slate-900"
-            : "bg-white"
-        }`}
-      >
-        Объявления
-      </button>
-      <button
-        type="button"
-        onClick={() => setPanelMode("reports")}
-        className={`px-4 py-2 rounded-xl border text-sm font-medium ${
-          panelMode === "reports"
-            ? "bg-slate-900 text-white border-slate-900"
-            : "bg-white"
-        }`}
-      >
-        Жалобы
-      </button>
-    </div>
+    <SegmentedControl
+      label={t("admin.moderationModeLabel")}
+      value={panelMode}
+      onChange={setPanelMode}
+      items={[
+        { value: "listings", label: "Объявления", icon: ClipboardList },
+        { value: "reports", label: "Жалобы", icon: Flag },
+      ]}
+      className="w-full sm:w-auto"
+    />
   );
-
-  if (loading) {
-    return (
-      <div className="space-y-4">
-        {!embedded && modeSwitch}
-
-        {panelMode === "reports" ? (
-          <ModerationReports token={token} />
-        ) : (
-          <div className="rounded-2xl border bg-white p-4 md:p-5">
-            <ListingGridSkeleton count={6} columns="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3" />
-          </div>
-        )}
-      </div>
-    );
-  }
 
   if (panelMode === "reports") {
     return (
@@ -297,386 +338,336 @@ export default function ModerationListingsPanel({ token, embedded = false }) {
 
       <ModerationStatsPanel token={token} />
 
-      <div className="rounded-2xl border bg-white p-4 md:p-5 space-y-5">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-          <div>
-            <div className="inline-flex items-center gap-2 text-sm text-sun-700 bg-sun-50 border border-sun-100 rounded-full px-3 py-1 mb-2">
-              <ClipboardCheck className="w-4 h-4" />
-              Панель модератора
-            </div>
+      <Card className="space-y-5">
+        <SectionHeader
+          eyebrow="Панель модератора"
+          icon={ClipboardCheck}
+          title="Модерация объявлений"
+          description="Проверка, публикация и отклонение объявлений пользователей."
+          action={
+            <Button icon={RotateCw} loading={refreshing} onClick={load}>
+              Обновить
+            </Button>
+          }
+        />
 
-            <h2 className="text-xl font-bold">Модерация объявлений</h2>
+        {error && <Alert tone="danger">{error}</Alert>}
 
-            <p className="text-sm text-slate-500 mt-1">
-              Проверка, публикация и отклонение объявлений пользователей.
-            </p>
-          </div>
+        <p className="sr-only" aria-live="polite">
+          {t("admin.queueAnnounce", { count: stats.loaded })}
+        </p>
 
-          <button
-            onClick={load}
-            disabled={refreshing}
-            className="px-4 py-2 rounded-xl border hover:bg-slate-50 disabled:opacity-60"
-          >
-            {refreshing ? "Обновляем..." : "Обновить"}
-          </button>
-        </div>
-
-        {error && (
-          <div className="rounded-xl border border-red-200 bg-red-50 text-red-700 p-3">
-            {error}
-          </div>
-        )}
-
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <button
-            type="button"
-            onClick={() => setStatus("pending")}
-            className={`text-left rounded-2xl border p-4 transition ${
-              status === "pending"
-                ? "bg-amber-50 border-amber-200"
-                : "bg-slate-50 hover:bg-slate-100"
-            }`}
-          >
-            <div className="text-xs text-slate-500">Текущий раздел</div>
-            <div className="text-lg font-bold">На проверке</div>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setStatus("approved")}
-            className={`text-left rounded-2xl border p-4 transition ${
-              status === "approved"
-                ? "bg-emerald-50 border-emerald-200"
-                : "bg-slate-50 hover:bg-slate-100"
-            }`}
-          >
-            <div className="text-xs text-slate-500">Текущий раздел</div>
-            <div className="text-lg font-bold">Принятые</div>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setStatus("rejected")}
-            className={`text-left rounded-2xl border p-4 transition ${
-              status === "rejected"
-                ? "bg-red-50 border-red-200"
-                : "bg-slate-50 hover:bg-slate-100"
-            }`}
-          >
-            <div className="text-xs text-slate-500">Текущий раздел</div>
-            <div className="text-lg font-bold">Отклонённые</div>
-          </button>
-
-          <div className="rounded-2xl border bg-sun-50 p-4">
-            <div className="text-xs text-sun-700">Показано</div>
-            <div className="text-2xl font-bold text-sun-700">{stats.filtered}</div>
-            <div className="text-xs text-sun-700">из {stats.loaded}</div>
-          </div>
-        </div>
-
-        <div className="rounded-2xl border bg-slate-50 p-3 grid grid-cols-1 md:grid-cols-3 gap-3">
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Поиск: название, описание, город, категория"
-            className="h-11 rounded-xl border px-3 outline-none focus:ring-2 focus:ring-sun/40 md:col-span-2"
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <StatTile
+            tone={status === "pending" ? "sun" : "neutral"}
+            icon={ClipboardList}
+            label={
+              STATUS_FILTERS.find((item) => item.value === status)?.label ||
+              t("admin.statusLabel")
+            }
+            value={stats.loaded}
+            hint={t("admin.queueHint")}
           />
+          <StatTile
+            label={t("admin.shownLabel")}
+            value={stats.filtered}
+            hint={t("admin.ofTotal", { total: stats.loaded })}
+          />
+          <StatTile icon={ImageIcon} label="С фото" value={stats.withImages} />
+          <StatTile
+            icon={ImageOff}
+            label="Без фото"
+            value={stats.withoutImages}
+            tone={stats.withoutImages > 0 ? "warning" : "neutral"}
+          />
+        </div>
 
-          <select
+        <FilterBar
+          gridClassName="grid-cols-1 lg:grid-cols-[minmax(0,1fr)_auto]"
+          onReset={() => {
+            setQuery("");
+            setStatus("pending");
+          }}
+          resetDisabled={!query && status === "pending"}
+        >
+          <Field label={t("admin.searchLabel")} labelClassName="sr-only">
+            {(props) => (
+              <Input
+                {...props}
+                type="search"
+                iconLeft={Search}
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Поиск: название, описание, город, категория"
+              />
+            )}
+          </Field>
+
+          <SegmentedControl
+            label={t("admin.statusLabel")}
             value={status}
-            onChange={(e) => setStatus(e.target.value)}
-            className="h-11 rounded-xl border px-3 outline-none focus:ring-2 focus:ring-sun/40"
-          >
-            <option value="pending">На проверке</option>
-            <option value="approved">Принятые</option>
-            <option value="rejected">Отклонённые</option>
-          </select>
-        </div>
+            onChange={setStatus}
+            items={STATUS_FILTERS}
+            className="w-full lg:w-auto"
+          />
+        </FilterBar>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
-          <div className="rounded-xl border bg-slate-50 p-3">
-            <div className="text-slate-500">С фото</div>
-            <div className="font-bold">{stats.withImages}</div>
-          </div>
-
-          <div className="rounded-xl border bg-slate-50 p-3">
-            <div className="text-slate-500">Без фото</div>
-            <div className="font-bold">{stats.withoutImages}</div>
-          </div>
-
-          <div className="rounded-xl border bg-slate-50 p-3">
-            <div className="text-slate-500">Статус</div>
-            <div
-              className={`inline-flex mt-1 px-2 py-0.5 text-xs rounded-full border ${
-                statusBadgeClass[status]
-              }`}
-            >
-              {statusLabel[status]}
-            </div>
-          </div>
-        </div>
-
-        {filteredItems.length === 0 ? (
-          <div className="rounded-2xl border bg-slate-50 p-8 text-center text-slate-500">
-            Объявления не найдены.
-          </div>
+        {loading ? (
+          <CardListSkeleton count={4} />
+        ) : filteredItems.length === 0 ? (
+          <EmptyState
+            bare
+            icon={ClipboardCheck}
+            title={t("admin.moderationEmptyTitle")}
+            description={
+              query
+                ? t("admin.moderationEmptyQuery")
+                : t("admin.moderationEmptyDescription")
+            }
+            secondaryAction={
+              query ? (
+                <Button onClick={() => setQuery("")}>{t("admin.reset")}</Button>
+              ) : null
+            }
+          />
         ) : (
-          <div className="grid gap-4">
+          <ul className="grid gap-3">
             {filteredItems.map((ad) => {
               const id = getId(ad);
               const img = getListingThumb(ad);
               const isBusy = actionLoadingId === id;
+              const adStatus = ad.status || status;
+              const isAppeal = ad.appealStatus === "pending";
 
               return (
-                <article
-                  key={id}
-                  className="rounded-2xl border bg-white p-3 md:p-4 grid grid-cols-1 md:grid-cols-[160px_1fr_auto] gap-4 hover:shadow-md transition"
-                >
-                  <Link
-                    to={`/ad/${id}`}
-                    onClick={() =>
-                      sessionStorage.setItem("ad_preview", JSON.stringify(ad))
-                    }
-                    className="block"
-                  >
-                    <img
-                      src={img}
-                      alt={ad.title || "Объявление"}
-                      className="w-full md:w-40 h-36 md:h-28 rounded-xl object-cover bg-slate-100"
-                      loading="lazy"
-                    />
-                  </Link>
-
-                  <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-2 mb-1">
-                      <span
-                        className={`inline-flex px-2 py-0.5 text-xs rounded-full border ${
-                          statusBadgeClass[ad.status || status]
-                        }`}
+                <li key={id}>
+                  <article className="card p-3 sm:p-4">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
+                      <Link
+                        to={`/ad/${id}`}
+                        onClick={() => openPreview(ad)}
+                        className="block shrink-0 overflow-hidden rounded-xl focus-visible:ring-2 focus-visible:ring-sun/50"
+                        tabIndex={-1}
+                        aria-hidden="true"
                       >
-                        {statusLabel[ad.status || status] || ad.status}
-                      </span>
+                        <img
+                          src={img}
+                          alt=""
+                          className="h-40 w-full bg-mist-200 object-cover sm:h-24 sm:w-36"
+                          loading="lazy"
+                        />
+                      </Link>
 
-                      <span className="text-xs text-slate-500">
-                        ID: {String(id).slice(0, 8)}...
-                      </span>
+                      <div className="min-w-0 flex-1">
+                        <div className="mb-1.5 flex flex-wrap items-center gap-1.5">
+                          <StatusBadge
+                            tone={listingStatusTone(adStatus)}
+                            label={listingStatusLabel(adStatus, t)}
+                          />
 
-                      {ad.ownerTrustLevel === "trusted" && (
-                        <span className="inline-flex px-2 py-0.5 text-xs rounded-full border bg-emerald-50 text-emerald-700 border-emerald-200">
-                          Доверенный
-                        </span>
-                      )}
+                          {ad.ownerTrustLevel === "trusted" && (
+                            <Badge tone="success" icon={ShieldCheck}>
+                              Доверенный
+                            </Badge>
+                          )}
 
-                      {Number(ad.reportCount || 0) > 0 && (
-                        <span className="inline-flex px-2 py-0.5 text-xs rounded-full border bg-red-50 text-red-700 border-red-200">
-                          Жалоб: {ad.reportCount}
-                        </span>
-                      )}
+                          {Number(ad.reportCount || 0) > 0 && (
+                            <Badge tone="danger" icon={Flag}>
+                              Жалоб: {ad.reportCount}
+                            </Badge>
+                          )}
 
-                      {ad.appealStatus === "pending" && (
-                        <span className="inline-flex px-2 py-0.5 text-xs rounded-full border bg-indigo-50 text-indigo-700 border-indigo-200">
-                          Апелляция
-                        </span>
-                      )}
-                    </div>
+                          {isAppeal && (
+                            <Badge tone="info" icon={Gavel}>
+                              Апелляция
+                            </Badge>
+                          )}
 
-                    <Link
-                      to={`/ad/${id}`}
-                      onClick={() =>
-                        sessionStorage.setItem("ad_preview", JSON.stringify(ad))
-                      }
-                      className="font-semibold text-slate-900 hover:text-sun line-clamp-2"
-                    >
-                      {ad.title || "Без названия"}
-                    </Link>
-
-                    <div className="text-sm text-slate-500 mt-1">
-                      {ad.location || "Локация не указана"} · {ad.cat || "—"}
-                      {ad.subcategory ? ` · ${ad.subcategory}` : ""}
-                    </div>
-
-                    <div className="text-sm font-bold mt-1">
-                      {formatPrice(ad.price, { emptyLabel: "—" })}
-                    </div>
-
-                    {ad.description && (
-                      <p className="text-sm text-slate-600 mt-2 line-clamp-2">
-                        {ad.description}
-                      </p>
-                    )}
-
-                    {Array.isArray(ad.moderationFlags) && ad.moderationFlags.length > 0 && (
-                      <div className="mt-2 flex flex-wrap gap-1">
-                        {ad.moderationFlags.map((flag) => (
-                          <span
-                            key={`${id}-${flag.code}`}
-                            className="inline-flex px-2 py-0.5 text-2xs rounded-full border bg-amber-50 text-amber-800 border-amber-200"
-                          >
-                            {flag.message}
+                          <span className="text-2xs font-medium text-ink-400">
+                            ID: {String(id).slice(0, 8)}
                           </span>
-                        ))}
-                      </div>
-                    )}
+                        </div>
 
-                    {Array.isArray(ad.contentDiff) && ad.contentDiff.length > 0 && (
-                      <div className="mt-3 rounded-xl border bg-slate-50 p-3 text-xs space-y-1">
-                        <div className="font-semibold text-slate-700">Изменения</div>
-                        {ad.contentDiff.map((change) => (
-                          <div key={`${id}-${change.field}`} className="text-slate-600">
-                            <b>{change.label}:</b> {change.before} → {change.after}
+                        <h3 className="text-base font-semibold leading-snug">
+                          <Link
+                            to={`/ad/${id}`}
+                            onClick={() => openPreview(ad)}
+                            className="text-ink-900 line-clamp-2 hover:text-sun-700"
+                          >
+                            {adTitle(ad)}
+                          </Link>
+                        </h3>
+
+                        <p className="mt-1 text-price text-lg">
+                          {formatPrice(ad.price, { emptyLabel: "—" })}
+                        </p>
+
+                        <dl className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-xs text-ink-400">
+                          <div className="flex gap-1">
+                            <dt className="text-ink-400">
+                              {t("admin.sellerLabel")}:
+                            </dt>
+                            <dd className="font-medium text-ink-600">
+                              {ad.ownerName || ad.ownerEmail || "—"}
+                            </dd>
                           </div>
-                        ))}
+
+                          <div className="flex gap-1">
+                            <dt className="sr-only">
+                              {t("admin.submittedLabel")}
+                            </dt>
+                            <dd className="flex items-center gap-1">
+                              <Clock3 size={13} aria-hidden="true" />
+                              {formatDateTime(ad.createdAt)}
+                            </dd>
+                          </div>
+
+                          <div className="flex gap-1">
+                            <dt className="sr-only">
+                              {t("admin.categoryLabel")}
+                            </dt>
+                            <dd>
+                              {ad.location || "Локация не указана"} ·{" "}
+                              {ad.cat || "—"}
+                              {ad.subcategory ? ` · ${ad.subcategory}` : ""}
+                            </dd>
+                          </div>
+                        </dl>
+
+                        {ad.description && (
+                          <p className="mt-2 text-sm text-ink-500 line-clamp-2">
+                            {ad.description}
+                          </p>
+                        )}
+
+                        {Array.isArray(ad.moderationFlags) &&
+                          ad.moderationFlags.length > 0 && (
+                            <ul className="mt-2 flex flex-wrap gap-1">
+                              {ad.moderationFlags.map((flag) => (
+                                <li key={`${id}-${flag.code}`}>
+                                  <Badge tone="warning">{flag.message}</Badge>
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+
+                        {Array.isArray(ad.contentDiff) &&
+                          ad.contentDiff.length > 0 && (
+                            <div className="surface-muted mt-3 space-y-1 p-3 text-xs">
+                              <p className="font-semibold text-ink-700">
+                                Изменения
+                              </p>
+                              {ad.contentDiff.map((change) => (
+                                <p
+                                  key={`${id}-${change.field}`}
+                                  className="text-ink-500"
+                                >
+                                  <b className="text-ink-700">
+                                    {change.label}:
+                                  </b>{" "}
+                                  {change.before} → {change.after}
+                                </p>
+                              ))}
+                            </div>
+                          )}
+
+                        {ad.appealText && (
+                          <Alert tone="info" title="Апелляция" className="mt-3">
+                            {ad.appealText}
+                          </Alert>
+                        )}
+
+                        {ad.autoModerationReason && (
+                          <p className="mt-2 text-xs text-ink-400">
+                            Авто-проверка: {ad.autoModerationReason}
+                          </p>
+                        )}
+
+                        {ad.rejectionReason && (
+                          <Alert
+                            tone="danger"
+                            title="Причина отклонения"
+                            className="mt-3"
+                          >
+                            {ad.rejectionReason}
+                          </Alert>
+                        )}
                       </div>
-                    )}
+                    </div>
 
-                    {ad.appealText && (
-                      <div className="mt-3 rounded-xl border border-indigo-200 bg-indigo-50 p-3 text-sm text-indigo-900">
-                        <b>Апелляция:</b> {ad.appealText}
-                      </div>
-                    )}
+                    <div className="mt-3 flex flex-wrap gap-2 border-t border-ink-200 pt-3">
+                      <Button
+                        to={`/ad/${id}`}
+                        onClick={() => openPreview(ad)}
+                        icon={ExternalLink}
+                        className="flex-1 sm:flex-none"
+                      >
+                        Открыть
+                      </Button>
 
-                    {ad.autoModerationReason && (
-                      <div className="mt-2 text-xs text-slate-500">
-                        Авто-проверка: {ad.autoModerationReason}
-                      </div>
-                    )}
-
-                    {ad.rejectionReason && (
-                      <div className="mt-3 rounded-xl border border-red-200 bg-red-50 text-red-700 p-3 text-sm">
-                        <b>Причина отклонения:</b> {ad.rejectionReason}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="flex md:flex-col gap-2 md:min-w-36">
-                    <Link
-                      to={`/ad/${id}`}
-                      onClick={() =>
-                        sessionStorage.setItem("ad_preview", JSON.stringify(ad))
-                      }
-                      className="inline-flex justify-center px-3 py-2 rounded-lg border hover:bg-slate-50"
-                    >
-                      Открыть
-                    </Link>
-
-                    {status === "pending" && (
-                      <>
-                        {ad.appealStatus === "pending" ? (
+                      {status === "pending" &&
+                        (isAppeal ? (
                           <>
-                            <button
-                              onClick={() => approveAppeal(id)}
+                            <Button
+                              variant="lagoon"
+                              icon={Check}
                               disabled={isBusy}
-                              className="inline-flex justify-center px-3 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-60"
+                              onClick={() => approveAppeal(ad)}
+                              className="flex-1 sm:flex-none"
                             >
                               Одобрить апелляцию
-                            </button>
+                            </Button>
 
-                            <button
-                              onClick={() => rejectAppeal(id)}
+                            <Button
+                              icon={X}
                               disabled={isBusy}
-                              className="inline-flex justify-center px-3 py-2 rounded-lg border text-indigo-700 hover:bg-indigo-50 disabled:opacity-60"
+                              onClick={() => rejectAppeal(ad)}
+                              className="flex-1 sm:flex-none"
                             >
                               Отклонить апелляцию
-                            </button>
+                            </Button>
                           </>
                         ) : (
                           <>
-                            <button
-                              onClick={() => approve(id)}
-                              disabled={isBusy}
-                              className="inline-flex justify-center px-3 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-60"
+                            <Button
+                              variant="lagoon"
+                              icon={Check}
+                              loading={isBusy}
+                              onClick={() => approve(ad)}
+                              className="flex-1 sm:flex-none"
                             >
-                              {isBusy ? "..." : "Принять"}
-                            </button>
+                              Принять
+                            </Button>
 
-                            <button
-                              onClick={() => openReject(ad)}
+                            <Button
+                              variant="danger"
+                              icon={X}
                               disabled={isBusy}
-                              className="inline-flex justify-center px-3 py-2 rounded-lg border text-red-600 hover:bg-red-50 disabled:opacity-60"
+                              onClick={() => reject(ad)}
+                              className="flex-1 sm:flex-none"
                             >
                               Отклонить
-                            </button>
+                            </Button>
                           </>
-                        )}
-                      </>
-                    )}
+                        ))}
 
-                    <button
-                      onClick={() => removeListing(id)}
-                      disabled={isBusy}
-                      className="inline-flex justify-center px-3 py-2 rounded-lg border text-red-700 hover:bg-red-50 disabled:opacity-60"
-                    >
-                      Удалить
-                    </button>
-                  </div>
-                </article>
+                      <Button
+                        variant="ghost"
+                        icon={Trash2}
+                        disabled={isBusy}
+                        onClick={() => removeListing(ad)}
+                        className="text-danger-700 hover:bg-danger-50 hover:text-danger-800 sm:ml-auto"
+                      >
+                        Удалить
+                      </Button>
+                    </div>
+                  </article>
+                </li>
               );
             })}
-          </div>
+          </ul>
         )}
-
-        {rejectTarget && (
-          <div className="fixed inset-0 z-[100] bg-black/40 flex items-center justify-center px-4">
-            <div className="w-full max-w-lg rounded-2xl bg-white shadow-xl border p-5 space-y-4">
-              <div>
-                <h3 className="text-lg font-bold">Отклонить объявление</h3>
-                <p className="text-sm text-slate-500 mt-1">
-                  Укажите понятную причину, чтобы пользователь мог исправить объявление.
-                </p>
-              </div>
-
-              <div className="rounded-xl border bg-slate-50 p-3">
-                <div className="text-sm font-semibold">
-                  {rejectTarget.title || "Без названия"}
-                </div>
-                <div className="text-xs text-slate-500 mt-1">
-                  ID: {String(getId(rejectTarget)).slice(0, 8)}...
-                </div>
-              </div>
-
-              <label className="block">
-                <div className="text-sm font-medium mb-1">Причина отклонения</div>
-
-                <textarea
-                  value={rejectReason}
-                  onChange={(e) => setRejectReason(e.target.value)}
-                  rows={5}
-                  placeholder="Например: недостаточно информации, запрещённый товар, некорректная категория..."
-                  className="w-full rounded-xl border px-3 py-2 outline-none focus:ring-2 focus:ring-sun/40 resize-y"
-                />
-              </label>
-
-              <div className="text-xs text-slate-500">
-                Минимум 5 символов. Сейчас: {rejectReason.trim().length}
-              </div>
-
-              <div className="flex justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={closeReject}
-                  className="px-4 py-2 rounded-xl border hover:bg-slate-50"
-                >
-                  Отмена
-                </button>
-
-                <button
-                  type="button"
-                  onClick={submitReject}
-                  disabled={
-                    rejectReason.trim().length < 5 ||
-                    actionLoadingId === getId(rejectTarget)
-                  }
-                  className="px-4 py-2 rounded-xl bg-red-600 text-white hover:bg-red-700 disabled:opacity-60"
-                >
-                  {actionLoadingId === getId(rejectTarget)
-                    ? "Отклоняем..."
-                    : "Отклонить"}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
+      </Card>
     </div>
   );
 }
