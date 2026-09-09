@@ -1,11 +1,12 @@
 import React from "react";
-import { Link2, Share2, Send, Check, Cloud, CloudOff, Loader2 } from "lucide-react";
+import { Link2, Share2, Send, Check, Cloud, CloudOff } from "lucide-react";
 import {
   buildCompareShareUrl,
   buildTelegramShareUrl,
   shareCompareLink,
 } from "../lib/compareShare";
 import { useI18n } from "../i18n";
+import { Button } from "../ui";
 
 export default function CompareShareBar({
   cat,
@@ -40,63 +41,50 @@ export default function CompareShareBar({
     }
   };
 
+  const syncing = syncState === "saving" || syncState === "loading";
+
   return (
-    <div className="rounded-2xl border border-ink/10 bg-white p-3 sm:p-4 flex flex-wrap items-center gap-2 ">
-      <div className="text-sm font-semibold text-ink mr-auto">
+    <div className="surface-panel flex flex-wrap items-center gap-2 p-3 sm:p-4">
+      <h2 className="mr-auto text-sm font-semibold text-ink-900">
         {t("compare.shareTitle")}
-      </div>
+      </h2>
 
-      <button
-        type="button"
-        onClick={copyLink}
+      <Button
+        icon={copied ? Check : Link2}
         disabled={busy}
-        className="inline-flex items-center gap-1.5 rounded-xl border border-ink/10 px-3 py-2 text-sm font-semibold text-ink-600 hover:bg-mist/70 disabled:opacity-50"
-      >
-        {copied ? <Check size={15} className="text-lagoon" /> : <Link2 size={15} />}
-        {copied ? t("compare.linkCopied") : t("compare.copyLink")}
-      </button>
-
-      <button
-        type="button"
         onClick={copyLink}
-        className="inline-flex items-center gap-1.5 rounded-xl border border-ink/10 px-3 py-2 text-sm font-semibold text-ink-600 hover:bg-mist/70"
+        className={copied ? "text-lagoon-700" : undefined}
       >
-        <Share2 size={15} />
+        {copied ? t("compare.linkCopied") : t("compare.copyLink")}
+      </Button>
+
+      <Button icon={Share2} onClick={copyLink}>
         {t("compare.share")}
-      </button>
+      </Button>
 
       <a
         href={telegramUrl}
         target="_blank"
         rel="noopener noreferrer"
-        className="inline-flex items-center gap-1.5 rounded-xl bg-[#2AABEE] px-3 py-2 text-sm font-semibold text-white hover:brightness-95"
+        className="btn border-transparent bg-[#2AABEE] text-white hover:bg-[#2AABEE] hover:brightness-95"
       >
-        <Send size={15} />
+        <Send size={15} aria-hidden="true" />
         Telegram
       </a>
 
       {canSync && (
-        <button
-          type="button"
+        <Button
+          icon={syncState === "error" ? CloudOff : Cloud}
+          loading={syncing}
           onClick={onSync}
-          disabled={syncState === "saving" || syncState === "loading"}
-          className="inline-flex items-center gap-1.5 rounded-xl border border-sun/30 bg-sun/5 px-3 py-2 text-sm font-semibold text-sun hover:bg-sun/10 disabled:opacity-50"
+          className="border-sun-200 bg-sun-50 text-sun-800 hover:bg-sun-100"
         >
-          {syncState === "saving" || syncState === "loading" ? (
-            <Loader2 size={15} className="animate-spin" />
-          ) : syncState === "saved" ? (
-            <Cloud size={15} />
-          ) : syncState === "error" ? (
-            <CloudOff size={15} />
-          ) : (
-            <Cloud size={15} />
-          )}
           {syncState === "saved"
             ? t("compare.synced")
             : syncState === "error"
               ? t("compare.syncFailed")
               : t("compare.syncAccount")}
-        </button>
+        </Button>
       )}
     </div>
   );

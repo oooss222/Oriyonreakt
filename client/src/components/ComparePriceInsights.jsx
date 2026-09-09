@@ -1,10 +1,11 @@
 import React from "react";
 import { TrendingDown, TrendingUp, Scale } from "lucide-react";
+import { cn } from "../ui";
 
 const TONE_STYLES = {
-  positive: "border-lagoon/20 bg-lagoon/5 text-lagoon-700",
-  warning: "border-sun/20 bg-sun-50 text-sun-800",
-  neutral: "border-ink/10 bg-mist/70 text-ink",
+  positive: "border-lagoon-200 bg-lagoon-50 text-lagoon-800",
+  warning: "border-sun-200 bg-sun-50 text-sun-800",
+  neutral: "border-ink-200 bg-mist-50 text-ink-700",
 };
 
 export default function ComparePriceInsights({ insights, t, lang = "ru" }) {
@@ -21,9 +22,9 @@ export default function ComparePriceInsights({ insights, t, lang = "ru" }) {
   const locale = lang === "en" ? "en-US" : lang === "tg" ? "tg-TJ" : "ru-RU";
 
   return (
-    <section className={`rounded-2xl border px-4 py-3.5 ${tone}`}>
+    <section className={cn("rounded-2xl border px-4 py-3.5", tone)}>
       <div className="flex items-start gap-3">
-        <Icon size={18} className="shrink-0 mt-0.5" />
+        <Icon size={18} className="mt-0.5 shrink-0" aria-hidden="true" />
         <div className="space-y-1">
           <p className="text-sm font-semibold">{insights.headline}</p>
           {insights.insights?.length > 1 && insights.minPrice !== insights.maxPrice && t && (

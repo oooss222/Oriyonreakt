@@ -14,6 +14,7 @@ import {
 } from "../lib/compareListings";
 import { getCompareItemKey, isExternalCompareItem } from "../lib/compareResolve";
 import { useI18n } from "../i18n";
+import { Button, Skeleton } from "../ui";
 
 function pickSeedItem(items = []) {
   const oriyon = items.find((item) => !isExternalCompareItem(item));
@@ -73,21 +74,27 @@ export default function CompareSimilarPanel({ cat, items = [], onAdded }) {
   };
 
   return (
-    <section className="rounded-2xl border border-ink/10 bg-white p-4 md:p-5 space-y-3">
+    <section className="surface-panel space-y-3 p-4 md:p-5">
       <div className="flex flex-wrap items-end justify-between gap-2">
         <div>
-          <h3 className="font-display text-lg font-bold text-ink tracking-tight inline-flex items-center gap-2">
-            <Scale size={18} className="text-sun" />
+          <h2 className="inline-flex items-center gap-2 font-display text-lg font-bold tracking-tight text-ink-900">
+            <Scale size={18} className="text-sun-500" aria-hidden="true" />
             {t("compare.similarTitle")}
-          </h3>
-          <p className="text-sm text-ink-400 mt-0.5">{t("compare.similarHint")}</p>
+          </h2>
+          <p className="mt-0.5 text-sm text-ink-400">{t("compare.similarHint")}</p>
         </div>
       </div>
 
-      {loading && <div className="text-sm text-ink-300">{t("compare.loading")}</div>}
+      {loading && (
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <Skeleton key={index} className="h-44 w-full" rounded="rounded-xl" />
+          ))}
+        </div>
+      )}
 
       {!loading && suggestions.length === 0 && (
-        <p className="text-sm text-ink-300">{t("compare.similarEmpty")}</p>
+        <p className="text-sm text-ink-400">{t("compare.similarEmpty")}</p>
       )}
 
       {!loading && suggestions.length > 0 && (
@@ -96,41 +103,36 @@ export default function CompareSimilarPanel({ cat, items = [], onAdded }) {
             const id = ad.id || ad._id;
             const active = isInCompare(id, cat);
             return (
-              <article
-                key={id}
-                className="rounded-xl border border-ink/10 overflow-hidden bg-mist/50"
-              >
-                <Link to={`/ad/${id}`} className="block">
+              <article key={id} className="card overflow-hidden">
+                <Link to={`/ad/${id}`} className="block" tabIndex={-1}>
                   <img
                     src={getListingThumb(ad, { width: 320 })}
-                    alt={ad.title || ""}
-                    className="h-28 w-full object-cover bg-mist"
+                    alt=""
+                    className="h-28 w-full bg-mist-200 object-cover"
                     loading="lazy"
                   />
                 </Link>
-                <div className="p-2.5 space-y-1.5">
-                  <div className="text-sm font-semibold text-sun">
+
+                <div className="space-y-1.5 p-2.5">
+                  <p className="text-price text-sm">
                     {formatPrice(ad.price, { emptyLabel: "—" })}
-                  </div>
+                  </p>
                   <Link
                     to={`/ad/${id}`}
-                    className="block text-xs font-medium text-ink line-clamp-2 hover:text-sun"
+                    className="block text-xs font-medium text-ink-700 line-clamp-2 hover:text-sun-700"
                   >
                     {ad.title}
                   </Link>
-                  <button
-                    type="button"
+                  <Button
+                    size="sm"
+                    block
+                    variant={active ? "secondary" : "primary"}
+                    icon={Plus}
                     disabled={full && !active}
                     onClick={() => addItem(ad)}
-                    className={`w-full inline-flex items-center justify-center gap-1 rounded-lg px-2 py-1.5 text-xs font-semibold transition ${
-                      active
-                        ? "bg-mist-200 text-ink-500"
-                        : "bg-sun text-white hover:bg-sun-600 disabled:opacity-50"
-                    }`}
                   >
-                    <Plus size={12} />
                     {active ? t("compare.inCompare") : t("compare.addToCompare")}
-                  </button>
+                  </Button>
                 </div>
               </article>
             );

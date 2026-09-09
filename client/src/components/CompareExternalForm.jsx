@@ -1,5 +1,5 @@
 import React from "react";
-import { Plus, Link2, Download, Loader2 } from "lucide-react";
+import { Plus, Link2, Download } from "lucide-react";
 import {
   addExternalCompareEntry,
   readCompareCount,
@@ -10,6 +10,7 @@ import { getCompareConfig } from "../lib/compareConfig";
 import { api } from "../lib/api";
 import { useI18n } from "../i18n";
 import { TOKEN_KEY } from "../lib/auth";
+import { Alert, Button, Field, Input, SectionCard, Select } from "../ui";
 
 const EMPTY_FORM = {
   platform: "somon",
@@ -43,6 +44,7 @@ export default function CompareExternalForm({ cat, onAdded }) {
   const [open, setOpen] = React.useState(false);
   const [form, setForm] = React.useState(EMPTY_FORM);
   const [error, setError] = React.useState("");
+  const [fieldErrors, setFieldErrors] = React.useState({});
   const [notice, setNotice] = React.useState("");
   const [importing, setImporting] = React.useState(false);
   const count = readCompareCount(cat);
@@ -62,6 +64,7 @@ export default function CompareExternalForm({ cat, onAdded }) {
     });
     setError("");
     setNotice("");
+    setFieldErrors((prev) => (prev[key] ? { ...prev, [key]: "" } : prev));
   };
 
   const updateSpec = (name, value) => {
@@ -76,13 +79,14 @@ export default function CompareExternalForm({ cat, onAdded }) {
   const resetForm = () => {
     setForm(EMPTY_FORM);
     setError("");
+    setFieldErrors({});
     setNotice("");
   };
 
   const importFromUrl = async () => {
     const url = form.url.trim();
     if (!url) {
-      setError(t("compare.pasteUrl"));
+      setFieldErrors((prev) => ({ ...prev, url: t("compare.pasteUrl") }));
       return;
     }
 
@@ -137,7 +141,10 @@ export default function CompareExternalForm({ cat, onAdded }) {
     const price = form.price.trim();
 
     if (!title || !price) {
-      setError(t("compare.titlePriceRequired"));
+      setFieldErrors({
+        title: title ? "" : t("compare.titleRequired"),
+        price: price ? "" : t("compare.priceRequired"),
+      });
       return;
     }
 
@@ -163,173 +170,151 @@ export default function CompareExternalForm({ cat, onAdded }) {
   };
 
   return (
-    <section className="rounded-2xl border bg-white p-4 md:p-5 space-y-4">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h2 className="text-base font-bold text-ink">
-            {t("compare.externalTitle")}
-          </h2>
-          <p className="text-sm text-ink-400 mt-1">
-            {t("compare.externalHint")}
-          </p>
-        </div>
-
-        {!open && (
-          <button
-            type="button"
-            onClick={() => setOpen(true)}
-            disabled={full}
-            className="inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-semibold hover:bg-mist/70 disabled:opacity-50"
-          >
-            <Plus size={16} />
+    <SectionCard
+      title={t("compare.externalTitle")}
+      description={t("compare.externalHint")}
+      icon={Link2}
+      action={
+        !open && (
+          <Button icon={Plus} disabled={full} onClick={() => setOpen(true)}>
             {t("compare.add")}
-          </button>
-        )}
-      </div>
-
+          </Button>
+        )
+      }
+      bodyClassName="space-y-4"
+    >
       {full && (
-        <p className="text-sm text-sun-700 bg-sun-50 border border-sun/15 rounded-xl px-3 py-2">
+        <Alert tone="warning">
           {t("compare.listFull", { count: COMPARE_MAX, max: COMPARE_MAX })}
-        </p>
+        </Alert>
+      )}
+
+      {!open && !full && (
+        <p className="text-sm text-ink-400">{t("compare.urlHint")}</p>
       )}
 
       {open && (
-        <form onSubmit={submit} className="space-y-4 border-t pt-4">
-          <div className="grid md:grid-cols-[1fr_auto] gap-3 items-end">
-            <label className="space-y-1.5 block">
-              <span className="text-sm font-medium text-ink-600">
-                {t("compare.urlLabel")}
-              </span>
-              <div className="relative">
-                <Link2
-                  size={16}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-300"
-                />
-                <input
+        <form onSubmit={submit} className="space-y-4" noValidate>
+          <div className="space-y-2.5">
+            <Field label={t("compare.urlLabel")} error={fieldErrors.url}>
+              {(props) => (
+                <Input
+                  {...props}
                   type="url"
+                  iconLeft={Link2}
+                  invalid={Boolean(fieldErrors.url)}
                   value={form.url}
                   onChange={(e) => updateField("url", e.target.value)}
                   placeholder="https://somon.tj/adv/..."
-                  className="input w-full pl-9"
                 />
-              </div>
-            </label>
+              )}
+            </Field>
 
-            <button
-              type="button"
-              onClick={importFromUrl}
-              disabled={importing || !form.url.trim()}
-              className="inline-flex items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-semibold hover:bg-mist/70 disabled:opacity-50"
-            >
-              {importing ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
-              {t("compare.import")}
-            </button>
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+              <Button
+                icon={Download}
+                loading={importing}
+                disabled={!form.url.trim()}
+                onClick={importFromUrl}
+              >
+                {t("compare.import")}
+              </Button>
+              <p className="text-xs text-ink-400">{t("compare.urlHint")}</p>
+            </div>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-3">
-            <label className="space-y-1.5 block">
-              <span className="text-sm font-medium text-ink-600">{t("compare.platform")}</span>
-              <select
-                value={form.platform}
-                onChange={(e) => updateField("platform", e.target.value)}
-                className="input w-full"
-              >
-                {COMPARE_PLATFORMS.map((row) => (
-                  <option key={row.value} value={row.value}>
-                    {row.label}
-                  </option>
-                ))}
-              </select>
-            </label>
+          <div className="grid gap-3 md:grid-cols-2">
+            <Field label={t("compare.platform")}>
+              {(props) => (
+                <Select
+                  {...props}
+                  value={form.platform}
+                  onChange={(e) => updateField("platform", e.target.value)}
+                  options={COMPARE_PLATFORMS}
+                />
+              )}
+            </Field>
 
-            <label className="space-y-1.5 block">
-              <span className="text-sm font-medium text-ink-600">{t("compare.city")}</span>
-              <input
-                type="text"
-                value={form.location}
-                onChange={(e) => updateField("location", e.target.value)}
-                placeholder="Душанбе"
-                className="input w-full"
-              />
-            </label>
+            <Field label={t("compare.city")}>
+              {(props) => (
+                <Input
+                  {...props}
+                  value={form.location}
+                  onChange={(e) => updateField("location", e.target.value)}
+                  placeholder={t("compare.cityPlaceholder")}
+                />
+              )}
+            </Field>
 
-            <label className="space-y-1.5 block md:col-span-2">
-              <span className="text-sm font-medium text-ink-600">
-                {t("compare.nameLabel")} <span className="text-red-500">*</span>
-              </span>
-              <input
-                type="text"
-                value={form.title}
-                onChange={(e) => updateField("title", e.target.value)}
-                placeholder="Toyota Camry 2018"
-                className="input w-full"
-                required
-              />
-            </label>
+            <Field
+              label={t("compare.nameLabel")}
+              required
+              error={fieldErrors.title}
+              className="md:col-span-2"
+            >
+              {(props) => (
+                <Input
+                  {...props}
+                  invalid={Boolean(fieldErrors.title)}
+                  value={form.title}
+                  onChange={(e) => updateField("title", e.target.value)}
+                  placeholder="Toyota Camry 2018"
+                />
+              )}
+            </Field>
 
-            <label className="space-y-1.5 block">
-              <span className="text-sm font-medium text-ink-600">
-                {t("compare.priceLabel")} <span className="text-red-500">*</span>
-              </span>
-              <input
-                type="text"
-                value={form.price}
-                onChange={(e) => updateField("price", e.target.value)}
-                placeholder="85000"
-                className="input w-full"
-                required
-              />
-            </label>
+            <Field label={t("compare.priceLabel")} required error={fieldErrors.price}>
+              {(props) => (
+                <Input
+                  {...props}
+                  inputMode="numeric"
+                  invalid={Boolean(fieldErrors.price)}
+                  value={form.price}
+                  onChange={(e) => updateField("price", e.target.value)}
+                  placeholder="85000"
+                />
+              )}
+            </Field>
           </div>
 
           {specFields.length > 0 && (
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {specFields.map((field) => (
-                <label key={field.name} className="space-y-1.5 block">
-                  <span className="text-sm font-medium text-ink-600">
-                    {field.label}
-                  </span>
-                  <input
-                    type="text"
-                    value={form.specs[field.name] || ""}
-                    onChange={(e) => updateSpec(field.name, e.target.value)}
-                    className="input w-full"
-                  />
-                </label>
-              ))}
-            </div>
+            <fieldset className="space-y-3">
+              <legend className="field-label">{t("compare.specsTitle")}</legend>
+
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {specFields.map((field) => (
+                  <Field key={field.name} label={field.label}>
+                    {(props) => (
+                      <Input
+                        {...props}
+                        value={form.specs[field.name] || ""}
+                        onChange={(e) => updateSpec(field.name, e.target.value)}
+                      />
+                    )}
+                  </Field>
+                ))}
+              </div>
+            </fieldset>
           )}
 
-          {notice && (
-            <p className="text-sm text-lagoon-700 bg-lagoon/5 border border-lagoon/15 rounded-xl px-3 py-2">
-              {notice}
-            </p>
-          )}
-
-          {error && (
-            <p className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-xl px-3 py-2">
-              {error}
-            </p>
-          )}
+          {notice && <Alert tone="success">{notice}</Alert>}
+          {error && <Alert tone="danger">{error}</Alert>}
 
           <div className="flex flex-wrap gap-2">
-            <button type="submit" className="btn btn-primary">
+            <Button type="submit" variant="primary">
               {t("compare.addToCompare")}
-            </button>
-            <button
-              type="button"
+            </Button>
+            <Button
               onClick={() => {
                 resetForm();
                 setOpen(false);
               }}
-              className="inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-semibold hover:bg-mist/70"
             >
               {t("common.cancel")}
-            </button>
+            </Button>
           </div>
         </form>
       )}
-    </section>
+    </SectionCard>
   );
 }
-

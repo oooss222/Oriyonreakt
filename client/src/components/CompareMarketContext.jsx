@@ -88,14 +88,16 @@ export default function CompareMarketContext({ cat, items = [] }) {
   });
 
   return (
-    <section className="rounded-2xl border border-ink/8 bg-white p-4 md:p-5 space-y-3">
+    <section className="surface-panel space-y-3 p-4 md:p-5">
       <div className="flex items-start gap-3">
-        <div className="w-10 h-10 rounded-xl bg-mist grid place-items-center shrink-0">
-          <BarChart3 size={18} className="text-ink-500" />
-        </div>
+        <span className="icon-box-ink h-10 w-10 shrink-0">
+          <BarChart3 size={18} aria-hidden="true" />
+        </span>
         <div>
-          <h3 className="font-display text-lg font-bold text-ink tracking-tight">{t("compare.marketTitle")}</h3>
-          <p className="text-sm text-ink-400 mt-0.5">
+          <h2 className="font-display text-lg font-bold tracking-tight text-ink-900">
+            {t("compare.marketTitle")}
+          </h2>
+          <p className="mt-0.5 text-sm text-ink-400">
             {t("compare.marketHint", {
               median: formatPrice(median, { emptyLabel: "—" }),
               sample: stats.sample,
@@ -103,7 +105,7 @@ export default function CompareMarketContext({ cat, items = [] }) {
             })}
           </p>
           {medianPpsqm != null && (
-            <p className="text-xs text-ink-300 mt-1">
+            <p className="mt-1 text-xs text-ink-400">
               {t("compare.marketPpsqm", {
                 value: formatPrice(medianPpsqm, { emptyLabel: "—" }),
               })}
@@ -119,12 +121,12 @@ export default function CompareMarketContext({ cat, items = [] }) {
             delta == null ? Minus : delta < 0 ? TrendingDown : delta > 0 ? TrendingUp : Minus;
           const tone =
             delta == null
-              ? "text-ink-400 bg-mist/70 border-ink/8"
+              ? "border-ink-200 bg-mist-50 text-ink-500"
               : delta < 0
-                ? "text-lagoon-700 bg-lagoon/5 border-lagoon/15"
+                ? "border-lagoon-200 bg-lagoon-50 text-lagoon-800"
                 : delta > 0
-                  ? "text-sun-700 bg-sun-50 border-sun/15"
-                  : "text-ink-500 bg-mist/70 border-ink/8";
+                  ? "border-sun-200 bg-sun-50 text-sun-800"
+                  : "border-ink-200 bg-mist-50 text-ink-600";
 
           return (
             <div
@@ -133,7 +135,7 @@ export default function CompareMarketContext({ cat, items = [] }) {
             >
               <div className="text-xs font-medium line-clamp-1 opacity-80">{row.title}</div>
               <div className="mt-1 flex items-center gap-1.5 text-sm font-bold">
-                <Icon size={14} />
+                <Icon size={14} aria-hidden="true" />
                 {delta == null
                   ? "—"
                   : delta === 0

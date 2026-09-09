@@ -10,7 +10,6 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import Breadcrumbs from "../components/Breadcrumbs";
-import EmptyState from "../components/EmptyState";
 import CompareExternalForm from "../components/CompareExternalForm";
 import CompareSourceBadge from "../components/CompareSourceBadge";
 import ComparePriceInsights from "../components/ComparePriceInsights";
@@ -19,6 +18,15 @@ import CompareShareBar from "../components/CompareShareBar";
 import CompareGalleryRow from "../components/CompareGalleryRow";
 import CompareSimilarPanel from "../components/CompareSimilarPanel";
 import CompareMarketContext from "../components/CompareMarketContext";
+import {
+  Alert,
+  Button,
+  Checkbox,
+  EmptyState,
+  ListingCardSkeleton,
+  cn,
+  useToast,
+} from "../ui";
 import { api } from "../lib/api";
 import { TOKEN_KEY } from "../lib/auth";
 import {
@@ -66,7 +74,7 @@ function formatFetchedAt(value = "", lang = "ru") {
 function CompareThumb({ item, className = "h-28" }) {
   const src = getListingThumb(item, { width: 400 });
   return (
-    <div className={`relative overflow-hidden rounded-xl bg-mist ${className}`}>
+    <div className={cn("relative overflow-hidden rounded-xl bg-mist-200", className)}>
       <img
         src={src || "/img/placeholder.jpg"}
         alt={item?.title || ""}
@@ -80,34 +88,51 @@ function CompareThumb({ item, className = "h-28" }) {
   );
 }
 
-function CompareRow({ label, values, highlights = [], diffMarks = [], emphasizeDiff }) {
+function CompareRow({ label, values, highlights = [], diffMarks = [], emphasizeDiff, t }) {
   return (
-    <tr className={`border-t ${emphasizeDiff ? "bg-sun-50/50" : ""}`}>
-      <td
-        className={`p-3 text-sm font-medium align-top ${
-          emphasizeDiff ? "bg-sun-50 text-sun-800" : "bg-mist/70 text-ink-400"
-        }`}
+    <tr className={cn(emphasizeDiff && "bg-sun-50/40")}>
+      <th
+        scope="row"
+        className={cn(
+          "sticky left-0 z-10 w-[9.5rem] min-w-[9.5rem] p-3",
+          "border-r border-t border-ink-200 text-left align-top text-xs font-semibold",
+          emphasizeDiff ? "bg-sun-50 text-sun-800" : "bg-mist-50 text-ink-500"
+        )}
       >
-        <div className="flex items-center gap-1.5">
-          {label}
-        </div>
-      </td>
+        <span className="flex items-start gap-1.5">
+          {emphasizeDiff && (
+            <span
+              className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-sun-500"
+              aria-hidden="true"
+            />
+          )}
+          <span>
+            {label}
+            {emphasizeDiff && <span className="sr-only"> — {t("compare.legendDiff")}</span>}
+          </span>
+        </span>
+      </th>
+
       {values.map((value, index) => {
         const hint = highlights[index];
         const differs = diffMarks[index]?.differs;
+
         return (
           <td
             key={index}
-            className={`p-3 text-sm text-ink align-top ${
-              hint?.cheapest ? "bg-lagoon/5 font-semibold text-lagoon-700" : ""
-            } ${differs && emphasizeDiff && !hint?.cheapest ? "font-semibold" : ""}`}
+            className={cn(
+              "min-w-[11rem] border-t border-ink-200 p-3 align-top text-sm text-ink-800",
+              hint?.cheapest && "font-semibold text-lagoon-700",
+              differs && emphasizeDiff && !hint?.cheapest && "font-semibold text-ink-900"
+            )}
           >
-            <div>{value || "—"}</div>
+            <div className="break-anywhere">{value || "—"}</div>
             {hint?.diffLabel && (
               <div
-                className={`text-2xs mt-1 ${
+                className={cn(
+                  "mt-1 text-2xs font-medium",
                   hint.cheapest ? "text-lagoon-700" : "text-ink-400"
-                }`}
+                )}
               >
                 {hint.diffLabel}
               </div>
@@ -127,58 +152,64 @@ function CompareItemTitle({ item, onRemove, onRefresh, refreshing, t, lang, show
   return (
     <div className="space-y-2">
       {showThumb && <CompareThumb item={item} className="h-24" />}
+
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 space-y-1.5">
           <CompareSourceBadge item={item} />
+
           {external && item._compareUrl ? (
             <a
               href={item._compareUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="block font-semibold hover:text-sun transition line-clamp-2"
+              className="block font-semibold text-ink-900 transition-colors hover:text-sun-700 line-clamp-2"
             >
               {item.title}
             </a>
           ) : external ? (
-            <div className="font-semibold line-clamp-2">{item.title}</div>
+            <div className="font-semibold text-ink-900 line-clamp-2">{item.title}</div>
           ) : (
             <Link
               to={`/ad/${itemKey}`}
-              className="block font-semibold hover:text-sun transition line-clamp-2"
+              className="block font-semibold text-ink-900 transition-colors hover:text-sun-700 line-clamp-2"
             >
               {item.title}
             </Link>
           )}
+
           {external && item._compareFetchedAt && (
-            <div className="text-2xs text-ink-300">
+            <div className="text-2xs font-medium text-ink-400">
               {t("compare.dataFrom", {
                 date: formatFetchedAt(item._compareFetchedAt, lang),
               })}
             </div>
           )}
+
           {canRefresh && (
             <button
               type="button"
               onClick={() => onRefresh?.(item)}
               disabled={refreshing}
-              className="inline-flex items-center gap-1 text-2xs font-semibold text-sun hover:text-sun-600 disabled:opacity-50"
+              className="inline-flex min-h-[2rem] items-center gap-1 text-2xs font-semibold text-sun-700 hover:text-sun-800 disabled:opacity-50"
             >
               {refreshing ? (
-                <Loader2 size={12} className="animate-spin" />
+                <Loader2 size={12} className="animate-spin" aria-hidden="true" />
               ) : (
-                <RefreshCw size={12} />
+                <RefreshCw size={12} aria-hidden="true" />
               )}
               {t("compare.refreshData")}
             </button>
           )}
         </div>
+
         <button
           type="button"
           onClick={() => onRemove(itemKey)}
-          className="shrink-0 rounded-lg border p-1 text-ink-300 hover:bg-mist/70 hover:text-ink-500"
+          className="btn btn-ghost btn-icon-sm shrink-0 text-ink-400"
           aria-label={t("compare.removeFromCompare")}
+          title={t("compare.removeFromCompare")}
         >
-          <X size={14} />
+          <X size={15} aria-hidden="true" />
         </button>
       </div>
     </div>
@@ -199,67 +230,72 @@ function ComparePreviewCard({
 
   return (
     <article
-      className={`rounded-2xl border bg-white overflow-hidden space-y-0 ${
-        priceHint?.cheapest || isRecommended
-          ? "border-lagoon/20 ring-1 ring-lagoon/15"
-          : "border-ink/10"
-      }`}
+      className={cn(
+        "card overflow-hidden",
+        (priceHint?.cheapest || isRecommended) && "border-lagoon-200 ring-1 ring-lagoon-100"
+      )}
     >
       <div className="relative">
         <CompareThumb item={item} className="h-36 rounded-none" />
+
         {isRecommended && (
-          <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-sun px-2 py-0.5 text-2xs font-bold text-white shadow-sm">
-            <CheckCircle2 size={10} />
+          <span className="badge absolute left-2 top-2 border-transparent bg-sun-500 text-white">
+            <CheckCircle2 size={11} aria-hidden="true" />
             {t("compare.verdictBest")}
           </span>
         )}
+
         <button
           type="button"
           onClick={() => onRemove(itemKey)}
-          className="absolute right-2 top-2 rounded-lg border bg-white/95 p-1 text-ink-300 hover:bg-white shadow-sm"
+          className="btn btn-icon-sm absolute right-2 top-2 bg-white/95 text-ink-500 shadow-xs"
           aria-label={t("compare.removeFromCompare")}
+          title={t("compare.removeFromCompare")}
         >
-          <X size={14} />
+          <X size={15} aria-hidden="true" />
         </button>
       </div>
 
-      <div className="p-3 space-y-2">
+      <div className="space-y-2 p-3">
         <CompareSourceBadge item={item} />
+
         <div className="space-y-1">
           <div className="text-price text-base">{formatPrice(item.price)}</div>
           {priceHint?.diffLabel && (
             <div
-              className={`text-2xs font-semibold ${
+              className={cn(
+                "text-2xs font-semibold",
                 priceHint.cheapest ? "text-lagoon-700" : "text-ink-400"
-              }`}
+              )}
             >
               {priceHint.diffLabel}
             </div>
           )}
         </div>
-        <div className="text-sm font-semibold text-ink line-clamp-2">{item.title}</div>
+
+        <div className="text-sm font-semibold text-ink-800 line-clamp-2">{item.title}</div>
 
         {external && item._compareUrl && (
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
             <a
               href={item._compareUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-xs font-semibold text-sun hover:text-sun-600"
+              className="inline-flex min-h-[2rem] items-center gap-1 text-xs font-semibold text-sun-700 hover:text-sun-800"
             >
               {t("compare.openOn", { platform: getPlatformLabel(item._compareSource) })}
-              <ExternalLink size={12} />
+              <ExternalLink size={12} aria-hidden="true" />
             </a>
             <button
               type="button"
               onClick={() => onRefresh?.(item)}
               disabled={refreshing}
-              className="inline-flex items-center gap-1 text-xs font-semibold text-ink-400 hover:text-ink-600 disabled:opacity-50"
+              className="inline-flex min-h-[2rem] items-center gap-1 text-xs font-semibold text-ink-500 hover:text-ink-800 disabled:opacity-50"
             >
               {refreshing ? (
-                <Loader2 size={12} className="animate-spin" />
+                <Loader2 size={12} className="animate-spin" aria-hidden="true" />
               ) : (
-                <RefreshCw size={12} />
+                <RefreshCw size={12} aria-hidden="true" />
               )}
               {t("compare.refresh")}
             </button>
@@ -269,7 +305,7 @@ function ComparePreviewCard({
         {!external && (
           <Link
             to={`/ad/${itemKey}`}
-            className="inline-flex items-center gap-1 text-xs font-semibold text-sun hover:text-sun-600"
+            className="inline-flex min-h-[2rem] items-center gap-1 text-xs font-semibold text-sun-700 hover:text-sun-800"
           >
             {t("compare.openListing")}
           </Link>
@@ -292,29 +328,28 @@ function CompareMobileCard({
   t,
   lang,
 }) {
-  const itemKey = getCompareItemKey(item);
   const visibleFields = diffsOnly
     ? fields.filter((field) => field.key === "price" || differingKeys.has(field.key))
     : fields;
 
   return (
     <article
-      className={`rounded-2xl border bg-white overflow-hidden ${
-        priceHint?.cheapest || isRecommended
-          ? "border-lagoon/20 ring-1 ring-lagoon/15"
-          : "border-ink/10"
-      }`}
+      className={cn(
+        "card overflow-hidden",
+        (priceHint?.cheapest || isRecommended) && "border-lagoon-200 ring-1 ring-lagoon-100"
+      )}
     >
       <div className="relative">
         <CompareThumb item={item} className="h-40 rounded-none" />
         {isRecommended && (
-          <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-sun px-2 py-0.5 text-2xs font-bold text-white">
-            <CheckCircle2 size={10} />
+          <span className="badge absolute left-2 top-2 border-transparent bg-sun-500 text-white">
+            <CheckCircle2 size={11} aria-hidden="true" />
             {t("compare.verdictBest")}
           </span>
         )}
       </div>
-      <div className="p-4 space-y-3">
+
+      <div className="space-y-3 p-4">
         <CompareItemTitle
           item={item}
           onRemove={onRemove}
@@ -323,32 +358,50 @@ function CompareMobileCard({
           t={t}
           lang={lang}
         />
+
         <div className="space-y-1">
           <div className="text-price text-lg">{formatPrice(item.price)}</div>
           {priceHint?.diffLabel && (
             <div
-              className={`text-2xs font-semibold ${
+              className={cn(
+                "text-2xs font-semibold",
                 priceHint.cheapest ? "text-lagoon-700" : "text-ink-400"
-              }`}
+              )}
             >
               {priceHint.diffLabel}
             </div>
           )}
         </div>
-        <dl className="space-y-2">
+
+        <dl className="divide-y divide-ink-200 border-t border-ink-200">
           {visibleFields
             .filter((field) => field.key !== "price")
-            .map((field) => (
-              <div
-                key={field.key}
-                className={`flex items-start justify-between gap-3 text-sm border-t border-ink/8 pt-2 ${
-                  differingKeys.has(field.key) ? "bg-sun-50/60 -mx-2 px-2 rounded-lg" : ""
-                }`}
-              >
-                <dt className="text-ink-400 shrink-0">{field.label}</dt>
-                <dd className="font-medium text-ink text-right">{field.get(item)}</dd>
-              </div>
-            ))}
+            .map((field) => {
+              const differs = differingKeys.has(field.key);
+
+              return (
+                <div
+                  key={field.key}
+                  className={cn(
+                    "flex items-start justify-between gap-3 py-2 text-sm",
+                    differs && "-mx-2 rounded-lg bg-sun-50/60 px-2"
+                  )}
+                >
+                  <dt className="shrink-0 text-ink-500">
+                    {field.label}
+                    {differs && <span className="sr-only"> — {t("compare.legendDiff")}</span>}
+                  </dt>
+                  <dd
+                    className={cn(
+                      "break-anywhere text-right font-medium",
+                      differs ? "text-ink-900" : "text-ink-700"
+                    )}
+                  >
+                    {field.get(item)}
+                  </dd>
+                </div>
+              );
+            })}
         </dl>
       </div>
     </article>
@@ -357,6 +410,7 @@ function CompareMobileCard({
 
 export default function ListingCompare({ cat }) {
   const { t, lang } = useI18n();
+  const { showToast } = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
   const config = getCompareConfig(cat);
   const categoryLabel = config ? getCategoryLabel(cat, t) : "";
@@ -552,7 +606,7 @@ export default function ListingCompare({ cat }) {
 
   if (!config) {
     return (
-      <div className="container mx-auto px-4 py-10">
+      <div className="page-container stack-page">
         <EmptyState
           icon={Scale}
           title={t("compare.unavailable")}
@@ -588,6 +642,11 @@ export default function ListingCompare({ cat }) {
   const handleRemove = (itemKey) => {
     setActionError("");
     removeCompareEntry(itemKey, cat);
+  };
+
+  const handleClear = () => {
+    clearCompare(cat);
+    showToast(t("compare.cleared"), "info");
   };
 
   const handleRefresh = async (item) => {
@@ -657,71 +716,56 @@ export default function ListingCompare({ cat }) {
   };
 
   return (
-    <div className="container mx-auto px-4 py-6 space-y-4">
+    <div className="page-container stack-page">
       <Breadcrumbs items={breadcrumbs} />
 
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="font-display text-2xl font-bold tracking-tight text-ink flex items-center gap-2">
-            <Scale size={22} className="text-sun" />
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="section-title flex items-center gap-2">
+            <Scale size={22} className="shrink-0 text-sun-500" aria-hidden="true" />
             {t("compare.titleFull")}
           </h1>
-          <p className="text-sm text-ink-400 mt-1">
+          <p className="section-subtitle mt-1">
             {t("compare.subtitle", { category: categoryLabel, max: COMPARE_MAX })}
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
           {externalItems.length > 0 && (
-            <button
-              type="button"
+            <Button
+              icon={RefreshCw}
+              loading={refreshingAll}
+              disabled={Boolean(refreshingKey)}
               onClick={handleRefreshAll}
-              disabled={refreshingAll || Boolean(refreshingKey)}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border text-sm font-medium hover:bg-mist/70 disabled:opacity-50"
             >
-              {refreshingAll ? (
-                <Loader2 size={16} className="animate-spin" />
-              ) : (
-                <RefreshCw size={16} />
-              )}
               {t("compare.refreshAll")}
-            </button>
+            </Button>
           )}
+
           {count > 0 && (
-            <button
-              type="button"
-              onClick={() => clearCompare(cat)}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border text-sm font-medium hover:bg-mist/70"
-            >
-              <Trash2 size={16} />
+            <Button icon={Trash2} onClick={handleClear}>
               {t("compare.clear")}
-            </button>
+            </Button>
           )}
         </div>
       </div>
 
       <CompareExternalForm cat={cat} onAdded={syncEntries} />
 
-      {shareNotice && (
-        <p className="text-sm text-lagoon-700 bg-lagoon/5 border border-lagoon/15 rounded-xl px-3 py-2">
-          {shareNotice}
-        </p>
-      )}
+      {shareNotice && <Alert tone="success">{shareNotice}</Alert>}
 
       {staleCount > 0 && (
-        <p className="text-sm text-sun-700 bg-sun-50 border border-sun/15 rounded-xl px-3 py-2">
-          {t("compare.staleWarning", { count: staleCount })}
-        </p>
+        <Alert tone="warning">{t("compare.staleWarning", { count: staleCount })}</Alert>
       )}
 
-      {actionError && (
-        <p className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-xl px-3 py-2">
-          {actionError}
-        </p>
-      )}
+      {actionError && <Alert tone="danger">{actionError}</Alert>}
 
       {loading && count > 0 && (
-        <div className="text-sm text-ink-400">{t("compare.loading")}</div>
+        <div className="grid-items" aria-busy="true" aria-label={t("compare.loading")}>
+          {Array.from({ length: Math.min(count, COMPARE_MAX) }).map((_, index) => (
+            <ListingCardSkeleton key={index} />
+          ))}
+        </div>
       )}
 
       {!loading && items.length === 0 && (
@@ -750,24 +794,21 @@ export default function ListingCompare({ cat }) {
           <CompareGalleryRow items={items} />
 
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <label className="inline-flex items-center gap-2 text-sm font-medium text-ink-600 cursor-pointer select-none">
-              <input
-                type="checkbox"
-                checked={diffsOnly}
-                onChange={(e) => setDiffsOnly(e.target.checked)}
-                className="h-4 w-4 accent-sun"
-              />
-              {t("compare.diffsOnly")}
-            </label>
+            <Checkbox
+              label={t("compare.diffsOnly")}
+              checked={diffsOnly}
+              onChange={(e) => setDiffsOnly(e.target.checked)}
+              labelClassName="font-medium"
+            />
             <Link
               to={config.catalogPath}
-              className="text-sm font-semibold text-sun hover:text-sun-600"
+              className="text-sm font-semibold text-sun-700 hover:text-sun-800"
             >
               {t("compare.findMoreOriyon")}
             </Link>
           </div>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="hidden gap-3 md:grid md:grid-cols-2 lg:grid-cols-4">
             {items.map((item, index) => (
               <ComparePreviewCard
                 key={getCompareItemKey(item)}
@@ -782,7 +823,7 @@ export default function ListingCompare({ cat }) {
             ))}
           </div>
 
-          <div className="md:hidden space-y-3">
+          <div className="space-y-3 md:hidden">
             {items.map((item, index) => (
               <CompareMobileCard
                 key={getCompareItemKey(item)}
@@ -801,62 +842,90 @@ export default function ListingCompare({ cat }) {
             ))}
           </div>
 
-          <div className="hidden md:block overflow-x-auto rounded-2xl border border-ink/8 bg-white shadow-soft">
-            <table className="min-w-full">
-              <thead>
-                <tr className="border-b bg-mist/70">
-                  <th className="p-3 text-left text-sm font-semibold text-ink-500">
-                    {t("compare.parameter")}
-                  </th>
-                  {items.map((item) => (
+          <div className="surface-panel hidden overflow-hidden md:block">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-b border-ink-200 px-4 py-2.5">
+              <p className="text-xs text-ink-400">{t("compare.scrollHint")}</p>
+              <p className="inline-flex items-center gap-1.5 text-xs font-medium text-ink-500">
+                <span className="h-2 w-2 rounded-full bg-sun-500" aria-hidden="true" />
+                {t("compare.legendDiff")}
+              </p>
+            </div>
+
+            <div
+              role="region"
+              tabIndex={0}
+              aria-label={t("compare.tableLabel")}
+              className="overflow-x-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-sun/50"
+            >
+              <table className="min-w-full border-separate border-spacing-0">
+                <caption className="sr-only">{t("compare.tableLabel")}</caption>
+                <thead>
+                  <tr className="bg-mist-50">
                     <th
-                      key={getCompareItemKey(item)}
-                      className="p-3 text-left text-sm font-semibold align-top min-w-[200px]"
+                      scope="col"
+                      className="sticky left-0 z-20 w-[9.5rem] min-w-[9.5rem] border-r border-ink-200
+                                 bg-mist-50 p-3 text-left text-xs font-semibold text-ink-500"
                     >
-                      <CompareItemTitle
-                        item={item}
-                        onRemove={handleRemove}
-                        onRefresh={handleRefresh}
-                        refreshing={refreshingKey === getCompareItemKey(item)}
-                        t={t}
-                        lang={lang}
-                        showThumb
-                      />
+                      {t("compare.parameter")}
                     </th>
+
+                    {items.map((item) => (
+                      <th
+                        key={getCompareItemKey(item)}
+                        scope="col"
+                        className="min-w-[13rem] bg-mist-50 p-3 text-left align-top text-sm font-semibold"
+                      >
+                        <CompareItemTitle
+                          item={item}
+                          onRemove={handleRemove}
+                          onRefresh={handleRefresh}
+                          refreshing={refreshingKey === getCompareItemKey(item)}
+                          t={t}
+                          lang={lang}
+                          showThumb
+                        />
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {visibleFields.map((field) => (
+                    <CompareRow
+                      key={field.key}
+                      label={field.label}
+                      values={items.map((item) => field.get(item))}
+                      highlights={
+                        field.key === "price" ? priceInsights?.priceHighlights : []
+                      }
+                      diffMarks={getRowDiffHighlights(items, field)}
+                      emphasizeDiff={differingKeys.has(field.key) && field.key !== "price"}
+                      t={t}
+                    />
                   ))}
-                </tr>
-              </thead>
-              <tbody>
-                {visibleFields.map((field) => (
-                  <CompareRow
-                    key={field.key}
-                    label={field.label}
-                    values={items.map((item) => field.get(item))}
-                    highlights={
-                      field.key === "price" ? priceInsights?.priceHighlights : []
-                    }
-                    diffMarks={getRowDiffHighlights(items, field)}
-                    emphasizeDiff={differingKeys.has(field.key) && field.key !== "price"}
-                  />
-                ))}
-                <tr>
-                  <td
-                    colSpan={items.length + 1}
-                    className="px-3 pt-4 pb-1 text-2xs font-bold uppercase tracking-wide text-ink-300 bg-mist/80"
-                  >
-                    {t("compare.trustSection")}
-                  </td>
-                </tr>
-                {trustFields.map((field) => (
-                  <CompareRow
-                    key={field.key}
-                    label={field.label}
-                    values={items.map((item) => field.get(item))}
-                    emphasizeDiff={false}
-                  />
-                ))}
-              </tbody>
-            </table>
+
+                  <tr>
+                    <th
+                      scope="colgroup"
+                      colSpan={items.length + 1}
+                      className="border-t border-ink-200 bg-mist-100 px-3 py-2 text-left text-2xs font-bold uppercase tracking-wide text-ink-500"
+                    >
+                      {t("compare.trustSection")}
+                    </th>
+                  </tr>
+
+                  {trustFields.map((field) => (
+                    <CompareRow
+                      key={field.key}
+                      label={field.label}
+                      values={items.map((item) => field.get(item))}
+                      emphasizeDiff={false}
+                      t={t}
+                    />
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
 
           {count < COMPARE_MAX && (

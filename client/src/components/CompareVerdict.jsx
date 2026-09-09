@@ -1,8 +1,8 @@
 import React from "react";
-import { Link } from "react-router-dom";
 import { CheckCircle2, ExternalLink } from "lucide-react";
 import { getCompareItemKey, isExternalCompareItem } from "../lib/compareResolve";
 import { getPlatformLabel } from "../lib/comparePlatforms";
+import { Button } from "../ui";
 
 export default function CompareVerdict({ verdict, catalogPath, t }) {
   if (!verdict?.item) return null;
@@ -12,58 +12,55 @@ export default function CompareVerdict({ verdict, catalogPath, t }) {
   const external = isExternalCompareItem(item);
 
   return (
-    <section className="rounded-2xl border border-sun/20 bg-sun-50/60 p-4 md:p-5">
+    <section className="rounded-2xl border border-sun-200 bg-sun-50 p-4 md:p-5">
       <div className="flex items-start gap-3">
-        <div className="w-10 h-10 rounded-xl bg-sun text-white grid place-items-center shrink-0">
-          <CheckCircle2 size={18} />
-        </div>
+        <span className="icon-box-sun h-10 w-10 shrink-0 bg-sun-500 text-white ring-sun-500">
+          <CheckCircle2 size={18} aria-hidden="true" />
+        </span>
+
         <div className="min-w-0 flex-1 space-y-2">
-          <div className="text-xs font-bold uppercase tracking-wide text-sun">
+          <p className="text-xs font-bold uppercase tracking-wide text-sun-700">
             {verdict.label}
-          </div>
-          <h3 className="font-display text-lg font-bold text-ink line-clamp-2 tracking-tight">
+          </p>
+
+          <h2 className="font-display text-lg font-bold tracking-tight text-ink-900 line-clamp-2">
             {verdict.title}
-          </h3>
+          </h2>
+
           {verdict.reasons?.length > 0 && (
             <ul className="flex flex-wrap gap-2">
               {verdict.reasons.map((reason) => (
                 <li
                   key={reason}
-                  className="rounded-md bg-white border border-sun/15 px-2.5 py-1 text-xs font-medium text-ink-600"
+                  className="rounded-md border border-sun-100 bg-white px-2.5 py-1 text-xs font-medium text-ink-600"
                 >
                   {reason}
                 </li>
               ))}
             </ul>
           )}
+
           <div className="flex flex-wrap gap-2 pt-1">
             {external && item._compareUrl ? (
-              <a
+              <Button
+                variant="primary"
                 href={item._compareUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 rounded-xl bg-sun px-3.5 py-2 text-sm font-semibold text-white hover:bg-sun-600 transition"
+                iconRight={ExternalLink}
               >
                 {t("compare.openOn", {
                   platform: getPlatformLabel(item._compareSource),
                 })}
-                <ExternalLink size={14} />
-              </a>
+              </Button>
             ) : (
-              <Link
-                to={`/ad/${key}`}
-                className="inline-flex items-center gap-1.5 rounded-xl bg-sun px-3.5 py-2 text-sm font-semibold text-white hover:bg-sun-600 transition"
-              >
+              <Button variant="primary" to={`/ad/${key}`}>
                 {t("compare.openListing")}
-              </Link>
+              </Button>
             )}
+
             {catalogPath && (
-              <Link
-                to={catalogPath}
-                className="inline-flex items-center gap-1.5 rounded-xl border border-ink/10 bg-white px-3.5 py-2 text-sm font-semibold text-ink-600 hover:bg-mist transition"
-              >
-                {t("compare.findMoreOriyon")}
-              </Link>
+              <Button to={catalogPath}>{t("compare.findMoreOriyon")}</Button>
             )}
           </div>
         </div>
