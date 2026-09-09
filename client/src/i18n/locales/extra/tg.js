@@ -1,5 +1,7 @@
 export default {
   a11y: {
+    photoCount: "акс",
+    viewCount: "дидашуда",
     breadcrumbs: "Навигатсия",
     pagination: "Саҳифабандӣ",
     page: "Саҳифа {{page}}",
@@ -815,6 +817,8 @@ export default {
     showAllResults: "Нишон додани ҳамаи натиҷаҳо",
   },
   promotion: {
+    vipTitle: "Эълони VIP",
+    topTitle: "Эълони TOP",
     activating: "Фаъол мешавад...",
     activatingVip: "VIP фаъол мешавад...",
     activatingTop: "TOP фаъол мешавад...",

@@ -1,5 +1,5 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import ListingCardMedia from "./ListingCardMedia";
 import { enrichRealEstateListing, buildRealEstateCardDisplay } from "../lib/realEstate";
 import RealEstateDailyFeatures from "./realestate/RealEstateDailyFeatures";
@@ -16,7 +16,6 @@ export default function RealEstateListingCard({
   nights = 0,
   onFav,
 }) {
-  const nav = useNavigate();
   const listing = enrichRealEstateListing(item);
   const id = listing.id || listing._id;
   const summary = listing.realEstateSummary || {};
@@ -35,10 +34,25 @@ export default function RealEstateListingCard({
     : listing.location || "Душанбе";
   const photoCount = getListingImages(listing).length;
 
-  const openAd = () => {
+  const href = id ? `/ad/${id}` : "#";
+
+  const primeDetailView = () => {
     if (!id) return;
-    sessionStorage.setItem("ad_preview", JSON.stringify(listing));
-    nav(`/ad/${id}`);
+    try {
+      sessionStorage.setItem("ad_preview", JSON.stringify(listing));
+    } catch {
+      // Private browsing and full quotas only cost us the warm start.
+    }
+  };
+
+  // The title anchor is the real navigation target; this only widens the mouse
+  // target without stealing clicks from the controls layered on the photo.
+  const onCardClick = (event) => {
+    if (!id) return;
+    if (event.target.closest("a, button, input, [role='button']")) return;
+
+    primeDetailView();
+    event.currentTarget.querySelector(".listing-card__link")?.click();
   };
 
   const stayPriceNote =
@@ -50,18 +64,10 @@ export default function RealEstateListingCard({
   if (isHorizontal) {
     return (
       <article
-        role="link"
-        tabIndex={0}
-        onClick={openAd}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            openAd();
-          }
-        }}
-        className={`group relative flex cursor-pointer overflow-hidden rounded-2xl border bg-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-sun/40 ${getPromotionCardClass(
+        onClick={onCardClick}
+        className={`listing-card group flex cursor-pointer flex-row gap-3 p-2.5 ${getPromotionCardClass(
           { vip: listing.vip, top: listing.top }
-        )} flex-row p-2.5 gap-3`}
+        )}`}
       >
         <ListingCardMedia
           item={listing}
@@ -105,8 +111,10 @@ export default function RealEstateListingCard({
             </div>
           )}
 
-          <h3 className="mt-1 text-sm font-bold text-slate-800 line-clamp-2 group-hover:text-sun transition">
-            {cardCopy.title}
+          <h3 className="mt-1 text-sm font-semibold leading-snug text-ink-800 line-clamp-2">
+            <Link to={href} className="listing-card__link" onClick={primeDetailView}>
+              {cardCopy.title}
+            </Link>
           </h3>
 
           <div className="mt-1.5 text-xs text-slate-500 line-clamp-1 flex items-center gap-1">
@@ -135,16 +143,8 @@ export default function RealEstateListingCard({
 
   return (
     <article
-      role="link"
-      tabIndex={0}
-      onClick={openAd}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          openAd();
-        }
-      }}
-      className={`re-listing-card group cursor-pointer focus:outline-none focus:ring-2 focus:ring-sun/40 ${viewed ? "listing-card--viewed" : ""} ${getPromotionCardClass(
+      onClick={onCardClick}
+      className={`re-listing-card group cursor-pointer ${viewed ? "listing-card--viewed" : ""} ${getPromotionCardClass(
         { vip: listing.vip, top: listing.top }
       )}`}
     >
@@ -162,7 +162,11 @@ export default function RealEstateListingCard({
       <div className="re-listing-card__body">
         <span className="re-listing-card__district">{locationLabel}</span>
 
-        <h3 className="re-listing-card__title">{cardCopy.title}</h3>
+        <h3 className="re-listing-card__title">
+          <Link to={href} className="listing-card__link" onClick={primeDetailView}>
+            {cardCopy.title}
+          </Link>
+        </h3>
 
         {cardCopy.specsLine ? (
           <p className="re-listing-card__specs">{cardCopy.specsLine}</p>

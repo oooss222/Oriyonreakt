@@ -63,18 +63,18 @@ export default function CompareListingButton({
     setActive(Boolean(result?.active));
   };
 
-  const sizeClass = compact || overlay ? "h-9 w-9" : "h-9 w-9";
+  const sizeClass = overlay ? "h-10 w-10" : compact ? "h-9 w-9" : "h-10 w-10";
 
   const buttonClass = overlay
-    ? `inline-flex ${sizeClass} items-center justify-center rounded-full border shadow-sm transition backdrop-blur-sm ${
+    ? `inline-flex ${sizeClass} items-center justify-center rounded-full shadow-sm transition backdrop-blur-sm active:scale-95 ${
         active
-          ? "border-sun/40 bg-sun text-white"
-          : "border-white/40 bg-white/90 text-ink-500 hover:bg-white"
+          ? "bg-sun-500 text-white"
+          : "bg-white/95 text-ink-400 hover:bg-white hover:text-ink-700"
       }`
     : `inline-flex ${sizeClass} items-center justify-center rounded-full border transition ${
         active
-          ? "border-sun/40 bg-sun/10 text-sun"
-          : "border-ink/10 bg-white text-ink-400 hover:bg-mist/70 hover:text-ink-500"
+          ? "border-sun-300 bg-sun-50 text-sun-700"
+          : "border-ink-200 bg-white text-ink-400 hover:bg-mist-100 hover:text-ink-600"
       }`;
 
   return (
@@ -87,7 +87,7 @@ export default function CompareListingButton({
         title={active ? t("compare.inCompare") : t("compare.compareAction")}
         className={buttonClass}
       >
-        <Scale className={compact || overlay ? "h-4 w-4" : "h-[18px] w-[18px]"} />
+        <Scale className={compact ? "h-4 w-4" : "h-[18px] w-[18px]"} />
       </button>
 
       {count > 0 && !compact && !overlay && showOpenLink && (

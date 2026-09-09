@@ -4,6 +4,7 @@ import { Heart } from "lucide-react";
 import { api } from "../lib/api";
 import { goToAuth } from "../lib/auth";
 import { trackFavorite } from "../lib/track";
+import { cn } from "../ui";
 import { useI18n } from "../i18n";
 
 export default function FavoriteButton({
@@ -71,24 +72,29 @@ export default function FavoriteButton({
       onClick={toggle}
       disabled={loading}
       aria-label={label}
+      aria-pressed={active}
       title={label}
-      className={`inline-flex items-center justify-center transition group shrink-0 ${
-        overlay
-          ? "h-9 w-9 rounded-full border border-ink/10 bg-white shadow-sm hover:shadow-md"
-          : compact
-            ? "p-1"
-            : "rounded-full border bg-white/90 backdrop-blur px-2.5 py-2 shadow-sm hover:shadow"
-      } ${loading ? "opacity-70 cursor-not-allowed" : ""}`}
+      className={cn(
+        "group/fav inline-flex shrink-0 items-center justify-center transition",
+        // Overlay buttons sit on a photo, so they need their own surface and a
+        // 40px hit area even though the icon itself is small.
+        overlay &&
+          "h-10 w-10 rounded-full bg-white/95 shadow-sm backdrop-blur-sm hover:bg-white hover:shadow-md active:scale-95",
+        !overlay &&
+          !compact &&
+          "h-10 w-10 rounded-full border border-ink-200 bg-white shadow-xs hover:border-danger-200 hover:bg-danger-50",
+        compact && "h-9 w-9 rounded-full hover:bg-mist-200",
+        loading && "cursor-not-allowed opacity-70"
+      )}
     >
       <Heart
-        size={overlay ? 16 : 18}
-        className={`transition-colors ${
+        size={overlay || compact ? 18 : 19}
+        className={cn(
+          "transition-colors",
           active
-            ? "text-red-500"
-            : overlay
-              ? "text-slate-500 group-hover:text-red-500"
-              : "text-gray-700 group-hover:text-red-600"
-        }`}
+            ? "text-danger-500"
+            : "text-ink-400 group-hover/fav:text-danger-500"
+        )}
         fill={active ? "currentColor" : "none"}
       />
     </button>

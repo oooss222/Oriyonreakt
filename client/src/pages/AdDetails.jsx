@@ -25,6 +25,7 @@ import AdListingHeader from "../components/ad/AdListingHeader";
 import AdStickyAside from "../components/ad/AdStickyAside";
 import AdPurchasePanel from "../components/ad/AdPurchasePanel";
 import RealEstateHighlights from "../components/RealEstateHighlights";
+import MortgageCalculator from "../components/MortgageCalculator";
 import PriceAdequacyBadge from "../components/PriceAdequacyBadge";
 import Breadcrumbs from "../components/Breadcrumbs";
 import EmptyState from "../components/EmptyState";

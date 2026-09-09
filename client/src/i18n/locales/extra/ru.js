@@ -1,5 +1,7 @@
 export default {
   a11y: {
+    photoCount: "фото",
+    viewCount: "просмотров",
     breadcrumbs: "Навигация",
     pagination: "Пагинация",
     page: "Страница {{page}}",
@@ -816,6 +818,8 @@ export default {
     showAllResults: "Показать все результаты",
   },
   promotion: {
+    vipTitle: "VIP-объявление",
+    topTitle: "TOP-объявление",
     activating: "Подключаем...",
     activatingVip: "Подключаем VIP...",
     activatingTop: "Подключаем TOP...",

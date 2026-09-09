@@ -1,10 +1,11 @@
 import React from "react";
+import { Camera, Eye } from "lucide-react";
 import FavoriteButton from "./FavoriteButton";
 import CompareListingButton from "./CompareListingButton";
 import { PromotionBadgeGroup } from "./PromotionBadge";
 import { formatViewCount } from "../lib/format";
 import { isCompareSupported } from "../lib/compareListings";
-import { Eye } from "lucide-react";
+import { useI18n } from "../i18n";
 
 export default function ListingCardOverlays({
   views = 0,
@@ -20,30 +21,21 @@ export default function ListingCardOverlays({
   compareCat = "",
   compactBottom = false,
 }) {
+  const { t } = useI18n();
   const viewCount = Number(views || 0);
   const photos = Number(photoCount || 0);
   const canCompare = showCompare && favoriteId && isCompareSupported(compareCat);
 
   return (
     <>
-      <div
-        className="pointer-events-none absolute inset-x-0 top-0 z-[1] h-12 bg-gradient-to-b from-black/30 to-transparent"
-        aria-hidden
-      />
-      <div
-        className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-10 bg-gradient-to-t from-black/25 to-transparent"
-        aria-hidden
-      />
-
-      <div className="absolute left-2 top-2 z-10 max-w-[calc(100%-3.5rem)]">
-        <PromotionBadgeGroup vip={vip} top={top} size="sm" />
-      </div>
+      {vip || top ? (
+        <div className="absolute left-2 top-2 z-10 max-w-[calc(100%-4rem)]">
+          <PromotionBadgeGroup vip={vip} top={top} size="sm" />
+        </div>
+      ) : null}
 
       {(showFavorite && favoriteId) || canCompare ? (
-        <div
-          className="absolute right-2 top-2 z-10 flex flex-col items-end gap-1.5"
-          onClick={(e) => e.stopPropagation()}
-        >
+        <div className="absolute right-1.5 top-1.5 z-20 flex flex-col items-end gap-1">
           {showFavorite && favoriteId ? (
             <FavoriteButton
               id={favoriteId}
@@ -63,31 +55,33 @@ export default function ListingCardOverlays({
         </div>
       ) : null}
 
-      {(viewCount > 0 || morePhotos > 0 || photos > 0) && (
+      {photos > 0 || viewCount > 0 || morePhotos > 0 ? (
         <div
-          className={`absolute inset-x-0 z-10 flex items-center justify-between gap-2 px-2 ${
-            compactBottom ? "bottom-5 pb-0" : "bottom-0 p-2"
+          className={`pointer-events-none absolute inset-x-0 z-10 flex items-center justify-between gap-2 px-2 ${
+            compactBottom ? "bottom-5" : "bottom-2"
           }`}
         >
-          {photos > 0 ? (
-            <span className="rounded-full bg-black/55 px-2 py-0.5 text-2xs font-semibold text-white backdrop-blur-sm">
-              {photos} фото
+          {photos > 1 ? (
+            <span className="media-pill">
+              <Camera size={11} aria-hidden />
+              {photos}
+              <span className="sr-only"> {t("a11y.photoCount")}</span>
             </span>
           ) : viewCount > 0 ? (
-            <span className="inline-flex items-center gap-1 rounded-full bg-black/50 px-2 py-0.5 text-2xs font-semibold text-white backdrop-blur-sm">
-              <Eye className="h-3 w-3" />
+            <span className="media-pill">
+              <Eye size={11} aria-hidden />
               {formatViewCount(viewCount)}
+              <span className="sr-only"> {t("a11y.viewCount")}</span>
             </span>
           ) : (
             <span />
           )}
+
           {morePhotos > 0 ? (
-            <span className="rounded-full bg-black/55 px-2 py-0.5 text-2xs font-semibold text-white backdrop-blur-sm">
-              +{morePhotos}
-            </span>
+            <span className="media-pill">+{morePhotos}</span>
           ) : null}
         </div>
-      )}
+      ) : null}
     </>
   );
 }

@@ -1,5 +1,7 @@
 export default {
   a11y: {
+    photoCount: "photos",
+    viewCount: "views",
     breadcrumbs: "Breadcrumb",
     pagination: "Pagination",
     page: "Page {{page}}",
@@ -810,6 +812,8 @@ export default {
     showAllResults: "Show all results",
   },
   promotion: {
+    vipTitle: "VIP listing",
+    topTitle: "TOP listing",
     activating: "Activating...",
     activatingVip: "Activating VIP...",
     activatingTop: "Activating TOP...",
