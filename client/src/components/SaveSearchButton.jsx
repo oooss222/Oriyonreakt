@@ -116,14 +116,14 @@ export default function SaveSearchButton({
       {saved && token && (
         <Link
           to="/profile?tab=searches"
-          className="text-[11px] text-center text-sun-700 hover:text-sun font-medium"
+          className="text-2xs text-center text-sun-700 hover:text-sun font-medium"
         >
           {t("search.openInProfile")}
         </Link>
       )}
 
       {!token && saved && (
-        <span className="text-[11px] text-center text-slate-500">
+        <span className="text-2xs text-center text-slate-500">
           {t("search.loginToSync")}
         </span>
       )}

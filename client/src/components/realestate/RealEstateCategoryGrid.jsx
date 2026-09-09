@@ -39,7 +39,7 @@ export default function RealEstateCategoryGrid({ city, statsBySubcategory = {} }
             }`}
           >
             {count > 0 && (
-              <span className="absolute top-3 right-3 rounded-full bg-ink text-white text-[10px] font-bold px-2 py-0.5 tabular-nums">
+              <span className="absolute top-3 right-3 rounded-full bg-ink text-white text-2xs font-bold px-2 py-0.5 tabular-nums">
                 {count}
               </span>
             )}

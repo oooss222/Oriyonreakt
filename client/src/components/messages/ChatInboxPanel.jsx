@@ -210,7 +210,7 @@ export default function ChatInboxPanel({
                         </div>
                         {badge ? (
                           <div
-                            className={`inline-flex mt-1 rounded-md px-1.5 py-0.5 text-[10px] font-bold tracking-wide uppercase ${badge.className}`}
+                            className={`inline-flex mt-1 rounded-md px-1.5 py-0.5 text-2xs font-bold tracking-wide uppercase ${badge.className}`}
                           >
                             {badge.label}
                           </div>
@@ -219,14 +219,14 @@ export default function ChatInboxPanel({
 
                       <div className="shrink-0 text-right">
                         <div
-                          className={`text-[11px] tabular-nums ${
+                          className={`text-2xs tabular-nums ${
                             unread ? "font-semibold text-sun-600" : "text-ink-400"
                           }`}
                         >
                           {formatInboxTime(item.createdAt, t)}
                         </div>
                         {unread ? (
-                          <div className="mt-1.5 ml-auto min-w-[1.25rem] h-5 px-1.5 rounded-full bg-sun text-white text-[10px] font-bold inline-flex items-center justify-center shadow-soft">
+                          <div className="mt-1.5 ml-auto min-w-[1.25rem] h-5 px-1.5 rounded-full bg-sun text-white text-2xs font-bold inline-flex items-center justify-center shadow-soft">
                             {Number(item.unreadCount) > 99
                               ? "99+"
                               : item.unreadCount}

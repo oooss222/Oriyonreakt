@@ -927,7 +927,7 @@ export default function AdDetails() {
             {/* Description */}
             <section className="rounded-3xl border border-slate-200 bg-white p-5 md:p-6 shadow-sm">
               <h2 className="mb-4 text-lg font-bold text-slate-900">Описание</h2>
-              <p className="text-slate-700 whitespace-pre-wrap leading-7 text-[15px]">
+              <p className="text-slate-700 whitespace-pre-wrap leading-7 text-base">
                 {ad.description || t("listing.noDescription")}
               </p>
             </section>

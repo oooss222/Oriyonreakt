@@ -213,7 +213,7 @@ export default function ListingPromotionActions({
                 </div>
 
                 {vipActive && (
-                  <span className="rounded-md bg-sun px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-white">
+                  <span className="rounded-md bg-sun px-2.5 py-1 text-2xs font-bold uppercase tracking-wide text-white">
                     {t("promotion.active")}
                   </span>
                 )}
@@ -266,7 +266,7 @@ export default function ListingPromotionActions({
                 </div>
 
                 {topActive && (
-                  <span className="rounded-md bg-lagoon px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-white">
+                  <span className="rounded-md bg-lagoon px-2.5 py-1 text-2xs font-bold uppercase tracking-wide text-white">
                     {t("promotion.active")}
                   </span>
                 )}

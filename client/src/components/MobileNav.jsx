@@ -63,7 +63,7 @@ export default function MobileNav({ showPolicyLink = false }) {
         <div className="border-b border-ink/5 px-4 py-1.5 text-center">
           <Link
             to="/policy"
-            className="text-[10px] font-semibold text-ink-400 hover:text-sun transition"
+            className="text-2xs font-semibold text-ink-400 hover:text-sun transition"
           >
             {t("nav.policy")}
           </Link>
@@ -78,7 +78,7 @@ export default function MobileNav({ showPolicyLink = false }) {
             <Link
               key={to}
               to={to}
-              className={`relative flex flex-col items-center justify-end gap-0.5 pb-1.5 text-[10px] font-semibold transition min-w-0 px-0.5 ${
+              className={`relative flex flex-col items-center justify-end gap-0.5 pb-1.5 text-2xs font-semibold transition min-w-0 px-0.5 ${
                 active
                   ? "text-sun"
                   : highlight
@@ -95,7 +95,7 @@ export default function MobileNav({ showPolicyLink = false }) {
               >
                 <Icon size={highlight ? 22 : 20} />
                 {showBadge && (
-                  <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-red-500 text-white text-[9px] font-bold flex items-center justify-center ring-2 ring-white">
+                  <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-red-500 text-white text-2xs font-bold flex items-center justify-center ring-2 ring-white">
                     {unreadCount > 99 ? "99+" : unreadCount}
                   </span>
                 )}

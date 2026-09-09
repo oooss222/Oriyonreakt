@@ -59,13 +59,13 @@ function MessageBubble({ msg, mine, t }) {
       ) : null}
 
       {msg.text ? (
-        <div className="whitespace-pre-wrap text-[15px] leading-relaxed">
+        <div className="whitespace-pre-wrap text-base leading-relaxed">
           {msg.text}
         </div>
       ) : null}
 
       <div
-        className={`flex items-center justify-end gap-1 text-[11px] mt-1.5 ${
+        className={`flex items-center justify-end gap-1 text-2xs mt-1.5 ${
           mine ? "text-white/75" : "text-ink-300"
         }`}
       >
@@ -128,7 +128,7 @@ function ListingContextCard({ listing, selected, t }) {
           <div className="mt-1 flex flex-wrap items-center gap-2 text-sm">
             <span className="font-bold text-sun">{price}</span>
             <span
-              className={`inline-flex rounded-md border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${listingStatusClass(
+              className={`inline-flex rounded-md border px-2 py-0.5 text-2xs font-bold uppercase tracking-wide ${listingStatusClass(
                 status
               )}`}
             >
@@ -281,7 +281,7 @@ export default function ChatThreadPanel({
                     {peerName}
                   </div>
                   {supportThread ? (
-                    <span className="inline-flex items-center rounded-md bg-lagoon/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-lagoon-700">
+                    <span className="inline-flex items-center rounded-md bg-lagoon/10 px-2 py-0.5 text-2xs font-bold uppercase tracking-wide text-lagoon-700">
                       {t("chat.official")}
                     </span>
                   ) : null}
@@ -389,7 +389,7 @@ export default function ChatThreadPanel({
                   return (
                     <div key={entry.id} className="flex items-center gap-3 py-2">
                       <div className="h-px flex-1 bg-sun/25" />
-                      <span className="text-[11px] font-bold tracking-[0.12em] uppercase text-sun-600">
+                      <span className="text-2xs font-bold tracking-[0.12em] uppercase text-sun-600">
                         {t("chat.newMessages")}
                       </span>
                       <div className="h-px flex-1 bg-sun/25" />

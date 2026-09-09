@@ -25,7 +25,7 @@ export default function RealEstateDailyFeatures({ specs = [], compact = false })
           {amenities.map((item) => (
             <span
               key={item}
-              className="inline-flex rounded-full bg-mist px-2.5 py-1 text-[11px] font-semibold text-ink-600"
+              className="inline-flex rounded-full bg-mist px-2.5 py-1 text-2xs font-semibold text-ink-600"
             >
               {item}
             </span>
@@ -38,7 +38,7 @@ export default function RealEstateDailyFeatures({ specs = [], compact = false })
           {rules.map(({ name, value }) => (
             <span
               key={name}
-              className="inline-flex rounded-xl border border-ink/10 bg-white px-2.5 py-1 text-[11px] font-medium text-ink-600"
+              className="inline-flex rounded-xl border border-ink/10 bg-white px-2.5 py-1 text-2xs font-medium text-ink-600"
             >
               {name}: {value}
             </span>

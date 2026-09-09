@@ -1,0 +1,80 @@
+@layer base {
+  html {
+    @apply scroll-smooth overflow-x-clip;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    @apply font-sans text-[0.9375rem] leading-6 text-ink-800 antialiased overflow-x-clip;
+    /* A flat neutral canvas. The previous fixed radial gradient tinted every
+       screen and fought with the cards sitting on top of it. */
+    background-color: var(--mist-100);
+    min-height: 100vh;
+  }
+
+  ::selection {
+    background: rgb(255 106 0 / 0.18);
+    color: var(--ink-900);
+  }
+
+  :focus-visible {
+    @apply outline-none ring-2 ring-sun/60 ring-offset-2 ring-offset-white;
+    border-radius: var(--radius-md);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: Outfit, Manrope, ui-sans-serif, system-ui, sans-serif;
+    @apply text-ink-900;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+
+  h1 {
+    @apply text-2xl sm:text-3xl font-extrabold;
+  }
+
+  h2 {
+    @apply text-xl sm:text-2xl font-bold;
+  }
+
+  h3 {
+    @apply text-lg font-bold;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  /* Tabular figures keep prices and counters from jittering as they update. */
+  .tabular,
+  .text-price,
+  time {
+    font-variant-numeric: tabular-nums;
+  }
+
+  hr {
+    @apply border-ink-200;
+  }
+
+  [hidden] {
+    display: none !important;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}

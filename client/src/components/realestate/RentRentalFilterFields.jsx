@@ -73,7 +73,7 @@ export default function RentRentalFilterFields({
           options={RENT_APPLIANCE_OPTIONS}
           onChange={(value) => setSpec("Техника", value)}
         />
-        <p className="mt-2 text-[11px] text-ink-400">
+        <p className="mt-2 text-2xs text-ink-400">
           Можно выбрать несколько — покажем квартиры со всей выбранной техникой
         </p>
       </div>

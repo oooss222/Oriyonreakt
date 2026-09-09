@@ -19,7 +19,7 @@ import { formatPriceInput, getPriceDigits } from "../data/specOptions";
 import { useI18n, pluralRealEstateListings } from "../i18n";
 
 const FIELD_LABEL =
-  "mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500";
+  "mb-1.5 block text-2xs font-semibold uppercase tracking-[0.08em] text-slate-500";
 const FIELD_CONTROL =
   "h-11 w-full rounded-xl border border-slate-200/90 bg-white text-sm font-medium text-slate-900 outline-none transition focus:border-sun/50 focus:ring-2 focus:ring-sun/20 appearance-none";
 
@@ -178,7 +178,7 @@ function HeroPriceFilter({ priceFrom, priceTo, priceCurrency, onChange, dealType
                       priceCurrency,
                     })
                   }
-                  className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-medium text-slate-600 hover:border-sun/40 hover:bg-sun-50 hover:text-sun-800"
+                  className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-2xs font-medium text-slate-600 hover:border-sun/40 hover:bg-sun-50 hover:text-sun-800"
                 >
                   {preset.label.replace("Любая", "").trim() || preset.label}
                 </button>

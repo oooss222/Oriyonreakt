@@ -243,7 +243,7 @@ export default function RealEstate() {
                   )}
                   <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/55 to-transparent" />
                   {item.developer && (
-                    <span className="absolute left-3 bottom-3 text-[11px] font-semibold uppercase tracking-wide text-white/90">
+                    <span className="absolute left-3 bottom-3 text-2xs font-semibold uppercase tracking-wide text-white/90">
                       {item.developer}
                     </span>
                   )}

@@ -101,7 +101,7 @@ export default function CompareListingButton({
       )}
 
       {toast && (
-        <div className="absolute left-1/2 top-full z-30 mt-2 w-48 -translate-x-1/2 rounded-xl border border-ink/10 bg-white px-2.5 py-2 text-[11px] font-medium text-ink-600 shadow-lg">
+        <div className="absolute left-1/2 top-full z-30 mt-2 w-48 -translate-x-1/2 rounded-xl border border-ink/10 bg-white px-2.5 py-2 text-2xs font-medium text-ink-600 shadow-lg">
           {toast}
         </div>
       )}

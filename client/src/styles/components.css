@@ -1,0 +1,501 @@
+/*
+ * Shared component layer.
+ *
+ * These classes are the single source of truth for buttons, surfaces, form
+ * controls, chips and listing cards. React primitives in src/ui compose them,
+ * and older screens can keep using the class names directly while they migrate.
+ */
+
+@layer components {
+  /* ---------------------------------------------------------------- layout */
+
+  .page-shell {
+    @apply min-h-full;
+  }
+
+  .page-container,
+  .container-x {
+    @apply mx-auto w-full max-w-content px-4 sm:px-5 lg:px-6;
+  }
+
+  .page-container--narrow {
+    @apply max-w-3xl;
+  }
+
+  .stack-page {
+    @apply py-5 space-y-6 sm:py-6 sm:space-y-8;
+  }
+
+  .section-title {
+    @apply font-display text-xl font-bold text-ink-900 sm:text-2xl;
+  }
+
+  .section-subtitle {
+    @apply text-sm text-ink-400;
+  }
+
+  .label-caps {
+    @apply shrink-0 text-xs font-semibold uppercase tracking-wide text-ink-400;
+  }
+
+  .brand-wordmark {
+    @apply font-display font-extrabold tracking-tight;
+  }
+
+  .grid-items {
+    @apply grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5;
+  }
+
+  /* -------------------------------------------------------------- surfaces */
+
+  .card,
+  .panel,
+  .filter-panel {
+    @apply rounded-2xl border border-ink-200 bg-white shadow-xs;
+  }
+
+  .card {
+    @apply transition-shadow duration-200;
+  }
+
+  .card-interactive:hover {
+    @apply border-ink-300/60 shadow-md;
+  }
+
+  .surface-panel {
+    @apply rounded-2xl border border-ink-200 bg-white shadow-xs;
+  }
+
+  .surface-muted {
+    @apply rounded-2xl border border-ink-200 bg-mist-50;
+  }
+
+  .divider {
+    @apply h-px w-full bg-ink-200;
+  }
+
+  /* --------------------------------------------------------------- buttons */
+
+  .btn {
+    @apply inline-flex min-h-[2.5rem] select-none items-center justify-center gap-2
+           rounded-xl border border-ink-200 bg-white px-4 py-2
+           text-sm font-semibold text-ink-800
+           transition-colors duration-150
+           hover:bg-mist-100 hover:border-ink-300/70
+           active:bg-mist-200
+           disabled:pointer-events-none disabled:opacity-50;
+  }
+
+  .btn-primary {
+    @apply border-transparent bg-sun-500 text-white
+           hover:bg-sun-600 hover:border-transparent active:bg-sun-700;
+  }
+
+  .btn-accent {
+    @apply border-transparent bg-ink-900 text-white
+           hover:bg-ink-800 hover:border-transparent active:bg-ink-950;
+  }
+
+  .btn-lagoon {
+    @apply border-transparent bg-lagoon-500 text-white
+           hover:bg-lagoon-600 hover:border-transparent active:bg-lagoon-700;
+  }
+
+  .btn-danger {
+    @apply border-danger-200 bg-danger-50 text-danger-700
+           hover:bg-danger-100 hover:border-danger-300;
+  }
+
+  .btn-ghost {
+    @apply border-transparent bg-transparent text-ink-600
+           hover:bg-mist-100 hover:border-transparent hover:text-ink-900;
+  }
+
+  .btn-sm {
+    @apply min-h-[2.125rem] gap-1.5 rounded-lg px-3 py-1.5 text-xs;
+  }
+
+  .btn-lg {
+    @apply min-h-[3rem] rounded-xl px-5 text-base;
+  }
+
+  .btn-block {
+    @apply w-full;
+  }
+
+  /* Square icon-only control. 40px keeps it comfortable on touch. */
+  .btn-icon {
+    @apply h-10 w-10 shrink-0 gap-0 px-0;
+  }
+
+  .btn-icon-sm {
+    @apply h-9 w-9 shrink-0 gap-0 px-0;
+  }
+
+  /* Full width, 44px tall: the standard mobile action. */
+  .mobile-btn {
+    @apply inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl
+           px-4 text-sm font-semibold transition-colors duration-150
+           disabled:pointer-events-none disabled:opacity-50;
+  }
+
+  .mobile-control {
+    @apply h-11 w-full rounded-xl border border-ink-200 bg-white px-3 text-sm text-ink-800
+           outline-none transition
+           placeholder:text-ink-300
+           focus:border-sun-400 focus:ring-2 focus:ring-sun/25;
+  }
+
+  /* ---------------------------------------------------------- form controls */
+
+  .input,
+  .select,
+  .textarea {
+    @apply w-full rounded-xl border border-ink-200 bg-white px-3 text-sm text-ink-900
+           outline-none transition
+           placeholder:text-ink-300
+           focus:border-sun-400 focus:ring-2 focus:ring-sun/25
+           disabled:cursor-not-allowed disabled:bg-mist-100 disabled:text-ink-400;
+  }
+
+  .input,
+  .select {
+    @apply h-11;
+  }
+
+  .textarea {
+    @apply min-h-[7.5rem] resize-y py-2.5 leading-relaxed;
+  }
+
+  .select {
+    @apply appearance-none bg-no-repeat pr-9;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236E7681' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-position: right 0.75rem center;
+    background-size: 1rem;
+  }
+
+  .input-invalid,
+  .select-invalid,
+  .textarea-invalid {
+    @apply border-danger-300 focus:border-danger-400 focus:ring-danger-500/20;
+  }
+
+  .field-label {
+    @apply mb-1.5 block text-sm font-medium text-ink-600;
+  }
+
+  .field-required::after {
+    content: " *";
+    @apply text-danger-600;
+  }
+
+  .field-hint {
+    @apply mt-1.5 text-xs text-ink-400;
+  }
+
+  .field-error {
+    @apply mt-1.5 flex items-start gap-1.5 text-xs font-medium text-danger-700;
+  }
+
+  /* ----------------------------------------------------------------- badges */
+
+  .badge {
+    @apply inline-flex items-center gap-1 rounded-lg border border-sun-100 bg-sun-50
+           px-2 py-1 text-2xs font-semibold text-sun-800;
+  }
+
+  .badge-neutral {
+    @apply border-ink-200 bg-mist-100 text-ink-600;
+  }
+
+  .badge-success {
+    @apply border-success-200 bg-success-50 text-success-700;
+  }
+
+  .badge-warning {
+    @apply border-warning-200 bg-warning-50 text-warning-800;
+  }
+
+  .badge-danger {
+    @apply border-danger-200 bg-danger-50 text-danger-700;
+  }
+
+  .badge-info {
+    @apply border-info-200 bg-info-50 text-info-700;
+  }
+
+  /* ------------------------------------------------------------------ chips */
+
+  .chip {
+    @apply inline-flex h-9 shrink-0 select-none items-center justify-center gap-1.5
+           rounded-full border border-ink-200 bg-white px-3.5
+           text-sm font-medium text-ink-700
+           transition-colors duration-150
+           hover:border-ink-300 hover:bg-mist-100
+           disabled:pointer-events-none disabled:opacity-50;
+  }
+
+  .chip-active {
+    @apply border-ink-900 bg-ink-900 text-white hover:border-ink-900 hover:bg-ink-800;
+  }
+
+  .chip-sun {
+    @apply border-sun-500 bg-sun-50 text-sun-800 hover:border-sun-500 hover:bg-sun-100;
+  }
+
+  /* Removable filter token shown above result lists. */
+  .chip-token {
+    @apply inline-flex h-8 items-center gap-1.5 rounded-full border border-ink-200
+           bg-mist-50 pl-3 pr-1.5 text-xs font-medium text-ink-700;
+  }
+
+  /* --------------------------------------------------------------- segmented */
+
+  .segmented {
+    @apply inline-flex gap-1 rounded-xl border border-ink-200 bg-mist-100 p-1;
+  }
+
+  .segmented-item {
+    @apply inline-flex min-h-[2.125rem] items-center justify-center rounded-lg px-3.5
+           text-sm font-semibold text-ink-500 transition-colors duration-150
+           hover:text-ink-900;
+  }
+
+  .segmented-item-active {
+    @apply bg-white text-ink-900 shadow-xs hover:text-ink-900;
+  }
+
+  /* ------------------------------------------------------------------ icons */
+
+  .icon-box {
+    @apply grid place-items-center rounded-xl ring-1;
+  }
+
+  .icon-box-sun {
+    @apply grid place-items-center rounded-xl bg-sun-50 text-sun-700 ring-1 ring-sun-100;
+  }
+
+  .icon-box-ink {
+    @apply grid place-items-center rounded-xl bg-mist-100 text-ink-700 ring-1 ring-ink-200;
+  }
+
+  /* --------------------------------------------------------------- skeleton */
+
+  .skeleton {
+    @apply relative overflow-hidden rounded-lg bg-mist-200;
+  }
+
+  .skeleton::after {
+    content: "";
+    @apply absolute inset-0;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgb(255 255 255 / 0.65) 50%,
+      transparent 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.4s linear infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .skeleton::after {
+      animation: none;
+    }
+  }
+
+  /* ---------------------------------------------------------- listing cards */
+
+  .listing-card {
+    @apply relative flex flex-col overflow-hidden rounded-2xl border border-ink-200
+           bg-white shadow-xs transition-[box-shadow,border-color,transform] duration-200;
+  }
+
+  @media (hover: hover) {
+    .listing-card:hover {
+      @apply -translate-y-0.5 border-ink-300/70 shadow-md;
+    }
+  }
+
+  .listing-card:focus-within {
+    @apply border-sun-300;
+  }
+
+  .listing-card__media {
+    @apply relative aspect-[4/3] overflow-hidden bg-mist-200;
+  }
+
+  .listing-card__body {
+    @apply flex flex-1 flex-col gap-1 p-3;
+  }
+
+  .listing-card--viewed .listing-card__media img {
+    @apply opacity-90;
+  }
+
+  /* Price leads the card: it is what people scan for in a classifieds feed. */
+  .listing-card__price {
+    @apply font-display text-lg font-extrabold leading-none tracking-tight text-ink-900;
+  }
+
+  .listing-card__title {
+    @apply text-sm font-medium leading-snug text-ink-700 line-clamp-2
+           transition-colors group-hover:text-sun-700;
+  }
+
+  .listing-card__details {
+    @apply text-xs font-medium text-ink-400 line-clamp-1;
+  }
+
+  .listing-card__location {
+    @apply inline-flex min-w-0 items-center gap-1 text-xs font-medium text-ink-400;
+  }
+
+  .listing-card__time {
+    @apply shrink-0 text-2xs font-medium text-ink-400 whitespace-nowrap;
+  }
+
+  .listing-card__viewed {
+    @apply text-2xs font-medium text-ink-400 whitespace-nowrap;
+  }
+
+  .listing-card__footer {
+    @apply mt-auto flex items-end justify-between gap-2 pt-1;
+  }
+
+  .listing-card__meta {
+    @apply flex shrink-0 flex-col items-end gap-0.5;
+  }
+
+  .listing-card__tag {
+    @apply inline-flex rounded-md bg-mist-100 px-1.5 py-0.5 text-2xs font-bold uppercase text-ink-500;
+  }
+
+  /* Promoted listings read as "endorsed", not as an ad unit: a tinted rail and
+     a slightly stronger border rather than glow or a coloured background. */
+  .promotion-card {
+    @apply transition-[box-shadow,border-color,transform] duration-200;
+  }
+
+  .promotion-card-vip,
+  .promotion-card-top {
+    @apply relative;
+  }
+
+  .promotion-card-vip {
+    @apply border-sun-200;
+  }
+
+  .promotion-card-vip::before,
+  .promotion-card-top::before {
+    content: "";
+    @apply pointer-events-none absolute inset-x-0 top-0 z-10 h-[3px];
+  }
+
+  .promotion-card-vip::before {
+    @apply bg-sun-500;
+  }
+
+  .promotion-card-top {
+    @apply border-lagoon-200;
+  }
+
+  .promotion-card-top::before {
+    @apply bg-lagoon-500;
+  }
+
+  .promotion-panel-vip {
+    @apply bg-sun-50;
+  }
+
+  .promotion-panel-top {
+    @apply bg-lagoon-50;
+  }
+
+  .promotion-badge {
+    position: relative;
+    isolation: isolate;
+  }
+
+  /* ------------------------------------------------------- category surfaces */
+
+  .category-hero {
+    @apply overflow-hidden rounded-3xl border border-ink-200 bg-white shadow-xs;
+  }
+
+  .category-hero-banner {
+    @apply relative overflow-hidden bg-ink-900 text-white;
+  }
+
+  .hero-dark {
+    @apply relative overflow-hidden rounded-3xl border border-ink-800 bg-ink-900 text-white;
+  }
+
+  .subcategory-chip {
+    @apply inline-flex h-9 items-center rounded-full border px-4 text-sm font-medium transition-colors duration-150;
+  }
+
+  .subcategory-chip-active {
+    @apply border-ink-900 bg-ink-900 text-white;
+  }
+
+  .subcategory-chip-idle {
+    @apply border-ink-200 bg-white text-ink-700 hover:border-ink-300 hover:bg-mist-100;
+  }
+
+  /* ------------------------------------------------------------ text helpers */
+
+  .text-muted {
+    @apply text-ink-400;
+  }
+
+  .text-price {
+    @apply font-display font-extrabold tracking-tight text-ink-900;
+  }
+}
+
+@layer utilities {
+  .scrollbar-hide,
+  .scrollbar-none {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar,
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+
+  .scroll-fade-x {
+    mask-image: linear-gradient(
+      to right,
+      transparent,
+      #000 12px,
+      #000 calc(100% - 12px),
+      transparent
+    );
+  }
+
+  .hover-zoom {
+    @apply transition-transform duration-300 ease-out;
+  }
+
+  @media (hover: hover) {
+    .hover-zoom:hover {
+      @apply scale-[1.04];
+    }
+  }
+
+  .animate-fade-in-up {
+    animation: fade-in-up 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  /* Cheap way to keep long words from blowing out narrow card columns. */
+  .break-anywhere {
+    overflow-wrap: anywhere;
+  }
+
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+}

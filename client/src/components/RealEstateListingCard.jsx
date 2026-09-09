@@ -93,7 +93,7 @@ export default function RealEstateListingCard({
               )}
             </div>
             {summary.deal && (
-              <span className="shrink-0 inline-flex px-2 py-0.5 rounded-lg bg-slate-100 text-slate-600 text-[10px] font-bold uppercase">
+              <span className="shrink-0 inline-flex px-2 py-0.5 rounded-lg bg-slate-100 text-slate-600 text-2xs font-bold uppercase">
                 {summary.deal}
               </span>
             )}

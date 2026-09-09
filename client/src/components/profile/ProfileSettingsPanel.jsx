@@ -134,7 +134,7 @@ export default function ProfileSettingsPanel({
             label="Email"
             badge={
               emailStatus === "verified" ? (
-                <span className="inline-flex items-center gap-1 rounded-full bg-lagoon/10 border border-lagoon/15 px-2 py-0.5 text-[11px] font-semibold text-lagoon-700">
+                <span className="inline-flex items-center gap-1 rounded-full bg-lagoon/10 border border-lagoon/15 px-2 py-0.5 text-2xs font-semibold text-lagoon-700">
                   <CheckCircle2 size={12} />
                   {t("profile.emailVerified")}
                 </span>

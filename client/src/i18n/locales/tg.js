@@ -13,6 +13,8 @@ export default {
     cancel: "Бекор кардан",
     yes: "Ҳа",
     no: "Не",
+    confirm: "Тасдиқ кардан",
+    confirmTitle: "Амалро тасдиқ кунед",
   },
   a11y: {
     categories: "Категорияҳо",

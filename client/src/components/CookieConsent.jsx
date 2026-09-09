@@ -84,7 +84,7 @@ function SettingsModal({ open, analyticsEnabled, onAnalyticsChange, onClose, onS
               <div className="min-w-0 flex-1">
                 <div className="flex items-center justify-between gap-3">
                   <div className="font-semibold text-ink text-sm">{t("cookie.essential")}</div>
-                  <span className="rounded-full bg-sun/10 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-sun-700">
+                  <span className="rounded-full bg-sun/10 px-2.5 py-0.5 text-2xs font-bold uppercase tracking-wide text-sun-700">
                     {t("cookie.essentialAlways")}
                   </span>
                 </div>
@@ -215,7 +215,7 @@ export default function CookieConsent() {
                     <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-sun ring-2 ring-white" />
                   </div>
 
-                  <p className="text-[13px] sm:text-sm leading-relaxed text-ink/90">
+                  <p className="text-sm sm:text-sm leading-relaxed text-ink/90">
                     {t("cookie.banner")}{" "}
                     <Link
                       to="/policy"

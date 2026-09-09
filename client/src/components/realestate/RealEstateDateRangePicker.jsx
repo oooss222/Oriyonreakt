@@ -16,7 +16,7 @@ import {
 } from "../../lib/dateRange";
 
 const FIELD_LABEL =
-  "mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500";
+  "mb-1.5 block text-2xs font-semibold uppercase tracking-[0.08em] text-slate-500";
 
 function MonthGrid({ year, month, checkIn, checkOut, minIso, onPickDay }) {
   const cells = buildMonthGrid(year, month, minIso);
@@ -31,7 +31,7 @@ function MonthGrid({ year, month, checkIn, checkOut, minIso, onPickDay }) {
         {WEEKDAYS.map((day) => (
           <div
             key={day}
-            className="py-1 text-center text-[11px] font-semibold uppercase tracking-wide text-slate-400"
+            className="py-1 text-center text-2xs font-semibold uppercase tracking-wide text-slate-400"
           >
             {day}
           </div>
@@ -229,7 +229,7 @@ function DateRangeTrigger({
     >
       <span className="flex min-w-0 flex-1 divide-x divide-slate-200">
         <span className="flex min-w-0 flex-1 flex-col justify-center px-3 py-2">
-          <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-400">
+          <span className="text-2xs font-semibold uppercase tracking-[0.08em] text-slate-400">
             Заезд
           </span>
           <span
@@ -242,7 +242,7 @@ function DateRangeTrigger({
         </span>
 
         <span className="flex min-w-0 flex-1 flex-col justify-center px-3 py-2">
-          <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-400">
+          <span className="text-2xs font-semibold uppercase tracking-[0.08em] text-slate-400">
             Выезд
           </span>
           <span
@@ -375,7 +375,7 @@ export default function RealEstateDateRangePicker({
               open ? "bg-sun-50/60" : ""
             }`}
           >
-            <span className="mb-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-400">
+            <span className="mb-0.5 text-2xs font-semibold uppercase tracking-[0.08em] text-slate-400">
               Заезд
             </span>
             <span
@@ -395,7 +395,7 @@ export default function RealEstateDateRangePicker({
               open ? "bg-sun-50/60" : ""
             }`}
           >
-            <span className="mb-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-400">
+            <span className="mb-0.5 text-2xs font-semibold uppercase tracking-[0.08em] text-slate-400">
               Выезд
             </span>
             <span

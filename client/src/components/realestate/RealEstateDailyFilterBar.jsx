@@ -40,7 +40,7 @@ export default function RealEstateDailyFilterBar({
           <SlidersHorizontal size={15} />
           Фильтры
           {activeFilterCount > 0 && (
-            <span className="min-w-[1.15rem] h-5 px-1 rounded-full bg-sun text-white text-[11px] grid place-items-center">
+            <span className="min-w-[1.15rem] h-5 px-1 rounded-full bg-sun text-white text-2xs grid place-items-center">
               {activeFilterCount}
             </span>
           )}

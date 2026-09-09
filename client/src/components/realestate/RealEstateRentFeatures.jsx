@@ -23,7 +23,7 @@ export default function RealEstateRentFeatures({ specs = [], compact = false }) 
       {appliances.length > 0 ? (
         <div>
           {!compact ? (
-            <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-ink-400">
+            <div className="mb-1.5 text-2xs font-semibold uppercase tracking-wide text-ink-400">
               Техника
             </div>
           ) : null}
@@ -31,7 +31,7 @@ export default function RealEstateRentFeatures({ specs = [], compact = false }) 
             {appliances.map((item) => (
               <span
                 key={item}
-                className="inline-flex rounded-full bg-mist px-2.5 py-1 text-[11px] font-semibold text-ink-600"
+                className="inline-flex rounded-full bg-mist px-2.5 py-1 text-2xs font-semibold text-ink-600"
               >
                 {item}
               </span>
@@ -45,7 +45,7 @@ export default function RealEstateRentFeatures({ specs = [], compact = false }) 
           {rules.map(({ name, value }) => (
             <span
               key={name}
-              className="inline-flex rounded-xl border border-ink/10 bg-white px-2.5 py-1 text-[11px] font-medium text-ink-600"
+              className="inline-flex rounded-xl border border-ink/10 bg-white px-2.5 py-1 text-2xs font-medium text-ink-600"
             >
               {name}: {value}
             </span>

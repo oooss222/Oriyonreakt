@@ -65,7 +65,7 @@ export default function BusinessPromoBanner({
           </div>
 
           <div className="flex-1 min-w-0">
-            <div className="text-[11px] font-bold uppercase tracking-wide text-sun-700">
+            <div className="text-2xs font-bold uppercase tracking-wide text-sun-700">
               Oriyon Premium
             </div>
             <h3 className="font-display font-bold text-lg text-ink mt-0.5">

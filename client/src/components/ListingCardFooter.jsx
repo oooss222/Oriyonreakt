@@ -28,7 +28,7 @@ export default function ListingCardFooter({
           ) : null}
         </strong>
         {priceNote ? (
-          <div className="mt-0.5 text-[11px] font-medium text-slate-500">
+          <div className="mt-0.5 text-2xs font-medium text-slate-500">
             {priceNote}
           </div>
         ) : null}

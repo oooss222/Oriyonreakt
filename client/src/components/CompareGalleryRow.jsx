@@ -97,7 +97,7 @@ export default function CompareGalleryRow({ items = [] }) {
                 />
               </div>
               <div className="text-xs font-medium text-slate-600 line-clamp-1">{col.title}</div>
-              <div className="text-[11px] text-slate-400">
+              <div className="text-2xs text-slate-400">
                 {col.images.length
                   ? t("compare.galleryPhotos", { count: col.images.length })
                   : t("compare.galleryNoPhotos")}

@@ -13,6 +13,8 @@ export default {
     cancel: "Cancel",
     yes: "Yes",
     no: "No",
+    confirm: "Confirm",
+    confirmTitle: "Confirm action",
   },
   a11y: {
     categories: "Categories",

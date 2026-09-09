@@ -510,7 +510,7 @@ export default function ModerationListingsPanel({ token, embedded = false }) {
                         {ad.moderationFlags.map((flag) => (
                           <span
                             key={`${id}-${flag.code}`}
-                            className="inline-flex px-2 py-0.5 text-[11px] rounded-full border bg-amber-50 text-amber-800 border-amber-200"
+                            className="inline-flex px-2 py-0.5 text-2xs rounded-full border bg-amber-50 text-amber-800 border-amber-200"
                           >
                             {flag.message}
                           </span>

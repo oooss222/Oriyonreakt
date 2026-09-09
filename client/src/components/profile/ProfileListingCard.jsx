@@ -135,7 +135,7 @@ export default React.memo(function ProfileListingCard({
 
           <div className="absolute inset-x-0 top-0 flex flex-wrap items-start gap-1.5 p-2.5">
             <span
-              className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold shadow-sm ${statusInfo.className}`}
+              className={`inline-flex rounded-full px-2.5 py-1 text-2xs font-semibold shadow-sm ${statusInfo.className}`}
             >
               {statusInfo.label}
             </span>
@@ -173,7 +173,7 @@ export default React.memo(function ProfileListingCard({
             </div>
           )}
 
-          <div className="flex items-center justify-between gap-2 text-[11px] text-slate-400">
+          <div className="flex items-center justify-between gap-2 text-2xs text-slate-400">
             <span>{formatListingDate(ad, { emptyLabel: "—" })}</span>
             <span className="inline-flex items-center gap-1">
               <Eye size={12} />

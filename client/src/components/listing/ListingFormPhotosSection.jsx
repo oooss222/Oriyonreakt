@@ -30,7 +30,7 @@ function PhotoTile({
         className="w-full h-28 object-cover rounded-xl border border-ink/8 bg-mist"
       />
       {isCover ? (
-        <span className="absolute left-2 bottom-2 rounded-md bg-ink/80 px-2 py-0.5 text-[10px] font-semibold text-white">
+        <span className="absolute left-2 bottom-2 rounded-md bg-ink/80 px-2 py-0.5 text-2xs font-semibold text-white">
           Обложка
         </span>
       ) : null}

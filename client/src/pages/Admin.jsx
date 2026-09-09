@@ -254,7 +254,7 @@ export default function Admin() {
                   </span>
                   {badge > 0 && (
                     <span
-                      className={`min-w-[20px] h-5 px-1.5 rounded-full text-[11px] font-bold flex items-center justify-center ${
+                      className={`min-w-[20px] h-5 px-1.5 rounded-full text-2xs font-bold flex items-center justify-center ${
                         active
                           ? "bg-sun text-white"
                           : "bg-red-100 text-red-700"

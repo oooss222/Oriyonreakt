@@ -62,7 +62,7 @@ export default function GalleryPhotoIndicator({
       </div>
 
       {!isCompact ? (
-        <div className="pointer-events-none mt-2 text-center text-[11px] font-semibold tracking-wide text-white/90">
+        <div className="pointer-events-none mt-2 text-center text-2xs font-semibold tracking-wide text-white/90">
           {activeIndex + 1} / {total}
         </div>
       ) : null}

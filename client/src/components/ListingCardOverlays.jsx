@@ -70,11 +70,11 @@ export default function ListingCardOverlays({
           }`}
         >
           {photos > 0 ? (
-            <span className="rounded-full bg-black/55 px-2 py-0.5 text-[10px] font-semibold text-white backdrop-blur-sm">
+            <span className="rounded-full bg-black/55 px-2 py-0.5 text-2xs font-semibold text-white backdrop-blur-sm">
               {photos} фото
             </span>
           ) : viewCount > 0 ? (
-            <span className="inline-flex items-center gap-1 rounded-full bg-black/50 px-2 py-0.5 text-[10px] font-semibold text-white backdrop-blur-sm">
+            <span className="inline-flex items-center gap-1 rounded-full bg-black/50 px-2 py-0.5 text-2xs font-semibold text-white backdrop-blur-sm">
               <Eye className="h-3 w-3" />
               {formatViewCount(viewCount)}
             </span>
@@ -82,7 +82,7 @@ export default function ListingCardOverlays({
             <span />
           )}
           {morePhotos > 0 ? (
-            <span className="rounded-full bg-black/55 px-2 py-0.5 text-[10px] font-semibold text-white backdrop-blur-sm">
+            <span className="rounded-full bg-black/55 px-2 py-0.5 text-2xs font-semibold text-white backdrop-blur-sm">
               +{morePhotos}
             </span>
           ) : null}

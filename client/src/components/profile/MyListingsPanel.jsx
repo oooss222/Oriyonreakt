@@ -223,7 +223,7 @@ export default function MyListingsPanel({
           </div>
 
           <label className="block">
-            <div className="text-[11px] font-bold uppercase tracking-wide text-slate-400 mb-1.5">
+            <div className="text-2xs font-bold uppercase tracking-wide text-slate-400 mb-1.5">
               {t("profile.sort")}
             </div>
             <select
@@ -260,7 +260,7 @@ export default function MyListingsPanel({
           </div>
 
           <label className="block">
-            <div className="text-[11px] font-bold uppercase tracking-wide text-slate-400 mb-1.5">
+            <div className="text-2xs font-bold uppercase tracking-wide text-slate-400 mb-1.5">
               {t("profile.filterSection")}
             </div>
             <select
@@ -278,7 +278,7 @@ export default function MyListingsPanel({
           </label>
 
           <label className="block">
-            <div className="text-[11px] font-bold uppercase tracking-wide text-slate-400 mb-1.5">
+            <div className="text-2xs font-bold uppercase tracking-wide text-slate-400 mb-1.5">
               {t("profile.filterCity")}
             </div>
             <div className="relative">
@@ -302,7 +302,7 @@ export default function MyListingsPanel({
           </label>
 
           <label className="block">
-            <div className="text-[11px] font-bold uppercase tracking-wide text-slate-400 mb-1.5">
+            <div className="text-2xs font-bold uppercase tracking-wide text-slate-400 mb-1.5">
               {t("profile.filterPhone")}
             </div>
             <div className="relative">
@@ -326,7 +326,7 @@ export default function MyListingsPanel({
           </label>
 
           <div>
-            <div className="text-[11px] font-bold uppercase tracking-wide text-slate-400 mb-2">
+            <div className="text-2xs font-bold uppercase tracking-wide text-slate-400 mb-2">
               {t("profile.paidServices")}
             </div>
             <div className="flex flex-wrap gap-1.5">
@@ -350,7 +350,7 @@ export default function MyListingsPanel({
           </div>
 
           <div>
-            <div className="text-[11px] font-bold uppercase tracking-wide text-slate-400 mb-1.5">
+            <div className="text-2xs font-bold uppercase tracking-wide text-slate-400 mb-1.5">
               {t("profile.filterPrice")}
             </div>
             <div className="grid grid-cols-2 gap-2">

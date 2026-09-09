@@ -105,7 +105,7 @@ function CompareRow({ label, values, highlights = [], diffMarks = [], emphasizeD
             <div>{value || "—"}</div>
             {hint?.diffLabel && (
               <div
-                className={`text-[11px] mt-1 ${
+                className={`text-2xs mt-1 ${
                   hint.cheapest ? "text-lagoon-700" : "text-ink-400"
                 }`}
               >
@@ -150,7 +150,7 @@ function CompareItemTitle({ item, onRemove, onRefresh, refreshing, t, lang, show
             </Link>
           )}
           {external && item._compareFetchedAt && (
-            <div className="text-[11px] text-ink-300">
+            <div className="text-2xs text-ink-300">
               {t("compare.dataFrom", {
                 date: formatFetchedAt(item._compareFetchedAt, lang),
               })}
@@ -161,7 +161,7 @@ function CompareItemTitle({ item, onRemove, onRefresh, refreshing, t, lang, show
               type="button"
               onClick={() => onRefresh?.(item)}
               disabled={refreshing}
-              className="inline-flex items-center gap-1 text-[11px] font-semibold text-sun hover:text-sun-600 disabled:opacity-50"
+              className="inline-flex items-center gap-1 text-2xs font-semibold text-sun hover:text-sun-600 disabled:opacity-50"
             >
               {refreshing ? (
                 <Loader2 size={12} className="animate-spin" />
@@ -208,7 +208,7 @@ function ComparePreviewCard({
       <div className="relative">
         <CompareThumb item={item} className="h-36 rounded-none" />
         {isRecommended && (
-          <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-sun px-2 py-0.5 text-[10px] font-bold text-white shadow-sm">
+          <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-sun px-2 py-0.5 text-2xs font-bold text-white shadow-sm">
             <CheckCircle2 size={10} />
             {t("compare.verdictBest")}
           </span>
@@ -229,7 +229,7 @@ function ComparePreviewCard({
           <div className="text-price text-base">{formatPrice(item.price)}</div>
           {priceHint?.diffLabel && (
             <div
-              className={`text-[11px] font-semibold ${
+              className={`text-2xs font-semibold ${
                 priceHint.cheapest ? "text-lagoon-700" : "text-ink-400"
               }`}
             >
@@ -308,7 +308,7 @@ function CompareMobileCard({
       <div className="relative">
         <CompareThumb item={item} className="h-40 rounded-none" />
         {isRecommended && (
-          <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-sun px-2 py-0.5 text-[10px] font-bold text-white">
+          <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-sun px-2 py-0.5 text-2xs font-bold text-white">
             <CheckCircle2 size={10} />
             {t("compare.verdictBest")}
           </span>
@@ -327,7 +327,7 @@ function CompareMobileCard({
           <div className="text-price text-lg">{formatPrice(item.price)}</div>
           {priceHint?.diffLabel && (
             <div
-              className={`text-[11px] font-semibold ${
+              className={`text-2xs font-semibold ${
                 priceHint.cheapest ? "text-lagoon-700" : "text-ink-400"
               }`}
             >
@@ -842,7 +842,7 @@ export default function ListingCompare({ cat }) {
                 <tr>
                   <td
                     colSpan={items.length + 1}
-                    className="px-3 pt-4 pb-1 text-[11px] font-bold uppercase tracking-wide text-ink-300 bg-mist/80"
+                    className="px-3 pt-4 pb-1 text-2xs font-bold uppercase tracking-wide text-ink-300 bg-mist/80"
                   >
                     {t("compare.trustSection")}
                   </td>

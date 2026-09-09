@@ -39,12 +39,12 @@ export default function ProfileHeader({
 
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2 mb-1.5">
-                <span className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide rounded-md bg-mist text-ink-400">
+                <span className="px-2 py-0.5 text-2xs font-bold uppercase tracking-wide rounded-md bg-mist text-ink-400">
                   {sellerLabel}
                 </span>
                 <EmailBadge status={emailStatus} />
                 {showRole && (
-                  <span className="px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide rounded-md bg-mist text-ink-500 border border-ink/8">
+                  <span className="px-2 py-0.5 text-2xs font-semibold uppercase tracking-wide rounded-md bg-mist text-ink-500 border border-ink/8">
                     {role.replace("_", " ")}
                   </span>
                 )}

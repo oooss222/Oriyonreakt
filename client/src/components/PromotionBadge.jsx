@@ -3,11 +3,11 @@ import { Crown, TrendingUp } from "lucide-react";
 
 const SIZE_MAP = {
   sm: {
-    wrap: "h-[26px] px-2.5 text-[10px] gap-1",
+    wrap: "h-[26px] px-2.5 text-2xs gap-1",
     icon: 11,
   },
   md: {
-    wrap: "h-7 px-3 text-[11px] gap-1.5",
+    wrap: "h-7 px-3 text-2xs gap-1.5",
     icon: 12,
   },
   lg: {

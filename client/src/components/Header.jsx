@@ -296,7 +296,7 @@ export default function Header({ variant = "full" }) {
             >
               <MessageCircle size={20} />
               {badgeCount > 0 && (
-                <span className="absolute top-1 right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">
+                <span className="absolute top-1 right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-2xs font-bold flex items-center justify-center">
                   {badgeCount > 99 ? "99+" : badgeCount}
                 </span>
               )}
@@ -309,7 +309,7 @@ export default function Header({ variant = "full" }) {
             >
               <Scale size={20} />
               {compareCount > 0 && (
-                <span className="absolute top-1 right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-sun text-white text-[10px] font-bold flex items-center justify-center">
+                <span className="absolute top-1 right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-sun text-white text-2xs font-bold flex items-center justify-center">
                   {compareCount > 99 ? "99+" : compareCount}
                 </span>
               )}
@@ -323,7 +323,7 @@ export default function Header({ variant = "full" }) {
               >
                 <ClipboardCheck size={20} />
                 {moderationCount > 0 && (
-                  <span className="absolute top-1 right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-amber-500 text-white text-[10px] font-bold flex items-center justify-center">
+                  <span className="absolute top-1 right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-amber-500 text-white text-2xs font-bold flex items-center justify-center">
                     {moderationCount > 99 ? "99+" : moderationCount}
                   </span>
                 )}

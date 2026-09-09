@@ -3,7 +3,7 @@ import { ChevronDown, ChevronUp, Users } from "lucide-react";
 import { GUEST_OPTIONS, formatGuestLabel } from "../../data/realEstate";
 
 const FIELD_LABEL =
-  "mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500";
+  "mb-1.5 block text-2xs font-semibold uppercase tracking-[0.08em] text-slate-500";
 const FIELD_CONTROL =
   "h-11 w-full rounded-xl border border-slate-200/90 bg-white text-sm font-medium text-slate-900 outline-none transition focus:border-sun/50 focus:ring-2 focus:ring-sun/20";
 

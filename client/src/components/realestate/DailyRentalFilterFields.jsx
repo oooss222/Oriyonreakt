@@ -38,7 +38,7 @@ export default function DailyRentalFilterFields({ draft, setSpec, className = ""
           options={DAILY_AMENITY_OPTIONS}
           onChange={(value) => setSpec("Удобства", value)}
         />
-        <p className="mt-2 text-[11px] text-ink-400">
+        <p className="mt-2 text-2xs text-ink-400">
           Можно выбрать несколько — покажем жильё со всеми выбранными опциями
         </p>
       </div>

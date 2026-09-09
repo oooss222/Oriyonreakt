@@ -229,7 +229,7 @@ export default function ModerationReports({ token }) {
                       {(group.reasons || []).map((reason, idx) => (
                         <span
                           key={`${group.listingId}-${reason}-${idx}`}
-                          className="inline-flex px-2 py-0.5 text-[11px] rounded-full border bg-white text-slate-700"
+                          className="inline-flex px-2 py-0.5 text-2xs rounded-full border bg-white text-slate-700"
                         >
                           {REPORT_REASON_LABELS[reason] || reason}
                         </span>

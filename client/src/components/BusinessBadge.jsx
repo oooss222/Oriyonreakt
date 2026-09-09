@@ -15,7 +15,7 @@ export default function BusinessBadge({
   const sizeClasses =
     size === "lg"
       ? "px-3 py-1 text-sm gap-1.5"
-      : "px-2 py-0.5 text-[10px] gap-1";
+      : "px-2 py-0.5 text-2xs gap-1";
 
   if (businessVerified) {
     return (

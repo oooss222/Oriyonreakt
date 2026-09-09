@@ -13,6 +13,8 @@ export default {
     cancel: "Отмена",
     yes: "Да",
     no: "Нет",
+    confirm: "Подтвердить",
+    confirmTitle: "Подтвердите действие",
   },
   a11y: {
     categories: "Категории",

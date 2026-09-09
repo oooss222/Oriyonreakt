@@ -44,7 +44,7 @@ function TabLink({ to, children, icon: Icon }) {
 function CountBadge({ count, active }) {
   return (
     <span
-      className={`min-w-[1.35rem] rounded-full px-1.5 py-0.5 text-[11px] font-bold text-center tabular-nums ${
+      className={`min-w-[1.35rem] rounded-full px-1.5 py-0.5 text-2xs font-bold text-center tabular-nums ${
         active ? "bg-sun/15 text-sun" : "bg-slate-100 text-slate-600"
       }`}
     >

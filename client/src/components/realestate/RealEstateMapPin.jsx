@@ -108,7 +108,7 @@ export default function RealEstateMapPin({ city, geo, setGeo }) {
           <ArrowRight size={14} />
         </button>
         {hasPin ? (
-          <span className="ml-auto text-[11px] font-medium text-lagoon-700">
+          <span className="ml-auto text-2xs font-medium text-lagoon-700">
             {t("listing.mapPinSet")}
           </span>
         ) : null}

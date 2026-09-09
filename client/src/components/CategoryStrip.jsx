@@ -57,7 +57,7 @@ export default function CategoryStrip({ compact = false }) {
                 <span
                   className={`mt-1.5 lg:mt-2 min-h-[3rem] lg:min-h-[3.25rem] w-full px-0.5 font-medium leading-[1.15] transition group-hover:text-sun ${
                     active ? "text-sun" : "text-white/95"
-                  } ${compact ? "text-[10px] lg:text-xs" : "text-[10px] sm:text-[11px] lg:text-xs"}`}
+                  } ${compact ? "text-2xs lg:text-xs" : "text-2xs sm:text-2xs lg:text-xs"}`}
                 >
                   {t(`categories.${cat.slug}`) !== `categories.${cat.slug}`
                     ? t(`categories.${cat.slug}`)

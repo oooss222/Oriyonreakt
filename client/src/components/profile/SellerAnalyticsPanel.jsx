@@ -78,7 +78,7 @@ function GroupedBarChart({ series, hidden }) {
                 )
               )}
             </div>
-            <div className="text-[10px] sm:text-xs text-slate-400 font-medium">{label}</div>
+            <div className="text-2xs sm:text-xs text-slate-400 font-medium">{label}</div>
           </div>
         );
       })}
@@ -287,7 +287,7 @@ export default function SellerAnalyticsPanel({ token }) {
             <div className="overflow-x-auto">
               <table className="w-full min-w-[640px] text-sm">
                 <thead>
-                  <tr className="text-[11px] uppercase tracking-wide text-slate-400 border-b border-slate-100">
+                  <tr className="text-2xs uppercase tracking-wide text-slate-400 border-b border-slate-100">
                     <th className="text-left font-semibold px-4 py-3">
                       {t("profile.analyticsColAd")}
                     </th>
