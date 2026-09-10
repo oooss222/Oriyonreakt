@@ -16,6 +16,8 @@ export default {
     confirm: "Тасдиқ кардан",
     confirmTitle: "Амалро тасдиқ кунед",
     delete: "Нест кардан",
+    comment: "Шарҳ",
+    value: "Қиммат",
   },
   a11y: {
     categories: "Категорияҳо",

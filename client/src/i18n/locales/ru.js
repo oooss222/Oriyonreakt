@@ -16,6 +16,8 @@ export default {
     confirm: "Подтвердить",
     confirmTitle: "Подтвердите действие",
     delete: "Удалить",
+    comment: "Комментарий",
+    value: "Значение",
   },
   a11y: {
     categories: "Категории",

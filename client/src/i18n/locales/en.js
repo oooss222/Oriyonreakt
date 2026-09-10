@@ -16,6 +16,8 @@ export default {
     confirm: "Confirm",
     confirmTitle: "Confirm action",
     delete: "Delete",
+    comment: "Comment",
+    value: "Value",
   },
   a11y: {
     categories: "Categories",
