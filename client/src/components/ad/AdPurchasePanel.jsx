@@ -112,6 +112,8 @@ export default function AdPurchasePanel({
                 <img
                   src={ad.ownerCompanyLogo}
                   alt=""
+                  loading="lazy"
+                  decoding="async"
                   className="h-full w-full object-cover"
                 />
               ) : (

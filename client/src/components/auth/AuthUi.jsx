@@ -12,44 +12,6 @@ import {
 } from "../../ui";
 import { useI18n } from "../../i18n";
 
-// The phone and email flows still compose a labelled row with an optional
-// leading icon and a trailing control, so this wrapper keeps that contract.
-export function Field({ label, hint, icon: Icon, right, error, children }) {
-  return (
-    <div className="space-y-1.5">
-      {label && <label className="field-label">{label}</label>}
-      <div className="relative">
-        {Icon && (
-          <span className="pointer-events-none absolute inset-y-0 left-0 z-[1] flex items-center pl-3 text-ink-400">
-            <Icon size={18} aria-hidden="true" />
-          </span>
-        )}
-        {children}
-        {right && (
-          <span className="absolute inset-y-0 right-0 flex items-center pr-1.5">
-            {right}
-          </span>
-        )}
-      </div>
-      {error && <p className="field-error">{error}</p>}
-      {hint}
-    </div>
-  );
-}
-
-export const Input = React.forwardRef(function AuthInput(
-  { className = "", withIcon, withToggle, ...props },
-  ref
-) {
-  return (
-    <UiInput
-      ref={ref}
-      className={cn(withIcon && "pl-10", withToggle && "pr-11", className)}
-      {...props}
-    />
-  );
-});
-
 export function Alert({ type = "error", children, actionLabel, onAction }) {
   if (!children) return null;
 
@@ -82,22 +44,10 @@ export function Alert({ type = "error", children, actionLabel, onAction }) {
   );
 }
 
-export function PasswordToggle({ visible, onToggle, label }) {
-  const { t } = useI18n();
-
-  return (
-    <IconButton
-      icon={visible ? EyeOff : Eye}
-      variant="ghost"
-      onClick={onToggle}
-      label={
-        label ||
-        (visible ? t("auth.hidePassword") : t("auth.showPassword"))
-      }
-    />
-  );
-}
-
+/**
+ * `describedBy` is merged with the ids Field generates, so a password can point
+ * at a shared rules list without losing its own error and hint.
+ */
 export const PasswordField = React.forwardRef(function PasswordField(
   {
     label,
@@ -107,6 +57,7 @@ export const PasswordField = React.forwardRef(function PasswordField(
     visible,
     onToggleVisible,
     required = true,
+    describedBy,
     ...inputProps
   },
   ref
@@ -115,13 +66,13 @@ export const PasswordField = React.forwardRef(function PasswordField(
 
   return (
     <UiField label={label} error={error} hint={hint} required={required}>
-      {({ id, invalid, "aria-describedby": describedBy }) => (
+      {({ id, invalid, "aria-describedby": fieldDescribedBy }) => (
         <UiInput
           ref={ref}
           id={id}
           type={visible ? "text" : "password"}
           invalid={invalid}
-          aria-describedby={describedBy}
+          aria-describedby={cn(fieldDescribedBy, describedBy) || undefined}
           addonRight={
             <IconButton
               icon={visible ? EyeOff : Eye}

@@ -11,6 +11,7 @@ import {
   saveSearchLocally,
 } from "../lib/savedSearch";
 import { useI18n } from "../i18n";
+import { cn } from "../ui";
 
 export default function SaveSearchButton({
   draft,
@@ -83,26 +84,26 @@ export default function SaveSearchButton({
         : undefined;
 
   return (
-    <div className={`inline-flex flex-col items-stretch gap-1 ${className}`}>
+    <div className={cn("inline-flex flex-col items-stretch gap-1", className)}>
       <button
         type="button"
         onClick={save}
         disabled={saving || !canSave}
         title={title}
-        className={`inline-flex items-center justify-center gap-1.5 rounded-xl border text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${
-          saved
-            ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-            : duplicate
-              ? "border-amber-200 bg-amber-50 text-amber-800"
-              : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
-        } ${compact ? "px-3 py-2" : "px-4 py-2.5"}`}
+        aria-live="polite"
+        className={cn(
+          "btn",
+          saved && "border-success-200 bg-success-50 text-success-700 hover:bg-success-100",
+          duplicate && "border-warning-200 bg-warning-50 text-warning-800 hover:bg-warning-100",
+          compact ? "h-10 px-3" : "h-11"
+        )}
       >
         {saved ? (
-          <Check size={16} />
+          <Check size={16} aria-hidden="true" />
         ) : duplicate ? (
-          <AlertCircle size={16} />
+          <AlertCircle size={16} aria-hidden="true" />
         ) : (
-          <BookmarkPlus size={16} />
+          <BookmarkPlus size={16} aria-hidden="true" />
         )}
         {saved
           ? t("search.savedShort")
@@ -116,14 +117,14 @@ export default function SaveSearchButton({
       {saved && token && (
         <Link
           to="/profile?tab=searches"
-          className="text-2xs text-center text-sun-700 hover:text-sun font-medium"
+          className="text-center text-2xs font-medium text-sun-700 hover:text-sun-600"
         >
           {t("search.openInProfile")}
         </Link>
       )}
 
       {!token && saved && (
-        <span className="text-2xs text-center text-slate-500">
+        <span className="text-center text-2xs text-ink-400">
           {t("search.loginToSync")}
         </span>
       )}

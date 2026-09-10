@@ -7,8 +7,10 @@ import RealEstateRentFeatures from "./realestate/RealEstateRentFeatures";
 import { useListingViewed } from "../lib/viewedListings";
 import { getPromotionCardClass } from "../lib/promotionStyles";
 import { MapPin, Maximize2 } from "lucide-react";
-import { formatPrice, formatListingTimeAgo } from "../lib/format";
+import { formatPrice } from "../lib/format";
 import { getListingImages } from "../lib/media";
+import { cn } from "../ui";
+import { useI18n, formatListingTimeAgo, formatNightsLabel } from "../i18n";
 
 export default function RealEstateListingCard({
   item,
@@ -16,6 +18,7 @@ export default function RealEstateListingCard({
   nights = 0,
   onFav,
 }) {
+  const { t } = useI18n();
   const listing = enrichRealEstateListing(item);
   const id = listing.id || listing._id;
   const summary = listing.realEstateSummary || {};
@@ -31,8 +34,9 @@ export default function RealEstateListingCard({
       : null;
   const locationLabel = summary.district
     ? summary.district
-    : listing.location || "Душанбе";
+    : listing.location || t("location.dushanbe");
   const photoCount = getListingImages(listing).length;
+  const currency = t("price.currency");
 
   const href = id ? `/ad/${id}` : "#";
 
@@ -55,23 +59,32 @@ export default function RealEstateListingCard({
     event.currentTarget.querySelector(".listing-card__link")?.click();
   };
 
+  const priceSuffix = isDaily
+    ? t("realestate.perNightShort")
+    : isRent
+      ? t("realestate.perMonthShort")
+      : "";
+
   const stayPriceNote =
     totalStayPrice &&
-    `${totalStayPrice.toLocaleString("ru-RU")} с. за ${nights} ${
-      nights === 1 ? "ночь" : nights < 5 ? "ночи" : "ночей"
-    }`;
+    t("realestate.stayTotal", {
+      price: formatPrice(totalStayPrice, { currency }),
+      nights: formatNightsLabel(nights, t),
+    });
 
   if (isHorizontal) {
     return (
       <article
         onClick={onCardClick}
-        className={`listing-card group flex cursor-pointer flex-row gap-3 p-2.5 ${getPromotionCardClass(
-          { vip: listing.vip, top: listing.top }
-        )}`}
+        className={cn(
+          "listing-card group flex cursor-pointer flex-row gap-3 p-2.5",
+          viewed && "listing-card--viewed",
+          getPromotionCardClass({ vip: listing.vip, top: listing.top })
+        )}
       >
         <ListingCardMedia
           item={listing}
-          className="relative h-32 w-40 shrink-0 overflow-hidden rounded-xl sm:w-44"
+          className="relative h-32 w-40 shrink-0 overflow-hidden rounded-xl bg-mist-200 sm:w-44"
           views={listing.views}
           vip={listing.vip}
           top={listing.top}
@@ -81,72 +94,78 @@ export default function RealEstateListingCard({
           photoCount={photoCount}
         />
 
-        <div className="min-w-0 flex-1 flex flex-col py-0.5">
+        <div className="flex min-w-0 flex-1 flex-col py-0.5">
           <div className="flex items-start justify-between gap-2">
-            <div>
-              <div className="listing-card__price text-base">
-                {formatPrice(listing.price, { currency: "с." })}
-                {isDaily && (
-                  <span className="ml-1 text-sm font-semibold text-slate-500">
-                    / сут.
-                  </span>
-                )}
+            <div className="min-w-0">
+              <div className="listing-card__price-row">
+                <span className="listing-card__price text-base">
+                  {formatPrice(listing.price, { currency })}
+                </span>
+                {priceSuffix ? (
+                  <span className="listing-card__price-suffix">{priceSuffix}</span>
+                ) : null}
               </div>
-              {stayPriceNote && (
-                <div className="text-xs font-medium text-slate-500 mt-0.5">
-                  {stayPriceNote}
-                </div>
-              )}
+              {stayPriceNote ? (
+                <div className="listing-card__price-note mt-0.5">{stayPriceNote}</div>
+              ) : null}
             </div>
-            {summary.deal && (
-              <span className="shrink-0 inline-flex px-2 py-0.5 rounded-lg bg-slate-100 text-slate-600 text-2xs font-bold uppercase">
+            {summary.deal ? (
+              <span className="badge badge-neutral shrink-0 uppercase">
                 {summary.deal}
               </span>
-            )}
+            ) : null}
           </div>
 
-          {summary.pricePerSqm && !isDaily && (
-            <div className="text-xs text-slate-500 font-medium">
-              {summary.pricePerSqm}
-            </div>
-          )}
+          {summary.pricePerSqm && !isDaily ? (
+            <div className="listing-card__details">{summary.pricePerSqm}</div>
+          ) : null}
 
-          <h3 className="mt-1 text-sm font-semibold leading-snug text-ink-800 line-clamp-2">
+          <h3 className="listing-card__title mt-1 font-semibold text-ink-800">
             <Link to={href} className="listing-card__link" onClick={primeDetailView}>
               {cardCopy.title}
             </Link>
           </h3>
 
-          <div className="mt-1.5 text-xs text-slate-500 line-clamp-1 flex items-center gap-1">
-            <MapPin size={12} className="shrink-0" />
+          <div className="listing-card__location mt-1.5">
+            <MapPin size={12} className="shrink-0" aria-hidden="true" />
             <span className="truncate">{locationLabel}</span>
           </div>
 
-          <div className="mt-auto pt-2 flex items-end justify-end gap-2">
+          <div className="mt-auto flex items-end justify-end gap-2 pt-2">
             <div className="listing-card__meta">
               <time className="listing-card__time">
-                {formatListingTimeAgo(listing)}
+                {formatListingTimeAgo(listing, t)}
               </time>
               {viewed ? (
-                <span className="listing-card__viewed">Просмотрено</span>
+                <span className="listing-card__viewed">{t("listing.viewed")}</span>
               ) : null}
             </div>
           </div>
         </div>
 
-        <div className="hidden sm:flex items-center pr-2 text-slate-300 group-hover:text-sun">
-          <Maximize2 size={18} />
+        <div className="hidden items-center pr-2 text-ink-300 group-hover:text-sun-600 sm:flex">
+          <Maximize2 size={18} aria-hidden="true" />
         </div>
       </article>
     );
   }
 
+  const dailyOccupancy = [
+    summary.guests && t("realestate.guestsShort", { count: summary.guests }),
+    summary.rooms && t("realestate.roomsShort", { count: summary.rooms }),
+  ]
+    .filter(Boolean)
+    .join(" · ");
+
   return (
     <article
       onClick={onCardClick}
-      className={`re-listing-card group cursor-pointer ${viewed ? "listing-card--viewed" : ""} ${getPromotionCardClass(
-        { vip: listing.vip, top: listing.top }
-      )}`}
+      className={cn(
+        "listing-card group",
+        id && "cursor-pointer",
+        viewed && "listing-card--viewed",
+        getPromotionCardClass({ vip: listing.vip, top: listing.top })
+      )}
     >
       <ListingCardMedia
         item={listing}
@@ -159,58 +178,51 @@ export default function RealEstateListingCard({
         photoCount={photoCount}
       />
 
-      <div className="re-listing-card__body">
-        <span className="re-listing-card__district">{locationLabel}</span>
+      <div className="listing-card__body">
+        {/* Price leads, exactly like the generic listing card. */}
+        <div className="listing-card__price-row">
+          <span className="listing-card__price">
+            {formatPrice(listing.price, { currency })}
+          </span>
+          {priceSuffix ? (
+            <span className="listing-card__price-suffix">{priceSuffix}</span>
+          ) : null}
+          {!isDaily && !isRent && summary.pricePerSqm ? (
+            <span className="listing-card__price-note">{summary.pricePerSqm}</span>
+          ) : null}
+        </div>
 
-        <h3 className="re-listing-card__title">
+        {stayPriceNote ? (
+          <p className="listing-card__price-note">{stayPriceNote}</p>
+        ) : null}
+
+        <h3 className="listing-card__title">
           <Link to={href} className="listing-card__link" onClick={primeDetailView}>
             {cardCopy.title}
           </Link>
         </h3>
 
         {cardCopy.specsLine ? (
-          <p className="re-listing-card__specs">{cardCopy.specsLine}</p>
+          <p className="listing-card__details">{cardCopy.specsLine}</p>
         ) : null}
 
         {isDaily ? (
           <>
-            <p className="re-listing-card__specs">
-              {[summary.guests && `${summary.guests} гост.`, summary.rooms && `${summary.rooms} комн.`]
-                .filter(Boolean)
-                .join(" · ")}
-            </p>
+            {dailyOccupancy ? (
+              <p className="listing-card__details">{dailyOccupancy}</p>
+            ) : null}
             <RealEstateDailyFeatures specs={listing.specs} compact />
           </>
         ) : null}
 
-        {isRent ? (
-          <RealEstateRentFeatures specs={listing.specs} compact />
-        ) : null}
+        {isRent ? <RealEstateRentFeatures specs={listing.specs} compact /> : null}
 
-        <div className="re-listing-card__price-row">
-          <strong className="re-listing-card__price">
-            {formatPrice(listing.price, { currency: "с." })}
-            {isDaily ? (
-              <span className="ml-1 text-xs font-semibold text-ink-400">
-                / сут.
-              </span>
-            ) : null}
-            {isRent ? (
-              <span className="ml-1 text-xs font-semibold text-ink-400">
-                / мес.
-              </span>
-            ) : null}
-          </strong>
-          {!isDaily && !isRent && summary.pricePerSqm ? (
-            <span className="re-listing-card__price-per-sqm">
-              {summary.pricePerSqm}
-            </span>
-          ) : null}
+        <div className="listing-card__footer">
+          <span className="listing-card__location">
+            <MapPin size={12} className="shrink-0" aria-hidden="true" />
+            <span className="truncate">{locationLabel}</span>
+          </span>
         </div>
-
-        {stayPriceNote ? (
-          <p className="re-listing-card__specs">{stayPriceNote}</p>
-        ) : null}
       </div>
     </article>
   );

@@ -12,67 +12,19 @@ import {
   RefreshCw,
   Trash2,
 } from "lucide-react";
+import { Button, Checkbox, StatusBadge, cn } from "../../ui";
 import FavoriteButton from "../FavoriteButton";
 import { PromotionBadgeGroup } from "../PromotionBadge";
 import { getListingThumb } from "../../lib/media";
 import { formatPrice, formatListingDate, formatViewCount } from "../../lib/format";
-import {
-  getPromotionCardClass,
-  getPromotionMediaClass,
-} from "../../lib/promotionStyles";
-import { formatPhoneDisplay, getId } from "./profileUtils";
+import { getPromotionCardClass } from "../../lib/promotionStyles";
+import { formatPhoneDisplay, getId, getListingStatusMeta } from "./profileUtils";
 import { useI18n } from "../../i18n";
 
-function getStatusMap(t) {
-  return {
-    pending: {
-      label: t("profile.statusPending"),
-      className: "bg-amber-400 text-white",
-    },
-    approved: {
-      label: t("profile.statusApproved"),
-      className: "bg-emerald-500 text-white",
-    },
-    rejected: {
-      label: t("profile.statusRejected"),
-      className: "bg-red-500 text-white",
-    },
-    sold: {
-      label: t("profile.statusSold"),
-      className: "bg-slate-700 text-white",
-    },
-    archived: {
-      label: t("profile.statusArchived"),
-      className: "bg-slate-500 text-white",
-    },
-  };
-}
-
-function CardAction({ as: Component = "button", icon: Icon, children, variant = "muted", className = "", ...props }) {
-  const variants = {
-    primary: "bg-sun text-white hover:bg-sun-600 shadow-sm",
-    danger: "border border-red-200 bg-white text-red-600 hover:bg-red-50",
-    muted: "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50",
-    success: "border border-emerald-200 bg-white text-emerald-700 hover:bg-emerald-50",
-    ghost: "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50",
-    teal: "border border-teal-200 bg-teal-50 text-teal-800",
-  };
-
-  return (
-    <Component
-      type={Component === "button" ? "button" : undefined}
-      className={[
-        "inline-flex min-w-0 items-center justify-center gap-1.5 rounded-xl px-2.5 py-2 text-xs font-semibold transition",
-        variants[variant] || variants.muted,
-        className,
-      ].join(" ")}
-      {...props}
-    >
-      {Icon && <Icon size={14} className="shrink-0" />}
-      {children ? <span className="truncate">{children}</span> : null}
-    </Component>
-  );
-}
+// `btn-sm` is 34px tall, which is below the touch-target floor, so the owner
+// actions keep the small type but grow back to 40px.
+const ACTION = "min-h-[2.5rem]";
+const ACTION_ICON = "h-10 w-10";
 
 export default React.memo(function ProfileListingCard({
   ad,
@@ -91,127 +43,171 @@ export default React.memo(function ProfileListingCard({
   const imgUrl = getListingThumb(ad, { width: 400 });
   const more = Math.max(0, (ad.images?.length || 0) - 1);
   const status = ad.status || "pending";
-  const statusMap = getStatusMap(t);
-  const statusInfo = statusMap[status] || statusMap.pending;
+  const statusInfo = getListingStatusMeta(status, t);
   const inactive = status === "sold" || status === "archived";
   const phone = formatPhoneDisplay(ad.phone);
+  const title = ad.title || t("listing.noTitle");
+  const showSelect = selectable && canManage;
+  const hasMediaControl = showSelect || !canManage;
+
+  const primeDetailView = () => {
+    try {
+      sessionStorage.setItem("ad_preview", JSON.stringify(ad));
+    } catch {
+      // A full quota only costs the detail page its warm start.
+    }
+  };
+
+  // The title link is the real navigation target so the card stays keyboard and
+  // middle-click friendly; this only extends the mouse target to the rest of the
+  // card without swallowing the owner controls layered on top of it.
+  const onCardClick = (event) => {
+    if (event.target.closest("a, button, input, label, [role='button']")) return;
+
+    event.currentTarget.querySelector(".listing-card__link")?.click();
+  };
 
   return (
     <article
-      className={[
-        "group relative flex flex-col overflow-hidden rounded-2xl border bg-white shadow-sm transition-all duration-300 hover:shadow-lg",
+      onClick={onCardClick}
+      className={cn(
+        "listing-card group cursor-pointer",
         getPromotionCardClass({ vip: ad.vip, top: ad.top }),
-        selected ? "ring-2 ring-sun border-sun" : "border-slate-200",
-        inactive ? "opacity-75" : "",
-      ].join(" ")}
+        selected && "border-sun-400 ring-2 ring-sun-500",
+        inactive && "opacity-80"
+      )}
     >
-      {selectable && canManage && (
-        <label className="absolute top-2 right-2 z-20 cursor-pointer rounded-lg border bg-white/95 p-1.5 shadow-sm">
-          <input
-            type="checkbox"
-            checked={selected}
-            onChange={() => onToggleSelect?.(id)}
-            className="h-4 w-4 accent-sun"
-          />
-        </label>
-      )}
+      <div className={cn("listing-card__media", inactive && "grayscale-[40%]")}>
+        <img
+          src={imgUrl}
+          alt={title}
+          width={400}
+          height={300}
+          loading="lazy"
+          decoding="async"
+          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+        />
 
-      <Link
-        to={`/ad/${id}`}
-        onClick={() => sessionStorage.setItem("ad_preview", JSON.stringify(ad))}
-        className="block min-w-0 flex-1"
-      >
-        <div className={`relative overflow-hidden ${inactive ? "grayscale-[40%]" : ""}`}>
-          <img
-            src={imgUrl}
-            alt={ad.title || "Объявление"}
-            className={[
-              "w-full bg-slate-100 object-cover transition-transform duration-500 group-hover:scale-[1.03]",
-              compact ? "h-36" : "h-40 sm:h-44",
-              getPromotionMediaClass({ vip: ad.vip }),
-            ].join(" ")}
-            loading="lazy"
-          />
-
-          <div className="absolute inset-x-0 top-0 flex flex-wrap items-start gap-1.5 p-2.5">
-            <span
-              className={`inline-flex rounded-full px-2.5 py-1 text-2xs font-semibold shadow-sm ${statusInfo.className}`}
-            >
-              {statusInfo.label}
-            </span>
-            <PromotionBadgeGroup vip={ad.vip} top={ad.top} size="sm" />
-          </div>
-
-          {more > 0 && (
-            <span className="absolute bottom-2 right-2 rounded-full bg-black/70 px-2 py-0.5 text-xs text-white">
-              +{more}
-            </span>
+        <div
+          className={cn(
+            "absolute inset-x-0 top-0 z-10 flex flex-wrap items-start gap-1.5 p-2",
+            hasMediaControl && "pr-12"
           )}
+        >
+          <StatusBadge tone={statusInfo.tone} label={statusInfo.label} className="shadow-xs" />
+          <PromotionBadgeGroup vip={ad.vip} top={ad.top} size="sm" />
         </div>
 
-        <div className="space-y-1.5 p-3">
-          <h3 className="line-clamp-2 text-sm font-semibold leading-snug text-slate-900 transition group-hover:text-sun">
-            {ad.title || "Без названия"}
-          </h3>
-
-          <div className="flex items-center justify-between gap-2">
-            <div className="text-base font-extrabold text-sun">
-              {formatPrice(ad.price, { emptyLabel: "—" })}
-            </div>
-            {!canManage && <FavoriteButton id={id} defaultActive={isFavorite} compact />}
+        {showSelect && (
+          <div className="absolute right-1.5 top-1.5 z-20 rounded-xl border border-ink-200 bg-white shadow-sm">
+            <Checkbox
+              label={t("profile.selectListing", { title })}
+              labelClassName="sr-only"
+              checked={selected}
+              onChange={() => onToggleSelect?.(id)}
+              className="h-10 w-10 items-center justify-center"
+            />
           </div>
+        )}
 
-          <div className="flex items-center gap-1 line-clamp-1 text-xs text-slate-500">
-            <MapPin size={12} className="shrink-0 text-slate-400" />
+        {!canManage && (
+          <div className="absolute right-1.5 top-1.5 z-20">
+            <FavoriteButton id={id} defaultActive={isFavorite} overlay />
+          </div>
+        )}
+
+        {more > 0 && (
+          <span className="absolute bottom-2 right-2 z-10 media-pill">
+            +{more}
+            <span className="sr-only"> {t("a11y.photoCount")}</span>
+          </span>
+        )}
+      </div>
+
+      <div className={cn("listing-card__body", compact && "p-2.5")}>
+        <div className="listing-card__price-row">
+          <strong className="listing-card__price">
+            {formatPrice(ad.price, { emptyLabel: "—" })}
+          </strong>
+        </div>
+
+        <h3 className="listing-card__title">
+          <Link
+            to={`/ad/${id}`}
+            onClick={primeDetailView}
+            className="listing-card__link"
+          >
+            {title}
+          </Link>
+        </h3>
+
+        <span className="listing-card__location">
+          <MapPin size={12} className="shrink-0" aria-hidden="true" />
+          <span className="truncate">
             {ad.location || ad.city || t("profile.noLocation")}
-          </div>
+          </span>
+        </span>
 
-          {phone && (
-            <div className="flex items-center gap-1 text-xs text-slate-500 tabular-nums">
-              <Phone size={12} className="shrink-0 text-slate-400" />
-              {phone}
-            </div>
-          )}
+        {phone && (
+          <span className="listing-card__location tabular-nums">
+            <Phone size={12} className="shrink-0" aria-hidden="true" />
+            <span className="truncate">{phone}</span>
+          </span>
+        )}
 
-          <div className="flex items-center justify-between gap-2 text-2xs text-slate-400">
-            <span>{formatListingDate(ad, { emptyLabel: "—" })}</span>
-            <span className="inline-flex items-center gap-1">
-              <Eye size={12} />
-              {formatViewCount(ad.views)}
-            </span>
-          </div>
+        <div className="listing-card__footer">
+          <time className="listing-card__time">
+            {formatListingDate(ad, { emptyLabel: "—" })}
+          </time>
+          <span className="listing-card__time inline-flex items-center gap-1">
+            <Eye size={12} aria-hidden="true" />
+            {formatViewCount(ad.views)}
+            <span className="sr-only"> {t("a11y.viewCount")}</span>
+          </span>
         </div>
-      </Link>
 
-      {ad.rejectionReason && (
-        <div className="mx-3 mb-2 rounded-xl border border-red-200 bg-red-50 p-2.5 text-xs text-red-700">
-          <b>{t("profile.reason")}:</b> {ad.rejectionReason}
-        </div>
-      )}
-
-      {canManage && status === "rejected" && ad.appealStatus === "pending" && (
-        <div className="mx-3 mb-3">
-          <CardAction variant="teal" className="w-full pointer-events-none">
-            {t("profile.appealPending")}
-          </CardAction>
-        </div>
-      )}
+        {ad.rejectionReason && (
+          <p className="mt-1 rounded-xl border border-danger-200 bg-danger-50 p-2.5 text-xs leading-relaxed text-danger-700">
+            <span className="font-semibold">{t("profile.reason")}:</span>{" "}
+            {ad.rejectionReason}
+          </p>
+        )}
+      </div>
 
       {canManage && (
-        <div className="mt-auto border-t border-slate-100 bg-slate-50/60 p-3">
+        <div className="mt-auto border-t border-ink-200 bg-mist-50 p-3">
+          {status === "rejected" && ad.appealStatus === "pending" && (
+            <p className="badge badge-info w-full justify-center py-2">
+              {t("profile.appealPending")}
+            </p>
+          )}
+
           {status === "rejected" && ad.appealStatus !== "pending" && (
             <div className="grid grid-cols-[1fr_auto_auto] gap-2">
-              <CardAction as={Link} to={`/edit/${id}`} icon={Pencil} variant="primary">
-                {t("profile.fixListing")}
-              </CardAction>
-              <CardAction icon={RefreshCw} variant="muted" onClick={() => onAppeal?.(id)}>
-                {t("profile.dispute")}
-              </CardAction>
-              <CardAction
-                icon={Trash2}
+              <Button
+                variant="primary"
+                size="sm"
+                to={`/edit/${id}`}
+                icon={Pencil}
+                className={ACTION}
+              >
+                <span className="truncate">{t("profile.fixListing")}</span>
+              </Button>
+              <Button
+                size="sm"
+                icon={RefreshCw}
+                className={ACTION}
+                onClick={() => onAppeal?.(id)}
+              >
+                <span className="truncate">{t("profile.dispute")}</span>
+              </Button>
+              <Button
                 variant="danger"
-                className="px-3"
+                size="sm"
+                icon={Trash2}
+                className={ACTION_ICON}
                 aria-label={t("common.delete")}
+                title={t("common.delete")}
                 onClick={() => onRemove(id)}
               />
             </div>
@@ -220,54 +216,66 @@ export default React.memo(function ProfileListingCard({
           {status !== "rejected" && (
             <div className="space-y-2">
               <div className="grid grid-cols-[1fr_auto_auto] gap-2">
-                <CardAction as={Link} to={`/edit/${id}`} icon={Pencil} variant="primary">
-                  {t("profile.editListing")}
-                </CardAction>
-                <CardAction
-                  as={Link}
+                <Button
+                  variant="primary"
+                  size="sm"
+                  to={`/edit/${id}`}
+                  icon={Pencil}
+                  className={ACTION}
+                >
+                  <span className="truncate">{t("profile.editListing")}</span>
+                </Button>
+                <Button
+                  size="sm"
                   to="/profile?tab=analytics"
                   icon={BarChart3}
-                  variant="muted"
-                  className="px-3"
+                  className={ACTION_ICON}
                   aria-label={t("profile.analytics")}
+                  title={t("profile.analytics")}
                 />
-                <CardAction
-                  icon={Trash2}
+                <Button
                   variant="danger"
-                  className="px-3"
+                  size="sm"
+                  icon={Trash2}
+                  className={ACTION_ICON}
                   aria-label={t("common.delete")}
+                  title={t("common.delete")}
                   onClick={() => onRemove(id)}
                 />
               </div>
 
               {status === "approved" && (
                 <div className="grid grid-cols-2 gap-2">
-                  <CardAction
+                  <Button
+                    size="sm"
                     icon={CheckCircle2}
-                    variant="ghost"
+                    className={ACTION}
                     onClick={() => onStatusAction?.(id, "sold")}
                   >
-                    {t("profile.statusSold")}
-                  </CardAction>
-                  <CardAction
+                    <span className="truncate">{t("profile.statusSold")}</span>
+                  </Button>
+                  <Button
+                    size="sm"
                     icon={EyeOff}
-                    variant="ghost"
+                    className={ACTION}
                     onClick={() => onStatusAction?.(id, "archive")}
                   >
-                    {t("profile.unpublish")}
-                  </CardAction>
+                    <span className="truncate">{t("profile.unpublish")}</span>
+                  </Button>
                 </div>
               )}
 
-              {(status === "sold" || status === "archived") && (
-                <CardAction
+              {inactive && (
+                <Button
+                  variant="lagoon"
+                  size="sm"
+                  block
                   icon={Archive}
-                  variant="success"
-                  className="w-full"
+                  className={ACTION}
                   onClick={() => onStatusAction?.(id, "republish")}
                 >
-                  {t("profile.republish")}
-                </CardAction>
+                  <span className="truncate">{t("profile.republish")}</span>
+                </Button>
               )}
             </div>
           )}

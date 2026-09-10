@@ -552,7 +552,7 @@ export default function Auth() {
                 <Alert type="success">{ok}</Alert>
 
                 {devCodeHint && authMethod === "phone" && (
-                  <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+                  <div className="rounded-xl border border-warning-200 bg-warning-50 px-3 py-2 text-sm text-warning-800">
                     {devCodeHint}
                   </div>
                 )}

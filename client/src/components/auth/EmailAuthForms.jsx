@@ -1,18 +1,24 @@
 import React from "react";
-import { Keyboard, Loader2, Lock, Mail, User as UserIcon } from "lucide-react";
+import { Keyboard, Lock, Mail, User as UserIcon } from "lucide-react";
 import { useI18n } from "../../i18n";
-import {
-  Field,
-  Input,
-  PasswordToggle,
-  PolicyCheckbox,
-  SubmitButton,
-} from "./AuthUi";
+import { Field, Input, cn } from "../../ui";
+import { PasswordField, PolicyCheckbox, SubmitButton } from "./AuthUi";
 
 function PasswordRequirement({ ok, label }) {
   return (
-    <li className={`auth-password-req ${ok ? "auth-password-req--ok" : ""}`}>
-      <span className="auth-password-req__dot" />
+    <li
+      className={cn(
+        "flex items-center gap-1.5 text-xs",
+        ok ? "font-medium text-success-700" : "text-ink-400"
+      )}
+    >
+      <span
+        aria-hidden="true"
+        className={cn(
+          "h-1.5 w-1.5 shrink-0 rounded-full",
+          ok ? "bg-success-500" : "bg-ink-300"
+        )}
+      />
       {label}
     </li>
   );
@@ -53,6 +59,7 @@ export default function EmailRegisterForm({
   emailHint = "",
 }) {
   const { t } = useI18n();
+  const requirementsId = `${React.useId()}-password-rules`;
   const strength = getStrengthMeta(reg.password, t);
   const checks = getPasswordChecks(reg.password, t);
   const passwordsMatch =
@@ -60,97 +67,96 @@ export default function EmailRegisterForm({
 
   return (
     <form onSubmit={onSubmit} className="space-y-5">
-      <div className="auth-phone-hint">
-        <Mail size={18} className="text-sun shrink-0" />
-        <p>{t("auth.emailRegisterHint")}</p>
-      </div>
+      <p className="auth-note flex items-start gap-2">
+        <Mail size={16} className="mt-px shrink-0 text-sun-600" aria-hidden="true" />
+        <span>{t("auth.emailRegisterHint")}</span>
+      </p>
 
-      <Field label={t("auth.emailNameLabel")} icon={UserIcon}>
-        <Input
-          placeholder={t("auth.emailNamePlaceholder")}
-          value={reg.name}
-          onChange={(e) => onChange({ name: e.target.value })}
-          autoComplete="name"
-          withIcon
-        />
+      <Field label={t("auth.emailNameLabel")}>
+        {({ id, "aria-describedby": describedBy }) => (
+          <Input
+            id={id}
+            iconLeft={UserIcon}
+            placeholder={t("auth.emailNamePlaceholder")}
+            value={reg.name}
+            onChange={(e) => onChange({ name: e.target.value })}
+            autoComplete="name"
+            aria-describedby={describedBy}
+          />
+        )}
       </Field>
 
-      <Field label="Email" icon={Mail}>
-        <Input
-          type="email"
-          placeholder="you@mail.tj"
-          value={reg.email}
-          onChange={(e) => onChange({ email: e.target.value })}
-          autoComplete="email"
-          withIcon
-        />
-        {emailHint ? (
-          <p className="auth-field-hint auth-field-hint--warn">{emailHint}</p>
-        ) : null}
+      <Field
+        label={t("auth.email")}
+        hint={
+          emailHint ? (
+            <span className="font-medium text-warning-700">{emailHint}</span>
+          ) : null
+        }
+      >
+        {({ id, "aria-describedby": describedBy }) => (
+          <Input
+            id={id}
+            type="email"
+            iconLeft={Mail}
+            placeholder="you@mail.tj"
+            value={reg.email}
+            onChange={(e) => onChange({ email: e.target.value })}
+            autoComplete="email"
+            aria-describedby={describedBy}
+          />
+        )}
       </Field>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Field
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <PasswordField
           label={t("auth.emailPasswordLabel")}
-          icon={Lock}
-          right={
-            <PasswordToggle
-              visible={showPass}
-              onToggle={onTogglePass}
-              label={t("auth.emailPasswordToggle")}
-            />
-          }
-        >
-          <Input
-            type={showPass ? "text" : "password"}
-            placeholder={t("auth.emailPasswordPlaceholder")}
-            value={reg.password}
-            onChange={(e) => onChange({ password: e.target.value })}
-            autoComplete="new-password"
-            withIcon
-            withToggle
-          />
-        </Field>
+          toggleLabel={t("auth.emailPasswordToggle")}
+          required={false}
+          iconLeft={Lock}
+          visible={showPass}
+          onToggleVisible={onTogglePass}
+          describedBy={requirementsId}
+          placeholder={t("auth.emailPasswordPlaceholder")}
+          value={reg.password}
+          onChange={(e) => onChange({ password: e.target.value })}
+          autoComplete="new-password"
+        />
 
-        <Field
+        <PasswordField
           label={t("auth.emailPasswordConfirmLabel")}
-          icon={Lock}
-          right={
-            <PasswordToggle
-              visible={showConfirm}
-              onToggle={onToggleConfirm}
-              label={t("auth.emailPasswordConfirmToggle")}
-            />
+          toggleLabel={t("auth.emailPasswordConfirmToggle")}
+          required={false}
+          iconLeft={Lock}
+          visible={showConfirm}
+          onToggleVisible={onToggleConfirm}
+          error={
+            reg.confirm && !passwordsMatch ? t("auth.emailPasswordMismatch") : ""
           }
-        >
-          <Input
-            type={showConfirm ? "text" : "password"}
-            placeholder={t("auth.emailPasswordConfirmPlaceholder")}
-            value={reg.confirm}
-            onChange={(e) => onChange({ confirm: e.target.value })}
-            autoComplete="new-password"
-            withIcon
-            withToggle
-          />
-          {reg.confirm && !passwordsMatch && (
-            <p className="text-xs text-red-600 mt-1">{t("auth.emailPasswordMismatch")}</p>
-          )}
-          {passwordsMatch && (
-            <p className="text-xs text-emerald-600 mt-1">{t("auth.emailPasswordMatch")}</p>
-          )}
-        </Field>
+          hint={
+            passwordsMatch ? (
+              <span className="font-medium text-success-700">
+                {t("auth.emailPasswordMatch")}
+              </span>
+            ) : null
+          }
+          placeholder={t("auth.emailPasswordConfirmPlaceholder")}
+          value={reg.confirm}
+          onChange={(e) => onChange({ confirm: e.target.value })}
+          autoComplete="new-password"
+        />
       </div>
 
       {reg.password ? (
-        <div className={`auth-strength ${strength.className}`}>
-          <div className="auth-strength__bar">
+        <div className={cn("auth-strength", strength.className)}>
+          <div className="auth-strength__bar" aria-hidden="true">
             <span style={{ width: `${(strength.score / 4) * 100}%` }} />
           </div>
           <div className="auth-strength__label">{strength.label}</div>
         </div>
       ) : null}
 
-      <ul className="auth-password-reqs">
+      <ul id={requirementsId} className="flex flex-wrap gap-x-4 gap-y-1.5">
         {checks.map((item) => (
           <PasswordRequirement key={item.label} ok={item.ok} label={item.label} />
         ))}
@@ -162,15 +168,7 @@ export default function EmailRegisterForm({
         onChange={(agree) => onChange({ agree })}
       />
 
-      <SubmitButton
-        loading={loading}
-        loadingLabel={
-          <span className="flex items-center justify-center gap-2">
-            <Loader2 className="animate-spin" size={18} />
-            {t("auth.emailCreating")}
-          </span>
-        }
-      >
+      <SubmitButton loading={loading} loadingLabel={t("auth.emailCreating")}>
         {t("auth.emailCreateAccount")}
       </SubmitButton>
     </form>
@@ -190,61 +188,61 @@ export function EmailLoginForm({
   emailHint = "",
 }) {
   const { t } = useI18n();
+  const capsLockId = `${React.useId()}-caps-lock`;
 
   return (
     <form onSubmit={onSubmit} className="space-y-5">
-      <Field label="Email" icon={Mail}>
-        <Input
-          ref={emailRef}
-          type="email"
-          placeholder="you@mail.tj"
-          value={login.email}
-          onChange={(e) => onChange({ email: e.target.value })}
-          autoComplete="email"
-          withIcon
-        />
-        {emailHint ? (
-          <p className="auth-field-hint auth-field-hint--warn">{emailHint}</p>
-        ) : null}
-      </Field>
-
       <Field
-        label={t("auth.emailPasswordLabel")}
-        icon={Lock}
-        right={
-          <PasswordToggle
-            visible={showPass}
-            onToggle={onTogglePass}
-            label={t("auth.emailPasswordToggle")}
-          />
+        label={t("auth.email")}
+        hint={
+          emailHint ? (
+            <span className="font-medium text-warning-700">{emailHint}</span>
+          ) : null
         }
       >
-        <Input
-          type={showPass ? "text" : "password"}
+        {({ id, "aria-describedby": describedBy }) => (
+          <Input
+            ref={emailRef}
+            id={id}
+            type="email"
+            iconLeft={Mail}
+            placeholder="you@mail.tj"
+            value={login.email}
+            onChange={(e) => onChange({ email: e.target.value })}
+            autoComplete="email"
+            aria-describedby={describedBy}
+          />
+        )}
+      </Field>
+
+      <div>
+        <PasswordField
+          label={t("auth.emailPasswordLabel")}
+          toggleLabel={t("auth.emailPasswordToggle")}
+          required={false}
+          iconLeft={Lock}
+          visible={showPass}
+          onToggleVisible={onTogglePass}
+          describedBy={capsLock ? capsLockId : undefined}
           placeholder="••••••"
           value={login.password}
           onChange={(e) => onChange({ password: e.target.value })}
           onKeyUp={(e) => onCapsLockChange(e.getModifierState?.("CapsLock"))}
           autoComplete="current-password"
-          withIcon
-          withToggle
         />
-        {capsLock && (
-          <div className="flex items-center gap-1 text-xs text-amber-600 mt-1">
-            <Keyboard size={14} /> {t("auth.emailCapsLock")}
-          </div>
-        )}
-      </Field>
 
-      <SubmitButton
-        loading={loading}
-        loadingLabel={
-          <span className="flex items-center justify-center gap-2">
-            <Loader2 className="animate-spin" size={18} />
-            {t("auth.emailSigningIn")}
-          </span>
-        }
-      >
+        {/* Kept mounted so the warning is announced the moment Caps Lock goes on. */}
+        <p id={capsLockId} className="text-xs" role="status" aria-live="polite">
+          {capsLock ? (
+            <span className="mt-1.5 inline-flex items-center gap-1.5 font-medium text-warning-700">
+              <Keyboard size={13} aria-hidden="true" />
+              {t("auth.emailCapsLock")}
+            </span>
+          ) : null}
+        </p>
+      </div>
+
+      <SubmitButton loading={loading} loadingLabel={t("auth.emailSigningIn")}>
         {t("auth.emailSignIn")}
       </SubmitButton>
     </form>

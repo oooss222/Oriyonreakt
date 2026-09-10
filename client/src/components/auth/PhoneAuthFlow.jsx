@@ -1,18 +1,14 @@
 import React from "react";
-import { ArrowLeft, Loader2, Phone, User as UserIcon } from "lucide-react";
+import { Phone, User as UserIcon } from "lucide-react";
 import {
   formatPhoneLocalDigits,
   isValidPhoneDigits,
   phoneDigitsToApi,
 } from "../../lib/phoneUtils";
 import { useI18n } from "../../i18n";
+import { Button, Field, Input } from "../../ui";
 import OtpInput from "./OtpInput";
-import {
-  Field,
-  Input,
-  PolicyCheckbox,
-  SubmitButton,
-} from "./AuthUi";
+import { PolicyCheckbox, SubmitButton } from "./AuthUi";
 
 export default function PhoneAuthFlow({
   mode,
@@ -40,49 +36,56 @@ export default function PhoneAuthFlow({
   const isRegister = mode === "register";
 
   if (phoneStep === "phone") {
+    const phoneError =
+      phoneDigits.length > 0 && !isValidPhoneDigits(phoneDigits)
+        ? t("auth.phoneInvalid")
+        : "";
+
     return (
       <form onSubmit={onSendCode} className="space-y-5">
-        <div className="auth-phone-hint">
-          <Phone size={18} className="text-sun shrink-0" />
-          <p>
+        <p className="auth-note flex items-start gap-2">
+          <Phone size={16} className="mt-px shrink-0 text-sun-600" aria-hidden="true" />
+          <span>
             {isRegister ? t("auth.phoneRegisterHint") : t("auth.phoneLoginHint")}
-          </p>
-        </div>
+          </span>
+        </p>
 
-        <Field label={t("auth.phoneLabel")}>
-          <div className="auth-phone-row">
-            <span className="auth-phone-prefix">+992</span>
-            <Input
-              ref={phoneRef}
-              type="tel"
-              inputMode="numeric"
-              placeholder="90 123 45 67"
-              value={formatPhoneLocalDigits(phoneDigits)}
-              onChange={(e) =>
-                onPhoneDigitsChange(
-                  e.target.value.replace(/\D/g, "").slice(0, 9)
-                )
-              }
-              autoComplete="tel"
-              className="auth-phone-input"
-            />
-          </div>
-          {phoneDigits.length > 0 && !isValidPhoneDigits(phoneDigits) && (
-            <p className="text-xs text-red-600 mt-1">{t("auth.phoneInvalid")}</p>
+        <Field
+          label={t("auth.phoneLabel")}
+          error={phoneError}
+          hint={
+            fieldHint ? (
+              <span className="font-medium text-warning-700">{fieldHint}</span>
+            ) : null
+          }
+        >
+          {({ id, invalid, "aria-describedby": describedBy }) => (
+            <div className="auth-phone-row">
+              <span className="auth-phone-prefix">+992</span>
+              <Input
+                ref={phoneRef}
+                id={id}
+                type="tel"
+                inputMode="numeric"
+                placeholder="90 123 45 67"
+                value={formatPhoneLocalDigits(phoneDigits)}
+                onChange={(e) =>
+                  onPhoneDigitsChange(
+                    e.target.value.replace(/\D/g, "").slice(0, 9)
+                  )
+                }
+                autoComplete="tel"
+                invalid={invalid}
+                aria-describedby={describedBy}
+                className="auth-phone-input"
+              />
+            </div>
           )}
-          {fieldHint ? (
-            <p className="auth-field-hint auth-field-hint--warn">{fieldHint}</p>
-          ) : null}
         </Field>
 
         <SubmitButton
           loading={loading}
-          loadingLabel={
-            <span className="flex items-center justify-center gap-2">
-              <Loader2 className="animate-spin" size={18} />
-              {t("auth.phoneSending")}
-            </span>
-          }
+          loadingLabel={t("auth.phoneSending")}
           disabled={!isValidPhoneDigits(phoneDigits)}
         >
           {t("auth.phoneGetCode")}
@@ -93,46 +96,52 @@ export default function PhoneAuthFlow({
 
   return (
     <form onSubmit={onVerifyCode} className="space-y-5">
-      <button
-        type="button"
-        onClick={onResetPhone}
-        className="auth-back-link"
-      >
-        <ArrowLeft size={16} />
-        {t("auth.phoneChangeNumber")}
-      </button>
-
-      <div className="auth-code-banner">
-        <div className="auth-code-banner__title">{t("auth.phoneCodeSent")}</div>
-        <div className="auth-code-banner__phone">
-          {phoneDisplay || phoneDigitsToApi(phoneDigits)}
+      <div className="auth-code-target">
+        <div className="min-w-0">
+          <div className="text-xs text-ink-400">{t("auth.phoneCodeSent")}</div>
+          <div className="auth-code-target__phone truncate">
+            {phoneDisplay || phoneDigitsToApi(phoneDigits)}
+          </div>
         </div>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="shrink-0"
+          onClick={onResetPhone}
+        >
+          {t("auth.phoneChangeNumber")}
+        </Button>
       </div>
 
-      <Field
-        label={t("auth.phoneCodeLabel")}
-        hint={
-          <p className="text-xs text-slate-500 mt-1">{t("auth.phoneCodeHint")}</p>
-        }
-      >
-        <OtpInput
-          value={phoneCode}
-          onChange={onPhoneCodeChange}
-          disabled={loading}
-          inputRef={codeRef}
-        />
+      <Field label={t("auth.phoneCodeLabel")} hint={t("auth.phoneCodeHint")}>
+        {({ id, invalid, "aria-describedby": describedBy }) => (
+          <OtpInput
+            id={id}
+            value={phoneCode}
+            onChange={onPhoneCodeChange}
+            disabled={loading}
+            inputRef={codeRef}
+            invalid={invalid}
+            describedBy={describedBy}
+          />
+        )}
       </Field>
 
       {isRegister ? (
         <>
-          <Field label={t("auth.phoneNameLabel")} icon={UserIcon}>
-            <Input
-              placeholder={t("auth.phoneNamePlaceholder")}
-              value={phoneName}
-              onChange={(e) => onPhoneNameChange(e.target.value)}
-              autoComplete="name"
-              withIcon
-            />
+          <Field label={t("auth.phoneNameLabel")}>
+            {({ id, "aria-describedby": describedBy }) => (
+              <Input
+                id={id}
+                iconLeft={UserIcon}
+                placeholder={t("auth.phoneNamePlaceholder")}
+                value={phoneName}
+                onChange={(e) => onPhoneNameChange(e.target.value)}
+                autoComplete="name"
+                aria-describedby={describedBy}
+              />
+            )}
           </Field>
 
           <PolicyCheckbox
@@ -146,26 +155,28 @@ export default function PhoneAuthFlow({
       <SubmitButton
         loading={loading}
         loadingLabel={
-          <span className="flex items-center justify-center gap-2">
-            <Loader2 className="animate-spin" size={18} />
-            {isRegister ? t("auth.phoneCreating") : t("auth.phoneVerifying")}
-          </span>
+          isRegister ? t("auth.phoneCreating") : t("auth.phoneVerifying")
         }
         disabled={phoneCode.length !== 6 || (isRegister && !phoneName.trim())}
       >
         {isRegister ? t("auth.phoneCreateAccount") : t("auth.phoneSignIn")}
       </SubmitButton>
 
-      <button
-        type="button"
-        onClick={onResendCode}
-        disabled={resendSec > 0 || loading}
-        className="auth-resend"
-      >
-        {resendSec > 0
-          ? t("auth.phoneResendWait", { sec: resendSec })
-          : t("auth.phoneResend")}
-      </button>
+      {/* The countdown is the only feedback that a resend is throttled, so it
+          has to reach screen readers too. */}
+      <div className="text-center" aria-live="polite">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={onResendCode}
+          disabled={resendSec > 0 || loading}
+        >
+          {resendSec > 0
+            ? t("auth.phoneResendWait", { sec: resendSec })
+            : t("auth.phoneResend")}
+        </Button>
+      </div>
     </form>
   );
 }

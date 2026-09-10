@@ -1,4 +1,5 @@
 import React from "react";
+import { Alert, Button, Chip, Input } from "../../ui";
 import { api } from "../../lib/api";
 import { useI18n } from "../../i18n";
 
@@ -109,7 +110,9 @@ export default React.memo(function WalletTopUp({ token, onSuccess }) {
           type: "top_up",
           createdAt: new Date().toISOString(),
         });
-        setSuccess(`Баланс пополнен на ${value.toLocaleString("ru-RU")} TJS`);
+        setSuccess(
+          t("wallet.topUpSuccess", { amount: value.toLocaleString("ru-RU") })
+        );
         setAmount("");
       } catch (e) {
         const message = e.message || t("wallet.topUpError");
@@ -120,9 +123,7 @@ export default React.memo(function WalletTopUp({ token, onSuccess }) {
           message.includes("401") ||
           message.includes("доступ в транзакции отказан")
         ) {
-          setError(
-            "Alif отклонил оплату (401). Terminal 722796 нужно активировать и добавить callback в whitelist у Alif."
-          );
+          setError(t("wallet.alifDeclined"));
         } else {
           setError(message);
         }
@@ -146,83 +147,106 @@ export default React.memo(function WalletTopUp({ token, onSuccess }) {
     return t("wallet.unavailable");
   }, [configLoading, paymentConfig, t]);
 
+  const submitLabel = loading
+    ? paymentConfig.alifEnabled
+      ? t("wallet.redirecting")
+      : t("wallet.toppingUp")
+    : paymentConfig.alifEnabled
+      ? t("wallet.payAlif")
+      : t("wallet.topUp");
+
   return (
     <form onSubmit={submit} className="space-y-4">
-      <div className="rounded-xl border bg-slate-50 p-3 text-sm text-slate-600">{paymentHint}</div>
+      <Alert tone="info" live={false}>
+        {paymentHint}
+      </Alert>
 
       {paymentConfig.environment === "test" && paymentConfig.alifEnabled && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900 space-y-2">
-          <div className="font-semibold">Тестовые данные Alif</div>
-          <div>
-            Карта: <span className="font-mono">5058270283789872</span> · OTP{" "}
-            <span className="font-mono">12345</span>
-          </div>
-        </div>
+        <Alert tone="warning" live={false} title={t("wallet.alifTestTitle")}>
+          <dl className="space-y-0.5">
+            <div className="flex flex-wrap items-baseline gap-x-1.5">
+              <dt>{t("wallet.cardLabel")}:</dt>
+              <dd className="font-mono tabular-nums">5058270283789872</dd>
+            </div>
+            <div className="flex flex-wrap items-baseline gap-x-1.5">
+              <dt>{t("wallet.otpLabel")}:</dt>
+              <dd className="font-mono tabular-nums">12345</dd>
+            </div>
+          </dl>
+        </Alert>
       )}
 
-      <div>
-        <div className="text-sm font-medium mb-2">Быстрый выбор суммы</div>
-        <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
-          {QUICK_AMOUNTS.map((item) => (
-            <button
-              key={item}
-              type="button"
-              onClick={() => {
-                setAmount(String(item));
-                setError("");
-                setSuccess("");
-              }}
-              className={`mobile-btn border ${
-                Number(amount) === item
-                  ? "bg-sun text-white border-sun"
-                  : "bg-white hover:bg-slate-50"
-              }`}
-            >
-              {item} TJS
-            </button>
-          ))}
+      <div role="group" aria-label={t("wallet.quickAmounts")}>
+        <p className="field-label">{t("wallet.quickAmounts")}</p>
+        <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
+          {QUICK_AMOUNTS.map((item) => {
+            const active = Number(amount) === item;
+
+            return (
+              <Chip
+                key={item}
+                tone="sun"
+                active={active}
+                className="h-10 w-full px-2 tabular-nums"
+                onClick={() => {
+                  setAmount(String(item));
+                  setError("");
+                  setSuccess("");
+                }}
+              >
+                {item} TJS
+              </Chip>
+            );
+          })}
         </div>
       </div>
 
-      <label className="block">
-        <div className="text-sm font-medium mb-1">Сумма пополнения</div>
-        <div className="relative">
-          <input
-            value={amount}
-            onChange={(e) => {
-              setAmount(e.target.value.replace(/[^\d.,]/g, ""));
-              setError("");
-              setSuccess("");
-            }}
-            placeholder={t("wallet.amountPlaceholder")}
-            className="mobile-control pr-14"
-          />
-          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-500">TJS</span>
-        </div>
-      </label>
+      <div>
+        <label className="field-label" htmlFor="wallet-top-up-amount">
+          {t("wallet.amountLabel")}
+        </label>
+        <Input
+          id="wallet-top-up-amount"
+          value={amount}
+          onChange={(e) => {
+            setAmount(e.target.value.replace(/[^\d.,]/g, ""));
+            setError("");
+            setSuccess("");
+          }}
+          placeholder={t("wallet.amountPlaceholder")}
+          inputMode="decimal"
+          className="tabular-nums"
+          addonRight={
+            <span className="pr-1.5 text-sm font-semibold text-ink-400">TJS</span>
+          }
+        />
+      </div>
 
-      {error && (
-        <div className="rounded-xl border border-red-200 bg-red-50 text-red-700 p-3 text-sm">{error}</div>
-      )}
+      {/* The region has to be in the DOM before the message lands, otherwise
+          screen readers miss the change. */}
+      <div aria-live="polite" className="empty:hidden">
+        {error && (
+          <Alert tone="danger" live={false}>
+            {error}
+          </Alert>
+        )}
+        {success && (
+          <Alert tone="success" live={false}>
+            {success}
+          </Alert>
+        )}
+      </div>
 
-      {success && (
-        <div className="rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-700 p-3 text-sm">
-          {success}
-        </div>
-      )}
-
-      <button
+      <Button
+        type="submit"
+        variant="primary"
+        size="lg"
+        block
+        loading={loading}
         disabled={loading || !isValid || configLoading}
-        className="mobile-btn bg-sun text-white hover:bg-sun-600 disabled:opacity-60 disabled:cursor-not-allowed"
       >
-        {loading
-          ? paymentConfig.alifEnabled
-            ? t("wallet.redirecting")
-            : t("wallet.toppingUp")
-          : paymentConfig.alifEnabled
-            ? t("wallet.payAlif")
-            : t("wallet.topUp")}
-      </button>
+        {submitLabel}
+      </Button>
     </form>
   );
 });

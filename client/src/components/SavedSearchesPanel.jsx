@@ -1,8 +1,10 @@
 import React from "react";
+import { Bookmark, Trash2 } from "lucide-react";
 import { api } from "../lib/api";
 import { TOKEN_KEY } from "../lib/auth";
 import { readLocalSavedSearches } from "../lib/savedSearch";
 import { useI18n } from "../i18n";
+import { Button, EmptyState, IconButton, SectionCard, Skeleton } from "../ui";
 
 export default function SavedSearchesPanel({ onApply }) {
   const { t } = useI18n();
@@ -59,71 +61,88 @@ export default function SavedSearchesPanel({ onApply }) {
   };
 
   return (
-    <div className="rounded-2xl border bg-white p-4 space-y-3">
-      <div>
-        <div className="text-sm font-semibold text-slate-900">{t("search.savedSearches")}</div>
-        <div className="text-xs text-slate-500 mt-1">
-          {token ? t("search.savedHintLoggedIn") : t("search.savedHintGuest")}
-        </div>
-      </div>
-
+    <SectionCard
+      title={t("search.savedSearches")}
+      description={token ? t("search.savedHintLoggedIn") : t("search.savedHintGuest")}
+      icon={Bookmark}
+      bodyClassName="space-y-3"
+    >
       {loading ? (
-        <div className="text-sm text-slate-500">{t("common.loading")}</div>
-      ) : items.length === 0 ? (
-        <div className="rounded-xl border border-dashed bg-slate-50/80 p-6 text-center text-sm text-slate-500">
-          {t("search.empty")}
-        </div>
-      ) : (
         <div className="space-y-2">
-          {items.map((item) => (
-            <div
-              key={item.id || item.savedAt}
-              className="flex items-center justify-between gap-3 rounded-xl border p-3"
-            >
-              <button
-                type="button"
-                className="text-left flex-1 min-w-0"
-                onClick={() =>
-                  onApply?.({
-                    ...(item.filters || item.params || {}),
-                    cat: item.cat,
-                  })
-                }
-              >
-                <div className="font-medium text-sm text-slate-900 truncate">
-                  {item.label || t("search.defaultLabel")}
-                </div>
-                <div className="text-xs text-slate-500 mt-1">
-                  {token
-                    ? item.alertsEnabled
-                      ? t("search.alertsOn")
-                      : t("search.alertsOff")
-                    : t("search.localOnly")}
-                </div>
-              </button>
-
-              <div className="flex items-center gap-2 shrink-0">
-                {token && item.id && (
-                  <button
-                    type="button"
-                    className="text-xs font-semibold text-sun hover:text-sun-600"
-                    onClick={() => toggleAlerts(item)}
-                  >
-                    {item.alertsEnabled ? t("search.disableAlerts") : t("search.enableAlerts")}
-                  </button>
-                )}
-                <button
-                  type="button"
-                  className="text-xs text-red-600 hover:underline"
-                  onClick={() => removeItem(item)}
-                >
-                  {t("search.delete")}
-                </button>
-              </div>
-            </div>
+          {Array.from({ length: 3 }).map((_, index) => (
+            <Skeleton key={index} className="h-16 w-full" rounded="rounded-xl" />
           ))}
         </div>
+      ) : items.length === 0 ? (
+        <EmptyState
+          bare
+          icon={Bookmark}
+          title={t("search.emptyTitle")}
+          description={t("search.empty")}
+        />
+      ) : (
+        <ul className="space-y-2">
+          {items.map((item) => {
+            const label = item.label || t("search.defaultLabel");
+
+            return (
+              <li
+                key={item.id || item.savedAt}
+                className="flex items-center justify-between gap-3 rounded-xl border border-ink-200 p-3"
+              >
+                <button
+                  type="button"
+                  className="min-w-0 flex-1 rounded-lg py-1 text-left"
+                  onClick={() =>
+                    onApply?.({
+                      ...(item.filters || item.params || {}),
+                      cat: item.cat,
+                    })
+                  }
+                >
+                  <span className="block truncate text-sm font-semibold text-ink-900">
+                    {label}
+                  </span>
+                  <span className="mt-1 block truncate text-xs text-ink-400">
+                    {token
+                      ? item.alertsEnabled
+                        ? t("search.alertsOn")
+                        : t("search.alertsOff")
+                      : t("search.localOnly")}
+                  </span>
+                </button>
+
+                <div className="flex shrink-0 items-center gap-1.5">
+                  {token && item.id && (
+                    <Button
+                      variant="ghost"
+                      className="text-sun-700 hover:text-sun-800"
+                      aria-label={`${
+                        item.alertsEnabled
+                          ? t("search.disableAlerts")
+                          : t("search.enableAlerts")
+                      }: ${label}`}
+                      onClick={() => toggleAlerts(item)}
+                    >
+                      {item.alertsEnabled
+                        ? t("search.disableAlerts")
+                        : t("search.enableAlerts")}
+                    </Button>
+                  )}
+
+                  <IconButton
+                    icon={Trash2}
+                    variant="ghost"
+                    label={t("search.deleteLabel", { label })}
+                    className="text-danger-600 hover:text-danger-700"
+                    onClick={() => removeItem(item)}
+                  />
+                </div>
+              </li>
+            );
+          })}
+        </ul>
       )}
-    </div>
+    </SectionCard>
   );
 }

@@ -12,6 +12,8 @@ import { getDistrictsForCity } from "../data/realEstate";
 import { formatPriceInput, getPriceDigits } from "../data/specOptions";
 import RangeFilter from "./filters/RangeFilter";
 import { getSellerFilterOptions } from "../lib/filterConflicts";
+import { useI18n } from "../i18n";
+import { Chip, Input, Select, cn } from "../ui";
 
 function FilterSelect({
   label,
@@ -24,55 +26,43 @@ function FilterSelect({
   return (
     <label className="block">
       <span className="sr-only">{label}</span>
-      <div className="relative">
-        <select
-          value={value || ""}
-          disabled={disabled}
-          onChange={(e) => onChange(e.target.value)}
-          className={`w-full h-12 appearance-none rounded-xl bg-white px-4 pr-10 text-sm outline-none transition shadow-sm border border-white/80 focus:ring-2 focus:ring-sun/40 disabled:bg-slate-100 disabled:text-slate-400 ${
-            value ? "text-slate-900 font-medium" : "text-slate-500"
-          }`}
-        >
-          <option value="">{placeholder || label}</option>
-          {options.map((option) => (
-            <option key={option} value={option}>
-              {option}
-            </option>
-          ))}
-        </select>
-
-        <ChevronDown
-          size={18}
-          className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"
-        />
-      </div>
+      <Select
+        value={value || ""}
+        disabled={disabled}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder || label}
+        options={options}
+        className={value ? "font-medium" : "text-ink-400"}
+      />
     </label>
   );
 }
 
-function formatPriceSummary(from, to, currency = "с.") {
+function formatPriceSummary(t, from, to, currency) {
   const fromLabel = from ? formatPriceInput(from) : "";
   const toLabel = to ? formatPriceInput(to) : "";
 
   if (fromLabel && toLabel) {
-    return `${fromLabel} – ${toLabel} ${currency}`;
+    return `${t("filter.rangeBoth", { from: fromLabel, to: toLabel })} ${currency}`;
   }
 
   if (fromLabel) {
-    return `от ${fromLabel} ${currency}`;
+    return `${t("filter.rangeFrom", { from: fromLabel })} ${currency}`;
   }
 
   if (toLabel) {
-    return `до ${toLabel} ${currency}`;
+    return `${t("filter.rangeTo", { to: toLabel })} ${currency}`;
   }
 
   return "";
 }
 
 function PriceFilterPopover({ draft, setDraft, onApply }) {
+  const { t } = useI18n();
   const [open, setOpen] = React.useState(false);
   const rootRef = React.useRef(null);
   const panelRef = React.useRef(null);
+  const panelId = React.useId();
   const [panelStyle, setPanelStyle] = React.useState(null);
   const draftRef = React.useRef(draft);
   const currency = draft.priceCurrency || "с.";
@@ -138,14 +128,17 @@ function PriceFilterPopover({ draft, setDraft, onApply }) {
     };
   }, [open, closePopover]);
 
-  const summary = formatPriceSummary(draft.priceFrom, draft.priceTo, currency);
+  const summary = formatPriceSummary(t, draft.priceFrom, draft.priceTo, currency);
 
   const panel =
     open && panelStyle
       ? createPortal(
           <div
             ref={panelRef}
-            className="fixed z-[300] rounded-xl border border-slate-200 bg-white p-3 shadow-xl"
+            id={panelId}
+            role="dialog"
+            aria-label={t("filter.price")}
+            className="card fixed z-[300] p-3 shadow-lg"
             style={{
               top: panelStyle.top,
               left: panelStyle.left,
@@ -153,11 +146,12 @@ function PriceFilterPopover({ draft, setDraft, onApply }) {
             }}
           >
             <div className="flex items-stretch gap-2">
-              <div className="flex flex-1 h-11 rounded-lg border border-slate-200 overflow-hidden">
+              <div className="grid flex-1 grid-cols-2 gap-2">
                 <input
                   type="text"
                   inputMode="numeric"
-                  placeholder="от"
+                  placeholder={t("filter.from")}
+                  aria-label={`${t("filter.price")}, ${t("filter.from")}`}
                   value={draft.priceFrom ? formatPriceInput(draft.priceFrom) : ""}
                   onChange={(e) =>
                     setDraft((current) => ({
@@ -165,13 +159,14 @@ function PriceFilterPopover({ draft, setDraft, onApply }) {
                       priceFrom: getPriceDigits(e.target.value),
                     }))
                   }
-                  className="w-1/2 h-full px-3 text-sm outline-none border-r border-slate-200 placeholder:text-slate-400"
+                  className="input"
                 />
 
                 <input
                   type="text"
                   inputMode="numeric"
-                  placeholder="до"
+                  placeholder={t("filter.to")}
+                  aria-label={`${t("filter.price")}, ${t("filter.to")}`}
                   value={draft.priceTo ? formatPriceInput(draft.priceTo) : ""}
                   onChange={(e) =>
                     setDraft((current) => ({
@@ -179,30 +174,24 @@ function PriceFilterPopover({ draft, setDraft, onApply }) {
                       priceTo: getPriceDigits(e.target.value),
                     }))
                   }
-                  className="w-1/2 h-full px-3 text-sm outline-none placeholder:text-slate-400"
+                  className="input"
                 />
               </div>
 
-              <div className="relative shrink-0">
-                <select
-                  value={currency}
-                  onChange={(e) =>
-                    setDraft((current) => ({
-                      ...current,
-                      priceCurrency: e.target.value,
-                    }))
-                  }
-                  className="h-11 min-w-[4.5rem] appearance-none rounded-lg border border-slate-200 bg-white pl-3 pr-8 text-sm outline-none focus:ring-2 focus:ring-sun/40"
-                >
-                  <option value="с.">с.</option>
-                  <option value="$">$</option>
-                </select>
-
-                <ChevronDown
-                  size={16}
-                  className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-slate-400"
-                />
-              </div>
+              <select
+                value={currency}
+                aria-label={t("filter.currency")}
+                onChange={(e) =>
+                  setDraft((current) => ({
+                    ...current,
+                    priceCurrency: e.target.value,
+                  }))
+                }
+                className="select w-[5.5rem] shrink-0"
+              >
+                <option value="с.">{t("price.currency")}</option>
+                <option value="$">$</option>
+              </select>
             </div>
           </div>,
           document.body
@@ -214,15 +203,19 @@ function PriceFilterPopover({ draft, setDraft, onApply }) {
       <button
         type="button"
         onClick={() => setOpen((value) => !value)}
-        className={`w-full h-12 flex items-center justify-between gap-3 rounded-xl bg-white px-4 text-sm outline-none transition shadow-sm border border-white/80 hover:border-slate-200 focus:ring-2 focus:ring-sun/40 ${
-          summary ? "text-slate-900 font-medium" : "text-slate-500"
-        }`}
+        aria-haspopup="dialog"
+        aria-expanded={open}
+        aria-controls={open ? panelId : undefined}
+        className={cn(
+          "input flex items-center justify-between gap-3 text-left",
+          summary ? "font-medium" : "text-ink-400"
+        )}
       >
-        <span className="truncate">{summary || "Цена"}</span>
+        <span className="truncate">{summary || t("filter.price")}</span>
         {open ? (
-          <ChevronUp size={18} className="shrink-0 text-slate-400" />
+          <ChevronUp size={18} aria-hidden="true" className="shrink-0 text-ink-400" />
         ) : (
-          <ChevronDown size={18} className="shrink-0 text-slate-400" />
+          <ChevronDown size={18} aria-hidden="true" className="shrink-0 text-ink-400" />
         )}
       </button>
 
@@ -247,6 +240,7 @@ function renderField(
     onApply,
     hideSubcategoryField = false,
     grid,
+    t,
   }
 ) {
   if (!field) return <div className="hidden xl:block" aria-hidden="true" />;
@@ -259,7 +253,7 @@ function renderField(
     return (
       <FilterSelect
         label={field.label}
-        placeholder="Все подкатегории"
+        placeholder={t("filter.allSubcategories")}
         value={draft.subcategory}
         options={availableSubcategories}
         onChange={(value) =>
@@ -396,7 +390,7 @@ function renderField(
     return (
       <FilterSelect
         label={field.label}
-        placeholder={districts.length ? field.label : "Сначала город"}
+        placeholder={districts.length ? field.label : t("filter.selectCityFirst")}
         value={draft.specs?.[field.specKey] || ""}
         options={districts}
         disabled={!districts.length}
@@ -467,26 +461,29 @@ function renderField(
 
   if (field.type === "search") {
     return (
-      <input
-        value={draft.search}
-        onChange={(e) =>
-          setDraft((current) => ({
-            ...current,
-            search: e.target.value,
-          }))
-        }
-        placeholder="Поиск по названию"
-        className="w-full h-12 rounded-xl bg-white px-4 text-sm outline-none shadow-sm border border-white/80 focus:ring-2 focus:ring-sun/40"
-      />
+      <label className="block">
+        <span className="sr-only">{field.label}</span>
+        <Input
+          iconLeft={Search}
+          value={draft.search}
+          onChange={(e) =>
+            setDraft((current) => ({
+              ...current,
+              search: e.target.value,
+            }))
+          }
+          placeholder={t("filter.searchPlaceholder")}
+        />
+      </label>
     );
   }
 
   if (field.type === "sort") {
     const sortLabels = grid?.sortOptions || {
-      new: "Сначала новые",
-      views_desc: "Сначала популярные",
-      price_asc: "Цена по возрастанию",
-      price_desc: "Цена по убыванию",
+      new: t("filter.sortNew"),
+      views_desc: t("filter.sortPopular"),
+      price_asc: t("filter.sortPriceAsc"),
+      price_desc: t("filter.sortPriceDesc"),
     };
 
     return (
@@ -515,8 +512,9 @@ function renderField(
 
     return (
       <div>
-        <div className="mb-1 text-xs font-medium text-slate-500 px-1">{field.label}</div>
+        <span className="field-label">{field.label}</span>
         <RangeFilter
+          label={field.label}
           from={draft[fromKey] || ""}
           to={draft[toKey] || ""}
           onChange={({ from, to }) =>
@@ -528,8 +526,6 @@ function renderField(
           }
           presets={field.presets || []}
           selectOptions={field.type === "year-range" ? field.options || [] : []}
-          fromPlaceholder={field.type === "year-range" ? "от" : "от"}
-          toPlaceholder={field.type === "year-range" ? "до" : "до"}
         />
       </div>
     );
@@ -541,17 +537,14 @@ function renderField(
     return (
       <button
         type="button"
+        aria-pressed={active}
         onClick={() =>
           commitDraft(setDraft, onApply, (current) => ({
             ...current,
             [field.toggleKey]: !current[field.toggleKey],
           }), draft)
         }
-        className={`h-12 w-full rounded-xl border px-4 text-sm font-semibold transition ${
-          active
-            ? "bg-slate-900 text-white border-slate-900"
-            : "bg-white text-slate-600 border-white/80 shadow-sm"
-        }`}
+        className={cn("btn btn-block h-11", active && "btn-accent")}
       >
         {field.label}
       </button>
@@ -576,7 +569,9 @@ export default function ListingFiltersPanel({
   hideSubcategoryField = false,
   layout = "default",
 }) {
+  const { t } = useI18n();
   const [moreOpen, setMoreOpen] = React.useState(false);
+  const moreId = React.useId();
   const grid = React.useMemo(
     () => getListingFilterGrid(activeCat, draft.subcategory),
     [activeCat, draft.subcategory]
@@ -590,8 +585,8 @@ export default function ListingFiltersPanel({
         )
       : activeCat === "transport"
         ? [
-            { value: "private", label: "Частный продавец" },
-            { value: "company", label: "Компания" },
+            { value: "private", label: t("filter.sellerPrivate") },
+            { value: "company", label: t("filter.sellerCompany") },
           ]
         : [];
 
@@ -605,11 +600,12 @@ export default function ListingFiltersPanel({
 
   return (
     <div
-      className={`filter-panel ${
-        compact ? "p-0 border-0 shadow-none bg-transparent" : "p-4 md:p-5"
-      }`}
+      className={cn(
+        "filter-panel",
+        compact ? "border-0 bg-transparent p-0 shadow-none" : "p-4 md:p-5"
+      )}
     >
-      <div className={`space-y-3 ${compact ? "pb-24" : ""}`}>
+      <div className={cn("space-y-3", compact && "pb-24")}>
         {grid.rows.map((row, rowIndex) => (
           <div key={`row-${rowIndex}`} className={rowGridClass}>
             {row.map((field, fieldIndex) => (
@@ -622,6 +618,7 @@ export default function ListingFiltersPanel({
                   onApply,
                   hideSubcategoryField,
                   grid,
+                  t,
                 })}
               </div>
             ))}
@@ -630,23 +627,29 @@ export default function ListingFiltersPanel({
       </div>
 
       {sellerOptions.length > 0 && (
-        <div className="mt-3 flex flex-wrap gap-2">
-          <button
-            type="button"
+        <div
+          role="group"
+          aria-label={t("filter.seller")}
+          className="mt-3 flex flex-wrap gap-2"
+        >
+          <Chip
+            active={!draft.sellerType}
+            className="filter-chip"
             onClick={() =>
               commitDraft(setDraft, onApply, (current) => ({
                 ...current,
                 sellerType: "",
               }), draft)
             }
-            className={`chip ${!draft.sellerType ? "chip-active" : ""}`}
           >
-            Любой
-          </button>
+            {t("filter.any")}
+          </Chip>
+
           {sellerOptions.map((option) => (
-            <button
+            <Chip
               key={option.value}
-              type="button"
+              active={draft.sellerType === option.value}
+              className="filter-chip"
               onClick={() =>
                 commitDraft(setDraft, onApply, (current) => ({
                   ...current,
@@ -654,24 +657,22 @@ export default function ListingFiltersPanel({
                     current.sellerType === option.value ? "" : option.value,
                 }), draft)
               }
-              className={`chip ${
-                draft.sellerType === option.value ? "chip-active" : ""
-              }`}
             >
               {option.label}
-            </button>
+            </Chip>
           ))}
         </div>
       )}
 
       {moreOpen && grid.more?.length > 0 && (
-        <div className={`mt-3 pt-3 border-t border-ink/10 ${moreGridClass}`}>
+        <div
+          id={moreId}
+          className={cn("mt-3 border-t border-ink-200 pt-3", moreGridClass)}
+        >
           {grid.more.map((field) => (
             <div key={field.id} className="space-y-1">
               {(field.type === "search" || field.type === "sort") && (
-                <div className="text-xs font-medium text-ink-400 px-1">
-                  {field.label}
-                </div>
+                <span className="field-label">{field.label}</span>
               )}
               {renderField(field, {
                 draft,
@@ -681,6 +682,7 @@ export default function ListingFiltersPanel({
                 onApply,
                 hideSubcategoryField,
                 grid,
+                t,
               })}
             </div>
           ))}
@@ -688,46 +690,50 @@ export default function ListingFiltersPanel({
       )}
 
       <div
-        className={`mt-4 pt-4 border-t border-ink/10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 ${
-          compact
-            ? "sticky bottom-0 z-10 -mx-0 px-3 py-3 bg-white border-t border-slate-200 shadow-[0_-8px_24px_rgba(0,0,0,0.06)]"
-            : ""
-        }`}
+        className={cn(
+          "mt-4 flex flex-col gap-3 border-t border-ink-200 pt-4 lg:flex-row lg:items-center lg:justify-between",
+          compact &&
+            "sticky bottom-0 z-10 bg-white px-3 py-3 shadow-[0_-8px_24px_rgb(18_22_27_/_0.08)]"
+        )}
       >
         <div className="flex flex-wrap items-center gap-4">
           {grid.more?.length > 0 && (
             <button
               type="button"
               onClick={() => setMoreOpen((value) => !value)}
-              className="inline-flex items-center gap-1.5 text-sm font-medium text-sun hover:text-sun-700 transition"
+              aria-expanded={moreOpen}
+              aria-controls={moreOpen ? moreId : undefined}
+              className="inline-flex min-h-[2.5rem] items-center gap-1.5 text-sm font-semibold text-sun-700 transition-colors hover:text-sun-600"
             >
-              {moreOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-              {moreOpen ? "Меньше фильтров" : "Больше фильтров"}
+              {moreOpen ? (
+                <ChevronUp size={16} aria-hidden="true" />
+              ) : (
+                <ChevronDown size={16} aria-hidden="true" />
+              )}
+              {moreOpen ? t("filter.lessFilters") : t("filter.moreFilters")}
             </button>
           )}
 
           {hasActiveFilters && (
-            <button
-              type="button"
-              onClick={onReset}
-              className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700 transition"
-            >
-              <X size={15} />
-              Сбросить фильтры
+            <button type="button" onClick={onReset} className="filter-reset">
+              <X size={15} aria-hidden="true" />
+              {t("filter.reset")}
             </button>
           )}
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-2 sm:items-center sm:ml-auto">
+        <div className="flex flex-col gap-2 sm:ml-auto sm:flex-row sm:items-center">
           <button
             type="button"
             onClick={() => onApply()}
-            className="inline-flex justify-center items-center gap-2 h-11 px-5 rounded-xl bg-sun text-white hover:bg-sun-600 transition text-sm font-semibold shadow-sm"
+            className="btn btn-primary h-11 px-5"
           >
-            <Search size={16} />
+            <Search size={16} aria-hidden="true" />
             {previewLoading
-              ? "Показать…"
-              : `Показать (${previewTotal.toLocaleString("ru-RU")})`}
+              ? t("filter.showLoading")
+              : t("filter.showCount", {
+                  count: previewTotal.toLocaleString("ru-RU"),
+                })}
           </button>
         </div>
       </div>

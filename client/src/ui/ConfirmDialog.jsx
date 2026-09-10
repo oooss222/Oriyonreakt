@@ -88,7 +88,7 @@ export function ConfirmProvider({ children }) {
                 onChange={(event) => setValue(event.target.value)}
                 placeholder={request.placeholder || ""}
                 rows={4}
-                aria-label={request.placeholder || request.title || "Комментарий"}
+                aria-label={request.placeholder || request.title || t("common.comment")}
               />
             ) : (
               <Input
@@ -96,7 +96,7 @@ export function ConfirmProvider({ children }) {
                 value={value}
                 onChange={(event) => setValue(event.target.value)}
                 placeholder={request.placeholder || ""}
-                aria-label={request.placeholder || request.title || "Значение"}
+                aria-label={request.placeholder || request.title || t("common.value")}
               />
             )}
           </div>

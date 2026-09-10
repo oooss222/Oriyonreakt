@@ -1,9 +1,8 @@
 import React from "react";
-import { Link } from "react-router-dom";
-import { ArrowRight } from "lucide-react";
 import { api } from "../lib/api";
 import ListingCard from "./ListingCard";
 import ListingGridSkeleton from "./ListingGridSkeleton";
+import SectionHeader from "./SectionHeader";
 import { useI18n, getCategoryLabel } from "../i18n";
 
 export default function SimilarListingsSection({
@@ -80,29 +79,21 @@ export default function SimilarListingsSection({
 
   return (
     <section className="space-y-4 pt-2">
-      <div className="flex items-center justify-between gap-3">
-        <div>
-          <h2 className="text-xl font-bold text-slate-900">{sectionTitle}</h2>
-          <p className="text-sm text-slate-500 mt-0.5">
-            {subcategory
-              ? `${catLabel} · ${subcategory}`
-              : t("listing.categoryLabel", { name: catLabel })}
-          </p>
-        </div>
-
-        <Link
-          to={listingUrl}
-          className="inline-flex items-center gap-1 text-sm font-medium text-sun hover:text-sun-600 shrink-0"
-        >
-          {t("category.all")}
-          <ArrowRight className="w-4 h-4" />
-        </Link>
-      </div>
+      <SectionHeader
+        title={sectionTitle}
+        subtitle={
+          subcategory
+            ? `${catLabel} · ${subcategory}`
+            : t("listing.categoryLabel", { name: catLabel })
+        }
+        linkTo={listingUrl}
+        linkLabel={t("category.all")}
+      />
 
       {loading && <ListingGridSkeleton count={4} columns="grid-cols-2 sm:grid-cols-4" />}
 
       {!loading && items.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
           {items.map((item) => (
             <ListingCard key={item._id || item.id} item={item} />
           ))}

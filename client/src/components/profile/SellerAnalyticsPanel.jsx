@@ -401,6 +401,8 @@ export default function SellerAnalyticsPanel({ token }) {
                               <img
                                 src={getListingThumb(ad, { width: 96 })}
                                 alt=""
+                                loading="lazy"
+                                decoding="async"
                                 className="h-11 w-11 shrink-0 rounded-lg bg-mist-200 object-cover"
                               />
                               <span className="min-w-0">

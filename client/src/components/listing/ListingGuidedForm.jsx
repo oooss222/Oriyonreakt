@@ -1,5 +1,6 @@
 import React from "react";
 import {
+  Check,
   ListChecks,
   FileText,
   Eye,
@@ -28,6 +29,7 @@ import ListingFormPublicationSidebar from "./ListingFormPublicationSidebar";
 import ListingFormPreview from "./ListingFormPreview";
 import { buildPublishHintParts } from "../../lib/listingFormValidation";
 import { buildTransportSuggestedTitle } from "../../lib/listingFormTitles";
+import { Alert } from "../../ui";
 import { useI18n } from "../../i18n";
 
 export function isGuidedWizardCategory(cat) {
@@ -155,6 +157,18 @@ export default function ListingGuidedForm({
   const goNext = () => setStep((s) => Math.min(STEP_IDS.length - 1, s + 1));
   const goBack = () => setStep((s) => Math.max(0, s - 1));
 
+  const reviewSummary = [
+    { label: t("form.category"), value: cat?.title || form.cat },
+    { label: t("form.subcategory"), value: form.subcategory || "—" },
+    { label: t("form.photos"), value: `${photosCount}/${photoLimit}` },
+    {
+      label: t("form.price"),
+      value: hasPrice
+        ? `${formatPriceInput(form.price)} ${t("price.currency")}`
+        : "—",
+    },
+  ];
+
   const sidebarChecks = [
     {
       key: "type",
@@ -197,7 +211,7 @@ export default function ListingGuidedForm({
       className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_20rem] xl:grid-cols-[minmax(0,1fr)_22rem] gap-5"
     >
       <section className="space-y-5 min-w-0">
-        <div className="listing-form-card">
+        <nav className="listing-form-card" aria-label={t("listing.wizardSteps")}>
           <div className="listing-form-card__body py-3">
             <ol className="flex flex-wrap gap-2">
               {stepMeta.map((item, index) => {
@@ -207,15 +221,20 @@ export default function ListingGuidedForm({
                     <button
                       type="button"
                       onClick={() => setStep(index)}
-                      className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                      aria-current={active ? "step" : undefined}
+                      className={`chip ${
                         active
-                          ? "bg-sun text-white"
+                          ? "chip-sun"
                           : item.ok
-                            ? "bg-mist text-ink-600"
-                            : "bg-white border border-ink/10 text-ink-400"
+                            ? "border-success-200 bg-success-50 text-success-700"
+                            : ""
                       }`}
                     >
-                      <span>{index + 1}</span>
+                      {item.ok && !active ? (
+                        <Check size={14} strokeWidth={2.6} aria-hidden="true" />
+                      ) : (
+                        <span aria-hidden="true">{index + 1}</span>
+                      )}
                       {item.label}
                     </button>
                   </li>
@@ -223,36 +242,42 @@ export default function ListingGuidedForm({
               })}
             </ol>
           </div>
-        </div>
+        </nav>
 
         {step === 0 ? (
           <div className="listing-form-card" data-field="specs">
             <div className="listing-form-card__head">
               <div className="listing-form-card__title">
-                <ListChecks className="w-5 h-5 text-sun" />
+                <ListChecks className="h-5 w-5 text-sun-600" aria-hidden="true" />
                 {t("listing.wizardStepType")}
               </div>
             </div>
             <div className="listing-form-card__body space-y-4">
-              <div>
-                <label className="listing-form-label listing-form-label-required">
+              <div role="group" aria-labelledby="wizard-subcategory-label">
+                <p
+                  id="wizard-subcategory-label"
+                  className="listing-form-label listing-form-label-required"
+                >
                   {t("form.subcategory")}
-                </label>
+                </p>
                 <div className="flex flex-wrap gap-2">
-                  {(cat?.subs || []).map((sub) => (
-                    <button
-                      key={sub}
-                      type="button"
-                      onClick={() => onSubcategoryChange(sub)}
-                      className={`listing-form-chip ${
-                        form.subcategory === sub
-                          ? "listing-form-chip--active"
-                          : ""
-                      }`}
-                    >
-                      {sub}
-                    </button>
-                  ))}
+                  {(cat?.subs || []).map((sub) => {
+                    const active = form.subcategory === sub;
+
+                    return (
+                      <button
+                        key={sub}
+                        type="button"
+                        onClick={() => onSubcategoryChange(sub)}
+                        aria-pressed={active}
+                        className={`listing-form-chip ${
+                          active ? "listing-form-chip--active" : ""
+                        }`}
+                      >
+                        {sub}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -293,47 +318,60 @@ export default function ListingGuidedForm({
           <div className="listing-form-card" data-field="title">
             <div className="listing-form-card__head">
               <div className="listing-form-card__title">
-                <FileText className="w-5 h-5 text-sun" />
+                <FileText className="h-5 w-5 text-sun-600" aria-hidden="true" />
                 {t("listing.wizardStepDetails")}
               </div>
             </div>
             <div className="listing-form-card__body space-y-4">
               <div>
                 <div className="flex items-center justify-between gap-3 mb-1">
-                  <label className="listing-form-label listing-form-label-required">
+                  <label
+                    htmlFor="wizard-title"
+                    className="listing-form-label listing-form-label-required"
+                  >
                     {t("form.title")}
                   </label>
                   {form.cat === "transport" ? (
                     <button
                       type="button"
                       onClick={handleSuggestTitle}
-                      className="inline-flex items-center gap-1 text-xs font-medium text-sun hover:text-sun-700"
+                      className="inline-flex items-center gap-1 text-xs font-semibold text-sun-700 hover:text-sun-800"
                     >
-                      <PencilLine className="w-3.5 h-3.5" />
+                      <PencilLine className="h-3.5 w-3.5" aria-hidden="true" />
                       {t("form.generateTitle")}
                     </button>
                   ) : null}
                 </div>
                 <input
+                  id="wizard-title"
                   value={form.title}
                   onChange={(e) =>
                     setField("title", e.target.value.slice(0, TITLE_MAX))
                   }
                   placeholder={t("form.titlePlaceholder")}
                   className="listing-form-input"
+                  aria-describedby="wizard-title-count"
                 />
-                <div className="listing-form-meta">
-                  {form.title.length}/{TITLE_MAX}
+                <div id="wizard-title-count" className="listing-form-meta">
+                  {t("composer.titleCounter", {
+                    count: form.title.length,
+                    max: TITLE_MAX,
+                  })}
                 </div>
               </div>
 
               <div data-field="price">
-                <label className="listing-form-label listing-form-label-required">
+                <label
+                  htmlFor="wizard-price"
+                  className="listing-form-label listing-form-label-required"
+                >
                   {t("form.price")}
                 </label>
                 <div className="listing-form-price-wrap">
                   <input
+                    id="wizard-price"
                     value={form.price}
+                    aria-describedby="wizard-price-count"
                     onChange={(e) => handlePriceChange(e.target.value)}
                     onPaste={(e) => {
                       e.preventDefault();
@@ -347,13 +385,18 @@ export default function ListingGuidedForm({
                     {t("price.currency")}
                   </span>
                 </div>
-                <div className="listing-form-meta">
-                  {priceDigits.length}/{PRICE_MAX_DIGITS} {t("form.digits")}
+                <div id="wizard-price-count" className="listing-form-meta">
+                  {t("composer.priceCounter", {
+                    count: priceDigits.length,
+                    max: PRICE_MAX_DIGITS,
+                  })}
                 </div>
               </div>
 
-              <div>
-                <label className="listing-form-label">{t("form.location")}</label>
+              <div role="group" aria-labelledby="wizard-location-label">
+                <p id="wizard-location-label" className="listing-form-label">
+                  {t("form.location")}
+                </p>
                 <div className="listing-form-location-segment">
                   {LOCATIONS.map((city) => {
                     const active = form.location === city;
@@ -362,11 +405,12 @@ export default function ListingGuidedForm({
                         key={city}
                         type="button"
                         onClick={() => setField("location", city)}
+                        aria-pressed={active}
                         className={`listing-form-location-btn ${
                           active ? "listing-form-location-btn--active" : ""
                         }`}
                       >
-                        <MapPin className="w-4 h-4" />
+                        <MapPin className="h-4 w-4" aria-hidden="true" />
                         {city}
                       </button>
                     );
@@ -375,8 +419,12 @@ export default function ListingGuidedForm({
               </div>
 
               <div>
-                <label className="listing-form-label">{t("form.description")}</label>
+                <label htmlFor="wizard-description" className="listing-form-label">
+                  {t("form.description")}
+                </label>
                 <textarea
+                  id="wizard-description"
+                  aria-describedby="wizard-description-count"
                   value={form.description}
                   onChange={(e) =>
                     setField(
@@ -388,8 +436,11 @@ export default function ListingGuidedForm({
                   className="listing-form-textarea"
                   placeholder={t("form.descriptionPlaceholder")}
                 />
-                <div className="listing-form-meta">
-                  {form.description.length}/{DESC_MAX}
+                <div id="wizard-description-count" className="listing-form-meta">
+                  {t("composer.titleCounter", {
+                    count: form.description.length,
+                    max: DESC_MAX,
+                  })}
                 </div>
               </div>
             </div>
@@ -400,44 +451,27 @@ export default function ListingGuidedForm({
           <div className="listing-form-card">
             <div className="listing-form-card__head">
               <div className="listing-form-card__title">
-                <Eye className="w-5 h-5 text-sun" />
+                <Eye className="h-5 w-5 text-sun-600" aria-hidden="true" />
                 {t("listing.wizardStepReview")}
               </div>
             </div>
             <div className="listing-form-card__body space-y-4">
-              <div className="rounded-xl border border-sun/25 bg-sun-50 px-4 py-3 text-sm text-sun-900">
+              <Alert tone="warning" live={false}>
                 {t("listing.moderationLikelyHint")}
-              </div>
+              </Alert>
               <div className="max-w-xs">
                 <ListingFormPreview item={previewItem} />
               </div>
-              <dl className="grid sm:grid-cols-2 gap-3 text-sm">
-                <div className="rounded-xl bg-mist/60 px-3 py-2">
-                  <dt className="text-ink-400">{t("form.category")}</dt>
-                  <dd className="font-semibold text-ink">
-                    {cat?.title || form.cat}
-                  </dd>
-                </div>
-                <div className="rounded-xl bg-mist/60 px-3 py-2">
-                  <dt className="text-ink-400">{t("form.subcategory")}</dt>
-                  <dd className="font-semibold text-ink">
-                    {form.subcategory || "—"}
-                  </dd>
-                </div>
-                <div className="rounded-xl bg-mist/60 px-3 py-2">
-                  <dt className="text-ink-400">{t("form.photos")}</dt>
-                  <dd className="font-semibold text-ink">
-                    {photosCount}/{photoLimit}
-                  </dd>
-                </div>
-                <div className="rounded-xl bg-mist/60 px-3 py-2">
-                  <dt className="text-ink-400">{t("form.price")}</dt>
-                  <dd className="font-semibold text-ink">
-                    {hasPrice
-                      ? `${formatPriceInput(form.price)} ${t("price.currency")}`
-                      : "—"}
-                  </dd>
-                </div>
+              <dl className="grid gap-3 text-sm sm:grid-cols-2">
+                {reviewSummary.map((row) => (
+                  <div
+                    key={row.label}
+                    className="rounded-xl border border-ink-200 bg-mist-50 px-3 py-2"
+                  >
+                    <dt className="text-ink-400">{row.label}</dt>
+                    <dd className="font-semibold text-ink-900">{row.value}</dd>
+                  </div>
+                ))}
               </dl>
             </div>
           </div>
@@ -448,30 +482,25 @@ export default function ListingGuidedForm({
             type="button"
             onClick={goBack}
             disabled={step === 0}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-ink/10 px-4 py-2.5 text-sm font-medium text-ink-600 hover:bg-mist disabled:opacity-40"
+            className="btn"
           >
-            <ChevronLeft className="w-4 h-4" />
+            <ChevronLeft className="h-4 w-4" aria-hidden="true" />
             {t("listing.wizardBack")}
           </button>
 
           {step < STEP_IDS.length - 1 ? (
-            <button
-              type="button"
-              onClick={goNext}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-ink text-white px-4 py-2.5 text-sm font-semibold hover:bg-ink/90"
-            >
+            <button type="button" onClick={goNext} className="btn btn-accent">
               {t("listing.wizardNext")}
-              <ChevronRight className="w-4 h-4" />
+              <ChevronRight className="h-4 w-4" aria-hidden="true" />
             </button>
           ) : (
             <button
               type="submit"
               disabled={!canPublish}
-              className={`inline-flex items-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-semibold ${
-                canPublish
-                  ? "bg-sun text-white hover:bg-sun-600"
-                  : "bg-mist text-ink-400 cursor-not-allowed"
-              }`}
+              aria-describedby={
+                !canPublish && publishHint ? "wizard-publish-hint" : undefined
+              }
+              className="btn btn-primary"
             >
               {saving
                 ? isEdit
@@ -483,6 +512,15 @@ export default function ListingGuidedForm({
             </button>
           )}
         </div>
+
+        {step === STEP_IDS.length - 1 && !canPublish && publishHint ? (
+          <p
+            id="wizard-publish-hint"
+            className="text-xs leading-relaxed text-danger-600"
+          >
+            {publishHint}
+          </p>
+        ) : null}
       </section>
 
       <ListingFormPublicationSidebar

@@ -69,30 +69,12 @@ export function assessListingPrice({
   const diffPct = Math.round((ratio - 1) * 100);
 
   if (ratio < 0.65) {
-    return {
-      level: "low",
-      perSqm,
-      benchmark,
-      diffPct,
-      message: `Цена за м² (${perSqm.toLocaleString("ru-RU")} с.) заметно ниже типичной для района (~${benchmark.toLocaleString("ru-RU")} с.). Проверьте объект и документы.`,
-    };
+    return { level: "low", perSqm, benchmark, diffPct };
   }
 
   if (ratio > 1.35) {
-    return {
-      level: "high",
-      perSqm,
-      benchmark,
-      diffPct,
-      message: `Цена за м² (${perSqm.toLocaleString("ru-RU")} с.) выше типичной для района (~${benchmark.toLocaleString("ru-RU")} с.) на ${diffPct > 0 ? "+" : ""}${diffPct}%.`,
-    };
+    return { level: "high", perSqm, benchmark, diffPct };
   }
 
-  return {
-    level: "ok",
-    perSqm,
-    benchmark,
-    diffPct,
-    message: `Цена за м² близка к средней по району (~${benchmark.toLocaleString("ru-RU")} с.).`,
-  };
+  return { level: "ok", perSqm, benchmark, diffPct };
 }

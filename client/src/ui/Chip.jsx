@@ -2,6 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { X } from "lucide-react";
 import { cn } from "./cn";
+import { useI18n } from "../i18n";
 
 /** Filter / category pill. Toggles state or navigates. */
 export default function Chip({
@@ -56,7 +57,9 @@ export default function Chip({
 }
 
 /** Applied-filter token with an inline remove control. */
-export function FilterToken({ label, value, onRemove, removeLabel = "Убрать фильтр" }) {
+export function FilterToken({ label, value, onRemove, removeLabel }) {
+  const { t } = useI18n();
+
   return (
     <span className="chip-token">
       {label && <span className="text-ink-400">{label}:</span>}
@@ -64,7 +67,7 @@ export function FilterToken({ label, value, onRemove, removeLabel = "Убрат�
       <button
         type="button"
         onClick={onRemove}
-        aria-label={`${removeLabel}: ${value}`}
+        aria-label={`${removeLabel || t("a11y.removeFilter")}: ${value}`}
         className="grid h-5 w-5 shrink-0 place-items-center rounded-full text-ink-400 transition hover:bg-ink-200 hover:text-ink-900"
       >
         <X size={12} strokeWidth={2.6} aria-hidden="true" />

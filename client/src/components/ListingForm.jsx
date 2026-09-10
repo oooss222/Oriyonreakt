@@ -853,23 +853,23 @@ export default function ListingForm({
   }
 
   return (
-    <div className="listing-form-page bg-mist/40 min-h-[calc(100vh-4rem)]">
+    <div className="listing-form-page min-h-[calc(100vh-4rem)] bg-mist-50">
       <div className="listing-form-header">
         <div className="listing-form-badge">
           {isEdit ? (
             <>
-              <Pencil className="w-4 h-4" />
+              <Pencil className="h-4 w-4" aria-hidden="true" />
               {t("listing.editing")}
             </>
           ) : (
             <>
-              <Tag className="w-4 h-4" />
+              <Tag className="h-4 w-4" aria-hidden="true" />
               {t("listing.newBadge")}
             </>
           )}
         </div>
 
-        <h1 className="font-display text-2xl md:text-3xl font-bold tracking-tight text-ink">
+        <h1 className="font-display text-2xl font-bold tracking-tight text-ink-900 md:text-3xl">
           {isEdit ? t("listing.editForm") : t("listing.createForm")}
         </h1>
 
@@ -882,7 +882,7 @@ export default function ListingForm({
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
           <Link
             to={backTo}
-            className="inline-flex text-sm text-ink-400 hover:text-ink transition"
+            className="inline-flex text-sm text-ink-400 transition hover:text-ink-900"
           >
             {t("form.back")}
           </Link>
@@ -897,9 +897,9 @@ export default function ListingForm({
       </div>
 
       {draftPrompt ? (
-        <div className="rounded-2xl border border-sun/20 bg-sun-50 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="flex flex-col gap-3 rounded-2xl border border-sun-200 bg-sun-50 p-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-3">
-            <FileText className="w-5 h-5 text-sun-700 mt-0.5 shrink-0" />
+            <FileText className="mt-0.5 h-5 w-5 shrink-0 text-sun-700" aria-hidden="true" />
             <div>
               <div className="font-semibold text-sun-800">
                 {t("listing.draftContinue")}

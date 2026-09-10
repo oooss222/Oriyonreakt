@@ -669,7 +669,7 @@ export default function Profile() {
         <div className="rounded-2xl border bg-white p-4 md:p-5">
           <div className="mb-3 flex items-center justify-between">
             <h2 className="text-lg font-semibold">{t("profile.favorites")}</h2>
-            <div className="text-sm text-slate-500">
+            <div className="text-sm text-ink-400">
               {t("profile.totalCount", { count: favItems.length })}
             </div>
           </div>

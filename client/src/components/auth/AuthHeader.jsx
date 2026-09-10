@@ -1,34 +1,41 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { useI18n } from "../../i18n";
 
 export default function AuthHeader() {
+  const { t } = useI18n();
+
   return (
-    <header className="sticky top-0 z-50 border-b border-ink/10 bg-white/95 backdrop-blur-sm">
-      <div className="container-x h-16 flex items-center justify-between gap-4">
-        <Link to="/" className="flex items-center gap-2.5 min-w-0 group">
+    <header
+      className="sticky top-0 border-b border-ink-200 bg-white/95 backdrop-blur-sm"
+      style={{ zIndex: "var(--z-header)" }}
+    >
+      <div className="container-x flex h-16 items-center justify-between gap-4">
+        <Link to="/" className="group flex min-w-0 items-center gap-2.5">
           <img
             src="/oriyon.store.png"
-            alt="Oriyon Store"
-            className="w-10 h-10 object-contain transition group-hover:scale-105"
+            alt=""
+            aria-hidden="true"
+            className="h-10 w-10 object-contain transition group-hover:scale-105"
           />
-          <span className="brand-wordmark text-lg text-ink truncate">
-            Oriyon<span className="text-sun">.</span>
-            <span className="text-ink-400 font-semibold text-[0.85em]">store</span>
+          <span className="brand-wordmark truncate text-lg text-ink-900">
+            Oriyon<span className="text-sun-500">.</span>
+            <span className="text-[0.85em] font-semibold text-ink-400">store</span>
           </span>
         </Link>
 
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="flex shrink-0 items-center gap-3">
           <Link
             to="/listing"
-            className="hidden sm:inline text-sm font-medium text-slate-600 hover:text-sun transition"
+            className="hidden text-sm font-medium text-ink-500 transition-colors hover:text-sun-700 sm:inline"
           >
-            Каталог
+            {t("nav.catalog")}
           </Link>
           <Link
             to="/"
-            className="text-sm font-medium text-slate-600 hover:text-sun transition"
+            className="text-sm font-medium text-ink-500 transition-colors hover:text-sun-700"
           >
-            На главную
+            {t("nav.backHome")}
           </Link>
         </div>
       </div>
