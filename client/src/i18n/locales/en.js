@@ -206,6 +206,11 @@ export default {
     computers: "Computers & office",
     services: "Services",
     repair: "Repair",
+    food: "Food",
+    kids: "Kids",
+    travel: "Travel",
+    clothing: "Clothing",
+    construction: "Construction",
     all: "All categories",
   },
   cookie: {

@@ -11,6 +11,11 @@ const CAT_ICONS = {
   computers: "💻",
   services: "🛠️",
   repair: "🧱",
+  food: "🍰",
+  kids: "🧸",
+  travel: "🧳",
+  clothing: "👕",
+  construction: "🏗️",
 };
 
 export default function ListingCategoryPicker({ onSelect, selected = "" }) {

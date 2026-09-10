@@ -7,6 +7,11 @@ const CATEGORY_PHOTO_LIMITS = {
   repair: 3,
   realestate: 8,
   furniture: 6,
+  food: 6,
+  kids: 6,
+  travel: 8,
+  clothing: 6,
+  construction: 6,
 };
 
 const CATEGORY_MIN_PHOTOS = {
@@ -14,6 +19,11 @@ const CATEGORY_MIN_PHOTOS = {
   realestate: 3,
   services: 1,
   repair: 1,
+  food: 1,
+  kids: 1,
+  travel: 1,
+  clothing: 1,
+  construction: 1,
 };
 
 const MAX_LISTING_PHOTO_LIMIT = Math.max(...Object.values(CATEGORY_PHOTO_LIMITS));

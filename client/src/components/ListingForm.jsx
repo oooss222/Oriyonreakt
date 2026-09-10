@@ -1070,11 +1070,32 @@ export default function ListingForm({
                     onChange={(e) => handleSubcategoryChange(e.target.value)}
                     className="listing-form-select"
                   >
-                    {subs.map((sub) => (
-                      <option key={sub} value={sub}>
-                        {sub}
-                      </option>
-                    ))}
+                    {cat?.subGroups ? (
+                      <>
+                        {cat.subGroups.map(({ group, items }) => (
+                          <optgroup key={group} label={group}>
+                            {items.map((item) => (
+                              <option key={item} value={`${group} — ${item}`}>
+                                {item}
+                              </option>
+                            ))}
+                          </optgroup>
+                        ))}
+                        {subs
+                          .filter((sub) => !sub.includes(" — "))
+                          .map((sub) => (
+                            <option key={sub} value={sub}>
+                              {sub}
+                            </option>
+                          ))}
+                      </>
+                    ) : (
+                      subs.map((sub) => (
+                        <option key={sub} value={sub}>
+                          {sub}
+                        </option>
+                      ))
+                    )}
                   </select>
                 </div>
               </div>

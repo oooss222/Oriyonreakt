@@ -206,6 +206,11 @@ export default {
     computers: "Компьютеры и оргтехника",
     services: "Услуги",
     repair: "Ремонт",
+    food: "Еда",
+    kids: "Детский мир",
+    travel: "Путешествия",
+    clothing: "Одежда",
+    construction: "Строительство",
     all: "Все категории",
   },
   cookie: {

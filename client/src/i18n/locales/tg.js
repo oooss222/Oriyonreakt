@@ -206,6 +206,11 @@ export default {
     computers: "Компютер ва техникаи офисӣ",
     services: "Хизматрасониҳо",
     repair: "Таъмир",
+    food: "Хӯрок",
+    kids: "Дунёи кӯдакон",
+    travel: "Сайёҳӣ",
+    clothing: "Либос",
+    construction: "Сохтмон",
     all: "Ҳамаи категорияҳо",
   },
   cookie: {
