@@ -312,15 +312,17 @@ export default function Listing() {
         setLoading(true);
         setError("");
 
-        const data = await api.listings(listingQuery);
-        let count = Array.isArray(data) ? data.length : 0;
+        // Both calls are independent; running them in series added a full
+        // round trip to every page load and filter change.
+        const [data, countData] = await Promise.all([
+          api.listings(listingQuery),
+          // Count is optional on older API builds.
+          api.listingCount(listingQuery).catch(() => null),
+        ]);
 
-        try {
-          const countData = await api.listingCount(listingQuery);
-          count = Number(countData?.total ?? count);
-        } catch {
-          // Count endpoint may be unavailable on older API builds.
-        }
+        const count = Number(
+          countData?.total ?? (Array.isArray(data) ? data.length : 0)
+        );
 
         if (active) {
           const list = Array.isArray(data) ? data.filter(Boolean) : [];

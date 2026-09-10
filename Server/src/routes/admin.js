@@ -1400,6 +1400,10 @@ router.post(
 
       return res.status(201).json(item);
     } catch (e) {
+      if (e?.name === "AdValidationError") {
+        return res.status(400).json({ error: e.message, field: e.field });
+      }
+
       console.error("ADMIN_ADS_CREATE_ERROR:", e?.message);
 
       return res.status(500).json({
@@ -1437,6 +1441,10 @@ router.put(
 
       return res.json(item);
     } catch (e) {
+      if (e?.name === "AdValidationError") {
+        return res.status(400).json({ error: e.message, field: e.field });
+      }
+
       console.error("ADMIN_ADS_UPDATE_ERROR:", e?.message);
 
       return res.status(500).json({

@@ -112,6 +112,18 @@ export default {
     savingShort: "Saving...",
     publishingShort: "Publishing...",
     publishShort: "Publish",
+    publication: "Publication",
+    category: "Category",
+    subcategory: "Subcategory",
+    phone: "Phone",
+    phoneSet: "Added",
+    phoneNeeded: "Needed in profile",
+    addPhoneHint: "Add a phone number in your profile so buyers can contact you.",
+    resetForm: "Reset",
+    saveChanges: "Save changes",
+    unsavedConfirm: "Leave without saving? Your listing changes will be lost.",
+    editForbidden: "You can only edit your own listings.",
+    backToMine: "Back to my listings",
     pickCategoryTitle: "Choose a category",
     pickCategoryHint: "Category controls photos, fields, and moderation rules.",
     photosHint:
@@ -194,6 +206,11 @@ export default {
     socket: "Connection error",
     emailSend: "could not send email",
   },
+  notFound: {
+    title: "Page not found (404)",
+    body: "Check the address or return to the home page.",
+    home: "Go home",
+  },
   home: {
     viewed: "Recently viewed",
     pickedForYou: "Picked for you",
@@ -211,6 +228,9 @@ export default {
     promotionTitle: "Promotion",
     promotionDesc:
       "Boost listings to TOP and VIP from your account or listing page.",
+    metaTitle: "Classifieds in Tajikistan",
+    metaDescription:
+      "Oriyon.store — classifieds marketplace in Tajikistan. Buy and sell goods and services.",
   },
   category: {
     all: "All",
@@ -621,6 +641,7 @@ export default {
     pasteUrl: "Paste listing URL",
     importSuccess: "Data loaded. Review the fields and click Add to compare.",
     importFailed: "Could not load listing from URL",
+    importNeedAuth: "Sign in to import a listing.",
     maxReached: "Maximum {{max}} listings in compare",
     titlePriceRequired: "Enter title and price",
     addToCompare: "Add to compare",

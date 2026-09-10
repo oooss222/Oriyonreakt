@@ -112,6 +112,19 @@ export default {
     savingShort: "Нигоҳдорӣ...",
     publishingShort: "Нашр...",
     publishShort: "Нашр кардан",
+    publication: "Нашр",
+    category: "Категория",
+    subcategory: "Зеркатегория",
+    phone: "Телефон",
+    phoneSet: "Нишон дода шудааст",
+    phoneNeeded: "Дар профил лозим аст",
+    addPhoneHint:
+      "Телефонро дар профил илова кунед, то харидорон бо шумо тамос гиранд.",
+    resetForm: "Бозсозӣ",
+    saveChanges: "Тағйиротро нигоҳ доштан",
+    unsavedConfirm: "Бе нигоҳ доштан равед? Тағйироти эълон гум мешаванд.",
+    editForbidden: "Шумо танҳо эълонҳои худро таҳрир карда метавонед.",
+    backToMine: "Ба эълонҳои ман",
     pickCategoryTitle: "Категорияро интихоб кунед",
     pickCategoryHint: "Категория аксҳо, майдонҳо ва қоидаҳои модератсияро муайян мекунад.",
     photosHint:
@@ -194,6 +207,11 @@ export default {
     socket: "Хатогии пайвастшавӣ",
     emailSend: "фиристодани почта муваффақ нашуд",
   },
+  notFound: {
+    title: "Саҳифа ёфт нашуд (404)",
+    body: "Суроғаро санҷед ё ба асосӣ баргардед.",
+    home: "Ба асосӣ",
+  },
   home: {
     viewed: "Шумо тамошо кардед",
     pickedForYou: "Барои шумо",
@@ -211,6 +229,9 @@ export default {
     promotionTitle: "Тарғиб",
     promotionDesc:
       "Эълонҳоро ба TOP ва VIP аз кабинет ё саҳифаи эълон баланд бардоред.",
+    metaTitle: "Эълонҳо дар Тоҷикистон",
+    metaDescription:
+      "Oriyon.store — бозори эълонҳо дар Тоҷикистон. Харид ва фурӯши мол ва хизматҳо.",
   },
   category: {
     all: "Ҳама",
@@ -623,6 +644,7 @@ export default {
     pasteUrl: "Пайванди эълонро гузоред",
     importSuccess: "Маълумот бор шуд. Майдонҳоро санҷед ва «Илова ба муқоиса»-ро пахш кунед.",
     importFailed: "Бор кардани эълон аз пайванд муваффақ нашуд",
+    importNeedAuth: "Барои бор кардани эълон ворид шавед.",
     maxReached: "Ҳадди аксар {{max}} эълон дар муқоиса",
     titlePriceRequired: "Ном ва нархро нишон диҳед",
     addToCompare: "Илова ба муқоиса",

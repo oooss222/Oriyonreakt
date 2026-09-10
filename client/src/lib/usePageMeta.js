@@ -71,6 +71,12 @@ export function usePageMeta({
     upsertMeta("og:description", pageDescription, "property");
     upsertMeta("og:type", type, "property");
     upsertMeta("og:site_name", "Oriyon.store", "property");
+    const htmlLang = document.documentElement.lang || "ru";
+    upsertMeta(
+      "og:locale",
+      htmlLang === "en" ? "en_US" : htmlLang === "tg" ? "tg_TJ" : "ru_RU",
+      "property"
+    );
     upsertMeta("twitter:card", image ? "summary_large_image" : "summary");
     upsertMeta("twitter:title", pageTitle);
     upsertMeta("twitter:description", pageDescription);

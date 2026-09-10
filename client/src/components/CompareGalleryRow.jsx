@@ -14,7 +14,7 @@ export default function CompareGalleryRow({ items = [] }) {
       items.map((item) => ({
         key: getCompareItemKey(item),
         title: item.title || "",
-        images: getListingImages(item),
+        images: getListingImages(item, { width: 480 }),
       })),
     [items]
   );

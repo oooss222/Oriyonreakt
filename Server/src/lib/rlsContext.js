@@ -9,8 +9,14 @@ function isRlsEnabled() {
   return process.env.RLS_ENABLED !== "false";
 }
 
+/**
+ * Defaults to anonymous, not system: code running outside a request should get
+ * the least privilege, so forgetting to establish a context fails closed
+ * instead of silently granting unrestricted access. Background jobs and
+ * startup opt in explicitly with runWithRlsContext(SYSTEM_CONTEXT, ...).
+ */
 function getRlsContext() {
-  return rlsStore.getStore() || SYSTEM_CONTEXT;
+  return rlsStore.getStore() || ANON_CONTEXT;
 }
 
 function updateRlsContext(partial = {}) {

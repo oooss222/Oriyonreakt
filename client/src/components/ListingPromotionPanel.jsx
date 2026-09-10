@@ -118,7 +118,7 @@ export default function ListingPromotionPanel({
         {selectedListing && (
           <div className="rounded-2xl border bg-mist/70 p-3 flex items-center gap-3">
             <img
-              src={getListingThumb(selectedListing)}
+              src={getListingThumb(selectedListing, { width: 128 })}
               alt=""
               className="w-16 h-16 rounded-xl object-cover bg-white border shrink-0"
             />

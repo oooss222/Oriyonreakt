@@ -81,7 +81,7 @@ export default function HeaderSearchSuggestions({
             className="w-full flex items-center gap-3 px-4 py-3 hover:bg-sun-50 text-left border-b border-ink/5 last:border-b-0"
           >
             <img
-              src={getListingThumb(ad)}
+              src={getListingThumb(ad, { width: 96 })}
               alt={ad.title || t("listing.title")}
               className="w-12 h-12 rounded-xl object-cover bg-mist"
             />

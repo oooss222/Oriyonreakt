@@ -189,6 +189,7 @@ export default {
     NAME_REQUIRED: "Please enter your name",
     INVALID_EMAIL: "Invalid email",
     IDENTITY_REQUIRED: "Enter email or phone number",
+    INVALID_CREDENTIALS: "Incorrect email or password.",
     network: "No connection to the server. Check your internet and try again.",
   },
   compare: {

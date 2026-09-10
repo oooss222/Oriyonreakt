@@ -315,7 +315,7 @@ export default function SellerAnalyticsPanel({ token }) {
                   ) : (
                     topListings.map((ad) => {
                       const id = getId(ad);
-                      const thumb = getListingThumb(ad);
+                      const thumb = getListingThumb(ad, { width: 96 });
                       const conv = Number(ad.conversion || 0);
                       return (
                         <tr

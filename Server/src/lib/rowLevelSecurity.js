@@ -41,6 +41,10 @@ async function setupRowLevelSecurity(query) {
     "phone_otps",
     "ad_campaigns",
     "re_developments",
+    "chat_thread_settings",
+    "user_chat_blocks",
+    "user_compare_lists",
+    "listing_drafts",
   ];
 
   for (const table of tables) {
@@ -289,7 +293,10 @@ async function setupRowLevelSecurity(query) {
     );
 
     DROP POLICY IF EXISTS user_events_insert ON user_events;
-    CREATE POLICY user_events_insert ON user_events FOR INSERT WITH CHECK (true);
+    CREATE POLICY user_events_insert ON user_events FOR INSERT WITH CHECK (
+      app.is_system()
+      OR user_id IS NOT DISTINCT FROM app.current_user_id()
+    );
 
     DROP POLICY IF EXISTS user_events_select ON user_events;
     CREATE POLICY user_events_select ON user_events FOR SELECT USING (
@@ -329,6 +336,36 @@ async function setupRowLevelSecurity(query) {
       app.is_system() OR app.is_staff()
     ) WITH CHECK (
       app.is_system() OR app.is_staff()
+    );
+
+    DROP POLICY IF EXISTS chat_thread_settings_all ON chat_thread_settings;
+    CREATE POLICY chat_thread_settings_all ON chat_thread_settings FOR ALL USING (
+      app.is_system() OR user_id = app.current_user_id()
+    ) WITH CHECK (
+      app.is_system() OR user_id = app.current_user_id()
+    );
+
+    DROP POLICY IF EXISTS user_chat_blocks_all ON user_chat_blocks;
+    CREATE POLICY user_chat_blocks_all ON user_chat_blocks FOR ALL USING (
+      app.is_system()
+      OR blocker_id = app.current_user_id()
+      OR blocked_id = app.current_user_id()
+    ) WITH CHECK (
+      app.is_system() OR blocker_id = app.current_user_id()
+    );
+
+    DROP POLICY IF EXISTS user_compare_lists_all ON user_compare_lists;
+    CREATE POLICY user_compare_lists_all ON user_compare_lists FOR ALL USING (
+      app.is_system() OR user_id = app.current_user_id()
+    ) WITH CHECK (
+      app.is_system() OR user_id = app.current_user_id()
+    );
+
+    DROP POLICY IF EXISTS listing_drafts_all ON listing_drafts;
+    CREATE POLICY listing_drafts_all ON listing_drafts FOR ALL USING (
+      app.is_system() OR user_id = app.current_user_id()
+    ) WITH CHECK (
+      app.is_system() OR user_id = app.current_user_id()
     );
   `);
 

@@ -402,21 +402,58 @@ export default function RealEstateMoreFiltersModal({
     };
   }, [draft, open]);
 
+  const dialogRef = React.useRef(null);
+
   React.useEffect(() => {
     if (!open) return undefined;
+
+    const previouslyFocused = document.activeElement;
+
+    const focusable = () =>
+      Array.from(
+        dialogRef.current?.querySelectorAll(
+          'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        ) || []
+      ).filter((el) => el.offsetParent !== null);
 
     const onKeyDown = (event) => {
       if (event.key === "Escape") {
         onClose?.();
+        return;
+      }
+
+      // Without a trap, Tab walks into the page behind the overlay.
+      if (event.key !== "Tab") return;
+
+      const items = focusable();
+      if (!items.length) return;
+
+      const first = items[0];
+      const last = items[items.length - 1];
+
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
       }
     };
 
     document.body.style.overflow = "hidden";
     document.addEventListener("keydown", onKeyDown);
 
+    // Move focus into the dialog so screen readers announce it.
+    const initial = setTimeout(() => {
+      (dialogRef.current?.querySelector("[data-autofocus]") || focusable()[0])
+        ?.focus?.();
+    }, 0);
+
     return () => {
+      clearTimeout(initial);
       document.body.style.overflow = "";
       document.removeEventListener("keydown", onKeyDown);
+      previouslyFocused?.focus?.();
     };
   }, [open, onClose]);
 
@@ -500,13 +537,25 @@ export default function RealEstateMoreFiltersModal({
         onClick={onClose}
       />
 
-      <div className="relative w-full sm:max-w-2xl max-h-[92vh] sm:max-h-[88vh] flex flex-col rounded-t-3xl sm:rounded-2xl bg-white shadow-2xl overflow-hidden">
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="re-more-filters-title"
+        className="relative w-full sm:max-w-2xl max-h-[92vh] sm:max-h-[88vh] flex flex-col rounded-t-3xl sm:rounded-2xl bg-white shadow-2xl overflow-hidden"
+      >
         <div className="flex shrink-0 items-center justify-between gap-3 border-b px-4 py-3">
-          <h2 className="text-lg font-bold text-slate-900">Ещё фильтры</h2>
+          <h2
+            id="re-more-filters-title"
+            className="text-lg font-bold text-slate-900"
+          >
+            Ещё фильтры
+          </h2>
 
           <button
             type="button"
             onClick={onClose}
+            data-autofocus
             className="p-2 rounded-xl border border-slate-200 hover:bg-slate-50 transition"
             aria-label="Закрыть"
           >

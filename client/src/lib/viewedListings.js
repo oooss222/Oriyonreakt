@@ -4,13 +4,29 @@ const STORAGE_KEY = "oriyon_viewed_listings";
 const MAX_ITEMS = 500;
 const VIEW_EVENT = "listing-viewed";
 
+// A listing grid renders dozens of cards, each asking whether it was viewed.
+// Without this cache every card re-parses an array of up to 500 ids.
+let cachedIds = null;
+
+if (typeof window !== "undefined") {
+  window.addEventListener("storage", (event) => {
+    if (!event.key || event.key === STORAGE_KEY) {
+      cachedIds = null;
+    }
+  });
+}
+
 function readViewedIds() {
+  if (cachedIds) return cachedIds;
+
   try {
     const raw = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-    return Array.isArray(raw) ? raw.map(String) : [];
+    cachedIds = Array.isArray(raw) ? raw.map(String) : [];
   } catch {
-    return [];
+    cachedIds = [];
   }
+
+  return cachedIds;
 }
 
 export function isListingViewed(id) {
@@ -27,11 +43,11 @@ export function markListingViewed(id) {
 
   ids.push(value);
 
+  const next = ids.slice(-MAX_ITEMS);
+  cachedIds = next;
+
   try {
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify(ids.slice(-MAX_ITEMS))
-    );
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
   } catch {
     return;
   }

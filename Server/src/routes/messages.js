@@ -4,6 +4,8 @@ const auth = require("../middleware/auth");
 const Message = require("../models/Message");
 const ChatThread = require("../models/ChatThread");
 const { emitNewMessage, emitMessagesRead } = require("../socket");
+const { messageSendLimiter } = require("../middleware/rateLimit");
+const { isAllowedMediaUrl } = require("../lib/mediaUrl");
 
 router.use(auth);
 
@@ -248,7 +250,7 @@ router.get("/:listingId", async (req, res) => {
   }
 });
 
-router.post("/:listingId", async (req, res) => {
+router.post("/:listingId", messageSendLimiter, async (req, res) => {
   try {
     const text = String(req.body?.text || "").trim();
     const attachmentUrl = String(req.body?.attachmentUrl || "").trim();
@@ -262,6 +264,12 @@ router.post("/:listingId", async (req, res) => {
     if (text.length > 2000) {
       return res.status(400).json({
         error: "Message is too long",
+      });
+    }
+
+    if (attachmentUrl && !isAllowedMediaUrl(attachmentUrl)) {
+      return res.status(400).json({
+        error: "Attachment must be uploaded through Oriyon",
       });
     }
 

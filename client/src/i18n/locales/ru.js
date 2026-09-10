@@ -189,6 +189,7 @@ export default {
     NAME_REQUIRED: "Укажите, как к вам обращаться",
     INVALID_EMAIL: "Некорректный email",
     IDENTITY_REQUIRED: "Укажите email или номер телефона",
+    INVALID_CREDENTIALS: "Неверный email или пароль.",
     network: "Нет соединения с сервером. Проверьте интернет и попробуйте снова.",
   },
   compare: {

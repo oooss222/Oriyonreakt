@@ -74,7 +74,22 @@ function sanitizeEntries(entries = []) {
   return next;
 }
 
+// Every compare button on a listing grid reads this, so the parsed buckets are
+// cached and invalidated on write.
+let cachedBuckets = null;
+
+if (typeof window !== "undefined") {
+  // Another tab may have changed the list.
+  window.addEventListener("storage", (event) => {
+    if (!event.key || event.key === STORAGE_KEY || event.key === LEGACY_RE_KEY) {
+      cachedBuckets = null;
+    }
+  });
+}
+
 function readAllBuckets() {
+  if (cachedBuckets) return cachedBuckets;
+
   try {
     const raw = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
     const buckets =
@@ -88,13 +103,16 @@ function readAllBuckets() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(buckets));
     }
 
-    return buckets;
+    cachedBuckets = buckets;
   } catch {
-    return {};
+    cachedBuckets = {};
   }
+
+  return cachedBuckets;
 }
 
 function writeAllBuckets(buckets) {
+  cachedBuckets = buckets;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(buckets));
   window.dispatchEvent(
     new CustomEvent("oriyon:compare-change", { detail: buckets })

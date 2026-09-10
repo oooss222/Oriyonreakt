@@ -102,7 +102,7 @@ export default function CompareSimilarPanel({ cat, items = [], onAdded }) {
               >
                 <Link to={`/ad/${id}`} className="block">
                   <img
-                    src={getListingThumb(ad)}
+                    src={getListingThumb(ad, { width: 320 })}
                     alt={ad.title || ""}
                     className="h-28 w-full object-cover bg-mist"
                     loading="lazy"

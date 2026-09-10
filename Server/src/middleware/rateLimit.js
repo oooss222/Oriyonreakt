@@ -94,12 +94,50 @@ const apiGeneralLimiter = createRateLimiter({
   skip: (req) => req.path === "/health",
 });
 
+function userOrIpKey(req) {
+  return req.user?.id ? `user:${req.user.id}` : getClientIp(req);
+}
+
 const uploadLimiter = createRateLimiter({
   windowMs: 60 * 60 * 1000,
   max: 40,
   message: "Upload limit reached. Try again later.",
-  keyGenerator: (req) =>
-    req.user?.id ? `user:${req.user.id}` : getClientIp(req),
+  keyGenerator: userOrIpKey,
+});
+
+const reviewLimiter = createRateLimiter({
+  windowMs: 60 * 60 * 1000,
+  max: 10,
+  message: "Too many reviews. Try again later.",
+  keyGenerator: userOrIpKey,
+});
+
+const messageSendLimiter = createRateLimiter({
+  windowMs: 60 * 1000,
+  max: 30,
+  message: "Too many messages. Slow down.",
+  keyGenerator: userOrIpKey,
+});
+
+const reportLimiter = createRateLimiter({
+  windowMs: 60 * 60 * 1000,
+  max: 15,
+  message: "Too many reports. Try again later.",
+  keyGenerator: userOrIpKey,
+});
+
+const compareImportLimiter = createRateLimiter({
+  windowMs: 60 * 60 * 1000,
+  max: 20,
+  message: "Too many import requests. Try again later.",
+  keyGenerator: userOrIpKey,
+});
+
+const walletTopUpLimiter = createRateLimiter({
+  windowMs: 60 * 60 * 1000,
+  max: 10,
+  message: "Too many top-up attempts. Try again later.",
+  keyGenerator: userOrIpKey,
 });
 
 module.exports = {
@@ -111,4 +149,9 @@ module.exports = {
   authPhoneVerifyLimiter,
   apiGeneralLimiter,
   uploadLimiter,
+  reviewLimiter,
+  messageSendLimiter,
+  reportLimiter,
+  compareImportLimiter,
+  walletTopUpLimiter,
 };

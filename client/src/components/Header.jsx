@@ -17,11 +17,7 @@ import { trackSearch } from "../lib/track";
 import { TOKEN_KEY, USER_KEY } from "../lib/auth";
 import { canAccessModeration } from "../lib/adminUtils";
 import { subscribeModerationQueue } from "../lib/moderationSocket";
-import {
-  getUnreadTotal,
-  subscribeUnreadCount,
-  subscribeUnreadRefresh,
-} from "../lib/unread";
+import { useUnreadCount } from "../lib/unread";
 import CategoryStrip from "./CategoryStrip";
 import HeaderSearchSuggestions from "./HeaderSearchSuggestions";
 import LanguageSwitcher from "./LanguageSwitcher";
@@ -46,7 +42,6 @@ export default function Header({ variant = "full" }) {
   const [q, setQ] = React.useState(sp.get("search") || sp.get("q") || "");
   const [catalogTotal, setCatalogTotal] = React.useState(0);
   const [showSuggestions, setShowSuggestions] = React.useState(false);
-  const [unreadCount, setUnreadCount] = React.useState(0);
   const [moderationCount, setModerationCount] = React.useState(0);
   const [compareCount, setCompareCount] = React.useState(0);
   const [comparePath, setComparePath] = React.useState("/realestate/sravnenie");
@@ -64,7 +59,7 @@ export default function Header({ variant = "full" }) {
 
   const pathname = location.pathname;
   const onMessagesPage = pathname === "/messages";
-  const badgeCount = onMessagesPage ? 0 : unreadCount;
+  const badgeCount = useUnreadCount(Boolean(token) && !onMessagesPage);
   const canModerate = canAccessModeration(user?.role);
 
   React.useEffect(() => {
@@ -106,35 +101,12 @@ export default function Header({ variant = "full" }) {
 
   const compactCategories = pathname !== "/";
 
-  const loadUnread = React.useCallback(async () => {
-    if (!token || onMessagesPage) {
-      setUnreadCount(0);
-      return;
-    }
-
-    try {
-      const data = await api.messageInbox(token);
-      setUnreadCount(getUnreadTotal(data));
-    } catch {
-      setUnreadCount(0);
-    }
-  }, [token, onMessagesPage]);
-
   React.useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 48);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
-
-  React.useEffect(() => {
-    loadUnread();
-    const timer = setInterval(loadUnread, 15000);
-    return () => clearInterval(timer);
-  }, [loadUnread]);
-
-  React.useEffect(() => subscribeUnreadCount(setUnreadCount), []);
-  React.useEffect(() => subscribeUnreadRefresh(loadUnread), [loadUnread]);
 
   React.useEffect(() => {
     const syncCompare = () => {

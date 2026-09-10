@@ -1,0 +1,15 @@
+# Static fallback for local preview builds.
+# Production serves a dynamic robots.txt from the API server.
+
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /admin
+Disallow: /profile
+Disallow: /messages
+Disallow: /auth
+Disallow: /add
+Disallow: /edit/
+Disallow: /uploads/
+
+Sitemap: https://oriyon.store/sitemap.xml

@@ -1,5 +1,4 @@
-import React from "react";
-import { connectChatSocket } from "../lib/chatSocket";
+import { connectChatSocket, getChatSocket } from "./chatSocket";
 import { TOKEN_KEY } from "./auth";
 
 export function subscribeModerationQueue(callback) {
@@ -9,19 +8,18 @@ export function subscribeModerationQueue(callback) {
     return () => {};
   }
 
-  const socket = connectChatSocket(token);
-
-  if (!socket) {
-    return () => {};
-  }
-
+  let cancelled = false;
   const handler = (payload) => {
     callback?.(payload);
   };
 
-  socket.on("moderation:queue", handler);
+  connectChatSocket(token).then((socket) => {
+    if (cancelled || !socket) return;
+    socket.on("moderation:queue", handler);
+  });
 
   return () => {
-    socket.off("moderation:queue", handler);
+    cancelled = true;
+    getChatSocket()?.off("moderation:queue", handler);
   };
 }

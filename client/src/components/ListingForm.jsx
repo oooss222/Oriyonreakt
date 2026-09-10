@@ -19,6 +19,7 @@ import {
   filterSpecsToTemplate,
 } from "../data/listingCategories";
 import { getListingPhotoLimit, getListingMinPhotos } from "../lib/listingPhotoLimits";
+import { useUnsavedChanges } from "../lib/useUnsavedChanges";
 import { REAL_ESTATE_CAT } from "../data/realEstate";
 import RealEstateListingWizard, {
   isRealEstateWizardCategory,
@@ -126,6 +127,8 @@ export default function ListingForm({
   const [categoryPicked, setCategoryPicked] = React.useState(
     () => Boolean(initialCat && CATS[initialCat]) || isEdit
   );
+  const [editBaseline, setEditBaseline] = React.useState(null);
+  const skipLeaveRef = React.useRef(false);
   const draftSaveTimerRef = React.useRef(null);
 
   const applyCategorySpecs = React.useCallback(
@@ -187,6 +190,20 @@ export default function ListingForm({
 
     setLoading(false);
   }, [isEdit, initialData, applyCategorySpecs]);
+
+  React.useEffect(() => {
+    if (!isEdit || loading) return;
+    // Capture once after the listing has been hydrated into state.
+    setEditBaseline(
+      JSON.stringify({
+        form,
+        specs,
+        geo,
+        existingImages,
+        fileCount: files.length,
+      })
+    );
+  }, [isEdit, loading]);
 
   React.useEffect(() => {
     if (isEdit) return undefined;
@@ -680,6 +697,7 @@ export default function ListingForm({
         return;
       }
 
+      skipLeaveRef.current = true;
       onSuccess?.(result);
     } catch (error) {
       setErr(
@@ -732,6 +750,21 @@ export default function ListingForm({
   const hasPrice = Boolean(priceDigits.length);
   const hasPhotos = photosCount >= minPhotos;
   const phoneOk = isEdit || hasPhone;
+  const editSnapshot = JSON.stringify({
+    form,
+    specs,
+    geo,
+    existingImages,
+    fileCount: files.length,
+  });
+  const isDirty =
+    isEdit &&
+    !loading &&
+    !saving &&
+    !skipLeaveRef.current &&
+    editBaseline != null &&
+    editSnapshot !== editBaseline;
+  useUnsavedChanges(isDirty);
   const canPublish =
     hasTitle &&
     hasPrice &&
@@ -859,7 +892,11 @@ export default function ListingForm({
       ) : null}
 
       {err && (
-        <div className="rounded-2xl border border-red-200 bg-red-50 text-red-700 p-4 space-y-2">
+        <div
+          role="alert"
+          aria-live="assertive"
+          className="rounded-2xl border border-red-200 bg-red-50 text-red-700 p-4 space-y-2"
+        >
           <p>{err}</p>
           {!hasPhone && !isEdit ? (
             <Link

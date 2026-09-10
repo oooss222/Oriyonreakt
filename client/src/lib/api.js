@@ -247,10 +247,11 @@ export const api = {
   listingById: (id) =>
     request(`/listings/${id}`),
 
-  compareImport: (body) =>
+  compareImport: (body, token) =>
     request("/compare/import", {
       method: "POST",
       body,
+      token,
     }),
 
   developments: (city = "") =>
