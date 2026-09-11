@@ -5,6 +5,7 @@ import ListingPromotionActions from "./ListingPromotionActions";
 import { PromotionBadgeGroup } from "./PromotionBadge";
 import { getListingThumb } from "../lib/media";
 import { formatPrice } from "../lib/format";
+import { useI18n } from "../i18n";
 
 const getId = (item) => item?.id || item?._id;
 
@@ -16,6 +17,7 @@ export default function ListingPromotionPanel({
   onPromote,
   initialListingId = "",
 }) {
+  const { t } = useI18n();
   const approvedListings = React.useMemo(
     () => listings.filter((ad) => (ad.status || "pending") === "approved"),
     [listings]
@@ -60,13 +62,11 @@ export default function ListingPromotionPanel({
         </div>
 
         <div className="text-ink font-semibold mb-1">
-          Нет объявлений для продвижения
+          {t("promotion.panelEmptyTitle")}
         </div>
 
         <p className="text-sm text-ink-400 mb-4 max-w-md mx-auto">
-          VIP, TOP и обновление даты доступны только для опубликованных
-          объявлений. Сначала подайте объявление и дождитесь одобрения
-          модерации.
+          {t("promotion.panelEmptyHint")}
         </p>
 
         <Link
@@ -74,7 +74,7 @@ export default function ListingPromotionPanel({
           className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-sun text-white hover:bg-sun-600 transition"
         >
           <PlusCircle size={18} />
-          Подать объявление
+          {t("footer.postListing")}
         </Link>
       </div>
     );
@@ -86,20 +86,19 @@ export default function ListingPromotionPanel({
         <div>
           <div className="inline-flex items-center gap-2 text-sm text-sun-700 bg-sun-50 border border-sun-100 rounded-full px-3 py-1 mb-2">
             <Zap size={16} />
-            Продвижение
+            {t("home.promotionTitle")}
           </div>
 
-          <h2 className="text-2xl font-bold">VIP, TOP и обновление даты</h2>
+          <h2 className="text-2xl font-bold">{t("promotion.panelTitle")}</h2>
 
           <p className="text-sm text-ink-400 mt-1">
-            Выберите объявление и подключите нужную услугу. Кнопки продвижения
-            больше не привязаны к карточкам в списке объявлений.
+            {t("promotion.panelHint")}
           </p>
         </div>
 
         <label className="block">
           <span className="text-sm font-medium text-ink-600 mb-1 block">
-            Объявление для продвижения
+            {t("promotion.selectListingLabel")}
           </span>
           <select
             value={selectedId}
@@ -108,7 +107,7 @@ export default function ListingPromotionPanel({
           >
             {approvedListings.map((ad) => (
               <option key={getId(ad)} value={String(getId(ad))}>
-                {ad.title || "Без названия"}
+                {ad.title || t("listing.noTitle")}
                 {ad.location ? ` · ${ad.location}` : ""}
               </option>
             ))}
@@ -125,7 +124,7 @@ export default function ListingPromotionPanel({
 
             <div className="min-w-0 flex-1">
               <div className="font-semibold text-sm line-clamp-2">
-                {selectedListing.title || "Без названия"}
+                {selectedListing.title || t("listing.noTitle")}
               </div>
               <div className="text-sm text-sun-700 font-bold mt-0.5">
                 {formatPrice(selectedListing.price, { emptyLabel: "—" })}
@@ -143,7 +142,7 @@ export default function ListingPromotionPanel({
               to={`/ad/${getId(selectedListing)}`}
               className="text-sm font-semibold text-sun-700 hover:underline shrink-0"
             >
-              Открыть
+              {t("promotion.openListing")}
             </Link>
           </div>
         )}

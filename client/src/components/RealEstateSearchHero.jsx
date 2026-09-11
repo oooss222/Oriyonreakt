@@ -23,13 +23,13 @@ const FIELD_LABEL =
 const FIELD_CONTROL =
   "h-11 w-full rounded-xl border border-slate-200/90 bg-white text-sm font-medium text-slate-900 outline-none transition focus:border-sun/50 focus:ring-2 focus:ring-sun/20 appearance-none";
 
-function formatHeroPriceSummary(from, to, currency = "с.") {
+function formatHeroPriceSummary(from, to, currency, t) {
   const fromLabel = from ? formatPriceInput(from) : "";
   const toLabel = to ? formatPriceInput(to) : "";
 
   if (fromLabel && toLabel) return `${fromLabel} – ${toLabel} ${currency}`;
-  if (fromLabel) return `от ${fromLabel} ${currency}`;
-  if (toLabel) return `до ${toLabel} ${currency}`;
+  if (fromLabel) return `${t("realestate.from")} ${fromLabel} ${currency}`;
+  if (toLabel) return `${t("realestate.to")} ${toLabel} ${currency}`;
   return "";
 }
 
@@ -67,7 +67,7 @@ function HeroSelect({ label, value, onChange, children, className = "", icon: Ic
 function HeroPriceFilter({ priceFrom, priceTo, priceCurrency, onChange, dealType = "Купить", label, t }) {
   const [open, setOpen] = React.useState(false);
   const rootRef = React.useRef(null);
-  const summary = formatHeroPriceSummary(priceFrom, priceTo, priceCurrency);
+  const summary = formatHeroPriceSummary(priceFrom, priceTo, priceCurrency, t);
   const presets = getPricePresetsForDeal(dealType).filter(
     (item) => item.from || item.to
   );
@@ -207,7 +207,9 @@ export default function RealEstateSearchHero({
   onCityChange,
   onSearch,
 }) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
+  const numberLocale =
+    lang === "en" ? "en-US" : lang === "tg" ? "tg-TJ" : "ru-RU";
   const nav = useNavigate();
   const [dealType, setDealType] = React.useState(initialDeal);
   const [city, setCity] = React.useState(initialCity);
@@ -321,7 +323,7 @@ export default function RealEstateSearchHero({
   const submitLabel =
     totalCount > 0
       ? t("realestate.showCount", {
-          count: totalCount.toLocaleString("ru-RU"),
+          count: totalCount.toLocaleString(numberLocale),
           unit: pluralAds(totalCount, t),
         })
       : isDaily
@@ -367,7 +369,7 @@ export default function RealEstateSearchHero({
             </h1>
             {totalCount > 0 && (
               <p className="mt-2 text-sm text-white/70">
-                {t("realestate.activeCount", { count: totalCount.toLocaleString("ru-RU") })}
+                {t("realestate.activeCount", { count: totalCount.toLocaleString(numberLocale) })}
                 {isDaily ? t("realestate.dailyTypes") : t("realestate.saleTypes")}
               </p>
             )}

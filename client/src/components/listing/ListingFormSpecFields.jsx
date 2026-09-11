@@ -33,7 +33,7 @@ function ChipGroup({ value, options, onChange, disabled = false }) {
   );
 }
 
-function ColorSwatches({ value, options, onChange, disabled = false }) {
+function ColorSwatches({ value, options, onChange, disabled = false, t }) {
   return (
     <div className="flex flex-wrap items-center gap-2">
       {options.map((option) => {
@@ -66,7 +66,7 @@ function ColorSwatches({ value, options, onChange, disabled = false }) {
           </button>
         );
       })}
-      <span className="text-sm text-ink-400">{value || "Выберите цвет"}</span>
+      <span className="text-sm text-ink-400">{value || t("listing.chooseColor")}</span>
     </div>
   );
 }
@@ -121,7 +121,7 @@ export default function ListingFormSpecFields({
                 <input
                   value={spec.name}
                   onChange={(e) => onUpdate(index, "name", e.target.value)}
-                  placeholder="Название"
+                  placeholder={t("form.specNamePlaceholder")}
                   className="w-full bg-transparent outline-none text-sm font-medium text-ink-600"
                 />
               )}
@@ -134,6 +134,7 @@ export default function ListingFormSpecFields({
                   options={selectOptions}
                   disabled={disabled}
                   onChange={(value) => onUpdate(index, "value", value)}
+                  t={t}
                 />
               ) : useChips ? (
                 <ChipGroup
@@ -151,8 +152,10 @@ export default function ListingFormSpecFields({
                 >
                   <option value="">
                     {disabled
-                      ? `Сначала выберите ${spec.dependsOn?.toLowerCase()}`
-                      : "Выберите"}
+                      ? t("form.selectDependentFirst", {
+                          parent: spec.dependsOn?.toLowerCase(),
+                        })
+                      : t("form.select")}
                   </option>
                   {selectOptions.map((option) => (
                     <option key={option} value={option}>
@@ -164,7 +167,7 @@ export default function ListingFormSpecFields({
                 <input
                   value={spec.value}
                   onChange={(e) => onUpdate(index, "value", e.target.value)}
-                  placeholder="Значение"
+                  placeholder={t("form.valuePlaceholder")}
                   className="listing-form-input"
                 />
               )}
@@ -175,7 +178,7 @@ export default function ListingFormSpecFields({
                 type="button"
                 onClick={() => onRemove(index)}
                 className="listing-form-spec-remove"
-                title="Удалить характеристику"
+                title={t("form.removeSpecTitle")}
               >
                 ×
               </button>
@@ -204,7 +207,7 @@ export default function ListingFormSpecFields({
 
       {specs.length === 0 ? (
         <div className="px-4 py-6 text-sm text-ink-400">
-          Характеристики не добавлены.
+          {t("form.specsEmptyState")}
         </div>
       ) : null}
     </div>

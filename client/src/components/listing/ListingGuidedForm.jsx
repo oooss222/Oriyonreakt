@@ -144,7 +144,7 @@ export default function ListingGuidedForm({
 
   const handleSuggestTitle = () => {
     if (form.cat !== "transport") return;
-    setField("title", buildTransportSuggestedTitle(form, specs));
+    setField("title", buildTransportSuggestedTitle(specs));
   };
 
   const handleSubmit = (event) => {

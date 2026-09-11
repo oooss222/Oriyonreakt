@@ -31,6 +31,7 @@ import LandFilterFields from "./realestate/LandFilterFields";
 import GarageFilterFields from "./realestate/GarageFilterFields";
 import CommercialFilterFields from "./realestate/CommercialFilterFields";
 import RentalQualityFilterFields from "./realestate/RentalQualityFilterFields";
+import { useI18n } from "../i18n";
 
 const AREA_PRESETS = ["20", "30", "40", "50", "60", "70", "80", "100", "120", "150"];
 
@@ -132,7 +133,9 @@ function FilterRow({ label, children }) {
   );
 }
 
-function PillGroup({ value, options, onChange, anyLabel = "Любой" }) {
+function PillGroup({ value, options, onChange, anyLabel }) {
+  const { t } = useI18n();
+  const resolvedAnyLabel = anyLabel ?? t("realestate.filters.anyOption");
   return (
     <div className="flex flex-wrap gap-2">
       <button
@@ -140,7 +143,7 @@ function PillGroup({ value, options, onChange, anyLabel = "Любой" }) {
         onClick={() => onChange("")}
         className={`chip ${!value ? "chip-active" : ""}`}
       >
-        {anyLabel}
+        {resolvedAnyLabel}
       </button>
 
       {options.map((option) => (
@@ -188,6 +191,7 @@ function PresetPills({ presets, onSelect, activeFrom = "", activeTo = "" }) {
 }
 
 function AreaRangeSelects(props) {
+  const { t } = useI18n();
   return (
     <RangeFilter
       {...props}
@@ -198,8 +202,8 @@ function AreaRangeSelects(props) {
         props.onToChange?.(to);
       }}
       selectOptions={AREA_PRESETS}
-      fromPlaceholder="от"
-      toPlaceholder="до"
+      fromPlaceholder={t("realestate.from")}
+      toPlaceholder={t("realestate.to")}
       suffix=" м²"
     />
   );
@@ -232,6 +236,9 @@ export default function RealEstateMoreFiltersModal({
   specs: initialSpecs = {},
   onNavigate,
 }) {
+  const { t, lang } = useI18n();
+  const numberLocale =
+    lang === "en" ? "en-US" : lang === "tg" ? "tg-TJ" : "ru-RU";
   const [draft, setDraft] = React.useState(() =>
     buildDraft({
       dealType,
@@ -283,6 +290,9 @@ export default function RealEstateMoreFiltersModal({
   const isRent = dealType === "Снять";
   const sortOptions = getRealEstateSortOptions(dealType);
   const sellerOptions = getSellerFilterOptions(dealType, effectiveSubcategory);
+  // Kept as the literal data value (not t()) — activeCity is compared against
+  // "Душанбе" below and fed into getDistrictsForCity, which keys off the raw
+  // Russian city values from the real estate data model.
   const activeCity = draft.location || city || "Душанбе";
 
   const specField = (key) =>
@@ -532,7 +542,7 @@ export default function RealEstateMoreFiltersModal({
     <div className="fixed inset-0 z-[120] flex items-end sm:items-center justify-center p-0 sm:p-4">
       <button
         type="button"
-        aria-label="Закрыть"
+        aria-label={t("common.close")}
         className="absolute inset-0 bg-black/45"
         onClick={onClose}
       />
@@ -549,7 +559,7 @@ export default function RealEstateMoreFiltersModal({
             id="re-more-filters-title"
             className="text-lg font-bold text-slate-900"
           >
-            Ещё фильтры
+            {t("realestate.moreFilters")}
           </h2>
 
           <button
@@ -557,7 +567,7 @@ export default function RealEstateMoreFiltersModal({
             onClick={onClose}
             data-autofocus
             className="p-2 rounded-xl border border-slate-200 hover:bg-slate-50 transition"
-            aria-label="Закрыть"
+            aria-label={t("common.close")}
           >
             <X size={18} />
           </button>
@@ -565,8 +575,8 @@ export default function RealEstateMoreFiltersModal({
 
         <div className="min-h-0 flex-1 overflow-y-auto px-4 py-2">
           {isDaily && (
-            <FilterSection title="Поездка">
-              <FilterRow label="Заезд / выезд">
+            <FilterSection title={t("realestate.filters.tripTitle")}>
+              <FilterRow label={t("realestate.filters.checkInOutLabel")}>
                 <RealEstateDateRangePicker
                   checkIn={draft.checkIn || ""}
                   checkOut={draft.checkOut || ""}
@@ -580,7 +590,7 @@ export default function RealEstateMoreFiltersModal({
                 />
               </FilterRow>
 
-              <FilterRow label="Гости">
+              <FilterRow label={t("realestate.filters.guestsLabel")}>
                 <RealEstateGuestsPicker
                   compact
                   value={draft.guests || ""}
@@ -590,7 +600,7 @@ export default function RealEstateMoreFiltersModal({
                 />
               </FilterRow>
 
-              <FilterRow label="Тип жилья">
+              <FilterRow label={t("realestate.filters.housingTypeLabel")}>
                 <div className="flex flex-wrap gap-2">
                   <button
                     type="button"
@@ -601,7 +611,7 @@ export default function RealEstateMoreFiltersModal({
                       !(draft.subcategory || subcategory) ? "chip-active" : ""
                     }`}
                   >
-                    Любой
+                    {t("realestate.filters.anyOption")}
                   </button>
                   {DAILY_HOUSING_TYPES.map((item) => {
                     const active = (draft.subcategory || subcategory) === item.value;
@@ -626,8 +636,8 @@ export default function RealEstateMoreFiltersModal({
             </FilterSection>
           )}
 
-          <FilterSection title="Местоположение">
-            <FilterRow label="Город">
+          <FilterSection title={t("realestate.filters.locationTitle")}>
+            <FilterRow label={t("realestate.city")}>
               <RealEstateCitySelect
                 value={draft.location || city}
                 onChange={(e) => {
@@ -646,14 +656,14 @@ export default function RealEstateMoreFiltersModal({
             </FilterRow>
 
             {districts.length > 0 && (
-              <FilterRow label="Район">
+              <FilterRow label={t("realestate.form.districtLabel")}>
                 <div className="space-y-3">
                   {popularDistricts.length > 0 && (
                     <MultiPillGroup
                       values={draft.specs?.["Район"] || ""}
                       options={popularDistricts}
                       onChange={(value) => setSpec("Район", value)}
-                      anyLabel="Любой"
+                      anyLabel={t("realestate.filters.anyOption")}
                     />
                   )}
                   {otherDistricts.length > 0 && (
@@ -671,8 +681,8 @@ export default function RealEstateMoreFiltersModal({
                     >
                       <option value="">
                         {activeCity === "Душанбе"
-                          ? "Добавить район или микрорайон"
-                          : "Добавить район"}
+                          ? t("realestate.filters.addDistrictMicro")
+                          : t("realestate.filters.addDistrict")}
                       </option>
                       {otherDistricts.map((item) => (
                         <option key={item} value={item}>
@@ -686,8 +696,8 @@ export default function RealEstateMoreFiltersModal({
             )}
           </FilterSection>
 
-          <FilterSection title={isDaily ? "Цена за сутки, сомони" : "Цена, сомони"}>
-            <FilterRow label="Диапазон">
+          <FilterSection title={isDaily ? t("realestate.filters.priceDailyTitle") : t("realestate.filters.priceTitle")}>
+            <FilterRow label={t("realestate.filters.rangeLabel")}>
               <div className="grid grid-cols-2 gap-2">
                 <input
                   value={draft.priceFrom ? formatPriceInput(draft.priceFrom) : ""}
@@ -697,7 +707,7 @@ export default function RealEstateMoreFiltersModal({
                       priceFrom: getPriceDigits(e.target.value),
                     }))
                   }
-                  placeholder="от"
+                  placeholder={t("realestate.from")}
                   className="mobile-control"
                 />
                 <input
@@ -708,7 +718,7 @@ export default function RealEstateMoreFiltersModal({
                       priceTo: getPriceDigits(e.target.value),
                     }))
                   }
-                  placeholder="до"
+                  placeholder={t("realestate.to")}
                   className="mobile-control"
                 />
               </div>
@@ -717,10 +727,10 @@ export default function RealEstateMoreFiltersModal({
             <FilterRow
               label={
                 dealType === "Посуточно"
-                  ? "Быстрый выбор, сут."
+                  ? t("realestate.filters.quickPickDaily")
                   : dealType === "Снять"
-                    ? "Быстрый выбор, мес."
-                    : "Быстрый выбор"
+                    ? t("realestate.filters.quickPickMonthly")
+                    : t("realestate.filters.quickPick")
               }
             >
               <PresetPills
@@ -738,7 +748,7 @@ export default function RealEstateMoreFiltersModal({
             </FilterRow>
 
             {dealType !== "Посуточно" && (
-              <FilterRow label="Цена за м²">
+              <FilterRow label={t("realestate.highlights.pricePerSqmLabel")}>
                 <div className="space-y-3">
                   <PresetPills
                     presets={REAL_ESTATE_PRICE_PER_SQM_PRESETS}
@@ -768,9 +778,9 @@ export default function RealEstateMoreFiltersModal({
             )}
           </FilterSection>
 
-          <FilterSection title="Параметры объекта">
+          <FilterSection title={t("realestate.form.paramsSectionTitle")}>
             {sellerOptions.length > 0 && (
-              <FilterRow label="Продавец">
+              <FilterRow label={t("realestate.filters.sellerLabel")}>
                 <div className="flex flex-wrap gap-2">
                   <button
                     type="button"
@@ -779,7 +789,7 @@ export default function RealEstateMoreFiltersModal({
                     }
                     className={`chip ${!draft.sellerType ? "chip-active" : ""}`}
                   >
-                    Любой
+                    {t("realestate.filters.anyOption")}
                   </button>
                   {sellerOptions.map((option) => (
                     <button
@@ -806,7 +816,7 @@ export default function RealEstateMoreFiltersModal({
             )}
 
             {!isDaily && (
-            <FilterRow label="Общая площадь">
+            <FilterRow label={t("realestate.filters.totalAreaLabel")}>
               <AreaRangeSelects
                 from={draft.areaFrom}
                 to={draft.areaTo}
@@ -822,7 +832,7 @@ export default function RealEstateMoreFiltersModal({
 
             {showFloor && !isDaily && (
               <>
-                <FilterRow label="Этаж">
+                <FilterRow label={t("realestate.highlights.floorLabel")}>
                   <RangeFilter
                     from={draft.floorFrom}
                     to={draft.floorTo}
@@ -836,7 +846,7 @@ export default function RealEstateMoreFiltersModal({
                   />
                 </FilterRow>
 
-                <FilterRow label="Этажность">
+                <FilterRow label={t("realestate.filters.floorCountLabel")}>
                   <div className="grid grid-cols-2 gap-2">
                     <button
                       type="button"
@@ -850,7 +860,7 @@ export default function RealEstateMoreFiltersModal({
                         draft.floorNotFirst ? "chip-active" : ""
                       }`}
                     >
-                      Не первый
+                      {t("realestate.filters.notFirstFloor")}
                     </button>
                     <button
                       type="button"
@@ -864,7 +874,7 @@ export default function RealEstateMoreFiltersModal({
                         draft.floorNotLast ? "chip-active" : ""
                       }`}
                     >
-                      Не последний
+                      {t("realestate.filters.notLastFloor")}
                     </button>
                   </div>
                 </FilterRow>
@@ -872,7 +882,7 @@ export default function RealEstateMoreFiltersModal({
             )}
 
             {furnitureOptions.length > 0 && (isRentDeal || showRooms) && (
-              <FilterRow label="Мебель">
+              <FilterRow label={t("realestate.filters.furnitureLabel")}>
                 <PillGroup
                   value={draft.specs?.["Мебель"] || ""}
                   options={furnitureOptions}
@@ -882,7 +892,7 @@ export default function RealEstateMoreFiltersModal({
             )}
 
             {isDaily && (
-              <FilterRow label="Удобства и правила">
+              <FilterRow label={t("realestate.filters.amenitiesRulesTitle")}>
                 <DailyRentalFilterFields
                   draft={draft}
                   setSpec={setSpec}
@@ -891,7 +901,7 @@ export default function RealEstateMoreFiltersModal({
             )}
 
             {showRentApartmentFilters && (
-              <FilterRow label="Условия аренды">
+              <FilterRow label={t("realestate.filters.rentTermsTitle")}>
                 <RentRentalFilterFields
                   draft={draft}
                   setSpec={setSpec}
@@ -907,13 +917,13 @@ export default function RealEstateMoreFiltersModal({
             )}
 
             {isLand && !isDaily && (
-              <FilterRow label="Параметры участка">
+              <FilterRow label={t("realestate.filters.landParamsTitle")}>
                 <LandFilterFields draft={draft} setSpec={setSpec} />
               </FilterRow>
             )}
 
             {isGarage && !isDaily && (
-              <FilterRow label={isRent ? "Условия аренды" : "Параметры"}>
+              <FilterRow label={isRent ? t("realestate.filters.rentTermsTitle") : t("form.parameters")}>
                 <GarageFilterFields
                   draft={draft}
                   setSpec={setSpec}
@@ -923,7 +933,7 @@ export default function RealEstateMoreFiltersModal({
             )}
 
             {isCommercial && !isDaily && (
-              <FilterRow label={isRent ? "Условия аренды" : "Параметры"}>
+              <FilterRow label={isRent ? t("realestate.filters.rentTermsTitle") : t("form.parameters")}>
                 <CommercialFilterFields
                   draft={draft}
                   setSpec={setSpec}
@@ -933,7 +943,7 @@ export default function RealEstateMoreFiltersModal({
             )}
 
             {(isDaily || isRent) && (
-              <FilterRow label="Дополнительно">
+              <FilterRow label={t("realestate.filters.moreTitle")}>
                 <RentalQualityFilterFields
                   draft={draft}
                   onOnlyWithPhotosChange={(value) =>
@@ -947,7 +957,7 @@ export default function RealEstateMoreFiltersModal({
             )}
 
             {houseTypeOptions.length > 0 && !isDaily && !isRent && (
-              <FilterRow label="Тип дома">
+              <FilterRow label={t("realestate.highlights.houseTypeLabel")}>
                 <PillGroup
                   value={draft.specs?.["Тип дома"] || ""}
                   options={houseTypeOptions}
@@ -957,7 +967,7 @@ export default function RealEstateMoreFiltersModal({
             )}
 
             {repairOptions.length > 0 && !isDaily && !isCommercial && (
-              <FilterRow label="Ремонт">
+              <FilterRow label={t("realestate.highlights.repairLabel")}>
                 <MultiPillGroup
                   values={draft.specs?.["Ремонт"] || ""}
                   options={repairOptions}
@@ -967,7 +977,7 @@ export default function RealEstateMoreFiltersModal({
             )}
 
             {conditionOptions.length > 0 && (
-              <FilterRow label="Состояние">
+              <FilterRow label={t("realestate.filters.conditionLabel")}>
                 <PillGroup
                   value={draft.specs?.["Состояние"] || ""}
                   options={conditionOptions}
@@ -978,7 +988,7 @@ export default function RealEstateMoreFiltersModal({
 
             {showFloor && (
               <>
-                <FilterRow label="Санузел">
+                <FilterRow label={t("realestate.filters.bathroomLabel")}>
                   <PillGroup
                     value={draft.specs?.["Санузел"] || ""}
                     options={bathroomOptions}
@@ -986,7 +996,7 @@ export default function RealEstateMoreFiltersModal({
                   />
                 </FilterRow>
 
-                <FilterRow label="Балкон">
+                <FilterRow label={t("realestate.filters.balconyLabel")}>
                   <PillGroup
                     value={draft.specs?.["Балкон"] || ""}
                     options={balconyOptions}
@@ -997,7 +1007,7 @@ export default function RealEstateMoreFiltersModal({
             )}
 
             {parkingOptions.length > 0 && !isCommercial && (
-              <FilterRow label="Парковка">
+              <FilterRow label={t("realestate.filters.parkingLabel")}>
                 <PillGroup
                   value={draft.specs?.["Парковка"] || ""}
                   options={parkingOptions}
@@ -1007,7 +1017,7 @@ export default function RealEstateMoreFiltersModal({
             )}
 
             {showFloor && !isDaily && (
-              <FilterRow label="Высота потолков">
+              <FilterRow label={t("realestate.filters.ceilingHeightLabel")}>
                 <MultiPillGroup
                   values={draft.specs?.["Высота потолков"] || ""}
                   options={CEILING_HEIGHTS}
@@ -1016,7 +1026,7 @@ export default function RealEstateMoreFiltersModal({
               </FilterRow>
             )}
 
-            <FilterRow label="Сортировка">
+            <FilterRow label={t("filter.sort")}>
               <select
                 value={
                   sortOptions[draft.sort] ? draft.sort : "new"
@@ -1043,7 +1053,7 @@ export default function RealEstateMoreFiltersModal({
             className="inline-flex items-center justify-center gap-1.5 text-sm font-medium text-red-600 hover:text-red-700 transition"
           >
             <X size={15} />
-            Сбросить значения
+            {t("realestate.filters.resetValues")}
           </button>
 
           <button
@@ -1052,8 +1062,10 @@ export default function RealEstateMoreFiltersModal({
             className="mobile-btn bg-sun text-white hover:bg-sun-600 font-semibold sm:min-w-[14rem]"
           >
             {previewLoading
-              ? "Показать объявления…"
-              : `Показать объявления (${previewTotal.toLocaleString("ru-RU")})`}
+              ? t("realestate.filters.showListingsLoading")
+              : t("realestate.filters.showListingsCount", {
+                  count: previewTotal.toLocaleString(numberLocale),
+                })}
           </button>
         </div>
       </div>

@@ -2,6 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import ListingCard from "../components/ListingCard";
 import RealEstateListingCard from "../components/RealEstateListingCard";
+import ListingGridSkeleton from "../components/ListingGridSkeleton";
 import AdSlot from "../components/AdSlot";
 import BusinessPromoBanner from "../components/BusinessPromoBanner";
 import { api } from "../lib/api";
@@ -110,30 +111,6 @@ function HorizontalSection({ title, icon: Icon, items, linkTo = "/listing" }) {
         ))}
       </div>
     </section>
-  );
-}
-
-function ListingSkeleton() {
-  return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-      {Array.from({ length: 6 }).map((_, index) => (
-        <div
-          key={index}
-          className="listing-card animate-pulse"
-        >
-          <div className="listing-card__media bg-mist-200" />
-          <div className="listing-card__body space-y-2">
-            <div className="h-5 bg-mist-200 rounded-full w-1/3" />
-            <div className="h-4 bg-mist-200 rounded w-5/6" />
-            <div className="h-4 bg-mist-200 rounded w-4/6" />
-            <div className="flex justify-between pt-2">
-              <div className="h-5 bg-mist-200 rounded w-1/3" />
-              <div className="h-3 bg-mist-200 rounded w-1/4" />
-            </div>
-          </div>
-        </div>
-      ))}
-    </div>
   );
 }
 
@@ -257,7 +234,12 @@ export default function Home() {
   return (
     <div className="page-shell">
       <div className="container mx-auto px-4 py-6 space-y-10">
-        {loading && <ListingSkeleton />}
+        {loading && (
+          <ListingGridSkeleton
+            count={12}
+            columns="grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
+          />
+        )}
 
         {!loading && error && (
           <div className="surface-panel p-6 text-center text-red-700 bg-red-50/80">

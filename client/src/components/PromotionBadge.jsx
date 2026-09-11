@@ -1,5 +1,6 @@
 import React from "react";
 import { Crown, TrendingUp } from "lucide-react";
+import { useI18n } from "../i18n";
 
 const SIZE_MAP = {
   sm: {
@@ -21,6 +22,7 @@ export default function PromotionBadge({
   size = "md",
   className = "",
 }) {
+  const { t } = useI18n();
   const sizeConfig = SIZE_MAP[size] || SIZE_MAP.md;
   const isVip = type === "vip";
 
@@ -29,17 +31,17 @@ export default function PromotionBadge({
       className={[
         "inline-flex items-center rounded-full font-bold uppercase tracking-wide shadow-sm",
         isVip
-          ? "bg-gradient-to-r from-[#F7DF6B] to-[#E8C547] text-[#5C4A00] border border-[#D4AF37]/35"
-          : "bg-[#1FA89E] text-white border border-white/20",
+          ? "bg-gradient-to-r from-sun-200 to-sun-400 text-sun-800 border border-sun/35"
+          : "bg-lagoon-500 text-white border border-white/20",
         sizeConfig.wrap,
         className,
       ].join(" ")}
-      aria-label={isVip ? "VIP объявление" : "TOP объявление"}
+      aria-label={isVip ? t("promotion.vipAria") : t("promotion.topAria")}
     >
       {isVip ? (
         <Crown
           size={sizeConfig.icon}
-          className="shrink-0 text-[#5C4A00]"
+          className="shrink-0 text-sun-800"
           strokeWidth={2.5}
         />
       ) : (

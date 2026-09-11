@@ -305,23 +305,44 @@ export default function ChatThreadPanel({
               </div>
 
               {!supportThread && !isAdmin ? (
-                <button
-                  type="button"
-                  onClick={onRevealPhone}
-                  className="hidden sm:inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-ink/8 bg-white px-3 py-2 text-sm font-semibold text-ink-600 transition hover:border-lagoon/30 hover:bg-lagoon/5 hover:text-lagoon-700"
-                >
-                  <Phone size={16} />
-                  {phoneVisible && phoneNumber
-                    ? phoneNumber
-                    : t("chat.showPhone")}
-                </button>
+                <>
+                  <button
+                    type="button"
+                    onClick={onRevealPhone}
+                    aria-label={
+                      phoneVisible && phoneNumber ? phoneNumber : t("chat.showPhone")
+                    }
+                    className="sm:hidden inline-flex h-10 w-10 items-center justify-center rounded-xl border border-ink/8 bg-white text-ink-600 shrink-0 hover:border-lagoon/30 hover:bg-lagoon/5 hover:text-lagoon-700"
+                  >
+                    <Phone size={18} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={onRevealPhone}
+                    className="hidden sm:inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-ink/8 bg-white px-3 py-2 text-sm font-semibold text-ink-600 transition hover:border-lagoon/30 hover:bg-lagoon/5 hover:text-lagoon-700"
+                  >
+                    <Phone size={16} />
+                    {phoneVisible && phoneNumber
+                      ? phoneNumber
+                      : t("chat.showPhone")}
+                  </button>
+                </>
               ) : supportThread ? (
-                <Link
-                  to="/profile"
-                  className="hidden sm:inline-flex shrink-0 items-center rounded-xl border border-lagoon/20 bg-lagoon/5 px-3 py-2 text-sm font-semibold text-lagoon-700 transition hover:bg-lagoon/10"
-                >
-                  {t("chat.helpCenter")}
-                </Link>
+                <>
+                  <Link
+                    to="/profile"
+                    aria-label={t("chat.helpCenter")}
+                    className="sm:hidden inline-flex h-10 w-10 items-center justify-center rounded-xl border border-lagoon/20 bg-lagoon/5 text-lagoon-700 shrink-0 hover:bg-lagoon/10"
+                  >
+                    <Shield size={18} />
+                  </Link>
+                  <Link
+                    to="/profile"
+                    className="hidden sm:inline-flex shrink-0 items-center rounded-xl border border-lagoon/20 bg-lagoon/5 px-3 py-2 text-sm font-semibold text-lagoon-700 transition hover:bg-lagoon/10"
+                  >
+                    {t("chat.helpCenter")}
+                  </Link>
+                </>
               ) : null}
 
               <button

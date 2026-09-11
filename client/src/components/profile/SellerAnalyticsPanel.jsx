@@ -6,8 +6,6 @@ import { formatViewCount } from "../../lib/format";
 import { getId } from "./profileUtils";
 import { useI18n } from "../../i18n";
 
-const DAY_LABELS = ["Вс", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"];
-
 function ChangeBadge({ value, suffix = "%" }) {
   if (value == null) return null;
   const positive = value >= 0;
@@ -25,12 +23,15 @@ function ChangeBadge({ value, suffix = "%" }) {
 }
 
 function KpiCard({ label, value, change, changeSuffix, hint }) {
+  const { lang } = useI18n();
+  const numberLocale = lang === "en" ? "en-US" : lang === "tg" ? "tg-TJ" : "ru-RU";
+
   return (
     <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm">
       <div className="text-sm text-slate-500 mb-1">{label}</div>
       <div className="flex items-baseline gap-2">
         <div className="text-2xl sm:text-3xl font-extrabold tabular-nums text-slate-900">
-          {Number(value || 0).toLocaleString("ru-RU")}
+          {Number(value || 0).toLocaleString(numberLocale)}
         </div>
         <ChangeBadge value={change} suffix={changeSuffix} />
       </div>
@@ -39,7 +40,18 @@ function KpiCard({ label, value, change, changeSuffix, hint }) {
   );
 }
 
+const DAY_LABEL_KEYS = [
+  "date.dayShortSun",
+  "date.dayShortMon",
+  "date.dayShortTue",
+  "date.dayShortWed",
+  "date.dayShortThu",
+  "date.dayShortFri",
+  "date.dayShortSat",
+];
+
 function GroupedBarChart({ series, hidden }) {
+  const { t } = useI18n();
   const max = Math.max(
     1,
     ...series.flatMap((d) => [
@@ -52,7 +64,8 @@ function GroupedBarChart({ series, hidden }) {
   return (
     <div className="h-56 flex items-end gap-1.5 sm:gap-2.5 pt-2">
       {series.map((day) => {
-        const label = DAY_LABELS[new Date(`${day.day}T12:00:00`).getDay()] || "";
+        const dayIndex = new Date(`${day.day}T12:00:00`).getDay();
+        const label = t(DAY_LABEL_KEYS[dayIndex] || DAY_LABEL_KEYS[0]);
         const bars = [
           { key: "views", value: day.views, color: "bg-sun", hidden: hidden.views },
           { key: "reveals", value: day.reveals, color: "bg-teal-500", hidden: hidden.reveals },
@@ -72,6 +85,8 @@ function GroupedBarChart({ series, hidden }) {
                   <div
                     key={bar.key}
                     title={`${label}: ${bar.value}`}
+                    role="img"
+                    aria-label={`${label}: ${bar.value}`}
                     className={`w-[28%] max-w-[14px] rounded-t-sm ${bar.color} transition-all`}
                     style={{ height: `${Math.max(4, (bar.value / max) * 100)}%` }}
                   />
@@ -87,7 +102,8 @@ function GroupedBarChart({ series, hidden }) {
 }
 
 export default function SellerAnalyticsPanel({ token }) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
+  const numberLocale = lang === "en" ? "en-US" : lang === "tg" ? "tg-TJ" : "ru-RU";
   const [period, setPeriod] = React.useState("7d");
   const [data, setData] = React.useState(null);
   const [loading, setLoading] = React.useState(true);
@@ -228,7 +244,7 @@ export default function SellerAnalyticsPanel({ token }) {
                       <span className={`w-2.5 h-2.5 rounded-sm ${color}`} />
                       {label}
                       <span className="text-slate-400 tabular-nums">
-                        {Number(count || 0).toLocaleString("ru-RU")}
+                        {Number(count || 0).toLocaleString(numberLocale)}
                       </span>
                     </button>
                   ))}

@@ -27,14 +27,6 @@ export default function Category() {
   const nav = useNavigate();
   const { t } = useI18n();
 
-  if (slug === "realestate") {
-    return <Navigate to={DEFAULT_REAL_ESTATE_BROWSE_PATH} replace />;
-  }
-
-  if (slug === "repair") {
-    return <Navigate to="/c/services" replace />;
-  }
-
   const cat = CATS[slug];
 
   const [q, setQ] = React.useState("");
@@ -112,6 +104,14 @@ export default function Category() {
       : t("empty.categoryNotFoundMeta"),
     url: typeof window !== "undefined" ? window.location.href : undefined,
   });
+
+  if (slug === "realestate") {
+    return <Navigate to={DEFAULT_REAL_ESTATE_BROWSE_PATH} replace />;
+  }
+
+  if (slug === "repair") {
+    return <Navigate to="/c/services" replace />;
+  }
 
   if (!cat) {
     return (

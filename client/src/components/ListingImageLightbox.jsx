@@ -1,6 +1,7 @@
 import React from "react";
 import { createPortal } from "react-dom";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { useI18n } from "../i18n";
 
 export default function ListingImageLightbox({
   open,
@@ -8,8 +9,10 @@ export default function ListingImageLightbox({
   images = [],
   activeIndex = 0,
   onChangeIndex,
-  title = "Фото объявления",
+  title,
 }) {
+  const { t } = useI18n();
+  const resolvedTitle = title || t("listing.photoAlt");
   const touchStartX = React.useRef(null);
 
   React.useEffect(() => {
@@ -79,15 +82,18 @@ export default function ListingImageLightbox({
       className="fixed inset-0 z-[120] bg-black/95 flex flex-col"
       role="dialog"
       aria-modal="true"
-      aria-label="Просмотр фото"
+      aria-label={t("listing.photoViewerAria")}
       onClick={onClose}
     >
       <div className="flex shrink-0 items-center justify-between gap-3 px-4 py-3 text-white">
         <div className="min-w-0">
-          <div className="text-sm font-semibold truncate">{title}</div>
+          <div className="text-sm font-semibold truncate">{resolvedTitle}</div>
           {images.length > 1 && (
             <div className="text-xs text-white/70 mt-0.5">
-              {activeIndex + 1} из {images.length}
+              {t("listing.photoCounter", {
+                current: activeIndex + 1,
+                total: images.length,
+              })}
             </div>
           )}
         </div>
@@ -96,7 +102,7 @@ export default function ListingImageLightbox({
           type="button"
           onClick={onClose}
           className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition shrink-0"
-          aria-label="Закрыть"
+          aria-label={t("common.close")}
         >
           <X className="w-5 h-5" />
         </button>
@@ -114,7 +120,7 @@ export default function ListingImageLightbox({
               type="button"
               onClick={goPrev}
               className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition"
-              aria-label="Предыдущее фото"
+              aria-label={t("a11y.photoPrev")}
             >
               <ChevronLeft className="w-6 h-6" />
             </button>
@@ -123,7 +129,7 @@ export default function ListingImageLightbox({
               type="button"
               onClick={goNext}
               className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition"
-              aria-label="Следующее фото"
+              aria-label={t("a11y.photoNext")}
             >
               <ChevronRight className="w-6 h-6" />
             </button>
@@ -132,7 +138,7 @@ export default function ListingImageLightbox({
 
         <img
           src={currentSrc}
-          alt={title}
+          alt={resolvedTitle}
           className="max-w-full max-h-full object-contain select-none"
           draggable={false}
         />

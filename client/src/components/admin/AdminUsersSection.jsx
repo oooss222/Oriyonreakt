@@ -1,6 +1,7 @@
 import React from "react";
 import { Shield, Ban, Unlock, ChevronLeft, ChevronRight } from "lucide-react";
 import { api } from "../../lib/api";
+import { useI18n } from "../../i18n";
 import {
   ROLES,
   getId,
@@ -13,13 +14,13 @@ import UserDetailModal from "./UserDetailModal";
 
 const PAGE_SIZE = 25;
 
-const SORT_OPTIONS = [
-  { value: "created_desc", label: "Дата регистрации ↓" },
-  { value: "created_asc", label: "Дата регистрации ↑" },
-  { value: "balance_desc", label: "Баланс ↓" },
-  { value: "balance_asc", label: "Баланс ↑" },
-  { value: "role_asc", label: "Роль A→Z" },
-  { value: "name_asc", label: "Имя A→Z" },
+const SORT_OPTION_KEYS = [
+  { value: "created_desc", key: "admin.users.sortCreatedDesc" },
+  { value: "created_asc", key: "admin.users.sortCreatedAsc" },
+  { value: "balance_desc", key: "admin.users.sortBalanceDesc" },
+  { value: "balance_asc", key: "admin.users.sortBalanceAsc" },
+  { value: "role_asc", key: "admin.users.sortRoleAsc" },
+  { value: "name_asc", key: "admin.users.sortNameAsc" },
 ];
 
 function useDebouncedValue(value, delay = 350) {
@@ -38,6 +39,7 @@ export default function AdminUsersSection({
   currentUser,
   initialBusinessFilter = "all",
 }) {
+  const { t } = useI18n();
   const [users, setUsers] = React.useState([]);
   const [total, setTotal] = React.useState(0);
   const [totalPages, setTotalPages] = React.useState(1);
@@ -83,7 +85,7 @@ export default function AdminUsersSection({
       setTotal(Number(data.total || 0));
       setTotalPages(Math.max(1, Number(data.totalPages || 1)));
     } catch (e) {
-      setError(e.message || "Ошибка загрузки пользователей");
+      setError(e.message || t("admin.users.loadError"));
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -98,29 +100,40 @@ export default function AdminUsersSection({
     setPage(1);
   }, [debouncedQuery, roleFilter, statusFilter, businessFilter, sortKey]);
 
-  const changeRole = async (userId, nextRole) => {
+  const changeRole = async (user, nextRole) => {
     if (!isSuperAdmin) {
-      alert("Только супер-админ может менять роли");
+      alert(t("admin.users.onlySuperAdminRole"));
       return;
     }
 
+    const ok = confirm(
+      t("admin.userDetail.roleChangeConfirm", {
+        email: user.email,
+        role: roleLabel(nextRole),
+      })
+    );
+    if (!ok) return;
+
     try {
-      await api.adminSetUserRole(token, userId, nextRole);
+      await api.adminSetUserRole(token, getId(user), nextRole);
       await loadUsers();
     } catch (e) {
-      alert(e.message || "Ошибка изменения роли");
+      alert(e.message || t("admin.users.roleChangeError"));
     }
   };
 
   const toggleBlock = async (user) => {
     if (!canManageUser(currentUser, user)) {
-      alert("Недостаточно прав для управления этим пользователем");
+      alert(t("admin.users.notEnoughRights"));
       return;
     }
 
     const userId = getId(user);
-    const action = user.isBlocked ? "разблокировать" : "заблокировать";
-    const ok = confirm(`Вы действительно хотите ${action} пользователя ${user.email}?`);
+    const ok = confirm(
+      user.isBlocked
+        ? t("admin.users.unblockConfirm", { email: user.email })
+        : t("admin.users.blockConfirm", { email: user.email })
+    );
     if (!ok) return;
 
     try {
@@ -132,7 +145,7 @@ export default function AdminUsersSection({
 
       await loadUsers();
     } catch (e) {
-      alert(e.message || "Ошибка блокировки");
+      alert(e.message || t("admin.users.blockError"));
     }
   };
 
@@ -161,12 +174,14 @@ export default function AdminUsersSection({
           <div>
             <div className="inline-flex items-center gap-2 text-sm text-sun-700 bg-sun-50 border border-sun-100 rounded-full px-3 py-1 mb-2">
               <Shield className="w-4 h-4" />
-              {isSuperAdmin ? "Панель супер-админа" : "Панель администратора"}
+              {isSuperAdmin
+                ? t("admin.users.badgeSuperAdmin")
+                : t("admin.users.badgeAdmin")}
             </div>
 
-            <h2 className="text-xl font-bold">Пользователи</h2>
+            <h2 className="text-xl font-bold">{t("admin.sections.users")}</h2>
             <p className="text-sm text-slate-500 mt-1">
-              Нажмите на строку, чтобы открыть карточку пользователя.
+              {t("admin.users.hint")}
             </p>
           </div>
 
@@ -176,7 +191,7 @@ export default function AdminUsersSection({
             disabled={refreshing}
             className="px-4 py-2 rounded-xl border hover:bg-slate-50 disabled:opacity-60"
           >
-            {refreshing ? "Обновляем..." : "Обновить"}
+            {refreshing ? t("admin.users.refreshing") : t("admin.users.refresh")}
           </button>
         </div>
 
@@ -190,7 +205,7 @@ export default function AdminUsersSection({
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Поиск: имя, email, телефон, компания"
+            placeholder={t("admin.users.searchPlaceholder")}
             className="h-11 rounded-xl border px-3 outline-none focus:ring-2 focus:ring-sun/40 xl:col-span-2"
           />
 
@@ -199,7 +214,7 @@ export default function AdminUsersSection({
             onChange={(e) => setRoleFilter(e.target.value)}
             className="h-11 rounded-xl border px-3 outline-none focus:ring-2 focus:ring-sun/40"
           >
-            <option value="all">Все роли</option>
+            <option value="all">{t("admin.users.allRoles")}</option>
             {ROLES.map((role) => (
               <option key={role} value={role}>
                 {roleLabel(role)}
@@ -212,10 +227,10 @@ export default function AdminUsersSection({
             onChange={(e) => setBusinessFilter(e.target.value)}
             className="h-11 rounded-xl border px-3 outline-none focus:ring-2 focus:ring-sun/40"
           >
-            <option value="all">Все аккаунты</option>
-            <option value="company">Премиум</option>
-            <option value="unverified">Ждут верификации</option>
-            <option value="verified">Проверенный премиум</option>
+            <option value="all">{t("admin.users.allAccounts")}</option>
+            <option value="company">{t("admin.users.accountBusiness")}</option>
+            <option value="unverified">{t("admin.users.accountUnverified")}</option>
+            <option value="verified">{t("admin.users.accountVerifiedBusiness")}</option>
           </select>
 
           <select
@@ -223,9 +238,9 @@ export default function AdminUsersSection({
             onChange={(e) => setStatusFilter(e.target.value)}
             className="h-11 rounded-xl border px-3 outline-none focus:ring-2 focus:ring-sun/40"
           >
-            <option value="all">Все статусы</option>
-            <option value="active">Активные</option>
-            <option value="blocked">Заблокированные</option>
+            <option value="all">{t("admin.users.allStatuses")}</option>
+            <option value="active">{t("admin.users.statusActive")}</option>
+            <option value="blocked">{t("admin.users.statusBlocked")}</option>
           </select>
 
           <select
@@ -233,9 +248,9 @@ export default function AdminUsersSection({
             onChange={(e) => setSortKey(e.target.value)}
             className="h-11 rounded-xl border px-3 outline-none focus:ring-2 focus:ring-sun/40"
           >
-            {SORT_OPTIONS.map((option) => (
+            {SORT_OPTION_KEYS.map((option) => (
               <option key={option.value} value={option.value}>
-                {option.label}
+                {t(option.key)}
               </option>
             ))}
           </select>
@@ -243,8 +258,8 @@ export default function AdminUsersSection({
 
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-sm text-slate-500">
           <div>
-            Показано: {users.length} из {total}
-            {query !== debouncedQuery ? " · ищем..." : ""}
+            {t("admin.users.shownOfTotal", { shown: users.length, total })}
+            {query !== debouncedQuery ? ` · ${t("admin.users.searching")}` : ""}
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -254,7 +269,7 @@ export default function AdminUsersSection({
               className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border disabled:opacity-40"
             >
               <ChevronLeft size={16} />
-              Назад
+              {t("admin.users.back")}
             </button>
             <span>
               {page} / {totalPages}
@@ -265,7 +280,7 @@ export default function AdminUsersSection({
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border disabled:opacity-40"
             >
-              Вперёд
+              {t("admin.users.next")}
               <ChevronRight size={16} />
             </button>
           </div>
@@ -273,24 +288,24 @@ export default function AdminUsersSection({
 
         {users.length === 0 ? (
           <div className="rounded-2xl border bg-slate-50 p-8 text-center text-slate-500">
-            Пользователи не найдены.
+            {t("admin.users.notFound")}
           </div>
         ) : (
           <div className="overflow-x-auto rounded-2xl border">
             <table className="w-full text-sm border-collapse bg-white">
               <thead className="bg-slate-50">
                 <tr className="border-b text-left text-slate-500">
-                  <th className="py-3 px-3">Пользователь</th>
-                  <th className="py-3 px-3">Контакты</th>
-                  <th className="py-3 px-3">Тип</th>
-                  <th className="py-3 px-3">Роль</th>
-                  <th className="py-3 px-3">Баланс</th>
-                  <th className="py-3 px-3">Статус</th>
+                  <th className="py-3 px-3">{t("admin.users.colUser")}</th>
+                  <th className="py-3 px-3">{t("admin.users.colContacts")}</th>
+                  <th className="py-3 px-3">{t("admin.users.colType")}</th>
+                  <th className="py-3 px-3">{t("admin.users.colRole")}</th>
+                  <th className="py-3 px-3">{t("admin.users.colBalance")}</th>
+                  <th className="py-3 px-3">{t("admin.users.colStatus")}</th>
                   {isSuperAdmin ? (
-                    <th className="py-3 px-3">Устройство</th>
+                    <th className="py-3 px-3">{t("admin.users.colDevice")}</th>
                   ) : null}
-                  <th className="py-3 px-3">Дата</th>
-                  <th className="py-3 px-3">Действия</th>
+                  <th className="py-3 px-3">{t("admin.users.colDate")}</th>
+                  <th className="py-3 px-3">{t("admin.users.colActions")}</th>
                 </tr>
               </thead>
 
@@ -310,7 +325,7 @@ export default function AdminUsersSection({
                         <div className="font-semibold">
                           {user.sellerType === "company" && user.companyName
                             ? user.companyName
-                            : user.name || "Без имени"}
+                            : user.name || t("admin.users.noName")}
                         </div>
                         <div className="text-xs text-slate-500">
                           {user.sellerType === "company" && user.companyName
@@ -322,7 +337,7 @@ export default function AdminUsersSection({
                       <td className="py-3 px-3">
                         <div>{user.email}</div>
                         <div className="text-xs text-slate-500">
-                          {user.phone || "Телефон не указан"}
+                          {user.phone || t("admin.users.noPhone")}
                         </div>
                       </td>
 
@@ -335,10 +350,12 @@ export default function AdminUsersSection({
                                 : "bg-blue-50 text-blue-700 border-blue-200"
                             }`}
                           >
-                            {user.businessVerified ? "Проверен" : "Премиум"}
+                            {user.businessVerified
+                              ? t("admin.users.verified")
+                              : t("admin.users.accountBusiness")}
                           </span>
                         ) : (
-                          <span className="text-xs text-slate-400">Частник</span>
+                          <span className="text-xs text-slate-400">{t("admin.users.private")}</span>
                         )}
                       </td>
 
@@ -355,7 +372,7 @@ export default function AdminUsersSection({
                           {isSuperAdmin ? (
                             <select
                               value={role}
-                              onChange={(e) => changeRole(id, e.target.value)}
+                              onChange={(e) => changeRole(user, e.target.value)}
                               className="h-9 rounded-lg border px-2 bg-white"
                             >
                               {ROLES.map((item) => (
@@ -375,11 +392,11 @@ export default function AdminUsersSection({
                       <td className="py-3 px-3">
                         {user.isBlocked ? (
                           <span className="inline-flex px-2 py-0.5 text-xs rounded-full bg-red-50 text-red-700 border border-red-200">
-                            Заблокирован
+                            {t("admin.users.statusBlocked")}
                           </span>
                         ) : (
                           <span className="inline-flex px-2 py-0.5 text-xs rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-                            Активен
+                            {t("admin.users.statusActiveShort")}
                           </span>
                         )}
                       </td>
@@ -410,12 +427,12 @@ export default function AdminUsersSection({
                           {user.isBlocked ? (
                             <>
                               <Unlock size={16} />
-                              Разблокировать
+                              {t("admin.users.unblock")}
                             </>
                           ) : (
                             <>
                               <Ban size={16} />
-                              Заблокировать
+                              {t("admin.users.block")}
                             </>
                           )}
                         </button>

@@ -1,5 +1,6 @@
 import React from "react";
 import { Star } from "lucide-react";
+import { useI18n } from "../i18n";
 
 export function StarRating({ value = 0, size = 16, className = "" }) {
   const rating = Number(value) || 0;
@@ -30,6 +31,9 @@ export default function SellerReviewsPanel({
   items = [],
   onSubmitted,
 }) {
+  const { t, lang } = useI18n();
+  const numberLocale =
+    lang === "en" ? "en-US" : lang === "tg" ? "tg-TJ" : "ru-RU";
   const [rating, setRating] = React.useState(5);
   const [comment, setComment] = React.useState("");
   const [loading, setLoading] = React.useState(false);
@@ -39,7 +43,7 @@ export default function SellerReviewsPanel({
     event.preventDefault();
 
     if (!token) {
-      setError("Войдите, чтобы оставить отзыв");
+      setError(t("seller.reviewLoginRequired"));
       return;
     }
 
@@ -58,7 +62,7 @@ export default function SellerReviewsPanel({
       setComment("");
       onSubmitted?.(result);
     } catch (e) {
-      setError(e.message || "Не удалось сохранить отзыв");
+      setError(e.message || t("seller.reviewSaveFailed"));
     } finally {
       setLoading(false);
     }
@@ -68,11 +72,12 @@ export default function SellerReviewsPanel({
     <div className="rounded-2xl border bg-white p-4 md:p-5 space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <div className="text-lg font-semibold text-slate-900">Отзывы о продавце</div>
+          <div className="text-lg font-semibold text-slate-900">{t("seller.reviewsTitle")}</div>
           <div className="flex items-center gap-2 mt-1">
             <StarRating value={summary.average} />
             <span className="text-sm text-slate-600">
-              {Number(summary.average || 0).toFixed(1)} · {summary.count || 0} отзывов
+              {Number(summary.average || 0).toFixed(1)} ·{" "}
+              {t("seller.reviewsCount", { count: summary.count || 0 })}
             </span>
           </div>
         </div>
@@ -80,7 +85,7 @@ export default function SellerReviewsPanel({
 
       {canReview && (
         <form onSubmit={submit} className="rounded-2xl border bg-slate-50 p-4 space-y-3">
-          <div className="text-sm font-medium text-slate-800">Оставить отзыв</div>
+          <div className="text-sm font-medium text-slate-800">{t("seller.leaveReview")}</div>
 
           <div className="flex items-center gap-2">
             {[1, 2, 3, 4, 5].map((value) => (
@@ -102,7 +107,7 @@ export default function SellerReviewsPanel({
           <textarea
             value={comment}
             onChange={(e) => setComment(e.target.value)}
-            placeholder="Расскажите о сделке..."
+            placeholder={t("seller.reviewPlaceholder")}
             className="input w-full min-h-[90px]"
           />
 
@@ -117,20 +122,20 @@ export default function SellerReviewsPanel({
             disabled={loading}
             className="btn btn-primary rounded-xl disabled:opacity-60"
           >
-            {loading ? "Отправляем..." : "Отправить отзыв"}
+            {loading ? t("report.sending") : t("seller.reviewSubmit")}
           </button>
         </form>
       )}
 
       <div className="space-y-3">
         {items.length === 0 ? (
-          <div className="text-sm text-slate-500">Пока нет отзывов.</div>
+          <div className="text-sm text-slate-500">{t("seller.reviewsEmpty")}</div>
         ) : (
           items.map((item) => (
             <div key={item.id} className="rounded-xl border bg-slate-50 p-3">
               <div className="flex items-center justify-between gap-3">
                 <div className="font-medium text-slate-900">
-                  {item.reviewerName || "Покупатель"}
+                  {item.reviewerName || t("seller.buyerFallback")}
                 </div>
                 <StarRating value={item.rating} size={14} />
               </div>
@@ -139,7 +144,7 @@ export default function SellerReviewsPanel({
               )}
               <div className="text-xs text-slate-400 mt-2">
                 {item.createdAt
-                  ? new Date(item.createdAt).toLocaleDateString("ru-RU")
+                  ? new Date(item.createdAt).toLocaleDateString(numberLocale)
                   : ""}
               </div>
             </div>

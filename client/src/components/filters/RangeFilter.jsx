@@ -1,4 +1,5 @@
 import React from "react";
+import { useI18n } from "../../i18n";
 
 function PresetRow({ presets = [], activeFrom = "", activeTo = "", onSelect }) {
   if (!presets.length) return null;
@@ -39,12 +40,15 @@ export default function RangeFilter({
   to = "",
   onChange,
   presets = [],
-  fromPlaceholder = "от",
-  toPlaceholder = "до",
+  fromPlaceholder,
+  toPlaceholder,
   inputMode = "numeric",
   suffix = "",
   selectOptions = [],
 }) {
+  const { t } = useI18n();
+  const resolvedFromPlaceholder = fromPlaceholder ?? t("filter.from");
+  const resolvedToPlaceholder = toPlaceholder ?? t("filter.to");
   const handleFrom = (value) => onChange?.({ from: value, to });
   const handleTo = (value) => onChange?.({ from, to: value });
 
@@ -58,10 +62,10 @@ export default function RangeFilter({
               onChange={(e) => handleFrom(e.target.value)}
               className="mobile-control"
             >
-              <option value="">Любая</option>
+              <option value="">{t("filter.anyRange")}</option>
               {selectOptions.map((item) => (
                 <option key={`from-${item}`} value={item}>
-                  {fromPlaceholder} {item}
+                  {resolvedFromPlaceholder} {item}
                   {suffix}
                 </option>
               ))}
@@ -71,10 +75,10 @@ export default function RangeFilter({
               onChange={(e) => handleTo(e.target.value)}
               className="mobile-control"
             >
-              <option value="">Любая</option>
+              <option value="">{t("filter.anyRange")}</option>
               {selectOptions.map((item) => (
                 <option key={`to-${item}`} value={item}>
-                  {toPlaceholder} {item}
+                  {resolvedToPlaceholder} {item}
                   {suffix}
                 </option>
               ))}
@@ -93,7 +97,7 @@ export default function RangeFilter({
                     : e.target.value
                 )
               }
-              placeholder={fromPlaceholder}
+              placeholder={resolvedFromPlaceholder}
               className="mobile-control"
             />
             <input
@@ -107,7 +111,7 @@ export default function RangeFilter({
                     : e.target.value
                 )
               }
-              placeholder={toPlaceholder}
+              placeholder={resolvedToPlaceholder}
               className="mobile-control"
             />
           </>

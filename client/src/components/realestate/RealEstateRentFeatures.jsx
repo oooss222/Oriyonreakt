@@ -4,8 +4,10 @@ import {
   RENT_RULE_SPECS,
 } from "../../data/realEstate";
 import { getSpecValue } from "../../lib/realEstate";
+import { useI18n } from "../../i18n";
 
 export default function RealEstateRentFeatures({ specs = [], compact = false }) {
+  const { t } = useI18n();
   const appliances = parseMultiSpecValue(getSpecValue(specs, "Техника"));
   const rules = RENT_RULE_SPECS.map((name) => ({
     name,
@@ -17,14 +19,14 @@ export default function RealEstateRentFeatures({ specs = [], compact = false }) 
   return (
     <section className={compact ? "space-y-2" : "space-y-3"}>
       {!compact ? (
-        <h3 className="text-sm font-bold text-ink">Условия аренды</h3>
+        <h3 className="text-sm font-bold text-ink">{t("realestate.filters.rentTermsTitle")}</h3>
       ) : null}
 
       {appliances.length > 0 ? (
         <div>
           {!compact ? (
             <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-ink-400">
-              Техника
+              {t("realestate.filters.applianceLabelShort")}
             </div>
           ) : null}
           <div className="flex flex-wrap gap-1.5">

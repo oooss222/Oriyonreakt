@@ -15,6 +15,8 @@ import { getRealEstateSubcategories } from "../data/realEstateFilters";
 import { formatPriceInput, getPriceDigits } from "../data/specOptions";
 import { getSellerFilterOptions } from "../lib/filterConflicts";
 import SaveSearchButton from "./SaveSearchButton";
+import RadioOption from "./filters/RadioOption";
+import { commitDraft } from "../lib/filterDraft";
 import RealEstateGuestsPicker from "./realestate/RealEstateGuestsPicker";
 import RealEstateDateRangePicker from "./realestate/RealEstateDateRangePicker";
 import DailyRentalFilterFields from "./realestate/DailyRentalFilterFields";
@@ -23,6 +25,7 @@ import LandFilterFields from "./realestate/LandFilterFields";
 import GarageFilterFields from "./realestate/GarageFilterFields";
 import CommercialFilterFields from "./realestate/CommercialFilterFields";
 import RentalQualityFilterFields from "./realestate/RentalQualityFilterFields";
+import { useI18n } from "../i18n";
 
 const ROOM_OPTIONS = ["1", "2", "3", "4", "5+"];
 
@@ -36,11 +39,6 @@ const SIDEBAR_SUBCATEGORIES = [
   "Новостройки",
 ];
 
-function commitDraft(setDraft, onApply, updater, current) {
-  const next = updater(current);
-  setDraft(next);
-  onApply?.(next);
-}
 
 function FilterBlock({ title, children }) {
   return (
@@ -98,6 +96,7 @@ function CitySegment({ value, onChange }) {
 }
 
 function PriceModeSegment({ value, onChange }) {
+  const { t } = useI18n();
   return (
     <div className="re-filter-segment re-filter-segment--2 re-filter-segment--compact">
       <button
@@ -107,7 +106,7 @@ function PriceModeSegment({ value, onChange }) {
           value === "object" ? "re-filter-segment__btn--active" : ""
         }`}
       >
-        за объект
+        {t("realestate.filters.perObject")}
       </button>
       <button
         type="button"
@@ -116,43 +115,12 @@ function PriceModeSegment({ value, onChange }) {
           value === "sqm" ? "re-filter-segment__btn--active" : ""
         }`}
       >
-        за м²
+        {t("realestate.filters.perSqm")}
       </button>
     </div>
   );
 }
 
-function RadioOption({ active, label, count, onSelect }) {
-  return (
-    <button
-      type="button"
-      onClick={onSelect}
-      className="flex w-full items-center justify-between gap-3 rounded-xl px-1 py-1.5 text-left transition hover:bg-mist/70"
-    >
-      <span className="flex min-w-0 items-center gap-2.5">
-        <span
-          className={`grid h-4 w-4 shrink-0 place-items-center rounded-full border-2 transition ${
-            active ? "border-sun" : "border-ink/20"
-          }`}
-        >
-          {active ? <span className="h-2 w-2 rounded-full bg-sun" /> : null}
-        </span>
-        <span
-          className={`truncate text-sm ${
-            active ? "font-semibold text-ink" : "text-ink-600"
-          }`}
-        >
-          {label}
-        </span>
-      </span>
-      {typeof count === "number" ? (
-        <span className="shrink-0 text-xs font-medium text-ink-300">
-          {count.toLocaleString("ru-RU")}
-        </span>
-      ) : null}
-    </button>
-  );
-}
 
 function DistrictChip({ active, label, count, onClick }) {
   return (
@@ -207,6 +175,9 @@ export default function RealEstateFiltersSidebar({
   activeCat = "realestate",
   appliedDraft,
 }) {
+  const { t, lang } = useI18n();
+  const numberLocale =
+    lang === "en" ? "en-US" : lang === "tg" ? "tg-TJ" : "ru-RU";
   const dealType = draft.specs?.["Тип сделки"] || "";
   const isDaily = isDailyDeal(dealType);
   const isRent = isRentDeal(dealType);
@@ -218,6 +189,9 @@ export default function RealEstateFiltersSidebar({
   const isGarage = effectiveSubcategory === "Гаражи и парковки";
   const isCommercial = effectiveSubcategory === "Коммерческая недвижимость";
   const sellerOptions = getSellerFilterOptions(dealType, effectiveSubcategory);
+  // Kept as the literal data value (not t()) — activeCity is compared against
+  // "Душанбе" below and fed into getDistrictsForCity/CitySegment, which key off
+  // the raw Russian city values from the real estate data model.
   const activeCity = draft.location || "Душанбе";
   const districts =
     activeCity === "Душанбе"
@@ -250,7 +224,7 @@ export default function RealEstateFiltersSidebar({
 
   const showCount = previewLoading
     ? "…"
-    : (previewTotal || categoryTotal || 0).toLocaleString("ru-RU");
+    : (previewTotal || categoryTotal || 0).toLocaleString(numberLocale);
 
   const saveDraft = appliedDraft || draft;
 
@@ -313,11 +287,11 @@ export default function RealEstateFiltersSidebar({
     <div className="filter-sidebar">
       <div className="filter-sidebar__header">
         <SlidersHorizontal size={18} className="text-ink-500" />
-        <h2 className="text-base font-bold text-ink">Фильтры</h2>
+        <h2 className="text-base font-bold text-ink">{t("filter.title")}</h2>
       </div>
 
       <div className="filter-sidebar__body">
-        <FilterBlock title="Сделка">
+        <FilterBlock title={t("realestate.filters.dealTitle")}>
           <div className="space-y-3">
             <DealSegment
               value={dealType}
@@ -337,7 +311,7 @@ export default function RealEstateFiltersSidebar({
               }
             />
 
-            <div className="space-y-0.5">
+            <div className="space-y-0.5" role="radiogroup" aria-label={t("listing.category")}>
               {subcategories.map((sub) => (
                 <RadioOption
                   key={sub}
@@ -369,7 +343,7 @@ export default function RealEstateFiltersSidebar({
 
         {isDaily ? (
           <>
-            <FilterBlock title="Поездка">
+            <FilterBlock title={t("realestate.filters.tripTitle")}>
               <div className="space-y-3">
                 <RealEstateDateRangePicker
                   checkIn={draft.checkIn || ""}
@@ -393,7 +367,7 @@ export default function RealEstateFiltersSidebar({
               </div>
             </FilterBlock>
 
-            <FilterBlock title="Удобства и правила">
+            <FilterBlock title={t("realestate.filters.amenitiesRulesTitle")}>
               <DailyRentalFilterFields
                 draft={draft}
                 setSpec={setSpecValue}
@@ -403,7 +377,7 @@ export default function RealEstateFiltersSidebar({
         ) : null}
 
         {showRentApartmentFilters ? (
-          <FilterBlock title="Условия аренды">
+          <FilterBlock title={t("realestate.filters.rentTermsTitle")}>
             <RentRentalFilterFields
               draft={draft}
               setSpec={setSpecValue}
@@ -424,13 +398,13 @@ export default function RealEstateFiltersSidebar({
         ) : null}
 
         {isLand && !isDaily ? (
-          <FilterBlock title="Параметры участка">
+          <FilterBlock title={t("realestate.filters.landParamsTitle")}>
             <LandFilterFields draft={draft} setSpec={setSpecValue} />
           </FilterBlock>
         ) : null}
 
         {isGarage && !isDaily ? (
-          <FilterBlock title={isRent ? "Условия аренды" : "Параметры"}>
+          <FilterBlock title={isRent ? t("realestate.filters.rentTermsTitle") : t("form.parameters")}>
             <GarageFilterFields
               draft={draft}
               setSpec={setSpecValue}
@@ -440,7 +414,7 @@ export default function RealEstateFiltersSidebar({
         ) : null}
 
         {isCommercial && !isDaily ? (
-          <FilterBlock title={isRent ? "Условия аренды" : "Параметры"}>
+          <FilterBlock title={isRent ? t("realestate.filters.rentTermsTitle") : t("form.parameters")}>
             <CommercialFilterFields
               draft={draft}
               setSpec={setSpecValue}
@@ -450,7 +424,7 @@ export default function RealEstateFiltersSidebar({
         ) : null}
 
         {isDaily || isRent ? (
-          <FilterBlock title="Дополнительно">
+          <FilterBlock title={t("realestate.filters.moreTitle")}>
             <RentalQualityFilterFields
               draft={draft}
               onOnlyWithPhotosChange={(value) =>
@@ -463,7 +437,7 @@ export default function RealEstateFiltersSidebar({
           </FilterBlock>
         ) : null}
 
-        <FilterBlock title="Город и район">
+        <FilterBlock title={t("realestate.filters.cityDistrictTitle")}>
           <div className="space-y-3">
             <CitySegment
               value={activeCity}
@@ -489,7 +463,7 @@ export default function RealEstateFiltersSidebar({
             <div className="flex flex-wrap gap-2">
               <DistrictChip
                 active={!activeDistrict}
-                label="Все районы"
+                label={t("realestate.filters.allDistricts")}
                 count={districts.length}
                 onClick={() => setDistrict("")}
               />
@@ -506,7 +480,7 @@ export default function RealEstateFiltersSidebar({
           </div>
         </FilterBlock>
 
-        <FilterBlock title="Цена">
+        <FilterBlock title={t("realestate.price")}>
           <div className="space-y-3">
             {!isDaily && !isRent ? (
               <PriceModeSegment
@@ -520,7 +494,7 @@ export default function RealEstateFiltersSidebar({
                 <input
                   type="text"
                   inputMode="numeric"
-                  placeholder="от с."
+                  placeholder={t("realestate.filters.priceFromPlaceholder", { currency: t("price.currency") })}
                   value={
                     draft.pricePerSqmFrom
                       ? formatPriceInput(draft.pricePerSqmFrom)
@@ -537,7 +511,7 @@ export default function RealEstateFiltersSidebar({
                 <input
                   type="text"
                   inputMode="numeric"
-                  placeholder="до с."
+                  placeholder={t("realestate.filters.priceToPlaceholder", { currency: t("price.currency") })}
                   value={
                     draft.pricePerSqmTo
                       ? formatPriceInput(draft.pricePerSqmTo)
@@ -557,7 +531,7 @@ export default function RealEstateFiltersSidebar({
                 <input
                   type="text"
                   inputMode="numeric"
-                  placeholder="от с."
+                  placeholder={t("realestate.filters.priceFromPlaceholder", { currency: t("price.currency") })}
                   value={draft.priceFrom ? formatPriceInput(draft.priceFrom) : ""}
                   onChange={(event) =>
                     setDraft((current) => ({
@@ -570,7 +544,7 @@ export default function RealEstateFiltersSidebar({
                 <input
                   type="text"
                   inputMode="numeric"
-                  placeholder="до с."
+                  placeholder={t("realestate.filters.priceToPlaceholder", { currency: t("price.currency") })}
                   value={draft.priceTo ? formatPriceInput(draft.priceTo) : ""}
                   onChange={(event) =>
                     setDraft((current) => ({
@@ -586,7 +560,7 @@ export default function RealEstateFiltersSidebar({
         </FilterBlock>
 
         {showRooms ? (
-          <FilterBlock title="Комнат">
+          <FilterBlock title={t("realestate.filters.roomsTitle")}>
             <RoomSquareGroup
               value={draft.specs?.["Комнат"] || ""}
               onChange={(value) =>
@@ -614,7 +588,7 @@ export default function RealEstateFiltersSidebar({
             className="inline-flex items-center gap-1.5 text-sm text-ink-400 transition hover:text-ink-600"
           >
             <X size={15} />
-            Сбросить фильтры
+            {t("filter.reset")}
           </button>
         ) : null}
       </div>
@@ -625,7 +599,12 @@ export default function RealEstateFiltersSidebar({
           onClick={() => onApply()}
           className="filter-sidebar__apply filter-sidebar__apply--sun"
         >
-          {previewLoading ? "Показать…" : `Показать ${showCount} объявлений`}
+          {previewLoading
+            ? t("filter.showLoading")
+            : t("realestate.showCount", {
+                count: showCount,
+                unit: t("realestate.listingMany"),
+              })}
         </button>
 
         <SaveSearchButton

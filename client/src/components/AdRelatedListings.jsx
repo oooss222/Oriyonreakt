@@ -7,8 +7,10 @@ import RealEstateListingCard from "./RealEstateListingCard";
 import ListingGridSkeleton from "./ListingGridSkeleton";
 import { loadRelatedListings } from "../lib/listingQuickFacts";
 import { isRealEstateListing } from "../lib/realEstate";
+import { useI18n } from "../i18n";
 
 export default function AdRelatedListings({ ad, listingUrl, catLabel }) {
+  const { t } = useI18n();
   const [items, setItems] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
 
@@ -45,12 +47,12 @@ export default function AdRelatedListings({ ad, listingUrl, catLabel }) {
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
           <h2 className="text-lg md:text-xl font-bold text-slate-900">
-            Похожие объявления
+            {t("listing.relatedTitle")}
           </h2>
           <p className="mt-0.5 truncate text-sm text-slate-500">
             {ad?.subcategory
               ? `${catLabel} · ${ad.subcategory}`
-              : `Категория «${catLabel}»`}
+              : t("listing.categoryLabel", { name: catLabel })}
           </p>
         </div>
 
@@ -58,7 +60,7 @@ export default function AdRelatedListings({ ad, listingUrl, catLabel }) {
           to={listingUrl}
           className="inline-flex shrink-0 items-center gap-1 text-sm font-semibold text-sun hover:text-sun-600"
         >
-          Все
+          {t("category.all")}
           <ArrowRight className="h-4 w-4" />
         </Link>
       </div>

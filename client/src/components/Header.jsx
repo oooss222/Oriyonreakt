@@ -21,6 +21,7 @@ import { useUnreadCount } from "../lib/unread";
 import CategoryStrip from "./CategoryStrip";
 import HeaderSearchSuggestions from "./HeaderSearchSuggestions";
 import LanguageSwitcher from "./LanguageSwitcher";
+import UnreadBadge from "./UnreadBadge";
 import { useI18n } from "../i18n";
 import {
   readCompareIds,
@@ -161,8 +162,9 @@ export default function Header({ variant = "full" }) {
     }
   }, [q, nav]);
 
-  const suggestionList = (
+  const renderSuggestions = (idSuffix) => (
     <HeaderSearchSuggestions
+      idSuffix={idSuffix}
       query={q}
       visible={showSuggestions}
       onSelect={(ad, id) => {
@@ -191,6 +193,11 @@ export default function Header({ variant = "full" }) {
           compact ? "h-10" : "h-10 lg:h-11"
         }`}
         value={q}
+        role="combobox"
+        aria-label={t("header.searchPlaceholder")}
+        aria-expanded={showSuggestions}
+        aria-controls={`header-search-suggestions-${compact ? "mobile" : "desktop"}`}
+        aria-autocomplete="list"
         onFocus={() => setShowSuggestions(true)}
         onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
         onChange={(e) => {
@@ -212,7 +219,7 @@ export default function Header({ variant = "full" }) {
       </button>
       </div>
 
-      {suggestionList}
+      {renderSuggestions(compact ? "mobile" : "desktop")}
     </div>
   );
 
@@ -254,7 +261,7 @@ export default function Header({ variant = "full" }) {
           </Link>
 
           {!isMinimal && (
-            <div className="flex-1 min-w-0 relative">{searchField(false)}{suggestionList}</div>
+            <div className="flex-1 min-w-0 relative">{searchField(false)}</div>
           )}
 
           {isMinimal && (
@@ -285,6 +292,7 @@ export default function Header({ variant = "full" }) {
               to="/profile?tab=fav"
               className="p-2.5 rounded-lg hover:bg-white/10 transition"
               title={t("nav.favorites")}
+              aria-label={t("nav.favorites")}
             >
               <Heart size={20} />
             </Link>
@@ -293,26 +301,20 @@ export default function Header({ variant = "full" }) {
               to="/messages"
               className="relative p-2.5 rounded-lg hover:bg-white/10 transition"
               title={t("nav.messages")}
+              aria-label={t("nav.messages")}
             >
               <MessageCircle size={20} />
-              {badgeCount > 0 && (
-                <span className="absolute top-1 right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">
-                  {badgeCount > 99 ? "99+" : badgeCount}
-                </span>
-              )}
+              <UnreadBadge count={badgeCount} />
             </Link>
 
             <Link
               to={comparePath}
               className="relative p-2.5 rounded-lg hover:bg-white/10 transition"
               title={t("nav.compare")}
+              aria-label={t("nav.compare")}
             >
               <Scale size={20} />
-              {compareCount > 0 && (
-                <span className="absolute top-1 right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-sun text-white text-[10px] font-bold flex items-center justify-center">
-                  {compareCount > 99 ? "99+" : compareCount}
-                </span>
-              )}
+              <UnreadBadge count={compareCount} color="bg-sun" />
             </Link>
 
             {canModerate && (
@@ -320,13 +322,10 @@ export default function Header({ variant = "full" }) {
                 to="/admin?section=moderation"
                 className="relative p-2.5 rounded-lg hover:bg-white/10 transition"
                 title={t("nav.moderation")}
+                aria-label={t("nav.moderation")}
               >
                 <ClipboardCheck size={20} />
-                {moderationCount > 0 && (
-                  <span className="absolute top-1 right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-amber-500 text-white text-[10px] font-bold flex items-center justify-center">
-                    {moderationCount > 99 ? "99+" : moderationCount}
-                  </span>
-                )}
+                <UnreadBadge count={moderationCount} color="bg-amber-500" />
               </Link>
             )}
 
@@ -336,6 +335,7 @@ export default function Header({ variant = "full" }) {
                   to="/profile?tab=wallet"
                   className="p-2.5 rounded-lg hover:bg-white/10 transition"
                   title={t("nav.wallet")}
+                  aria-label={t("nav.wallet")}
                 >
                   <Wallet size={20} />
                 </Link>
@@ -344,6 +344,7 @@ export default function Header({ variant = "full" }) {
                   to="/profile?tab=profile"
                   className="p-2.5 rounded-lg hover:bg-white/10 transition"
                   title={user?.name || t("nav.profile")}
+                  aria-label={user?.name || t("nav.profile")}
                 >
                   <User size={20} />
                 </Link>
@@ -353,6 +354,7 @@ export default function Header({ variant = "full" }) {
                 to="/auth"
                 className="p-2.5 rounded-lg hover:bg-white/10 transition"
                 title={t("nav.login")}
+                aria-label={t("nav.login")}
               >
                 <LogIn size={20} />
               </Link>
@@ -377,7 +379,6 @@ export default function Header({ variant = "full" }) {
 
             <div className="flex-1 min-w-0 relative">
               {searchField(true)}
-              {suggestionList}
             </div>
           </div>
         </div>

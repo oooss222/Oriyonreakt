@@ -3,11 +3,15 @@ import { Link } from "react-router-dom";
 import { Check, Flag, Heart, Share2, ShieldCheck } from "lucide-react";
 import CompareListingButton from "../CompareListingButton";
 import SellerContactButtons from "../SellerContactButtons";
-import { sellerTypeLabel } from "../../lib/businessAccount";
 import { formatRegistrationDate } from "../../lib/format";
 import { isCompareSupported } from "../../lib/compareListings";
 import { isRealEstateListing } from "../../lib/realEstate";
 import { StarRating } from "../SellerReviewsPanel";
+import { useI18n } from "../../i18n";
+
+function sellerTypeLabel(type, t) {
+  return type === "company" ? t("seller.premium") : t("seller.private");
+}
 
 function getInitials(name) {
   const parts = String(name || "")
@@ -42,6 +46,7 @@ export default function AdPurchasePanel({
   copied,
   onReport,
 }) {
+  const { t } = useI18n();
   const compareCat = isRealEstateListing(ad) ? "realestate" : ad?.cat;
   const showCompare = isCompareSupported(compareCat);
   const registeredLabel = formatRegistrationDate(sellerRegisteredAt);
@@ -69,7 +74,7 @@ export default function AdPurchasePanel({
                 : "border-slate-200 bg-white text-slate-500 hover:text-red-500"
             }`}
             onClick={onToggleFav}
-            aria-label={isFav ? "В избранном" : "В избранное"}
+            aria-label={isFav ? t("favorites.ariaRemove") : t("favorites.add")}
           >
             <Heart className={`h-4 w-4 ${isFav ? "fill-current" : ""}`} />
           </button>
@@ -87,7 +92,7 @@ export default function AdPurchasePanel({
             type="button"
             className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 hover:bg-slate-50 transition"
             onClick={onShare}
-            aria-label="Поделиться"
+            aria-label={t("compare.share")}
           >
             {copied ? (
               <Check className="h-4 w-4 text-emerald-600" />
@@ -133,11 +138,11 @@ export default function AdPurchasePanel({
               <div className="truncate font-bold text-slate-900">{sellerName}</div>
             )}
             <div className="text-sm text-slate-500">
-              {sellerTypeLabel(ad.ownerSellerType || "private")}
+              {sellerTypeLabel(ad.ownerSellerType || "private", t)}
             </div>
             {registeredLabel && (
               <div className="text-xs text-slate-400 mt-0.5">
-                Зарегистрирован {registeredLabel}
+                {t("seller.memberSince", { date: registeredLabel })}
               </div>
             )}
             {sellerReviews.summary.count > 0 && (
@@ -154,7 +159,7 @@ export default function AdPurchasePanel({
 
         <div className="flex items-start gap-2 rounded-2xl border border-emerald-100 bg-emerald-50 px-3 py-2.5 text-xs text-emerald-800">
           <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
-          <span>Встречайтесь лично и проверяйте товар перед оплатой</span>
+          <span>{t("auth.trustLoginItem3Text")}</span>
         </div>
       </div>
 
@@ -171,7 +176,7 @@ export default function AdPurchasePanel({
         />
       ) : isInactive ? (
         <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-          Связаться с продавцом по этому объявлению нельзя.
+          {t("seller.contactUnavailable")}
         </div>
       ) : null}
 
@@ -181,7 +186,7 @@ export default function AdPurchasePanel({
         onClick={onReport}
       >
         <Flag className="h-3.5 w-3.5" />
-        Пожаловаться
+        {t("report.title")}
       </button>
     </div>
   );

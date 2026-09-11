@@ -16,6 +16,7 @@ import {
   Megaphone,
   MessageCircle,
 } from "lucide-react";
+import { useI18n } from "../i18n";
 import { api } from "../lib/api";
 import { goToAuth, TOKEN_KEY, USER_KEY } from "../lib/auth";
 import {
@@ -40,18 +41,32 @@ import ModerationReports from "../components/ModerationReports";
 import AdminAdsSection from "../components/admin/AdminAdsSection";
 
 const SECTIONS = [
-  { id: "dashboard", label: "Обзор", icon: LayoutDashboard },
-  { id: "analytics", label: "Аналитика", icon: BarChart3 },
-  { id: "users", label: "Пользователи", icon: Users },
-  { id: "listings", label: "Объявления", icon: FileText },
-  { id: "ads", label: "Реклама", icon: Megaphone },
-  { id: "moderation", label: "Модерация", icon: ClipboardCheck },
-  { id: "reports", label: "Жалобы", icon: Flag },
-  { id: "finance", label: "Финансы", icon: Wallet },
-  { id: "settings", label: "Настройки", icon: Settings },
-  { id: "export", label: "Экспорт", icon: Download },
-  { id: "audit", label: "Журнал", icon: ScrollText },
+  { id: "dashboard", icon: LayoutDashboard },
+  { id: "analytics", icon: BarChart3 },
+  { id: "users", icon: Users },
+  { id: "listings", icon: FileText },
+  { id: "ads", icon: Megaphone },
+  { id: "moderation", icon: ClipboardCheck },
+  { id: "reports", icon: Flag },
+  { id: "finance", icon: Wallet },
+  { id: "settings", icon: Settings },
+  { id: "export", icon: Download },
+  { id: "audit", icon: ScrollText },
 ];
+
+const SECTION_LABEL_KEYS = {
+  dashboard: "admin.sections.dashboard",
+  analytics: "admin.sections.analytics",
+  users: "admin.sections.users",
+  listings: "admin.sections.listings",
+  ads: "admin.sections.ads",
+  moderation: "nav.moderation",
+  reports: "admin.sections.reports",
+  finance: "admin.sections.finance",
+  settings: "admin.sections.settings",
+  export: "admin.sections.export",
+  audit: "admin.sections.audit",
+};
 
 function getSectionBadge(sectionId, stats) {
   if (!stats) return 0;
@@ -72,6 +87,7 @@ function getSectionBadge(sectionId, stats) {
 }
 
 export default function Admin() {
+  const { t } = useI18n();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -142,7 +158,8 @@ export default function Admin() {
         if (alive) setStats(data);
       })
       .catch((e) => {
-        if (alive) setStatsError(e.message || "Не удалось загрузить статистику");
+        if (alive)
+          setStatsError(e.message || t("admin.page.statsError"));
       })
       .finally(() => {
         if (alive) setStatsLoading(false);
@@ -194,12 +211,12 @@ export default function Admin() {
             className="inline-flex items-center gap-1 text-sm text-slate-500 hover:text-slate-800 mb-2"
           >
             <ArrowLeft size={16} />
-            Назад в профиль
+            {t("admin.page.backToProfile")}
           </Link>
           <div className="flex flex-wrap items-center gap-2">
             <h1 className="font-display text-2xl md:text-3xl font-bold text-ink flex items-center gap-2">
               <Shield className="text-sun" />
-              Админ-панель
+              {t("admin.page.title")}
             </h1>
             <span
               className={`px-2.5 py-1 rounded-full text-xs font-semibold border ${roleBadgeClass(role)}`}
@@ -209,12 +226,12 @@ export default function Admin() {
           </div>
           <p className="text-sm text-slate-500 mt-1 max-w-2xl">
             {isSuperAdmin
-              ? "Полный доступ: пользователи, модерация, финансы и настройки."
+              ? t("admin.page.subtitleSuperAdmin")
               : isAdmin
-                ? "Модерация, пользователи, объявления, верификация премиум и жалобы."
+                ? t("admin.page.subtitleAdmin")
                 : isAccountant
-                  ? "Финансы и экспорт данных."
-                  : "Модерация объявлений и жалоб."}
+                  ? t("admin.page.subtitleAccountant")
+                  : t("admin.page.subtitleModerator")}
           </p>
         </div>
 
@@ -224,7 +241,7 @@ export default function Admin() {
             className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border bg-white hover:bg-slate-50 text-sm font-semibold"
           >
             <MessageCircle size={16} />
-            Сообщения
+            {t("nav.messages")}
           </Link>
         </div>
       </div>
@@ -250,7 +267,7 @@ export default function Admin() {
                 >
                   <span className="inline-flex items-center gap-2 min-w-0">
                     <Icon size={16} className="shrink-0" />
-                    {item.label}
+                    {t(SECTION_LABEL_KEYS[item.id])}
                   </span>
                   {badge > 0 && (
                     <span

@@ -7,6 +7,7 @@ import {
   formatGuestLabel,
 } from "../../data/realEstate";
 import { formatPriceInput } from "../../data/specOptions";
+import { useI18n } from "../../i18n";
 
 export default function RealEstateDailyFilterBar({
   subcategory = "",
@@ -19,6 +20,7 @@ export default function RealEstateDailyFilterBar({
   onOpenFilters,
   activeFilterCount = 0,
 }) {
+  const { t } = useI18n();
   const pricePresets = REAL_ESTATE_DAILY_PRESETS.filter(
     (item) => item.from || item.to
   );
@@ -38,7 +40,7 @@ export default function RealEstateDailyFilterBar({
           className="chip shrink-0 font-semibold"
         >
           <SlidersHorizontal size={15} />
-          Фильтры
+          {t("filter.title")}
           {activeFilterCount > 0 && (
             <span className="min-w-[1.15rem] h-5 px-1 rounded-full bg-sun text-white text-[11px] grid place-items-center">
               {activeFilterCount}
@@ -61,7 +63,7 @@ export default function RealEstateDailyFilterBar({
       </div>
 
       <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-        <span className="label-caps">Цена за сутки</span>
+        <span className="label-caps">{t("realestate.filters.pricePerDayLabel")}</span>
 
         {pricePresets.map((preset) => (
           <button
@@ -88,24 +90,24 @@ export default function RealEstateDailyFilterBar({
             className="chip chip-active"
           >
             {priceFrom && priceTo
-              ? `${formatPriceInput(priceFrom)} – ${formatPriceInput(priceTo)} с.`
+              ? `${formatPriceInput(priceFrom)} – ${formatPriceInput(priceTo)} ${t("price.currency")}`
               : priceFrom
-                ? `от ${formatPriceInput(priceFrom)} с.`
-                : `до ${formatPriceInput(priceTo)} с.`}
+                ? `${t("realestate.from")} ${formatPriceInput(priceFrom)} ${t("price.currency")}`
+                : `${t("realestate.to")} ${formatPriceInput(priceTo)} ${t("price.currency")}`}
             <X size={13} className="ml-1 inline" />
           </button>
         )}
       </div>
 
       <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-        <span className="label-caps">Гости</span>
+        <span className="label-caps">{t("realestate.filters.guestsLabel")}</span>
 
         <button
           type="button"
           onClick={() => onGuestsChange?.("")}
           className={`chip ${!guests ? "chip-active" : ""}`}
         >
-          Любое
+          {t("realestate.any")}
         </button>
 
         {GUEST_OPTIONS.map((option) => (

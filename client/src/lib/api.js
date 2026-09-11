@@ -6,6 +6,27 @@ import {
 import { hasAnalyticsConsent } from "./cookieConsent";
 import { ApiError } from "./apiError";
 
+const LANG_STORAGE_KEY = "oriyon_lang";
+const NETWORK_ERROR_MESSAGES = {
+  ru: "Нет соединения с сервером. Проверьте интернет и попробуйте снова.",
+  en: "No connection to the server. Check your internet and try again.",
+  tg: "Пайваст бо сервер нест. Интернетро санҷед ва аз нав кӯшиш кунед.",
+};
+const SERVER_UNAVAILABLE_MESSAGES = {
+  ru: "Сервер временно недоступен. Попробуйте через минуту.",
+  en: "The server is temporarily unavailable. Try again in a minute.",
+  tg: "Сервер муваққатан дастрас нест. Пас аз як дақиқа кӯшиш кунед.",
+};
+
+function localizedMessage(dict) {
+  try {
+    const lang = String(localStorage.getItem(LANG_STORAGE_KEY) || "").toLowerCase();
+    return dict[lang] || dict.ru;
+  } catch {
+    return dict.ru;
+  }
+}
+
 const API = (
   import.meta.env.VITE_API_BASE ||
   import.meta.env.VITE_API_URL ||
@@ -49,7 +70,7 @@ async function request(
       }
     );
   } catch (err) {
-    throw new ApiError("Нет соединения с сервером. Проверьте интернет и попробуйте снова.", {
+    throw new ApiError(localizedMessage(NETWORK_ERROR_MESSAGES), {
       kind: "network",
       cause: err,
     });
@@ -80,7 +101,7 @@ async function request(
     }
 
     if (res.status === 503 || res.status === 502) {
-      msg = "Сервер временно недоступен. Попробуйте через минуту.";
+      msg = localizedMessage(SERVER_UNAVAILABLE_MESSAGES);
     }
 
     const error = new ApiError(msg, { kind: "http", status: res.status, code });

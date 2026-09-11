@@ -15,6 +15,7 @@ import {
   BadgeCheck,
 } from "lucide-react";
 import { roleLabel } from "../../lib/adminUtils";
+import { useI18n } from "../../i18n";
 
 function StatCard({ label, value, hint, tone = "slate" }) {
   const tones = {
@@ -73,6 +74,7 @@ export default function AdminDashboard({
   role = "admin",
   onGoToSection,
 }) {
+  const { t } = useI18n();
   const isSuperAdmin = role === "super_admin";
 
   if (loading) {
@@ -117,13 +119,15 @@ export default function AdminDashboard({
         <div>
           <div className="inline-flex items-center gap-2 text-sm text-sun-700 bg-sun-50 border border-sun-100 rounded-full px-3 py-1 mb-2">
             <TrendingUp className="w-4 h-4" />
-            {isSuperAdmin ? "Сводка платформы" : "Рабочий стол администратора"}
+            {isSuperAdmin
+              ? t("admin.dashboard.badgeSuperAdmin")
+              : t("admin.dashboard.badgeAdmin")}
           </div>
-          <h2 className="text-xl font-bold">Обзор</h2>
+          <h2 className="text-xl font-bold">{t("admin.dashboard.title")}</h2>
           <p className="text-sm text-slate-500 mt-1">
             {isSuperAdmin
-              ? "Полная статистика пользователей, объявлений и финансов."
-              : "Приоритетные задачи, модерация, пользователи и премиум-аккаунты."}
+              ? t("admin.dashboard.subtitleSuperAdmin")
+              : t("admin.dashboard.subtitleAdmin")}
           </p>
         </div>
 
@@ -132,17 +136,17 @@ export default function AdminDashboard({
           className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border bg-white hover:bg-slate-50 text-sm font-semibold shrink-0"
         >
           <MessageCircle size={16} />
-          Сообщения и заявки
+          {t("admin.dashboard.messagesLink")}
         </Link>
       </div>
 
       <div className="rounded-2xl border bg-gradient-to-r from-ink-800 to-lagoon-800 text-white p-4 md:p-5">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <div className="text-sm text-white/70">В очереди на обработку</div>
+            <div className="text-sm text-white/70">{t("admin.dashboard.queueLabel")}</div>
             <div className="text-3xl font-bold mt-1">{queueTotal}</div>
             <div className="text-xs text-white/60 mt-1">
-              объявления · жалобы · верификация премиум
+              {t("admin.dashboard.queueHint")}
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -152,7 +156,7 @@ export default function AdminDashboard({
                 onClick={() => onGoToSection?.("moderation")}
                 className="px-3 py-1.5 rounded-full bg-white/15 hover:bg-white/25 text-xs font-semibold"
               >
-                Модерация: {pendingModeration}
+                {t("admin.dashboard.queueModeration", { count: pendingModeration })}
               </button>
             )}
             {pendingReports > 0 && (
@@ -161,7 +165,7 @@ export default function AdminDashboard({
                 onClick={() => onGoToSection?.("reports")}
                 className="px-3 py-1.5 rounded-full bg-white/15 hover:bg-white/25 text-xs font-semibold"
               >
-                Жалобы: {pendingReports}
+                {t("admin.dashboard.queueReports", { count: pendingReports })}
               </button>
             )}
             {pendingBusiness > 0 && (
@@ -170,12 +174,12 @@ export default function AdminDashboard({
                 onClick={() => onGoToSection?.("users", { business: "unverified" })}
                 className="px-3 py-1.5 rounded-full bg-white/15 hover:bg-white/25 text-xs font-semibold"
               >
-                Премиум: {pendingBusiness}
+                {t("admin.dashboard.queueBusiness", { count: pendingBusiness })}
               </button>
             )}
             {queueTotal === 0 && (
               <span className="px-3 py-1.5 rounded-full bg-emerald-500/20 text-emerald-100 text-xs font-semibold">
-                Все задачи закрыты
+                {t("admin.dashboard.queueEmpty")}
               </span>
             )}
           </div>
@@ -185,25 +189,25 @@ export default function AdminDashboard({
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         <PriorityCard
           icon={ClipboardCheck}
-          title="На модерации"
+          title={t("admin.dashboard.priorityModerationTitle")}
           count={pendingModeration}
-          hint="Новые и изменённые объявления"
+          hint={t("admin.dashboard.priorityModerationHint")}
           tone="amber"
           onClick={() => onGoToSection?.("moderation")}
         />
         <PriorityCard
           icon={Flag}
-          title="Жалобы"
+          title={t("admin.dashboard.priorityReportsTitle")}
           count={pendingReports}
-          hint="Требуют решения модератора"
+          hint={t("admin.dashboard.priorityReportsHint")}
           tone="red"
           onClick={() => onGoToSection?.("reports")}
         />
         <PriorityCard
           icon={Building2}
-          title="Премиум без верификации"
+          title={t("admin.dashboard.priorityBusinessTitle")}
           count={pendingBusiness}
-          hint="Премиум-аккаунты ждут проверки"
+          hint={t("admin.dashboard.priorityBusinessHint")}
           tone="blue"
           onClick={() => onGoToSection?.("users", { business: "unverified" })}
         />
@@ -212,31 +216,31 @@ export default function AdminDashboard({
       <div>
         <h3 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
           <Users size={16} />
-          Пользователи
+          {t("admin.dashboard.usersHeading")}
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
-          <StatCard label="Всего" value={users.total} tone="slate" />
-          <StatCard label="Активные" value={users.active} tone="emerald" />
-          <StatCard label="Заблокированы" value={users.blocked} tone="red" />
+          <StatCard label={t("admin.dashboard.usersTotal")} value={users.total} tone="slate" />
+          <StatCard label={t("admin.dashboard.usersActive")} value={users.active} tone="emerald" />
+          <StatCard label={t("admin.dashboard.usersBlocked")} value={users.blocked} tone="red" />
           <StatCard
-            label="Новые за 7 дней"
+            label={t("admin.dashboard.usersNewWeek")}
             value={users.newWeek}
             tone="sun"
-            hint="Регистрации"
+            hint={t("admin.dashboard.usersNewWeekHint")}
           />
           <StatCard
-            label="Премиум"
+            label={t("admin.dashboard.usersBusiness")}
             value={business?.totalCompanies || 0}
             tone="blue"
           />
           <StatCard
-            label="Модераторы"
+            label={t("admin.dashboard.usersModerators")}
             value={users.moderators}
             tone="slate"
           />
           {isSuperAdmin && (
             <StatCard
-              label="Супер-админы"
+              label={t("admin.dashboard.usersSuperAdmins")}
               value={users.superAdmins}
               tone="purple"
             />
@@ -247,20 +251,20 @@ export default function AdminDashboard({
       <div>
         <h3 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
           <FileText size={16} />
-          Объявления
+          {t("admin.sections.listings")}
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
-          <StatCard label="Всего" value={listings.total} tone="slate" />
+          <StatCard label={t("admin.dashboard.listingsTotal")} value={listings.total} tone="slate" />
           <StatCard
-            label="На модерации"
+            label={t("admin.dashboard.listingsPending")}
             value={listings.pending}
             tone="amber"
-            hint="Требуют проверки"
+            hint={t("admin.dashboard.listingsPendingHint")}
           />
-          <StatCard label="Опубликованы" value={listings.approved} tone="emerald" />
-          <StatCard label="Отклонены" value={listings.rejected} tone="red" />
-          <StatCard label="Продано" value={listings.sold} tone="slate" />
-          <StatCard label="Сняты" value={listings.archived} tone="slate" />
+          <StatCard label={t("admin.dashboard.listingsApproved")} value={listings.approved} tone="emerald" />
+          <StatCard label={t("admin.dashboard.listingsRejected")} value={listings.rejected} tone="red" />
+          <StatCard label={t("admin.dashboard.listingsSold")} value={listings.sold} tone="slate" />
+          <StatCard label={t("admin.dashboard.listingsArchived")} value={listings.archived} tone="slate" />
         </div>
       </div>
 
@@ -268,14 +272,14 @@ export default function AdminDashboard({
         <div className="rounded-2xl border bg-white p-4">
           <div className="flex items-center gap-2 text-sm font-semibold text-slate-700 mb-3">
             <BadgeCheck size={16} />
-            Премиум-аккаунты
+            {t("admin.dashboard.businessAccountsHeading")}
           </div>
           <div className="flex items-end justify-between gap-3">
             <div>
               <div className="text-3xl font-bold text-blue-700">
                 {business?.totalCompanies || 0}
               </div>
-              <div className="text-sm text-slate-500">компаний на платформе</div>
+              <div className="text-sm text-slate-500">{t("admin.dashboard.businessCompaniesHint")}</div>
             </div>
             {pendingBusiness > 0 && (
               <button
@@ -285,7 +289,7 @@ export default function AdminDashboard({
                 }
                 className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-blue-50 text-blue-700 text-xs border border-blue-200 font-semibold hover:bg-blue-100 transition"
               >
-                Проверить {pendingBusiness}
+                {t("admin.dashboard.businessCheck", { count: pendingBusiness })}
               </button>
             )}
           </div>
@@ -294,7 +298,7 @@ export default function AdminDashboard({
         <div className="rounded-2xl border bg-white p-4">
           <div className="flex items-center gap-2 text-sm font-semibold text-slate-700 mb-3">
             <Wallet size={16} />
-            Кошельки
+            {t("admin.dashboard.walletsHeading")}
           </div>
           <div>
             <div className="text-3xl font-bold text-sun-700">
@@ -302,7 +306,7 @@ export default function AdminDashboard({
             </div>
             <div className="text-sm text-slate-500 flex items-center gap-1 mt-1">
               <Clock size={14} />
-              Суммарный баланс пользователей
+              {t("admin.dashboard.walletsHint")}
             </div>
           </div>
         </div>
@@ -310,9 +314,8 @@ export default function AdminDashboard({
 
       {!isSuperAdmin && (
         <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
-          Вы вошли как <strong>{roleLabel(role)}</strong>. Доступны пользователи,
-          объявления, модерация, жалобы, реклама, экспорт и журнал действий.
-          Финансы и настройки сайта — только для супер-админа.
+          {t("admin.dashboard.roleNoticePrefix")}{" "}
+          <strong>{roleLabel(role)}</strong>. {t("admin.dashboard.roleNoticeBody")}
         </div>
       )}
     </div>

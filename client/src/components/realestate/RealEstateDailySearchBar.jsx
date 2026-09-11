@@ -3,6 +3,7 @@ import { Search, SlidersHorizontal, ChevronDown } from "lucide-react";
 import RealEstateCitySelect from "../RealEstateCitySelect";
 import RealEstateDateRangePicker from "./RealEstateDateRangePicker";
 import RealEstateGuestsPicker from "./RealEstateGuestsPicker";
+import { useI18n } from "../../i18n";
 
 export default function RealEstateDailySearchBar({
   city,
@@ -12,11 +13,13 @@ export default function RealEstateDailySearchBar({
   onDatesChange,
   guests,
   onGuestsChange,
-  submitLabel = "Показать",
+  submitLabel,
   onMoreFilters,
   hasMoreFilters = false,
   hideCity = false,
 }) {
+  const { t } = useI18n();
+  const resolvedSubmitLabel = submitLabel ?? t("realestate.show");
   const gridCols = hideCity
     ? "md:grid-cols-[minmax(0,1.25fr)_minmax(0,0.85fr)_auto]"
     : "md:grid-cols-[minmax(0,0.9fr)_minmax(0,1.2fr)_minmax(0,0.8fr)_auto]";
@@ -28,7 +31,7 @@ export default function RealEstateDailySearchBar({
           {!hideCity && (
             <div className="group relative flex min-w-0 flex-col justify-center border-b border-slate-200 px-4 py-3.5 transition hover:bg-slate-50/80 md:border-b-0 md:border-r">
               <span className="mb-0.5 text-xs font-medium text-slate-500">
-                Куда хотите поехать?
+                {t("realestate.dailySearch.whereLabel")}
               </span>
               <div className="relative flex min-h-[20px] items-center">
                 <RealEstateCitySelect
@@ -66,7 +69,7 @@ export default function RealEstateDailySearchBar({
             className="flex min-h-[52px] w-full shrink-0 items-center justify-center gap-2 bg-sun px-6 text-sm font-bold text-white transition hover:bg-sun-600 md:w-auto md:min-w-[148px] md:rounded-none md:rounded-r-2xl"
           >
             <Search size={18} />
-            {submitLabel}
+            {resolvedSubmitLabel}
           </button>
         </div>
       </div>
@@ -82,7 +85,7 @@ export default function RealEstateDailySearchBar({
           }`}
         >
           <SlidersHorizontal size={16} />
-          Ещё фильтры
+          {t("realestate.moreFilters")}
         </button>
       )}
     </div>

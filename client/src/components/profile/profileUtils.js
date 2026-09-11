@@ -1,9 +1,39 @@
-export const WALLET_TYPE_LABELS = {
-  top_up: "Пополнение",
-  payment: "Списание",
-  refund: "Возврат",
-  manual_adjustment: "Корректировка",
+const LANG_STORAGE_KEY = "oriyon_lang";
+const SUPPORTED_LANGS = ["ru", "tg", "en"];
+
+function getActiveLang() {
+  try {
+    const stored = String(localStorage.getItem(LANG_STORAGE_KEY) || "").toLowerCase();
+    return SUPPORTED_LANGS.includes(stored) ? stored : "ru";
+  } catch {
+    return "ru";
+  }
+}
+
+const WALLET_TYPE_LABELS_BY_LANG = {
+  ru: {
+    top_up: "Пополнение",
+    payment: "Списание",
+    refund: "Возврат",
+    manual_adjustment: "Корректировка",
+  },
+  en: {
+    top_up: "Top-up",
+    payment: "Payment",
+    refund: "Refund",
+    manual_adjustment: "Adjustment",
+  },
+  tg: {
+    top_up: "Пуркунӣ",
+    payment: "Хароҷот",
+    refund: "Баргардонидан",
+    manual_adjustment: "Ислоҳ",
+  },
 };
+
+export function getWalletTypeLabels() {
+  return WALLET_TYPE_LABELS_BY_LANG[getActiveLang()] || WALLET_TYPE_LABELS_BY_LANG.ru;
+}
 
 export const getId = (item) => item?.id || item?._id;
 
@@ -27,7 +57,7 @@ export function normalizeTab(value) {
   return "my";
 }
 
-export function calculateProfileCompletion(me, emailStatus) {
+export function calculateProfileCompletion(me, emailStatus, t) {
   const checks = [
     Boolean(String(me?.name || "").trim()),
     Boolean(String(me?.phone || "").trim()),
@@ -42,11 +72,11 @@ export function calculateProfileCompletion(me, emailStatus) {
   const percent = Math.round((completed / checks.length) * 100);
 
   const hints = [];
-  if (!checks[0]) hints.push("Укажите имя");
-  if (!checks[1]) hints.push("Добавьте телефон");
-  if (!checks[2]) hints.push("Укажите WhatsApp или Telegram");
-  if (!checks[3]) hints.push("Подтвердите email");
-  if (!checks[4]) hints.push("Заполните описание или название компании");
+  if (!checks[0]) hints.push(t("profile.completionHintName"));
+  if (!checks[1]) hints.push(t("profile.completionHintPhone"));
+  if (!checks[2]) hints.push(t("profile.completionHintContact"));
+  if (!checks[3]) hints.push(t("profile.completionHintEmail"));
+  if (!checks[4]) hints.push(t("profile.completionHintCompany"));
 
   return { percent, hints, completed, total: checks.length };
 }

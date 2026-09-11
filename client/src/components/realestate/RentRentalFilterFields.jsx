@@ -12,6 +12,7 @@ import {
   RENT_DEPOSIT_OPTIONS,
 } from "../../data/realEstate";
 import MultiPillGroup from "../filters/MultiPillGroup";
+import { useI18n } from "../../i18n";
 
 function ChipGroup({ value, options, onChange }) {
   return (
@@ -55,10 +56,11 @@ export default function RentRentalFilterFields({
   showSellerFilters = false,
   className = "",
 }) {
+  const { t } = useI18n();
   return (
     <div className={`space-y-4 ${className}`}>
       <div>
-        <div className="label-caps mb-3">Мебель</div>
+        <div className="label-caps mb-3">{t("realestate.filters.furnitureLabel")}</div>
         <ChipGroup
           value={draft.specs?.["Мебель"] || ""}
           options={RENT_FURNITURE_OPTIONS}
@@ -67,19 +69,19 @@ export default function RentRentalFilterFields({
       </div>
 
       <div>
-        <div className="label-caps mb-3">Бытовая техника</div>
+        <div className="label-caps mb-3">{t("realestate.filters.applianceLabel")}</div>
         <MultiPillGroup
           values={draft.specs?.["Техника"] || ""}
           options={RENT_APPLIANCE_OPTIONS}
           onChange={(value) => setSpec("Техника", value)}
         />
         <p className="mt-2 text-[11px] text-ink-400">
-          Можно выбрать несколько — покажем квартиры со всей выбранной техникой
+          {t("realestate.filters.multiSelectApplianceHint")}
         </p>
       </div>
 
       <div>
-        <div className="label-caps mb-3">Коммунальные</div>
+        <div className="label-caps mb-3">{t("realestate.filters.utilitiesLabel")}</div>
         <ChipGroup
           value={draft.specs?.["Коммунальные"] || ""}
           options={RENT_UTILITIES_OPTIONS}
@@ -88,7 +90,7 @@ export default function RentRentalFilterFields({
       </div>
 
       <div>
-        <div className="label-caps mb-3">Интернет</div>
+        <div className="label-caps mb-3">{t("realestate.filters.internetLabel")}</div>
         <ChipGroup
           value={draft.specs?.["Интернет"] || ""}
           options={RENT_INTERNET_OPTIONS}
@@ -97,10 +99,10 @@ export default function RentRentalFilterFields({
       </div>
 
       <div>
-        <div className="label-caps mb-3">Правила проживания</div>
+        <div className="label-caps mb-3">{t("realestate.filters.livingRulesTitle")}</div>
         <div className="space-y-3">
           <div>
-            <div className="mb-2 text-xs font-medium text-ink-500">Балкон</div>
+            <div className="mb-2 text-xs font-medium text-ink-500">{t("realestate.filters.balconyLabel")}</div>
             <ChipGroup
               value={draft.specs?.["Балкон"] || ""}
               options={RENT_BALCONY_OPTIONS}
@@ -108,7 +110,7 @@ export default function RentRentalFilterFields({
             />
           </div>
           <div>
-            <div className="mb-2 text-xs font-medium text-ink-500">Животные</div>
+            <div className="mb-2 text-xs font-medium text-ink-500">{t("realestate.filters.petsLabel")}</div>
             <ChipGroup
               value={draft.specs?.["Животные"] || ""}
               options={DAILY_PETS_OPTIONS}
@@ -116,7 +118,7 @@ export default function RentRentalFilterFields({
             />
           </div>
           <div>
-            <div className="mb-2 text-xs font-medium text-ink-500">Курение</div>
+            <div className="mb-2 text-xs font-medium text-ink-500">{t("realestate.filters.smokingLabel")}</div>
             <ChipGroup
               value={draft.specs?.["Курение"] || ""}
               options={DAILY_SMOKING_OPTIONS}
@@ -124,7 +126,7 @@ export default function RentRentalFilterFields({
             />
           </div>
           <div>
-            <div className="mb-2 text-xs font-medium text-ink-500">Дети</div>
+            <div className="mb-2 text-xs font-medium text-ink-500">{t("realestate.filters.childrenLabel")}</div>
             <ChipGroup
               value={draft.specs?.["Дети"] || ""}
               options={RENT_CHILDREN_OPTIONS}
@@ -135,10 +137,10 @@ export default function RentRentalFilterFields({
       </div>
 
       <div>
-        <div className="label-caps mb-3">Условия аренды</div>
+        <div className="label-caps mb-3">{t("realestate.filters.rentTermsTitle")}</div>
         <div className="space-y-3">
           <div>
-            <div className="mb-2 text-xs font-medium text-ink-500">Срок аренды</div>
+            <div className="mb-2 text-xs font-medium text-ink-500">{t("realestate.filters.rentTermLabel")}</div>
             <ChipGroup
               value={draft.specs?.["Срок аренды"] || ""}
               options={RENT_TERM_OPTIONS}
@@ -146,7 +148,7 @@ export default function RentRentalFilterFields({
             />
           </div>
           <div>
-            <div className="mb-2 text-xs font-medium text-ink-500">Залог</div>
+            <div className="mb-2 text-xs font-medium text-ink-500">{t("realestate.filters.depositLabel")}</div>
             <ChipGroup
               value={draft.specs?.["Залог"] || ""}
               options={RENT_DEPOSIT_OPTIONS}
@@ -160,7 +162,7 @@ export default function RentRentalFilterFields({
         <div className="space-y-1 border-t border-ink/10 pt-3">
           <CheckboxOption
             checked={draft.sellerType === "private"}
-            label="От собственника"
+            label={t("realestate.filters.fromOwnerLabel")}
             onChange={() =>
               onSellerTypeChange?.(
                 draft.sellerType === "private" ? "" : "private"
@@ -169,7 +171,7 @@ export default function RentRentalFilterFields({
           />
           <CheckboxOption
             checked={draft.sellerType === "company"}
-            label="Без комиссии"
+            label={t("realestate.filters.noCommissionLabel")}
             onChange={() =>
               onSellerTypeChange?.(
                 draft.sellerType === "company" ? "" : "company"

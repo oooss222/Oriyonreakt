@@ -6,6 +6,7 @@ import {
   RENT_TERM_OPTIONS,
   RENT_DEPOSIT_OPTIONS,
 } from "../../data/realEstate";
+import { useI18n } from "../../i18n";
 
 function ChipGroup({ value, options, onChange }) {
   return (
@@ -34,10 +35,11 @@ export default function CommercialFilterFields({
   isRent = false,
   className = "",
 }) {
+  const { t } = useI18n();
   return (
     <div className={`space-y-4 ${className}`}>
       <div>
-        <div className="label-caps mb-3">Тип объекта</div>
+        <div className="label-caps mb-3">{t("realestate.filters.objectTypeLabel")}</div>
         <ChipGroup
           value={draft.specs?.["Тип объекта"] || ""}
           options={COMMERCIAL_OBJECT_TYPE_OPTIONS}
@@ -46,7 +48,7 @@ export default function CommercialFilterFields({
       </div>
 
       <div>
-        <div className="label-caps mb-3">Ремонт</div>
+        <div className="label-caps mb-3">{t("realestate.highlights.repairLabel")}</div>
         <ChipGroup
           value={draft.specs?.["Ремонт"] || ""}
           options={COMMERCIAL_REPAIR_OPTIONS}
@@ -55,7 +57,7 @@ export default function CommercialFilterFields({
       </div>
 
       <div>
-        <div className="label-caps mb-3">Парковка</div>
+        <div className="label-caps mb-3">{t("realestate.filters.parkingLabel")}</div>
         <ChipGroup
           value={draft.specs?.["Парковка"] || ""}
           options={COMMERCIAL_PARKING_OPTIONS}
@@ -65,10 +67,10 @@ export default function CommercialFilterFields({
 
       {isRent ? (
         <div>
-          <div className="label-caps mb-3">Условия аренды</div>
+          <div className="label-caps mb-3">{t("realestate.filters.rentTermsTitle")}</div>
           <div className="space-y-3">
             <div>
-              <div className="mb-2 text-xs font-medium text-ink-500">Срок аренды</div>
+              <div className="mb-2 text-xs font-medium text-ink-500">{t("realestate.filters.rentTermLabel")}</div>
               <ChipGroup
                 value={draft.specs?.["Срок аренды"] || ""}
                 options={RENT_TERM_OPTIONS}
@@ -76,7 +78,7 @@ export default function CommercialFilterFields({
               />
             </div>
             <div>
-              <div className="mb-2 text-xs font-medium text-ink-500">Залог</div>
+              <div className="mb-2 text-xs font-medium text-ink-500">{t("realestate.filters.depositLabel")}</div>
               <ChipGroup
                 value={draft.specs?.["Залог"] || ""}
                 options={RENT_DEPOSIT_OPTIONS}

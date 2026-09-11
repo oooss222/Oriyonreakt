@@ -1,3 +1,14 @@
+const HEIC_NAME_PATTERN = /\.(heic|heif)$/i;
+
+function isHeicLike(file) {
+  const type = (file?.type || "").toLowerCase();
+  return (
+    type === "image/heic" ||
+    type === "image/heif" ||
+    HEIC_NAME_PATTERN.test(file?.name || "")
+  );
+}
+
 /**
  * Compress/resize an image File in the browser before upload.
  * Returns a JPEG/WebP File (falls back to original on failure).
@@ -49,15 +60,26 @@ export async function compressImageFile(file, {
   }
 }
 
+/**
+ * Compress a batch of files. Returns the compressed files plus the subset
+ * that look like HEIC/HEIF and could not be decoded in this browser (they're
+ * still included in `files`, unmodified, so upload isn't blocked — the caller
+ * decides whether/how to warn the user).
+ */
 export async function compressImageFiles(files = [], options) {
   const list = Array.from(files || []);
   const next = [];
+  const unsupported = [];
 
   for (const file of list) {
-    next.push(await compressImageFile(file, options));
+    const compressed = await compressImageFile(file, options);
+    if (compressed === file && isHeicLike(file)) {
+      unsupported.push(file);
+    }
+    next.push(compressed);
   }
 
-  return next;
+  return { files: next, unsupported };
 }
 
 export function moveArrayItem(list, fromIndex, toIndex) {

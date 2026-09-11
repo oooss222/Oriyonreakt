@@ -1,6 +1,7 @@
 import React from "react";
 import { ExternalLink } from "lucide-react";
 import { api } from "../lib/api";
+import { useI18n } from "../i18n";
 
 function trackAd(id, type) {
   if (!id) return;
@@ -9,26 +10,29 @@ function trackAd(id, type) {
 }
 
 function AdLabel() {
+  const { t } = useI18n();
+
   return (
     <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500">
-      Реклама
+      {t("ads.label")}
     </span>
   );
 }
 
 function BannerAd({ ad, className = "" }) {
+  const { t } = useI18n();
   const content = (
     <>
       {ad.imageUrl ? (
         <img
           src={ad.imageUrl}
-          alt={ad.headline || ad.title || "Реклама"}
+          alt={ad.headline || ad.title || t("ads.label")}
           className="w-full h-full object-cover"
           loading="lazy"
         />
       ) : (
         <div className="flex h-full min-h-[90px] items-center justify-center bg-slate-100 px-4 text-center text-sm text-slate-500">
-          {ad.headline || ad.title || "Рекламный блок"}
+          {ad.headline || ad.title || t("ads.bannerFallback")}
         </div>
       )}
     </>
@@ -56,6 +60,7 @@ function BannerAd({ ad, className = "" }) {
 }
 
 function NativeAd({ ad, className = "", compact = false }) {
+  const { t } = useI18n();
   const body = (
     <div
       className={`rounded-2xl border border-slate-200 bg-white p-3 ${
@@ -72,7 +77,7 @@ function NativeAd({ ad, className = "", compact = false }) {
       {ad.imageUrl ? (
         <img
           src={ad.imageUrl}
-          alt={ad.headline || ad.title || "Реклама"}
+          alt={ad.headline || ad.title || t("ads.label")}
           className={`mb-3 w-full rounded-xl object-cover bg-slate-100 ${
             compact ? "h-28" : "h-36"
           }`}
@@ -82,7 +87,7 @@ function NativeAd({ ad, className = "", compact = false }) {
 
       <div className="space-y-1">
         <div className={`font-semibold text-slate-900 ${compact ? "text-sm" : "text-base"}`}>
-          {ad.headline || ad.title || "Рекламное предложение"}
+          {ad.headline || ad.title || t("ads.nativeFallback")}
         </div>
         {ad.description ? (
           <p className={`text-slate-500 ${compact ? "text-xs line-clamp-2" : "text-sm line-clamp-3"}`}>
@@ -93,7 +98,7 @@ function NativeAd({ ad, className = "", compact = false }) {
 
       {ad.linkUrl ? (
         <div className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-sun-700">
-          Подробнее
+          {t("ads.readMore")}
           <ExternalLink size={14} />
         </div>
       ) : null}

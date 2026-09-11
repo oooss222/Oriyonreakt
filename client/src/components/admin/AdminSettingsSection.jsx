@@ -1,8 +1,10 @@
 import React from "react";
 import { Settings, Save } from "lucide-react";
 import { api } from "../../lib/api";
+import { useI18n } from "../../i18n";
 
 export default function AdminSettingsSection({ token }) {
+  const { t } = useI18n();
   const [loading, setLoading] = React.useState(true);
   const [saving, setSaving] = React.useState(false);
   const [error, setError] = React.useState("");
@@ -36,7 +38,7 @@ export default function AdminSettingsSection({ token }) {
         });
       })
       .catch((e) => {
-        if (alive) setError(e.message || "Не удалось загрузить настройки");
+        if (alive) setError(e.message || t("admin.settings.loadError"));
       })
       .finally(() => {
         if (alive) setLoading(false);
@@ -75,9 +77,9 @@ export default function AdminSettingsSection({ token }) {
         monthlyReportEnabled: Boolean(updated.monthlyReportEnabled),
       });
 
-      setSuccess("Настройки сохранены");
+      setSuccess(t("admin.settings.saveSuccess"));
     } catch (e) {
-      setError(e.message || "Не удалось сохранить настройки");
+      setError(e.message || t("admin.settings.saveError"));
     } finally {
       setSaving(false);
     }
@@ -92,11 +94,11 @@ export default function AdminSettingsSection({ token }) {
       <div>
         <div className="inline-flex items-center gap-2 text-sm text-sun-700 bg-sun-50 border border-sun-100 rounded-full px-3 py-1 mb-2">
           <Settings className="w-4 h-4" />
-          Настройки сайта
+          {t("admin.settings.badge")}
         </div>
-        <h2 className="text-xl font-bold">Конфигурация платформы</h2>
+        <h2 className="text-xl font-bold">{t("admin.settings.title")}</h2>
         <p className="text-sm text-slate-500 mt-1">
-          Тарифы VIP/TOP, регистрация и текст политики конфиденциальности.
+          {t("admin.settings.subtitle")}
         </p>
       </div>
 
@@ -115,7 +117,7 @@ export default function AdminSettingsSection({ token }) {
       <form onSubmit={submit} className="space-y-5">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <label className="block">
-            <div className="text-sm font-medium mb-1">VIP, TJS</div>
+            <div className="text-sm font-medium mb-1">{t("admin.settings.vipPriceLabel")}</div>
             <input
               type="number"
               min="0"
@@ -129,7 +131,7 @@ export default function AdminSettingsSection({ token }) {
           </label>
 
           <label className="block">
-            <div className="text-sm font-medium mb-1">TOP, TJS</div>
+            <div className="text-sm font-medium mb-1">{t("admin.settings.topPriceLabel")}</div>
             <input
               type="number"
               min="0"
@@ -143,7 +145,7 @@ export default function AdminSettingsSection({ token }) {
           </label>
 
           <label className="block">
-            <div className="text-sm font-medium mb-1">Обновление даты, TJS</div>
+            <div className="text-sm font-medium mb-1">{t("admin.settings.bumpPriceLabel")}</div>
             <input
               type="number"
               min="0"
@@ -155,15 +157,15 @@ export default function AdminSettingsSection({ token }) {
               className="h-11 w-full rounded-xl border px-3"
             />
             <div className="text-xs text-slate-500 mt-1">
-              Можно указать дробное значение, например 0.25. 0 = бесплатно.
+              {t("admin.settings.bumpPriceHint")}
             </div>
           </label>
         </div>
 
         <div className="rounded-2xl border bg-slate-50 p-4 space-y-3">
-          <div className="font-medium">Бухгалтерия</div>
+          <div className="font-medium">{t("admin.settings.accountingTitle")}</div>
           <label className="block">
-            <div className="text-sm font-medium mb-1">Email для отчётов</div>
+            <div className="text-sm font-medium mb-1">{t("admin.settings.reportEmailLabel")}</div>
             <input
               type="email"
               value={form.accountantReportEmail}
@@ -190,9 +192,9 @@ export default function AdminSettingsSection({ token }) {
               className="w-4 h-4"
             />
             <div>
-              <div className="font-medium">Автоотчёт 1-го числа</div>
+              <div className="font-medium">{t("admin.settings.monthlyReportLabel")}</div>
               <div className="text-sm text-slate-500">
-                CSV транзакций за прошлый месяц на email бухгалтера (нужен SMTP на сервере).
+                {t("admin.settings.monthlyReportDesc")}
               </div>
             </div>
           </label>
@@ -211,15 +213,15 @@ export default function AdminSettingsSection({ token }) {
             className="w-4 h-4"
           />
           <div>
-            <div className="font-medium">Регистрация открыта</div>
+            <div className="font-medium">{t("admin.settings.registrationLabel")}</div>
             <div className="text-sm text-slate-500">
-              Если выключено, новые пользователи не смогут создать аккаунт.
+              {t("admin.settings.registrationDesc")}
             </div>
           </div>
         </label>
 
         <label className="block">
-          <div className="text-sm font-medium mb-1">Текст политики (/policy)</div>
+          <div className="text-sm font-medium mb-1">{t("admin.settings.policyLabel")}</div>
           <textarea
             value={form.policyContent}
             onChange={(e) =>
@@ -236,7 +238,7 @@ export default function AdminSettingsSection({ token }) {
           className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-slate-900 text-white hover:bg-slate-800 disabled:opacity-60"
         >
           <Save size={18} />
-          {saving ? "Сохраняем..." : "Сохранить настройки"}
+          {saving ? t("admin.settings.saving") : t("admin.settings.saveButton")}
         </button>
       </form>
     </div>

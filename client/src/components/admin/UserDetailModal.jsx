@@ -14,9 +14,10 @@ import {
   Smartphone,
 } from "lucide-react";
 import { api } from "../../lib/api";
+import { useI18n } from "../../i18n";
 import {
   ROLES,
-  WALLET_TYPE_LABELS,
+  getWalletTypeLabels,
   getId,
   roleLabel,
   roleBadgeClass,
@@ -32,6 +33,8 @@ export default function UserDetailModal({
   onClose,
   onUserUpdated,
 }) {
+  const { t, lang } = useI18n();
+  const numberLocale = lang === "en" ? "en-US" : lang === "tg" ? "tg-TJ" : "ru-RU";
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState("");
   const [detail, setDetail] = React.useState(null);
@@ -52,7 +55,7 @@ export default function UserDetailModal({
       const data = await api.adminGetUser(token, userId);
       setDetail(data);
     } catch (e) {
-      setError(e.message || "Не удалось загрузить пользователя");
+      setError(e.message || t("admin.userDetail.loadError"));
     } finally {
       setLoading(false);
     }
@@ -70,13 +73,21 @@ export default function UserDetailModal({
   const changeRole = async (nextRole) => {
     if (!isSuperAdmin || !user) return;
 
+    const ok = confirm(
+      t("admin.userDetail.roleChangeConfirm", {
+        email: user.email,
+        role: roleLabel(nextRole),
+      })
+    );
+    if (!ok) return;
+
     try {
       setActionLoading(true);
       const updated = await api.adminSetUserRole(token, getId(user), nextRole);
       setDetail((prev) => ({ ...prev, user: { ...prev.user, ...updated } }));
       onUserUpdated?.(updated);
     } catch (e) {
-      alert(e.message || "Ошибка изменения роли");
+      alert(e.message || t("admin.userDetail.roleChangeError"));
     } finally {
       setActionLoading(false);
     }
@@ -85,8 +96,11 @@ export default function UserDetailModal({
   const toggleBlock = async () => {
     if (!user || !manageable) return;
 
-    const action = user.isBlocked ? "разблокировать" : "заблокировать";
-    const ok = confirm(`Вы действительно хотите ${action} пользователя ${user.email}?`);
+    const ok = confirm(
+      user.isBlocked
+        ? t("admin.users.unblockConfirm", { email: user.email })
+        : t("admin.users.blockConfirm", { email: user.email })
+    );
     if (!ok) return;
 
     try {
@@ -98,7 +112,7 @@ export default function UserDetailModal({
       setDetail((prev) => ({ ...prev, user: { ...prev.user, ...updated } }));
       onUserUpdated?.(updated);
     } catch (e) {
-      alert(e.message || "Ошибка блокировки");
+      alert(e.message || t("admin.userDetail.blockError"));
     } finally {
       setActionLoading(false);
     }
@@ -108,10 +122,12 @@ export default function UserDetailModal({
     if (!user || user.sellerType !== "company" || readOnly) return;
 
     const nextVerified = !user.businessVerified;
-    const action = nextVerified ? "верифицировать" : "снять верификацию";
+    const companyName = user.companyName || user.name;
 
     const ok = confirm(
-      `${action.charAt(0).toUpperCase()}${action.slice(1)} компанию «${user.companyName || user.name}»?`
+      nextVerified
+        ? t("admin.userDetail.verifyConfirm", { company: companyName })
+        : t("admin.userDetail.unverifyConfirm", { company: companyName })
     );
 
     if (!ok) return;
@@ -127,7 +143,7 @@ export default function UserDetailModal({
       setDetail((prev) => ({ ...prev, user: { ...prev.user, ...updated } }));
       onUserUpdated?.(updated);
     } catch (e) {
-      alert(e.message || "Ошибка верификации");
+      alert(e.message || t("admin.userDetail.verifyError"));
     } finally {
       setActionLoading(false);
     }
@@ -138,7 +154,9 @@ export default function UserDetailModal({
 
     if (user.sellerType === "company") {
       const ok = confirm(
-        `Отключить премиум-аккаунт у «${user.companyName || user.name}»? Пользователь станет частным лицом.`
+        t("admin.userDetail.disableBusinessConfirm", {
+          company: user.companyName || user.name,
+        })
       );
       if (!ok) return;
 
@@ -150,7 +168,7 @@ export default function UserDetailModal({
         setDetail((prev) => ({ ...prev, user: { ...prev.user, ...updated } }));
         onUserUpdated?.(updated);
       } catch (e) {
-        alert(e.message || "Не удалось отключить премиум-аккаунт");
+        alert(e.message || t("admin.userDetail.disableBusinessError"));
       } finally {
         setActionLoading(false);
       }
@@ -158,14 +176,14 @@ export default function UserDetailModal({
     }
 
     const companyName = prompt(
-      "Название компании для премиум-аккаунта:",
+      t("admin.userDetail.companyNamePrompt"),
       user.companyName || user.name || ""
     );
 
     if (companyName === null) return;
 
     if (!String(companyName).trim()) {
-      alert("Укажите название компании");
+      alert(t("admin.userDetail.companyNameRequired"));
       return;
     }
 
@@ -178,7 +196,7 @@ export default function UserDetailModal({
       setDetail((prev) => ({ ...prev, user: { ...prev.user, ...updated } }));
       onUserUpdated?.(updated);
     } catch (e) {
-      alert(e.message || "Не удалось подключить премиум-аккаунт");
+      alert(e.message || t("admin.userDetail.enableBusinessError"));
     } finally {
       setActionLoading(false);
     }
@@ -190,11 +208,18 @@ export default function UserDetailModal({
     const value = Number(String(adjustAmount).replace(",", "."));
 
     if (!Number.isFinite(value) || value <= 0) {
-      alert("Введите корректную сумму");
+      alert(t("admin.userDetail.invalidAmount"));
       return;
     }
 
     const amount = sign * value;
+
+    const ok = confirm(
+      sign > 0
+        ? t("admin.userDetail.creditConfirm", { amount: value, email: user.email })
+        : t("admin.userDetail.debitConfirm", { amount: value, email: user.email })
+    );
+    if (!ok) return;
 
     try {
       setAdjustLoading(true);
@@ -214,37 +239,42 @@ export default function UserDetailModal({
       setAdjustAmount("");
       setAdjustDescription("");
     } catch (e) {
-      alert(e.message || "Не удалось изменить баланс");
+      alert(e.message || t("admin.userDetail.walletAdjustError"));
     } finally {
       setAdjustLoading(false);
     }
   };
 
   const listingStatusLabel = {
-    approved: "Опубликованы",
-    pending: "На модерации",
-    rejected: "Отклонены",
-    sold: "Продано",
-    archived: "Сняты",
+    approved: t("admin.userDetail.listingsApproved"),
+    pending: t("admin.userDetail.listingsPending"),
+    rejected: t("admin.userDetail.listingsRejected"),
+    sold: t("admin.userDetail.listingsSold"),
+    archived: t("admin.userDetail.listingsArchived"),
   };
 
   return (
-    <div className="fixed inset-0 z-[120] bg-black/40 flex items-end md:items-center justify-center p-0 md:p-4">
+    <div
+      className="fixed inset-0 z-[120] bg-black/40 flex items-end md:items-center justify-center p-0 md:p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="user-detail-modal-title"
+    >
       <div className="w-full md:max-w-3xl max-h-[92vh] overflow-y-auto rounded-t-3xl md:rounded-2xl bg-white shadow-xl border">
         <div className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b bg-white px-4 md:px-5 py-4">
           <div>
-            <h3 className="text-lg font-bold">Карточка пользователя</h3>
+            <h3 id="user-detail-modal-title" className="text-lg font-bold">{t("admin.userDetail.title")}</h3>
             <p className="text-sm text-slate-500">
               {readOnly
-                ? "Просмотр баланса и истории операций"
-                : "Подробная информация и управление"}
+                ? t("admin.userDetail.subtitleReadOnly")
+                : t("admin.userDetail.subtitleFull")}
             </p>
           </div>
           <button
             type="button"
             onClick={onClose}
             className="p-2 rounded-xl border hover:bg-slate-50"
-            aria-label="Закрыть"
+            aria-label={t("common.close")}
           >
             <X size={18} />
           </button>
@@ -252,7 +282,7 @@ export default function UserDetailModal({
 
         <div className="p-4 md:p-5 space-y-5">
           {loading && (
-            <div className="text-sm text-slate-500 animate-pulse">Загрузка...</div>
+            <div className="text-sm text-slate-500 animate-pulse">{t("common.loading")}</div>
           )}
 
           {error && (
@@ -266,7 +296,7 @@ export default function UserDetailModal({
               <div className="rounded-2xl border bg-slate-50 p-4 space-y-3">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
-                    <div className="text-xl font-bold">{user.name || "Без имени"}</div>
+                    <div className="text-xl font-bold">{user.name || t("admin.users.noName")}</div>
                     <div className="text-sm text-slate-500 mt-1">ID: {getId(user)}</div>
                   </div>
 
@@ -286,27 +316,27 @@ export default function UserDetailModal({
                   </div>
                   <div className="flex items-center gap-2">
                     <Phone size={16} className="text-slate-400" />
-                    {user.phone || "Телефон не указан"}
+                    {user.phone || t("admin.users.noPhone")}
                   </div>
                   <div className="flex items-center gap-2">
                     <Clock size={16} className="text-slate-400" />
-                    Регистрация:{" "}
+                    {t("admin.userDetail.registeredAt")}:{" "}
                     {user.createdAt
-                      ? new Date(user.createdAt).toLocaleString("ru-RU")
+                      ? new Date(user.createdAt).toLocaleString(numberLocale)
                       : "—"}
                   </div>
                   <div className="flex items-center gap-2">
                     <Clock size={16} className="text-slate-400" />
-                    Был онлайн:{" "}
+                    {t("admin.userDetail.lastSeenAt")}:{" "}
                     {user.lastSeen
-                      ? new Date(user.lastSeen).toLocaleString("ru-RU")
+                      ? new Date(user.lastSeen).toLocaleString(numberLocale)
                       : "—"}
                   </div>
                   {isSuperAdmin ? (
                     <div className="sm:col-span-2 rounded-xl border bg-white p-3 text-sm space-y-1">
                       <div className="inline-flex items-center gap-1 font-semibold text-slate-800">
                         <Smartphone size={15} />
-                        Регистрация с устройства
+                        {t("admin.userDetail.registrationDevice")}
                       </div>
                       <div>{formatRegistrationDevice(user)}</div>
                       {user.registrationUserAgent ? (
@@ -320,15 +350,15 @@ export default function UserDetailModal({
                     <div className="rounded-xl border bg-blue-50 p-3 text-sm space-y-1">
                       <div className="inline-flex items-center gap-1 font-semibold text-blue-800">
                         <Building2 size={15} />
-                        {user.companyName || "Премиум"}
+                        {user.companyName || t("admin.users.accountBusiness")}
                       </div>
                       {user.companyDescription && (
                         <p className="text-slate-600">{user.companyDescription}</p>
                       )}
                       <div className="text-xs text-slate-500">
                         {user.businessVerified
-                          ? "Проверенный премиум"
-                          : "Ожидает верификации"}
+                          ? t("admin.userDetail.verifiedBusiness")
+                          : t("admin.userDetail.awaitingVerification")}
                       </div>
                     </div>
                   )}
@@ -340,7 +370,7 @@ export default function UserDetailModal({
                     className="inline-flex items-center gap-1 px-3 py-2 rounded-xl border hover:bg-white text-sm"
                   >
                     <ExternalLink size={16} />
-                    Публичная страница
+                    {t("admin.userDetail.publicPage")}
                   </Link>
 
                   {!readOnly && (
@@ -355,7 +385,7 @@ export default function UserDetailModal({
                       }`}
                     >
                       {user.isBlocked ? <Unlock size={16} /> : <Ban size={16} />}
-                      {user.isBlocked ? "Разблокировать" : "Заблокировать"}
+                      {user.isBlocked ? t("admin.users.unblock") : t("admin.users.block")}
                     </button>
                   )}
 
@@ -372,8 +402,8 @@ export default function UserDetailModal({
                     >
                       <BadgeCheck size={16} />
                       {user.businessVerified
-                        ? "Снять верификацию"
-                        : "Верифицировать премиум"}
+                        ? t("admin.userDetail.removeVerification")
+                        : t("admin.userDetail.verifyBusiness")}
                     </button>
                   )}
 
@@ -390,15 +420,15 @@ export default function UserDetailModal({
                     >
                       <Building2 size={16} />
                       {user.sellerType === "company"
-                        ? "Отключить премиум-аккаунт"
-                        : "Подключить премиум-аккаунт"}
+                        ? t("admin.userDetail.disableBusiness")
+                        : t("admin.userDetail.enableBusiness")}
                     </button>
                   )}
                 </div>
 
                 {isSuperAdmin && !readOnly && (
                   <div>
-                    <div className="text-sm font-medium mb-1">Роль</div>
+                    <div className="text-sm font-medium mb-1">{t("admin.userDetail.roleLabel")}</div>
                     <select
                       value={user.role || "user"}
                       disabled={actionLoading}
@@ -416,10 +446,10 @@ export default function UserDetailModal({
               </div>
 
               <div>
-                <h4 className="font-semibold mb-3">Объявления</h4>
+                <h4 className="font-semibold mb-3">{t("admin.sections.listings")}</h4>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
                   <div className="rounded-xl border p-3 bg-white">
-                    <div className="text-slate-500">Всего</div>
+                    <div className="text-slate-500">{t("admin.userDetail.total")}</div>
                     <div className="text-xl font-bold">{listings.total || 0}</div>
                   </div>
                   {Object.entries(listingStatusLabel).map(([key, label]) => (
@@ -434,29 +464,29 @@ export default function UserDetailModal({
               <div className="rounded-2xl border p-4 space-y-4">
                 <div className="flex items-center gap-2">
                   <Wallet size={18} className="text-sun-700" />
-                  <h4 className="font-semibold">Кошелёк</h4>
+                  <h4 className="font-semibold">{t("admin.userDetail.wallet")}</h4>
                 </div>
 
                 <div className="text-2xl font-bold text-sun-700">
-                  {Number(user.walletBalance || 0).toLocaleString("ru-RU")} TJS
+                  {Number(user.walletBalance || 0).toLocaleString(numberLocale)} TJS
                 </div>
 
                 {isSuperAdmin && !readOnly && (
                   <div className="rounded-xl border bg-slate-50 p-3 space-y-3">
-                    <div className="text-sm font-medium">Корректировка баланса</div>
+                    <div className="text-sm font-medium">{t("admin.userDetail.balanceAdjustment")}</div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <input
                         value={adjustAmount}
                         onChange={(e) =>
                           setAdjustAmount(e.target.value.replace(/[^\d.,]/g, ""))
                         }
-                        placeholder="Сумма"
+                        placeholder={t("admin.userDetail.amountPlaceholder")}
                         className="h-10 rounded-xl border px-3 bg-white"
                       />
                       <input
                         value={adjustDescription}
                         onChange={(e) => setAdjustDescription(e.target.value)}
-                        placeholder="Комментарий (необязательно)"
+                        placeholder={t("admin.userDetail.commentPlaceholder")}
                         className="h-10 rounded-xl border px-3 bg-white"
                       />
                     </div>
@@ -467,7 +497,7 @@ export default function UserDetailModal({
                         onClick={() => adjustWallet(1)}
                         className="px-4 py-2 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-60"
                       >
-                        Начислить
+                        {t("admin.userDetail.credit")}
                       </button>
                       <button
                         type="button"
@@ -475,16 +505,16 @@ export default function UserDetailModal({
                         onClick={() => adjustWallet(-1)}
                         className="px-4 py-2 rounded-xl bg-red-600 text-white hover:bg-red-700 disabled:opacity-60"
                       >
-                        Списать
+                        {t("admin.userDetail.debit")}
                       </button>
                     </div>
                   </div>
                 )}
 
                 <div>
-                  <div className="text-sm font-medium mb-2">История операций</div>
+                  <div className="text-sm font-medium mb-2">{t("admin.userDetail.transactionHistory")}</div>
                   {transactions.length === 0 ? (
-                    <div className="text-sm text-slate-500">Операций пока нет.</div>
+                    <div className="text-sm text-slate-500">{t("admin.userDetail.noTransactions")}</div>
                   ) : (
                     <div className="space-y-2 max-h-56 overflow-y-auto">
                       {transactions.map((tx) => (
@@ -494,14 +524,14 @@ export default function UserDetailModal({
                         >
                           <div>
                             <div className="font-medium">
-                              {WALLET_TYPE_LABELS[tx.type] || tx.type}
+                              {getWalletTypeLabels()[tx.type] || tx.type}
                             </div>
                             {tx.description && (
                               <div className="text-slate-500">{tx.description}</div>
                             )}
                             <div className="text-xs text-slate-400 mt-1">
                               {tx.createdAt
-                                ? new Date(tx.createdAt).toLocaleString("ru-RU")
+                                ? new Date(tx.createdAt).toLocaleString(numberLocale)
                                 : "—"}
                             </div>
                           </div>
@@ -513,7 +543,7 @@ export default function UserDetailModal({
                             }`}
                           >
                             {Number(tx.amount) >= 0 ? "+" : ""}
-                            {Number(tx.amount).toLocaleString("ru-RU")} TJS
+                            {Number(tx.amount).toLocaleString(numberLocale)} TJS
                           </div>
                         </div>
                       ))}

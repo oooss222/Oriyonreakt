@@ -25,6 +25,7 @@ import AdListingHeader from "../components/ad/AdListingHeader";
 import AdStickyAside from "../components/ad/AdStickyAside";
 import AdPurchasePanel from "../components/ad/AdPurchasePanel";
 import RealEstateHighlights from "../components/RealEstateHighlights";
+import MortgageCalculator from "../components/MortgageCalculator";
 import PriceAdequacyBadge from "../components/PriceAdequacyBadge";
 import Breadcrumbs from "../components/Breadcrumbs";
 import EmptyState from "../components/EmptyState";
@@ -38,7 +39,7 @@ import { getUserFacingErrorMessage } from "../lib/apiError";
 
 const TOKEN_KEY = "auth_token";
 
-function formatDate(dateStr, t) {
+function formatDate(dateStr, t, numberLocale) {
   if (!dateStr || Number.isNaN(Date.parse(dateStr))) return null;
 
   const d = new Date(dateStr);
@@ -49,7 +50,7 @@ function formatDate(dateStr, t) {
   if (diffDays === 1) return t("date.yesterday");
   if (diffDays < 7) return t("date.daysAgo", { count: diffDays });
 
-  return d.toLocaleDateString("ru-RU", {
+  return d.toLocaleDateString(numberLocale, {
     day: "numeric",
     month: "long",
     year: "numeric",
@@ -132,7 +133,9 @@ function Toast({ message, onClose }) {
 export default function AdDetails() {
   const { id } = useParams();
   const nav = useNavigate();
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
+  const numberLocale =
+    lang === "en" ? "en-US" : lang === "tg" ? "tg-TJ" : "ru-RU";
   const token = localStorage.getItem(TOKEN_KEY) || "";
 
   const [ad, setAd] = React.useState(null);
@@ -156,6 +159,7 @@ export default function AdDetails() {
     items: [],
   });
   const [sellerRegisteredAt, setSellerRegisteredAt] = React.useState(null);
+  const [confirmAction, setConfirmAction] = React.useState(null);
 
   React.useEffect(() => {
     if (!token) {
@@ -476,19 +480,24 @@ export default function AdDetails() {
     }
   };
 
-  const updateListingStatus = async (action) => {
+  const confirmPrompts = {
+    sold: t("listing.confirmSold"),
+    archive: t("listing.confirmArchive"),
+    republish: t("listing.confirmRepublish"),
+  };
+
+  const requestStatusChange = (action) => {
     if (!token || !ad) {
       goToAuth(nav);
       return;
     }
 
-    const prompts = {
-      sold: t("listing.confirmSold"),
-      archive: t("listing.confirmArchive"),
-      republish: t("listing.confirmRepublish"),
-    };
+    setConfirmAction(action);
+  };
 
-    if (!confirm(prompts[action] || t("listing.confirmStatus"))) {
+  const updateListingStatus = async (action) => {
+    if (!token || !ad) {
+      goToAuth(nav);
       return;
     }
 
@@ -611,7 +620,11 @@ export default function AdDetails() {
   const publicId = ad.publicId || ad.public_id || ad._id || ad.id;
   const listingId = ad._id || ad.id;
   const catLabel = CAT_LABELS[ad.cat] || ad.cat;
-  const published = formatDate(getListingDisplayDate(ad) || ad.createdAt, t);
+  const published = formatDate(
+    getListingDisplayDate(ad) || ad.createdAt,
+    t,
+    numberLocale
+  );
   const listingUrl = `/listing${ad.cat ? `?cat=${encodeURIComponent(ad.cat)}` : ""}${
     ad.subcategory
       ? `${ad.cat ? "&" : "?"}subcategory=${encodeURIComponent(ad.subcategory)}`
@@ -779,7 +792,7 @@ export default function AdDetails() {
                     className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-black/60 px-2.5 py-1 text-xs text-white transition hover:bg-black/70"
                   >
                     <ZoomIn className="h-3.5 w-3.5" />
-                    Увеличить
+                    {t("listing.zoomPhoto")}
                   </button>
 
                   {images.length > 1 && (
@@ -878,7 +891,7 @@ export default function AdDetails() {
 
             {isRealEstateListing(ad) && (
               <section className="rounded-3xl border border-slate-200 bg-white p-5 md:p-6 shadow-sm space-y-2">
-                <h2 className="text-lg font-bold text-slate-900">Расположение</h2>
+                <h2 className="text-lg font-bold text-slate-900">{t("listing.locationTitle")}</h2>
                 <p className="text-slate-700 flex items-start gap-2">
                   <MapPin className="w-4 h-4 text-sun shrink-0 mt-1" />
                   <span>
@@ -926,7 +939,7 @@ export default function AdDetails() {
 
             {/* Description */}
             <section className="rounded-3xl border border-slate-200 bg-white p-5 md:p-6 shadow-sm">
-              <h2 className="mb-4 text-lg font-bold text-slate-900">Описание</h2>
+              <h2 className="mb-4 text-lg font-bold text-slate-900">{t("form.description")}</h2>
               <p className="text-slate-700 whitespace-pre-wrap leading-7 text-[15px]">
                 {ad.description || t("listing.noDescription")}
               </p>
@@ -979,11 +992,11 @@ export default function AdDetails() {
 
                 {isOwner && ad.expiresAt && (
                   <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
-                    Объявление активно до{" "}
-                    {new Date(ad.expiresAt).toLocaleDateString("ru-RU")}. После этой
-                    даты оно будет автоматически снято — опубликуйте снова или{" "}
+                    {t("listing.expiresPrefix", {
+                      date: new Date(ad.expiresAt).toLocaleDateString(numberLocale),
+                    })}{" "}
                     <Link to="/profile?tab=promote" className="font-semibold underline">
-                      подключите VIP/TOP
+                      {t("listing.expiresLink")}
                     </Link>
                     .
                   </div>
@@ -996,7 +1009,7 @@ export default function AdDetails() {
                           to={`/profile?tab=promote&listing=${listingId}`}
                           className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-amber-200 bg-gradient-to-r from-amber-50 to-teal-50 px-4 py-3 text-sm font-semibold text-ink hover:brightness-[0.98] transition"
                         >
-                          Продвинуть объявление (VIP, TOP)
+                          {t("listing.promoteCta")}
                         </Link>
                       )}
 
@@ -1005,17 +1018,17 @@ export default function AdDetails() {
                           <button
                             type="button"
                             className="btn w-full py-3 rounded-2xl"
-                            onClick={() => updateListingStatus("sold")}
+                            onClick={() => requestStatusChange("sold")}
                           >
-                            Отметить как проданное
+                            {t("listing.actionMarkSold")}
                           </button>
 
                           <button
                             type="button"
                             className="btn w-full py-3 rounded-2xl"
-                            onClick={() => updateListingStatus("archive")}
+                            onClick={() => requestStatusChange("archive")}
                           >
-                            Снять с публикации
+                            {t("listing.actionUnpublish")}
                           </button>
                         </div>
                       )}
@@ -1024,9 +1037,9 @@ export default function AdDetails() {
                         <button
                           type="button"
                           className="btn w-full py-3 rounded-2xl border-emerald-200 text-emerald-700 hover:bg-emerald-50"
-                          onClick={() => updateListingStatus("republish")}
+                          onClick={() => requestStatusChange("republish")}
                         >
-                          Опубликовать снова
+                          {t("profile.republish")}
                         </button>
                       )}
 
@@ -1035,7 +1048,7 @@ export default function AdDetails() {
                         className="btn w-full py-3 rounded-2xl"
                       >
                         <MessageCircle className="w-5 h-5" />
-                        Сообщения покупателей
+                        {t("listing.buyerMessages")}
                       </Link>
                     </>
                   ) : null}
@@ -1070,7 +1083,7 @@ export default function AdDetails() {
                 <div>
                   <h3 className="text-lg font-bold">{t("report.title")}</h3>
                   <p className="text-sm text-slate-500 mt-1">
-                    Расскажите, что не так с этим объявлением.
+                    {t("report.subtitle")}
                   </p>
                 </div>
 
@@ -1135,6 +1148,47 @@ export default function AdDetails() {
                   className="btn btn-primary rounded-xl disabled:opacity-60"
                 >
                   {reportSending ? t("report.sending") : t("report.send")}
+                </button>
+              </div>
+            </div>
+          </div>,
+          document.body
+        )}
+
+      {confirmAction &&
+        createPortal(
+          <div className="fixed inset-0 z-[120] flex items-end sm:items-center justify-center p-0 sm:p-4">
+            <button
+              type="button"
+              aria-label={t("common.close")}
+              className="absolute inset-0 bg-black/40"
+              onClick={() => setConfirmAction(null)}
+            />
+
+            <div className="relative w-full sm:max-w-sm rounded-t-3xl sm:rounded-2xl bg-white shadow-xl border p-5 space-y-4">
+              <p className="text-sm text-slate-800">
+                {confirmPrompts[confirmAction] || t("listing.confirmStatus")}
+              </p>
+
+              <div className="flex flex-col-reverse sm:flex-row justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setConfirmAction(null)}
+                  className="btn rounded-xl"
+                >
+                  {t("common.cancel")}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    const action = confirmAction;
+                    setConfirmAction(null);
+                    updateListingStatus(action);
+                  }}
+                  className="btn btn-primary rounded-xl"
+                >
+                  {t("common.yes")}
                 </button>
               </div>
             </div>

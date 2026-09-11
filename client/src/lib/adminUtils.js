@@ -1,22 +1,73 @@
+const LANG_STORAGE_KEY = "oriyon_lang";
+const SUPPORTED_LANGS = ["ru", "tg", "en"];
+
+// Plain JS (not a component), so it can't call useI18n() — reads the same
+// localStorage key the i18n provider persists to, matching the pattern in
+// lib/format.js.
+function getActiveLang() {
+  try {
+    const stored = String(localStorage.getItem(LANG_STORAGE_KEY) || "").toLowerCase();
+    return SUPPORTED_LANGS.includes(stored) ? stored : "ru";
+  } catch {
+    return "ru";
+  }
+}
+
 export const ROLES = ["user", "moderator", "accountant", "admin", "super_admin"];
 
-export const WALLET_TYPE_LABELS = {
-  top_up: "Пополнение",
-  payment: "Списание",
-  refund: "Возврат",
-  manual_adjustment: "Корректировка",
+const WALLET_TYPE_LABELS_BY_LANG = {
+  ru: {
+    top_up: "Пополнение",
+    payment: "Списание",
+    refund: "Возврат",
+    manual_adjustment: "Корректировка",
+  },
+  en: {
+    top_up: "Top-up",
+    payment: "Payment",
+    refund: "Refund",
+    manual_adjustment: "Adjustment",
+  },
+  tg: {
+    top_up: "Пуркунӣ",
+    payment: "Хароҷот",
+    refund: "Баргардонидан",
+    manual_adjustment: "Ислоҳ",
+  },
 };
+
+export function getWalletTypeLabels() {
+  return WALLET_TYPE_LABELS_BY_LANG[getActiveLang()] || WALLET_TYPE_LABELS_BY_LANG.ru;
+}
 
 export const getId = (item) => item?.id || item?._id;
 
-export const roleLabel = (role) => {
-  const labels = {
+const ROLE_LABELS_BY_LANG = {
+  ru: {
     user: "Пользователь",
     moderator: "Модератор",
     accountant: "Бухгалтер",
     admin: "Администратор",
     super_admin: "Супер-админ",
-  };
+  },
+  en: {
+    user: "User",
+    moderator: "Moderator",
+    accountant: "Accountant",
+    admin: "Admin",
+    super_admin: "Super admin",
+  },
+  tg: {
+    user: "Корбар",
+    moderator: "Модератор",
+    accountant: "Бухгалтер",
+    admin: "Админ",
+    super_admin: "Супер-админ",
+  },
+};
+
+export const roleLabel = (role) => {
+  const labels = ROLE_LABELS_BY_LANG[getActiveLang()] || ROLE_LABELS_BY_LANG.ru;
 
   return labels[role] || role;
 };
@@ -30,14 +81,16 @@ export const roleBadgeClass = (role) => {
   return "bg-slate-50 text-slate-700 border-slate-200";
 };
 
-export const registrationDeviceTypeLabel = (type = "") => {
-  const labels = {
-    mobile: "Мобильный",
-    tablet: "Планшет",
-    desktop: "Компьютер",
-  };
+const DEVICE_TYPE_LABELS_BY_LANG = {
+  ru: { mobile: "Мобильный", tablet: "Планшет", desktop: "Компьютер", unknown: "Неизвестно" },
+  en: { mobile: "Mobile", tablet: "Tablet", desktop: "Desktop", unknown: "Unknown" },
+  tg: { mobile: "Мобилӣ", tablet: "Планшет", desktop: "Компютер", unknown: "Номаълум" },
+};
 
-  return labels[String(type || "").toLowerCase()] || "Неизвестно";
+export const registrationDeviceTypeLabel = (type = "") => {
+  const labels = DEVICE_TYPE_LABELS_BY_LANG[getActiveLang()] || DEVICE_TYPE_LABELS_BY_LANG.ru;
+
+  return labels[String(type || "").toLowerCase()] || labels.unknown;
 };
 
 export const formatRegistrationDevice = (user = {}) => {
@@ -126,25 +179,75 @@ export const getExportTypesForRole = (role) => {
 
 export const FINANCE_AUDIT_ACTIONS = ["wallet.adjust"];
 
-export const AUDIT_ACTION_LABELS = {
-  "user.block": "Блокировка пользователя",
-  "user.unblock": "Разблокировка пользователя",
-  "user.role_change": "Смена роли",
-  "wallet.adjust": "Корректировка баланса",
-  "listing.delete": "Удаление объявления",
-  "listing.status_change": "Смена статуса объявления",
-  "listing.approve": "Одобрение объявления",
-  "listing.reject": "Отклонение объявления",
-  "report.review": "Жалоба рассмотрена",
-  "report.dismiss": "Жалоба отклонена",
-  "report.delete_listing": "Удаление объявления по жалобе",
-  "report.block_owner": "Блокировка продавца по жалобе",
-  "user.business_verify": "Верификация премиум-аккаунта",
-  "user.business_unverify": "Снятие верификации премиум-аккаунта",
-  "user.business_connect": "Подключение премиум-аккаунта",
-  "user.business_disconnect": "Отключение премиум-аккаунта",
-  "settings.update": "Изменение настроек сайта",
-  "ad.create": "Создание рекламы",
-  "ad.update": "Изменение рекламы",
-  "ad.delete": "Удаление рекламы",
+const AUDIT_ACTION_LABELS_BY_LANG = {
+  ru: {
+    "user.block": "Блокировка пользователя",
+    "user.unblock": "Разблокировка пользователя",
+    "user.role_change": "Смена роли",
+    "wallet.adjust": "Корректировка баланса",
+    "listing.delete": "Удаление объявления",
+    "listing.status_change": "Смена статуса объявления",
+    "listing.approve": "Одобрение объявления",
+    "listing.reject": "Отклонение объявления",
+    "report.review": "Жалоба рассмотрена",
+    "report.dismiss": "Жалоба отклонена",
+    "report.delete_listing": "Удаление объявления по жалобе",
+    "report.block_owner": "Блокировка продавца по жалобе",
+    "user.business_verify": "Верификация премиум-аккаунта",
+    "user.business_unverify": "Снятие верификации премиум-аккаунта",
+    "user.business_connect": "Подключение премиум-аккаунта",
+    "user.business_disconnect": "Отключение премиум-аккаунта",
+    "settings.update": "Изменение настроек сайта",
+    "ad.create": "Создание рекламы",
+    "ad.update": "Изменение рекламы",
+    "ad.delete": "Удаление рекламы",
+  },
+  en: {
+    "user.block": "User blocked",
+    "user.unblock": "User unblocked",
+    "user.role_change": "Role changed",
+    "wallet.adjust": "Balance adjusted",
+    "listing.delete": "Listing deleted",
+    "listing.status_change": "Listing status changed",
+    "listing.approve": "Listing approved",
+    "listing.reject": "Listing rejected",
+    "report.review": "Report reviewed",
+    "report.dismiss": "Report dismissed",
+    "report.delete_listing": "Listing deleted via report",
+    "report.block_owner": "Seller blocked via report",
+    "user.business_verify": "Premium account verified",
+    "user.business_unverify": "Premium verification removed",
+    "user.business_connect": "Premium account connected",
+    "user.business_disconnect": "Premium account disconnected",
+    "settings.update": "Site settings changed",
+    "ad.create": "Ad created",
+    "ad.update": "Ad updated",
+    "ad.delete": "Ad deleted",
+  },
+  tg: {
+    "user.block": "Блок кардани корбар",
+    "user.unblock": "Рафъи блоки корбар",
+    "user.role_change": "Тағйири нақш",
+    "wallet.adjust": "Ислоҳи баланс",
+    "listing.delete": "Нест кардани эълон",
+    "listing.status_change": "Тағйири вазъи эълон",
+    "listing.approve": "Тасдиқи эълон",
+    "listing.reject": "Рад кардани эълон",
+    "report.review": "Шикоят баррасӣ шуд",
+    "report.dismiss": "Шикоят рад шуд",
+    "report.delete_listing": "Нест кардани эълон аз рӯи шикоят",
+    "report.block_owner": "Блок кардани фурӯшанда аз рӯи шикоят",
+    "user.business_verify": "Тасдиқи ҳисоби Premium",
+    "user.business_unverify": "Рафъи тасдиқи ҳисоби Premium",
+    "user.business_connect": "Пайваст кардани ҳисоби Premium",
+    "user.business_disconnect": "Қатъ кардани ҳисоби Premium",
+    "settings.update": "Тағйири танзимоти сомона",
+    "ad.create": "Эҷоди реклама",
+    "ad.update": "Тағйири реклама",
+    "ad.delete": "Нест кардани реклама",
+  },
 };
+
+export function getAuditActionLabels() {
+  return AUDIT_ACTION_LABELS_BY_LANG[getActiveLang()] || AUDIT_ACTION_LABELS_BY_LANG.ru;
+}

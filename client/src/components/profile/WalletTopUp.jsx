@@ -3,7 +3,8 @@ import { api } from "../../lib/api";
 import { useI18n } from "../../i18n";
 
 export default React.memo(function WalletTopUp({ token, onSuccess }) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
+  const numberLocale = lang === "en" ? "en-US" : lang === "tg" ? "tg-TJ" : "ru-RU";
   const QUICK_AMOUNTS = [10, 25, 50, 100, 250, 500];
 
   const [amount, setAmount] = React.useState("");
@@ -109,7 +110,7 @@ export default React.memo(function WalletTopUp({ token, onSuccess }) {
           type: "top_up",
           createdAt: new Date().toISOString(),
         });
-        setSuccess(`Баланс пополнен на ${value.toLocaleString("ru-RU")} TJS`);
+        setSuccess(t("wallet.topUpSuccess", { amount: value.toLocaleString(numberLocale) }));
         setAmount("");
       } catch (e) {
         const message = e.message || t("wallet.topUpError");
@@ -120,9 +121,8 @@ export default React.memo(function WalletTopUp({ token, onSuccess }) {
           message.includes("401") ||
           message.includes("доступ в транзакции отказан")
         ) {
-          setError(
-            "Alif отклонил оплату (401). Terminal 722796 нужно активировать и добавить callback в whitelist у Alif."
-          );
+          console.error("Alif payment rejected (401):", message);
+          setError(t("wallet.paymentRejected"));
         } else {
           setError(message);
         }
@@ -130,7 +130,7 @@ export default React.memo(function WalletTopUp({ token, onSuccess }) {
         setLoading(false);
       }
     },
-    [token, value, isValid, onSuccess, paymentConfig, t]
+    [token, value, isValid, onSuccess, paymentConfig, t, numberLocale]
   );
 
   const paymentHint = React.useMemo(() => {
@@ -152,16 +152,16 @@ export default React.memo(function WalletTopUp({ token, onSuccess }) {
 
       {paymentConfig.environment === "test" && paymentConfig.alifEnabled && (
         <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900 space-y-2">
-          <div className="font-semibold">Тестовые данные Alif</div>
+          <div className="font-semibold">{t("wallet.testDataTitle")}</div>
           <div>
-            Карта: <span className="font-mono">5058270283789872</span> · OTP{" "}
+            {t("wallet.testCardLabel")}: <span className="font-mono">5058270283789872</span> · OTP{" "}
             <span className="font-mono">12345</span>
           </div>
         </div>
       )}
 
       <div>
-        <div className="text-sm font-medium mb-2">Быстрый выбор суммы</div>
+        <div className="text-sm font-medium mb-2">{t("wallet.quickAmountLabel")}</div>
         <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
           {QUICK_AMOUNTS.map((item) => (
             <button
@@ -185,7 +185,7 @@ export default React.memo(function WalletTopUp({ token, onSuccess }) {
       </div>
 
       <label className="block">
-        <div className="text-sm font-medium mb-1">Сумма пополнения</div>
+        <div className="text-sm font-medium mb-1">{t("wallet.topUpAmountLabel")}</div>
         <div className="relative">
           <input
             value={amount}

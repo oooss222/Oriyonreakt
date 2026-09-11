@@ -12,6 +12,8 @@ import { getDistrictsForCity } from "../data/realEstate";
 import { formatPriceInput, getPriceDigits } from "../data/specOptions";
 import RangeFilter from "./filters/RangeFilter";
 import { getSellerFilterOptions } from "../lib/filterConflicts";
+import { commitDraft, clearDependentModelSpec } from "../lib/filterDraft";
+import { useI18n } from "../i18n";
 
 function FilterSelect({
   label,
@@ -50,7 +52,7 @@ function FilterSelect({
   );
 }
 
-function formatPriceSummary(from, to, currency = "с.") {
+function formatPriceSummary(from, to, currency = "с.", t) {
   const fromLabel = from ? formatPriceInput(from) : "";
   const toLabel = to ? formatPriceInput(to) : "";
 
@@ -59,17 +61,18 @@ function formatPriceSummary(from, to, currency = "с.") {
   }
 
   if (fromLabel) {
-    return `от ${fromLabel} ${currency}`;
+    return `${t("filter.from")} ${fromLabel} ${currency}`;
   }
 
   if (toLabel) {
-    return `до ${toLabel} ${currency}`;
+    return `${t("filter.to")} ${toLabel} ${currency}`;
   }
 
   return "";
 }
 
 function PriceFilterPopover({ draft, setDraft, onApply }) {
+  const { t } = useI18n();
   const [open, setOpen] = React.useState(false);
   const rootRef = React.useRef(null);
   const panelRef = React.useRef(null);
@@ -138,7 +141,7 @@ function PriceFilterPopover({ draft, setDraft, onApply }) {
     };
   }, [open, closePopover]);
 
-  const summary = formatPriceSummary(draft.priceFrom, draft.priceTo, currency);
+  const summary = formatPriceSummary(draft.priceFrom, draft.priceTo, currency, t);
 
   const panel =
     open && panelStyle
@@ -157,7 +160,7 @@ function PriceFilterPopover({ draft, setDraft, onApply }) {
                 <input
                   type="text"
                   inputMode="numeric"
-                  placeholder="от"
+                  placeholder={t("filter.from")}
                   value={draft.priceFrom ? formatPriceInput(draft.priceFrom) : ""}
                   onChange={(e) =>
                     setDraft((current) => ({
@@ -171,7 +174,7 @@ function PriceFilterPopover({ draft, setDraft, onApply }) {
                 <input
                   type="text"
                   inputMode="numeric"
-                  placeholder="до"
+                  placeholder={t("filter.to")}
                   value={draft.priceTo ? formatPriceInput(draft.priceTo) : ""}
                   onChange={(e) =>
                     setDraft((current) => ({
@@ -218,7 +221,7 @@ function PriceFilterPopover({ draft, setDraft, onApply }) {
           summary ? "text-slate-900 font-medium" : "text-slate-500"
         }`}
       >
-        <span className="truncate">{summary || "Цена"}</span>
+        <span className="truncate">{summary || t("form.price")}</span>
         {open ? (
           <ChevronUp size={18} className="shrink-0 text-slate-400" />
         ) : (
@@ -231,12 +234,6 @@ function PriceFilterPopover({ draft, setDraft, onApply }) {
   );
 }
 
-function commitDraft(setDraft, onApply, updater, current) {
-  const next = updater(current);
-  setDraft(next);
-  onApply?.(next);
-}
-
 function renderField(
   field,
   {
@@ -247,6 +244,7 @@ function renderField(
     onApply,
     hideSubcategoryField = false,
     grid,
+    t,
   }
 ) {
   if (!field) return <div className="hidden xl:block" aria-hidden="true" />;
@@ -259,7 +257,7 @@ function renderField(
     return (
       <FilterSelect
         label={field.label}
-        placeholder="Все подкатегории"
+        placeholder={t("filter.allSubcategories")}
         value={draft.subcategory}
         options={availableSubcategories}
         onChange={(value) =>
@@ -341,13 +339,7 @@ function renderField(
               delete nextSpecs[specKey];
             }
 
-            if (specKey === "Марка" || specKey === "Марка авто") {
-              delete nextSpecs.Модель;
-            }
-
-            if (specKey === "Производитель") {
-              delete nextSpecs.Модель;
-            }
+            clearDependentModelSpec(nextSpecs, specKey);
 
             return {
               ...current,
@@ -396,7 +388,7 @@ function renderField(
     return (
       <FilterSelect
         label={field.label}
-        placeholder={districts.length ? field.label : "Сначала город"}
+        placeholder={districts.length ? field.label : t("filter.selectCityFirst")}
         value={draft.specs?.[field.specKey] || ""}
         options={districts}
         disabled={!districts.length}
@@ -475,7 +467,7 @@ function renderField(
             search: e.target.value,
           }))
         }
-        placeholder="Поиск по названию"
+        placeholder={t("filter.searchByTitle")}
         className="w-full h-12 rounded-xl bg-white px-4 text-sm outline-none shadow-sm border border-white/80 focus:ring-2 focus:ring-sun/40"
       />
     );
@@ -483,10 +475,10 @@ function renderField(
 
   if (field.type === "sort") {
     const sortLabels = grid?.sortOptions || {
-      new: "Сначала новые",
-      views_desc: "Сначала популярные",
-      price_asc: "Цена по возрастанию",
-      price_desc: "Цена по убыванию",
+      new: t("filter.sortNew"),
+      views_desc: t("filter.sortPopular"),
+      price_asc: t("filter.sortPriceAsc"),
+      price_desc: t("filter.sortPriceDesc"),
     };
 
     return (
@@ -528,8 +520,8 @@ function renderField(
           }
           presets={field.presets || []}
           selectOptions={field.type === "year-range" ? field.options || [] : []}
-          fromPlaceholder={field.type === "year-range" ? "от" : "от"}
-          toPlaceholder={field.type === "year-range" ? "до" : "до"}
+          fromPlaceholder={t("filter.from")}
+          toPlaceholder={t("filter.to")}
         />
       </div>
     );
@@ -541,6 +533,7 @@ function renderField(
     return (
       <button
         type="button"
+        aria-pressed={active}
         onClick={() =>
           commitDraft(setDraft, onApply, (current) => ({
             ...current,
@@ -576,6 +569,7 @@ export default function ListingFiltersPanel({
   hideSubcategoryField = false,
   layout = "default",
 }) {
+  const { t } = useI18n();
   const [moreOpen, setMoreOpen] = React.useState(false);
   const grid = React.useMemo(
     () => getListingFilterGrid(activeCat, draft.subcategory),
@@ -590,8 +584,8 @@ export default function ListingFiltersPanel({
         )
       : activeCat === "transport"
         ? [
-            { value: "private", label: "Частный продавец" },
-            { value: "company", label: "Компания" },
+            { value: "private", label: t("filter.sellerPrivate") },
+            { value: "company", label: t("filter.sellerCompany") },
           ]
         : [];
 
@@ -622,6 +616,7 @@ export default function ListingFiltersPanel({
                   onApply,
                   hideSubcategoryField,
                   grid,
+                  t,
                 })}
               </div>
             ))}
@@ -630,9 +625,11 @@ export default function ListingFiltersPanel({
       </div>
 
       {sellerOptions.length > 0 && (
-        <div className="mt-3 flex flex-wrap gap-2">
+        <div className="mt-3 flex flex-wrap gap-2" role="radiogroup" aria-label={t("filter.sellerType")}>
           <button
             type="button"
+            role="radio"
+            aria-checked={!draft.sellerType}
             onClick={() =>
               commitDraft(setDraft, onApply, (current) => ({
                 ...current,
@@ -641,12 +638,14 @@ export default function ListingFiltersPanel({
             }
             className={`chip ${!draft.sellerType ? "chip-active" : ""}`}
           >
-            Любой
+            {t("filter.any")}
           </button>
           {sellerOptions.map((option) => (
             <button
               key={option.value}
               type="button"
+              role="radio"
+              aria-checked={draft.sellerType === option.value}
               onClick={() =>
                 commitDraft(setDraft, onApply, (current) => ({
                   ...current,
@@ -681,6 +680,7 @@ export default function ListingFiltersPanel({
                 onApply,
                 hideSubcategoryField,
                 grid,
+                t,
               })}
             </div>
           ))}
@@ -702,7 +702,7 @@ export default function ListingFiltersPanel({
               className="inline-flex items-center gap-1.5 text-sm font-medium text-sun hover:text-sun-700 transition"
             >
               {moreOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-              {moreOpen ? "Меньше фильтров" : "Больше фильтров"}
+              {moreOpen ? t("filter.fewerFilters") : t("filter.moreFilters")}
             </button>
           )}
 
@@ -713,7 +713,7 @@ export default function ListingFiltersPanel({
               className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700 transition"
             >
               <X size={15} />
-              Сбросить фильтры
+              {t("filter.reset")}
             </button>
           )}
         </div>
@@ -726,8 +726,10 @@ export default function ListingFiltersPanel({
           >
             <Search size={16} />
             {previewLoading
-              ? "Показать…"
-              : `Показать (${previewTotal.toLocaleString("ru-RU")})`}
+              ? t("filter.showLoading")
+              : t("filter.showCount", {
+                  count: previewTotal.toLocaleString("ru-RU"),
+                })}
           </button>
         </div>
       </div>

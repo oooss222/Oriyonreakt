@@ -10,6 +10,7 @@ import {
 import { TOKEN_KEY } from "../lib/auth";
 import { useUnreadCount } from "../lib/unread";
 import { useI18n } from "../i18n";
+import UnreadBadge from "./UnreadBadge";
 
 export default function MobileNav({ showPolicyLink = false }) {
   const { pathname } = useLocation();
@@ -78,6 +79,7 @@ export default function MobileNav({ showPolicyLink = false }) {
             <Link
               key={to}
               to={to}
+              aria-current={active ? "page" : undefined}
               className={`relative flex flex-col items-center justify-end gap-0.5 pb-1.5 text-[10px] font-semibold transition min-w-0 px-0.5 ${
                 active
                   ? "text-sun"
@@ -94,11 +96,7 @@ export default function MobileNav({ showPolicyLink = false }) {
                 } ${active && !highlight ? "bg-sun-50" : ""}`}
               >
                 <Icon size={highlight ? 22 : 20} />
-                {showBadge && (
-                  <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-red-500 text-white text-[9px] font-bold flex items-center justify-center ring-2 ring-white">
-                    {unreadCount > 99 ? "99+" : unreadCount}
-                  </span>
-                )}
+                {showBadge && <UnreadBadge count={unreadCount} ringed />}
               </span>
               <span className="truncate w-full text-center leading-none">
                 {label}

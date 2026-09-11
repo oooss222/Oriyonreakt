@@ -1,6 +1,6 @@
 import React from "react";
 import { BadgeCheck, Building2 } from "lucide-react";
-import { sellerTypeLabel } from "../lib/businessAccount";
+import { useI18n } from "../i18n";
 
 export default function BusinessBadge({
   sellerType,
@@ -8,6 +8,8 @@ export default function BusinessBadge({
   size = "sm",
   className = "",
 }) {
+  const { t } = useI18n();
+
   if (sellerType !== "company") {
     return null;
   }
@@ -23,7 +25,7 @@ export default function BusinessBadge({
         className={`inline-flex items-center rounded-md font-semibold bg-lagoon/10 text-lagoon-700 border border-lagoon/15 ${sizeClasses} ${className}`}
       >
         <BadgeCheck className={size === "lg" ? "w-4 h-4" : "w-3 h-3"} />
-        Проверенный премиум
+        {t("business.verifiedPremiumBadge")}
       </span>
     );
   }
@@ -33,7 +35,7 @@ export default function BusinessBadge({
       className={`inline-flex items-center rounded-md font-semibold bg-mist text-ink-600 border border-ink/8 ${sizeClasses} ${className}`}
     >
       <Building2 className={size === "lg" ? "w-4 h-4" : "w-3 h-3"} />
-      {sellerTypeLabel("company")}
+      {t("seller.premium")}
     </span>
   );
 }

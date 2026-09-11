@@ -17,6 +17,7 @@ import {
 } from "../../lib/adPlacements";
 import { formatAdCtr } from "../../lib/adFeed";
 import { HOME_CATEGORIES } from "../../data/categories";
+import { useI18n } from "../../i18n";
 
 const EMPTY_FORM = {
   title: "",
@@ -62,6 +63,7 @@ function fromLocalInput(value) {
 }
 
 export default function AdminAdsSection({ token }) {
+  const { t } = useI18n();
   const [items, setItems] = React.useState([]);
   const [stats, setStats] = React.useState(null);
   const [loading, setLoading] = React.useState(true);
@@ -84,7 +86,7 @@ export default function AdminAdsSection({ token }) {
       setItems(Array.isArray(list) ? list : []);
       setStats(summary || null);
     } catch (e) {
-      setError(e.message || "Не удалось загрузить рекламу");
+      setError(e.message || t("admin.ads.loadError"));
     } finally {
       setLoading(false);
     }
@@ -143,12 +145,12 @@ export default function AdminAdsSection({ token }) {
       const url = Array.isArray(result?.urls) ? result.urls[0] : "";
 
       if (!url) {
-        throw new Error("Не удалось загрузить изображение");
+        throw new Error(t("admin.ads.uploadError"));
       }
 
       setForm((prev) => ({ ...prev, imageUrl: url }));
     } catch (e) {
-      setError(e.message || "Не удалось загрузить изображение");
+      setError(e.message || t("admin.ads.uploadError"));
     } finally {
       setUploading(false);
       event.target.value = "";
@@ -180,7 +182,7 @@ export default function AdminAdsSection({ token }) {
       };
 
       if (!payload.title) {
-        throw new Error("Укажите название кампании");
+        throw new Error(t("admin.ads.titleRequired"));
       }
 
       if (editingId) {
@@ -192,14 +194,14 @@ export default function AdminAdsSection({ token }) {
       closeEditor();
       await load();
     } catch (e) {
-      setError(e.message || "Не удалось сохранить рекламу");
+      setError(e.message || t("admin.ads.saveError"));
     } finally {
       setSaving(false);
     }
   };
 
   const removeItem = async (id) => {
-    const ok = confirm("Удалить рекламную кампанию?");
+    const ok = confirm(t("admin.ads.deleteConfirm"));
 
     if (!ok) return;
 
@@ -209,14 +211,14 @@ export default function AdminAdsSection({ token }) {
       setItems((prev) => prev.filter((item) => String(getId(item)) !== String(id)));
       await load();
     } catch (e) {
-      setError(e.message || "Не удалось удалить рекламу");
+      setError(e.message || t("admin.ads.deleteError"));
     }
   };
 
   if (loading) {
     return (
       <div className="rounded-2xl border bg-white p-6 text-sm text-slate-500">
-        Загрузка рекламных кампаний...
+        {t("admin.ads.loading")}
       </div>
     );
   }
@@ -228,33 +230,33 @@ export default function AdminAdsSection({ token }) {
           <div>
             <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
               <Megaphone className="text-sun" size={22} />
-              Реклама
+              {t("admin.ads.title")}
             </h2>
             <p className="text-sm text-slate-500 mt-1">
-              Управление баннерами, native-блоками и HTML-кодом рекламных сетей.
+              {t("admin.ads.subtitle")}
             </p>
           </div>
 
           <button type="button" className="btn btn-primary rounded-xl" onClick={openCreate}>
             <Plus size={18} />
-            Новая кампания
+            {t("admin.ads.newCampaign")}
           </button>
         </div>
 
         {stats && (
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-5">
             <div className="rounded-2xl border bg-slate-50 p-4">
-              <div className="text-xs text-slate-500">Кампаний</div>
+              <div className="text-xs text-slate-500">{t("admin.ads.stats.total")}</div>
               <div className="text-2xl font-bold text-slate-900">{stats.total || 0}</div>
             </div>
             <div className="rounded-2xl border bg-emerald-50 p-4">
-              <div className="text-xs text-emerald-700">Активных</div>
+              <div className="text-xs text-emerald-700">{t("admin.ads.stats.active")}</div>
               <div className="text-2xl font-bold text-emerald-900">{stats.active || 0}</div>
             </div>
             <div className="rounded-2xl border bg-white p-4">
               <div className="text-xs text-slate-500 flex items-center gap-1">
                 <BarChart3 size={14} />
-                Показы
+                {t("admin.ads.stats.impressions")}
               </div>
               <div className="text-2xl font-bold text-slate-900">
                 {Number(stats.impressions || 0).toLocaleString("ru-RU")}
@@ -266,7 +268,9 @@ export default function AdminAdsSection({ token }) {
                 {formatAdCtr(stats.clicks, stats.impressions)}
               </div>
               <div className="text-xs text-slate-400 mt-1">
-                {Number(stats.clicks || 0).toLocaleString("ru-RU")} кликов
+                {t("admin.ads.clicksCount", {
+                  count: Number(stats.clicks || 0).toLocaleString("ru-RU"),
+                })}
               </div>
             </div>
           </div>
@@ -284,19 +288,19 @@ export default function AdminAdsSection({ token }) {
           <table className="min-w-full text-sm">
             <thead className="bg-slate-50 text-slate-500">
               <tr>
-                <th className="text-left px-4 py-3 font-medium">Кампания</th>
-                <th className="text-left px-4 py-3 font-medium">Зона</th>
-                <th className="text-left px-4 py-3 font-medium">Формат</th>
-                <th className="text-left px-4 py-3 font-medium">Статистика</th>
-                <th className="text-left px-4 py-3 font-medium">Статус</th>
-                <th className="text-right px-4 py-3 font-medium">Действия</th>
+                <th className="text-left px-4 py-3 font-medium">{t("admin.ads.col.campaign")}</th>
+                <th className="text-left px-4 py-3 font-medium">{t("admin.ads.col.zone")}</th>
+                <th className="text-left px-4 py-3 font-medium">{t("admin.ads.col.format")}</th>
+                <th className="text-left px-4 py-3 font-medium">{t("admin.ads.col.stats")}</th>
+                <th className="text-left px-4 py-3 font-medium">{t("admin.ads.col.status")}</th>
+                <th className="text-right px-4 py-3 font-medium">{t("admin.ads.col.actions")}</th>
               </tr>
             </thead>
             <tbody>
               {items.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-4 py-8 text-center text-slate-500">
-                    Рекламных кампаний пока нет.
+                    {t("admin.ads.empty")}
                   </td>
                 </tr>
               ) : (
@@ -305,8 +309,8 @@ export default function AdminAdsSection({ token }) {
                     <td className="px-4 py-3">
                       <div className="font-medium text-slate-900">{item.title}</div>
                       <div className="text-xs text-slate-500">
-                        {item.advertiser || "Без рекламодателя"}
-                        {item.cat ? ` · ${item.cat}` : " · все категории"}
+                        {item.advertiser || t("admin.ads.noAdvertiser")}
+                        {item.cat ? ` · ${item.cat}` : t("admin.ads.allCategoriesSuffix")}
                       </div>
                     </td>
                     <td className="px-4 py-3 text-slate-600">
@@ -316,9 +320,13 @@ export default function AdminAdsSection({ token }) {
                       {FORMAT_LABELS[item.format] || item.format}
                     </td>
                     <td className="px-4 py-3 text-slate-600">
-                      <div>{Number(item.impressions || 0).toLocaleString("ru-RU")} показов</div>
+                      <div>{t("admin.ads.impressionsCount", {
+                        count: Number(item.impressions || 0).toLocaleString("ru-RU"),
+                      })}</div>
                       <div className="text-xs text-slate-400">
-                        {Number(item.clicks || 0).toLocaleString("ru-RU")} кликов ·{" "}
+                        {t("admin.ads.clicksCount", {
+                          count: Number(item.clicks || 0).toLocaleString("ru-RU"),
+                        })}{" · "}
                         {formatAdCtr(item.clicks, item.impressions)}
                       </div>
                     </td>
@@ -330,7 +338,7 @@ export default function AdminAdsSection({ token }) {
                             : "bg-slate-100 text-slate-500"
                         }`}
                       >
-                        {item.active ? "Активна" : "Выключена"}
+                        {item.active ? t("admin.ads.active") : t("admin.ads.inactive")}
                       </span>
                     </td>
                     <td className="px-4 py-3">
@@ -339,7 +347,7 @@ export default function AdminAdsSection({ token }) {
                           type="button"
                           className="p-2 rounded-xl border hover:bg-slate-50"
                           onClick={() => openEdit(item)}
-                          aria-label="Редактировать"
+                          aria-label={t("admin.ads.edit")}
                         >
                           <Pencil size={16} />
                         </button>
@@ -347,7 +355,7 @@ export default function AdminAdsSection({ token }) {
                           type="button"
                           className="p-2 rounded-xl border border-red-200 text-red-600 hover:bg-red-50"
                           onClick={() => removeItem(getId(item))}
-                          aria-label="Удалить"
+                          aria-label={t("a11y.delete")}
                         >
                           <Trash2 size={16} />
                         </button>
@@ -362,11 +370,16 @@ export default function AdminAdsSection({ token }) {
       </div>
 
       {editorOpen && (
-        <div className="fixed inset-0 z-[80] flex items-end md:items-center justify-center p-0 md:p-4">
+        <div
+          className="fixed inset-0 z-[80] flex items-end md:items-center justify-center p-0 md:p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="admin-ads-modal-title"
+        >
           <button
             type="button"
             className="absolute inset-0 bg-black/40"
-            aria-label="Закрыть"
+            aria-label={t("common.close")}
             onClick={closeEditor}
           />
 
@@ -374,13 +387,13 @@ export default function AdminAdsSection({ token }) {
             onSubmit={submit}
             className="relative w-full md:max-w-3xl max-h-[92vh] overflow-y-auto rounded-t-3xl md:rounded-3xl bg-white p-5 md:p-6 shadow-2xl"
           >
-            <h3 className="text-lg font-bold text-slate-900 mb-4">
-              {editingId ? "Редактировать кампанию" : "Новая рекламная кампания"}
+            <h3 id="admin-ads-modal-title" className="text-lg font-bold text-slate-900 mb-4">
+              {editingId ? t("admin.ads.editTitle") : t("admin.ads.newTitle")}
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <label className="block space-y-1">
-                <span className="text-sm text-slate-600">Название кампании</span>
+                <span className="text-sm text-slate-600">{t("admin.ads.form.title")}</span>
                 <input
                   className="input w-full"
                   value={form.title}
@@ -390,7 +403,7 @@ export default function AdminAdsSection({ token }) {
               </label>
 
               <label className="block space-y-1">
-                <span className="text-sm text-slate-600">Рекламодатель</span>
+                <span className="text-sm text-slate-600">{t("admin.ads.form.advertiser")}</span>
                 <input
                   className="input w-full"
                   value={form.advertiser}
@@ -399,7 +412,7 @@ export default function AdminAdsSection({ token }) {
               </label>
 
               <label className="block space-y-1">
-                <span className="text-sm text-slate-600">Зона показа</span>
+                <span className="text-sm text-slate-600">{t("admin.ads.form.zone")}</span>
                 <select
                   className="input w-full"
                   value={form.placement}
@@ -414,7 +427,7 @@ export default function AdminAdsSection({ token }) {
               </label>
 
               <label className="block space-y-1">
-                <span className="text-sm text-slate-600">Формат</span>
+                <span className="text-sm text-slate-600">{t("admin.ads.col.format")}</span>
                 <select
                   className="input w-full"
                   value={form.format}
@@ -429,13 +442,13 @@ export default function AdminAdsSection({ token }) {
               </label>
 
               <label className="block space-y-1">
-                <span className="text-sm text-slate-600">Категория (опционально)</span>
+                <span className="text-sm text-slate-600">{t("admin.ads.form.category")}</span>
                 <select
                   className="input w-full"
                   value={form.cat}
                   onChange={(e) => setForm((prev) => ({ ...prev, cat: e.target.value }))}
                 >
-                  <option value="">Все категории</option>
+                  <option value="">{t("admin.ads.allCategoriesOption")}</option>
                   {HOME_CATEGORIES.map((item) => (
                     <option key={item.slug} value={item.slug}>
                       {item.title}
@@ -445,7 +458,7 @@ export default function AdminAdsSection({ token }) {
               </label>
 
               <label className="block space-y-1">
-                <span className="text-sm text-slate-600">Приоритет</span>
+                <span className="text-sm text-slate-600">{t("admin.ads.form.priority")}</span>
                 <input
                   type="number"
                   className="input w-full"
@@ -457,7 +470,7 @@ export default function AdminAdsSection({ token }) {
               </label>
 
               <label className="block space-y-1">
-                <span className="text-sm text-slate-600">Старт</span>
+                <span className="text-sm text-slate-600">{t("admin.ads.form.startsAt")}</span>
                 <input
                   type="datetime-local"
                   className="input w-full"
@@ -467,7 +480,7 @@ export default function AdminAdsSection({ token }) {
               </label>
 
               <label className="block space-y-1">
-                <span className="text-sm text-slate-600">Окончание</span>
+                <span className="text-sm text-slate-600">{t("admin.ads.form.endsAt")}</span>
                 <input
                   type="datetime-local"
                   className="input w-full"
@@ -480,7 +493,7 @@ export default function AdminAdsSection({ token }) {
             {form.format !== "html" && (
               <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                 <label className="block space-y-1 md:col-span-2">
-                  <span className="text-sm text-slate-600">Заголовок для пользователя</span>
+                  <span className="text-sm text-slate-600">{t("admin.ads.form.headline")}</span>
                   <input
                     className="input w-full"
                     value={form.headline}
@@ -489,7 +502,7 @@ export default function AdminAdsSection({ token }) {
                 </label>
 
                 <label className="block space-y-1 md:col-span-2">
-                  <span className="text-sm text-slate-600">Описание</span>
+                  <span className="text-sm text-slate-600">{t("admin.ads.form.description")}</span>
                   <textarea
                     className="input w-full min-h-[90px]"
                     value={form.description}
@@ -498,7 +511,7 @@ export default function AdminAdsSection({ token }) {
                 </label>
 
                 <label className="block space-y-1 md:col-span-2">
-                  <span className="text-sm text-slate-600">Ссылка</span>
+                  <span className="text-sm text-slate-600">{t("admin.ads.form.link")}</span>
                   <input
                     className="input w-full"
                     value={form.linkUrl}
@@ -508,7 +521,7 @@ export default function AdminAdsSection({ token }) {
                 </label>
 
                 <label className="block space-y-1 md:col-span-2">
-                  <span className="text-sm text-slate-600">URL изображения</span>
+                  <span className="text-sm text-slate-600">{t("admin.ads.form.imageUrl")}</span>
                   <input
                     className="input w-full"
                     value={form.imageUrl}
@@ -520,7 +533,7 @@ export default function AdminAdsSection({ token }) {
                 <div className="md:col-span-2">
                   <label className="inline-flex items-center gap-2 btn rounded-xl cursor-pointer">
                     <ImageIcon size={16} />
-                    {uploading ? "Загрузка..." : "Загрузить баннер"}
+                    {uploading ? t("admin.ads.form.uploading") : t("admin.ads.form.uploadBanner")}
                     <input
                       type="file"
                       accept="image/*"
@@ -543,12 +556,12 @@ export default function AdminAdsSection({ token }) {
 
             {form.format === "html" && (
               <label className="block space-y-1 mt-4">
-                <span className="text-sm text-slate-600">HTML / код рекламной сети</span>
+                <span className="text-sm text-slate-600">{t("admin.ads.form.htmlCode")}</span>
                 <textarea
                   className="input w-full min-h-[160px] font-mono text-xs"
                   value={form.htmlCode}
                   onChange={(e) => setForm((prev) => ({ ...prev, htmlCode: e.target.value }))}
-                  placeholder="<script>...</script> или iframe"
+                  placeholder={t("admin.ads.form.htmlPlaceholder")}
                 />
               </label>
             )}
@@ -559,15 +572,15 @@ export default function AdminAdsSection({ token }) {
                 checked={form.active}
                 onChange={(e) => setForm((prev) => ({ ...prev, active: e.target.checked }))}
               />
-              Кампания активна
+              {t("admin.ads.form.activeLabel")}
             </label>
 
             <div className="mt-6 flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
               <button type="button" className="btn rounded-xl" onClick={closeEditor}>
-                Отмена
+                {t("common.cancel")}
               </button>
               <button type="submit" className="btn btn-primary rounded-xl" disabled={saving}>
-                {saving ? "Сохраняем..." : editingId ? "Сохранить" : "Создать"}
+                {saving ? t("admin.ads.form.saving") : editingId ? t("common.save") : t("admin.ads.form.create")}
               </button>
             </div>
           </form>

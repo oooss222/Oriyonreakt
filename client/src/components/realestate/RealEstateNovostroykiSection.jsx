@@ -2,12 +2,16 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { Building2, ArrowRight } from "lucide-react";
 import { buildRealEstateCategoryUrl } from "../../lib/realEstate";
+import { useI18n } from "../../i18n";
 
 export default function RealEstateNovostroykiSection({
   city = "Душанбе",
   listingCount = 0,
   developments = [],
 }) {
+  const { t, lang } = useI18n();
+  const numberLocale =
+    lang === "en" ? "en-US" : lang === "tg" ? "tg-TJ" : "ru-RU";
   const listingsUrl = buildRealEstateCategoryUrl(city, "Новостройки");
 
   return (
@@ -19,18 +23,22 @@ export default function RealEstateNovostroykiSection({
               <Building2 size={20} />
             </span>
             <div>
-              <h2 className="text-lg font-bold text-slate-900">Новостройки</h2>
+              <h2 className="text-lg font-bold text-slate-900">{t("realestate.novostroyki.title")}</h2>
               <p className="text-sm text-slate-500">
-                Отдельный раздел — квартиры от застройщиков и ЖК в {city}
+                {t("realestate.novostroyki.subtitle", { city })}
               </p>
             </div>
           </div>
 
           {listingCount > 0 && (
             <p className="text-sm text-slate-600 mt-1">
-              {listingCount.toLocaleString("ru-RU")} объявлений в каталоге
+              {t("realestate.novostroyki.countInCatalog", {
+                count: listingCount.toLocaleString(numberLocale),
+              })}
               {developments.length > 0 &&
-                ` · ${developments.length} жилых комплексов`}
+                t("realestate.novostroyki.developmentsSuffix", {
+                  count: developments.length,
+                })}
             </p>
           )}
         </div>
@@ -39,7 +47,7 @@ export default function RealEstateNovostroykiSection({
           to={listingsUrl}
           className="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-xl bg-sun text-white text-sm font-semibold hover:bg-sun-600 transition shrink-0"
         >
-          Смотреть новостройки
+          {t("realestate.novostroyki.viewAll")}
           <ArrowRight size={16} />
         </Link>
       </div>

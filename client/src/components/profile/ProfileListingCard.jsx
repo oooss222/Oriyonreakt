@@ -124,7 +124,7 @@ export default React.memo(function ProfileListingCard({
         <div className={`relative overflow-hidden ${inactive ? "grayscale-[40%]" : ""}`}>
           <img
             src={imgUrl}
-            alt={ad.title || "Объявление"}
+            alt={ad.title || t("listing.title")}
             className={[
               "w-full bg-slate-100 object-cover transition-transform duration-500 group-hover:scale-[1.03]",
               compact ? "h-36" : "h-40 sm:h-44",
@@ -151,7 +151,7 @@ export default React.memo(function ProfileListingCard({
 
         <div className="space-y-1.5 p-3">
           <h3 className="line-clamp-2 text-sm font-semibold leading-snug text-slate-900 transition group-hover:text-sun">
-            {ad.title || "Без названия"}
+            {ad.title || t("listing.noTitle")}
           </h3>
 
           <div className="flex items-center justify-between gap-2">

@@ -21,7 +21,7 @@ export default function ProfileHeader({
   onLogout,
 }) {
   const { t } = useI18n();
-  const completion = calculateProfileCompletion(me, emailStatus);
+  const completion = calculateProfileCompletion(me, emailStatus, t);
   const userId = me?.id || me?._id;
   const initials = getUserInitials(me?.name);
   const showRole = isStaffRole(role);

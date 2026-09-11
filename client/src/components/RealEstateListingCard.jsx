@@ -1,28 +1,38 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import ListingCardMedia from "./ListingCardMedia";
+import { getListingCardLinkProps } from "../lib/listingCardNav";
 import { enrichRealEstateListing, buildRealEstateCardDisplay } from "../lib/realEstate";
 import RealEstateDailyFeatures from "./realestate/RealEstateDailyFeatures";
 import RealEstateRentFeatures from "./realestate/RealEstateRentFeatures";
 import { useListingViewed } from "../lib/viewedListings";
 import { getPromotionCardClass } from "../lib/promotionStyles";
 import { MapPin, Maximize2 } from "lucide-react";
-import { formatPrice, formatListingTimeAgo } from "../lib/format";
+import { formatPrice } from "../lib/format";
+import { formatListingTimeAgo, formatNightsLabel } from "../i18n/helpers";
 import { getListingImages } from "../lib/media";
+import { useI18n } from "../i18n";
 
-export default function RealEstateListingCard({
+function RealEstateListingCard({
   item,
   variant = "grid",
   nights = 0,
   onFav,
 }) {
-  const nav = useNavigate();
+  const { t, lang } = useI18n();
+  const numberLocale =
+    lang === "en" ? "en-US" : lang === "tg" ? "tg-TJ" : "ru-RU";
   const listing = enrichRealEstateListing(item);
   const id = listing.id || listing._id;
   const summary = listing.realEstateSummary || {};
   const cardCopy = buildRealEstateCardDisplay(listing);
   const viewed = useListingViewed(id);
   const isHorizontal = variant === "horizontal";
+  // summary.deal comes from getSpecValue(specs, "Тип сделки") / item.reDealType,
+  // which stores the Russian display label itself (DEAL_TYPES has no separate
+  // stable code — value === label there too). Comparing against the label is
+  // fragile but changing it would mean reworking the real estate data model,
+  // which is out of scope here.
   const isDaily = summary.deal === "Посуточно";
   const isRent = summary.deal === "Снять";
   const nightlyPrice = Number(String(listing.price || "").replace(/[^\d]/g, ""));
@@ -32,34 +42,23 @@ export default function RealEstateListingCard({
       : null;
   const locationLabel = summary.district
     ? summary.district
-    : listing.location || "Душанбе";
+    : listing.location || t("location.dushanbe");
   const photoCount = getListingImages(listing).length;
-
-  const openAd = () => {
-    if (!id) return;
-    sessionStorage.setItem("ad_preview", JSON.stringify(listing));
-    nav(`/ad/${id}`);
-  };
+  const linkProps = getListingCardLinkProps(listing);
 
   const stayPriceNote =
     totalStayPrice &&
-    `${totalStayPrice.toLocaleString("ru-RU")} с. за ${nights} ${
-      nights === 1 ? "ночь" : nights < 5 ? "ночи" : "ночей"
-    }`;
+    t("realestate.card.stayTotal", {
+      price: totalStayPrice.toLocaleString(numberLocale),
+      currency: t("price.currency"),
+      nights: formatNightsLabel(nights, t),
+    });
 
   if (isHorizontal) {
     return (
-      <article
-        role="link"
-        tabIndex={0}
-        onClick={openAd}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            openAd();
-          }
-        }}
-        className={`group relative flex cursor-pointer overflow-hidden rounded-2xl border bg-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-sun/40 ${getPromotionCardClass(
+      <Link
+        {...linkProps}
+        className={`group relative flex overflow-hidden rounded-2xl border bg-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-sun/40 ${getPromotionCardClass(
           { vip: listing.vip, top: listing.top }
         )} flex-row p-2.5 gap-3`}
       >
@@ -79,10 +78,10 @@ export default function RealEstateListingCard({
           <div className="flex items-start justify-between gap-2">
             <div>
               <div className="listing-card__price text-base">
-                {formatPrice(listing.price, { currency: "с." })}
+                {formatPrice(listing.price, { currency: t("price.currency") })}
                 {isDaily && (
                   <span className="ml-1 text-sm font-semibold text-slate-500">
-                    / сут.
+                    {t("realestate.card.perDay")}
                   </span>
                 )}
               </div>
@@ -117,10 +116,10 @@ export default function RealEstateListingCard({
           <div className="mt-auto pt-2 flex items-end justify-end gap-2">
             <div className="listing-card__meta">
               <time className="listing-card__time">
-                {formatListingTimeAgo(listing)}
+                {formatListingTimeAgo(listing, t)}
               </time>
               {viewed ? (
-                <span className="listing-card__viewed">Просмотрено</span>
+                <span className="listing-card__viewed">{t("listing.viewed")}</span>
               ) : null}
             </div>
           </div>
@@ -129,22 +128,14 @@ export default function RealEstateListingCard({
         <div className="hidden sm:flex items-center pr-2 text-slate-300 group-hover:text-sun">
           <Maximize2 size={18} />
         </div>
-      </article>
+      </Link>
     );
   }
 
   return (
-    <article
-      role="link"
-      tabIndex={0}
-      onClick={openAd}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          openAd();
-        }
-      }}
-      className={`re-listing-card group cursor-pointer focus:outline-none focus:ring-2 focus:ring-sun/40 ${viewed ? "listing-card--viewed" : ""} ${getPromotionCardClass(
+    <Link
+      {...linkProps}
+      className={`re-listing-card group focus:outline-none focus:ring-2 focus:ring-sun/40 ${viewed ? "listing-card--viewed" : ""} ${getPromotionCardClass(
         { vip: listing.vip, top: listing.top }
       )}`}
     >
@@ -171,7 +162,12 @@ export default function RealEstateListingCard({
         {isDaily ? (
           <>
             <p className="re-listing-card__specs">
-              {[summary.guests && `${summary.guests} гост.`, summary.rooms && `${summary.rooms} комн.`]
+              {[
+                summary.guests &&
+                  t("realestate.card.guestsAbbr", { count: summary.guests }),
+                summary.rooms &&
+                  t("realestate.card.roomsAbbr", { count: summary.rooms }),
+              ]
                 .filter(Boolean)
                 .join(" · ")}
             </p>
@@ -185,15 +181,15 @@ export default function RealEstateListingCard({
 
         <div className="re-listing-card__price-row">
           <strong className="re-listing-card__price">
-            {formatPrice(listing.price, { currency: "с." })}
+            {formatPrice(listing.price, { currency: t("price.currency") })}
             {isDaily ? (
               <span className="ml-1 text-xs font-semibold text-ink-400">
-                / сут.
+                {t("realestate.card.perDay")}
               </span>
             ) : null}
             {isRent ? (
               <span className="ml-1 text-xs font-semibold text-ink-400">
-                / мес.
+                {t("realestate.card.perMonth")}
               </span>
             ) : null}
           </strong>
@@ -208,6 +204,11 @@ export default function RealEstateListingCard({
           <p className="re-listing-card__specs">{stayPriceNote}</p>
         ) : null}
       </div>
-    </article>
+    </Link>
   );
 }
+
+// Grids render dozens of these; without memo a filter or sort change
+// re-renders every card even though its listing has not changed (matches
+// the same optimization ListingCard.jsx already had).
+export default React.memo(RealEstateListingCard);

@@ -55,7 +55,6 @@ import {
 } from "../lib/sellerContact";
 import { compressImageFiles, moveArrayItem } from "../lib/imageCompress";
 import { getListingFormErrorMessage } from "../lib/listingFormErrors";
-import { getListingLimit } from "../lib/businessAccount";
 import ListingGuidedForm, {
   isGuidedWizardCategory,
 } from "./listing/ListingGuidedForm";
@@ -99,7 +98,7 @@ export default function ListingForm({
   const [form, setForm] = React.useState({
     title: "",
     price: "",
-    location: startCat === REAL_ESTATE_CAT ? "Душанбе" : "Душанбе",
+    location: "Душанбе",
     cat: startCat,
     subcategory: CATS[startCat]?.subs?.[0] || "",
     description: "",
@@ -371,7 +370,10 @@ export default function ListingForm({
     setCompressing(true);
 
     try {
-      const compressed = await compressImageFiles(arr);
+      const { files: compressed, unsupported } = await compressImageFiles(arr);
+      const heicWarning = unsupported.length
+        ? t("listing.photosHeicUnsupported")
+        : "";
 
       // Create mode + auth: upload early so drafts sync photos across devices
       if (!isEdit && token && compressed.length) {
@@ -391,6 +393,7 @@ export default function ListingForm({
           setExistingImages((current) =>
             [...current, ...urls].slice(0, photoLimit)
           );
+          setErr(heicWarning);
           return;
         } catch (uploadError) {
           // Keep photos locally if upload fails; user can retry on submit
@@ -414,6 +417,7 @@ export default function ListingForm({
       setFiles((current) =>
         [...current, ...compressed].slice(0, photoLimit - existingImages.length)
       );
+      setErr(heicWarning);
     } catch (error) {
       setErr(
         getListingFormErrorMessage(
@@ -461,13 +465,6 @@ export default function ListingForm({
   };
 
   const makeCoverNew = (index) => {
-    if (existingImages.length > 0) {
-      // Move new file into existing slot conceptually: put as first new, but cover is first existing.
-      // Prefer promoting by moving existing empty — for new-only lists, move to 0.
-      setFiles((arr) => moveArrayItem(arr, index, 0));
-      setPreviews((arr) => moveArrayItem(arr, index, 0));
-      return;
-    }
     setFiles((arr) => moveArrayItem(arr, index, 0));
     setPreviews((arr) => moveArrayItem(arr, index, 0));
   };
@@ -616,13 +613,6 @@ export default function ListingForm({
       setErr(t("listing.phoneRequired"));
       setInvalidField("phone");
       return;
-    }
-
-    const storedUser = readStoredUser();
-    const limit = getListingLimit(storedUser);
-    // Soft client check — server enforces too
-    if (!isEdit && limit != null) {
-      // skip pre-count without API; server returns clear error
     }
 
     const validation = validateListingForm({

@@ -2,6 +2,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Building2, MessageCircle, ChevronRight } from "lucide-react";
 import { openBusinessSupportChat } from "../lib/openBusinessSupportChat";
+import { useI18n } from "../i18n";
 
 const TOKEN_KEY = "auth_token";
 const USER_KEY = "auth_user";
@@ -12,6 +13,7 @@ export default function BusinessPromoBanner({
   sellerType: sellerTypeProp,
 }) {
   const nav = useNavigate();
+  const { t } = useI18n();
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState("");
   const [sellerType, setSellerType] = React.useState(sellerTypeProp || "private");
@@ -42,7 +44,7 @@ export default function BusinessPromoBanner({
       const token = localStorage.getItem(TOKEN_KEY) || "";
       await openBusinessSupportChat({ nav, token });
     } catch (e) {
-      setError(e.message || "Не удалось открыть чат");
+      setError(e.message || t("business.promoBanner.chatError"));
     } finally {
       setLoading(false);
     }
@@ -69,11 +71,10 @@ export default function BusinessPromoBanner({
               Oriyon Premium
             </div>
             <h3 className="font-display font-bold text-lg text-ink mt-0.5">
-              Продавайте с премиум-аккаунтом
+              {t("business.promoBanner.title")}
             </h3>
             <p className="text-sm text-ink-400 mt-1 leading-relaxed">
-              Логотип, Instagram, адреса магазинов и автообновление дат
-              объявлений. Напишите администратору — обсудите подключение в чате.
+              {t("business.promoBanner.description")}
             </p>
             {error && (
               <p className="text-xs text-red-600 mt-2">{error}</p>
@@ -87,7 +88,7 @@ export default function BusinessPromoBanner({
             className="btn btn-primary shrink-0 w-full sm:w-auto justify-center py-3 px-5 disabled:opacity-60"
           >
             <MessageCircle size={18} />
-            {loading ? "Открываем чат…" : "Написать администратору"}
+            {loading ? t("business.promoBanner.opening") : t("business.promoBanner.cta")}
             {!loading && <ChevronRight size={18} className="opacity-80" />}
           </button>
         </div>

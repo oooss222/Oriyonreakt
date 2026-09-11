@@ -2,10 +2,13 @@ import React from "react";
 import { BarChart3 } from "lucide-react";
 import { api } from "../../lib/api";
 import { CAT_LABELS } from "../../data/categories";
+import { useI18n } from "../../i18n";
 
-function BarChart({ items, labelKey, valueKey, emptyLabel = "Нет данных" }) {
+function BarChart({ items, labelKey, valueKey, emptyLabel }) {
+  const { t } = useI18n();
+
   if (!items?.length) {
-    return <div className="text-sm text-slate-500">{emptyLabel}</div>;
+    return <div className="text-sm text-slate-500">{emptyLabel || t("admin.analytics.noData")}</div>;
   }
 
   const max = Math.max(...items.map((item) => Number(item[valueKey] || 0)), 1);
@@ -36,6 +39,7 @@ function BarChart({ items, labelKey, valueKey, emptyLabel = "Нет данных
 }
 
 export default function AdminAnalyticsSection({ token }) {
+  const { t } = useI18n();
   const [days, setDays] = React.useState(30);
   const [data, setData] = React.useState(null);
   const [loading, setLoading] = React.useState(true);
@@ -53,7 +57,7 @@ export default function AdminAnalyticsSection({ token }) {
         if (alive) setData(result);
       })
       .catch((e) => {
-        if (alive) setError(e.message || "Не удалось загрузить аналитику");
+        if (alive) setError(e.message || t("admin.analytics.loadError"));
       })
       .finally(() => {
         if (alive) setLoading(false);
@@ -96,11 +100,11 @@ export default function AdminAnalyticsSection({ token }) {
         <div>
           <div className="inline-flex items-center gap-2 text-sm text-indigo-700 bg-indigo-50 border border-indigo-100 rounded-full px-3 py-1 mb-2">
             <BarChart3 className="w-4 h-4" />
-            Аналитика
+            {t("admin.analytics.badge")}
           </div>
-          <h2 className="text-xl font-bold">Графики и активность</h2>
+          <h2 className="text-xl font-bold">{t("admin.analytics.title")}</h2>
           <p className="text-sm text-slate-500 mt-1">
-            Регистрации, категории объявлений и работа модераторов.
+            {t("admin.analytics.subtitle")}
           </p>
         </div>
 
@@ -109,50 +113,50 @@ export default function AdminAnalyticsSection({ token }) {
           onChange={(e) => setDays(Number(e.target.value))}
           className="h-11 rounded-xl border px-3 outline-none focus:ring-2 focus:ring-sun/40"
         >
-          <option value={7}>7 дней</option>
-          <option value={14}>14 дней</option>
-          <option value={30}>30 дней</option>
-          <option value={90}>90 дней</option>
+          <option value={7}>{t("admin.analytics.days7")}</option>
+          <option value={14}>{t("admin.analytics.days14")}</option>
+          <option value={30}>{t("admin.analytics.days30")}</option>
+          <option value={90}>{t("admin.analytics.days90")}</option>
         </select>
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
         <div className="rounded-2xl border p-4 space-y-4">
-          <h3 className="font-semibold">Регистрации по дням</h3>
+          <h3 className="font-semibold">{t("admin.analytics.registrationsByDay")}</h3>
           <BarChart
             items={registrationItems}
             labelKey="label"
             valueKey="count"
-            emptyLabel="За период регистраций нет"
+            emptyLabel={t("admin.analytics.noRegistrations")}
           />
         </div>
 
         <div className="rounded-2xl border p-4 space-y-4">
-          <h3 className="font-semibold">Опубликованные объявления по категориям</h3>
+          <h3 className="font-semibold">{t("admin.analytics.listingsByCategory")}</h3>
           <BarChart
             items={categoryItems}
             labelKey="label"
             valueKey="count"
-            emptyLabel="Опубликованных объявлений нет"
+            emptyLabel={t("admin.analytics.noListings")}
           />
         </div>
       </div>
 
       <div className="rounded-2xl border p-4 space-y-4">
-        <h3 className="font-semibold">Активность модераторов и админов</h3>
+        <h3 className="font-semibold">{t("admin.analytics.moderatorActivity")}</h3>
 
         {(data?.moderatorActivity || []).length === 0 ? (
-          <div className="text-sm text-slate-500">Действий за период нет.</div>
+          <div className="text-sm text-slate-500">{t("admin.analytics.noActions")}</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm border-collapse">
               <thead>
                 <tr className="border-b text-left text-slate-500">
-                  <th className="py-2 px-2">Сотрудник</th>
-                  <th className="py-2 px-2">Одобрено</th>
-                  <th className="py-2 px-2">Отклонено</th>
-                  <th className="py-2 px-2">Жалобы</th>
-                  <th className="py-2 px-2">Всего</th>
+                  <th className="py-2 px-2">{t("admin.analytics.col.staff")}</th>
+                  <th className="py-2 px-2">{t("admin.analytics.col.approved")}</th>
+                  <th className="py-2 px-2">{t("admin.analytics.col.rejected")}</th>
+                  <th className="py-2 px-2">{t("admin.analytics.col.reports")}</th>
+                  <th className="py-2 px-2">{t("admin.analytics.col.total")}</th>
                 </tr>
               </thead>
               <tbody>

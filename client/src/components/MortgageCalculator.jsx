@@ -1,13 +1,16 @@
 import React from "react";
 import { Calculator } from "lucide-react";
 import { formatPriceInput, getPriceDigits } from "../data/specOptions";
+import { useI18n } from "../i18n";
 
-function formatMoney(value) {
+function formatMoney(value, numberLocale) {
   if (!Number.isFinite(value)) return "—";
-  return `${Math.round(value).toLocaleString("ru-RU")} с.`;
+  return `${Math.round(value).toLocaleString(numberLocale)} с.`;
 }
 
 export default function MortgageCalculator({ price = "" }) {
+  const { t, lang } = useI18n();
+  const numberLocale = lang === "en" ? "en-US" : lang === "tg" ? "tg-TJ" : "ru-RU";
   const initialPrice = getPriceDigits(price) || "";
   const [amount, setAmount] = React.useState(initialPrice);
   const [downPct, setDownPct] = React.useState("20");
@@ -51,16 +54,16 @@ export default function MortgageCalculator({ price = "" }) {
     <section className="card p-5 md:p-6 rounded-3xl space-y-4">
       <div className="flex items-center gap-2">
         <Calculator size={18} className="text-sun" />
-        <h2 className="text-lg font-bold text-slate-900">Калькулятор ипотеки</h2>
+        <h2 className="text-lg font-bold text-slate-900">{t("realestate.mortgage.title")}</h2>
       </div>
 
       <p className="text-sm text-slate-500">
-        Примерный расчёт ежемесячного платежа. Точные условия уточняйте в банке.
+        {t("realestate.mortgage.hint")}
       </p>
 
       <div className="grid sm:grid-cols-2 gap-3">
         <label className="block text-sm">
-          <span className="font-medium text-slate-700">Стоимость</span>
+          <span className="font-medium text-slate-700">{t("realestate.mortgage.priceLabel")}</span>
           <input
             value={amount ? formatPriceInput(amount) : ""}
             onChange={(e) => setAmount(getPriceDigits(e.target.value))}
@@ -70,7 +73,7 @@ export default function MortgageCalculator({ price = "" }) {
         </label>
 
         <label className="block text-sm">
-          <span className="font-medium text-slate-700">Первый взнос, %</span>
+          <span className="font-medium text-slate-700">{t("realestate.mortgage.downPaymentLabel")}</span>
           <input
             type="number"
             min="0"
@@ -82,7 +85,7 @@ export default function MortgageCalculator({ price = "" }) {
         </label>
 
         <label className="block text-sm">
-          <span className="font-medium text-slate-700">Срок, лет</span>
+          <span className="font-medium text-slate-700">{t("realestate.mortgage.termLabel")}</span>
           <input
             type="number"
             min="1"
@@ -94,7 +97,7 @@ export default function MortgageCalculator({ price = "" }) {
         </label>
 
         <label className="block text-sm">
-          <span className="font-medium text-slate-700">Ставка, % годовых</span>
+          <span className="font-medium text-slate-700">{t("realestate.mortgage.rateLabel")}</span>
           <input
             type="number"
             min="0"
@@ -109,22 +112,22 @@ export default function MortgageCalculator({ price = "" }) {
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <div className="rounded-2xl bg-sun-50 border border-sun/20 p-4">
-          <div className="text-xs text-sun-700 font-semibold">Платёж / мес</div>
+          <div className="text-xs text-sun-700 font-semibold">{t("realestate.mortgage.monthlyLabel")}</div>
           <div className="text-xl font-extrabold text-sun-900 mt-1">
-            {formatMoney(result.monthly)}
+            {formatMoney(result.monthly, numberLocale)}
           </div>
         </div>
         <div className="rounded-2xl border p-4">
-          <div className="text-xs text-slate-500 font-semibold">Кредит</div>
-          <div className="text-lg font-bold mt-1">{formatMoney(result.loan)}</div>
+          <div className="text-xs text-slate-500 font-semibold">{t("realestate.mortgage.loanLabel")}</div>
+          <div className="text-lg font-bold mt-1">{formatMoney(result.loan, numberLocale)}</div>
         </div>
         <div className="rounded-2xl border p-4">
-          <div className="text-xs text-slate-500 font-semibold">Первый взнос</div>
-          <div className="text-lg font-bold mt-1">{formatMoney(result.downPayment)}</div>
+          <div className="text-xs text-slate-500 font-semibold">{t("realestate.mortgage.downPaymentAmountLabel")}</div>
+          <div className="text-lg font-bold mt-1">{formatMoney(result.downPayment, numberLocale)}</div>
         </div>
         <div className="rounded-2xl border p-4">
-          <div className="text-xs text-slate-500 font-semibold">Переплата</div>
-          <div className="text-lg font-bold mt-1">{formatMoney(result.overpay)}</div>
+          <div className="text-xs text-slate-500 font-semibold">{t("realestate.mortgage.overpayLabel")}</div>
+          <div className="text-lg font-bold mt-1">{formatMoney(result.overpay, numberLocale)}</div>
         </div>
       </div>
     </section>

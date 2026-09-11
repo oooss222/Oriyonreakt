@@ -1,42 +1,45 @@
 import React from "react";
 import { ScrollText, ChevronLeft, ChevronRight } from "lucide-react";
 import { api } from "../../lib/api";
-import { AUDIT_ACTION_LABELS } from "../../lib/adminUtils";
+import { getAuditActionLabels } from "../../lib/adminUtils";
+import { useI18n } from "../../i18n";
 
 const PAGE_SIZE = 50;
 
-const ACTION_FILTER_OPTIONS = [
-  { value: "", label: "Все действия" },
-  ...Object.entries(AUDIT_ACTION_LABELS).map(([value, label]) => ({
-    value,
-    label,
-  })),
-];
-
-function formatDetails(item) {
+function formatDetails(item, t, numberLocale) {
   const details = item.details || {};
   const parts = [];
 
   if (details.email) parts.push(details.email);
-  if (details.title) parts.push(`«${details.title}»`);
-  if (details.status) parts.push(`статус: ${details.status}`);
-  if (details.role) parts.push(`роль: ${details.role}`);
+  if (details.title) parts.push(t("admin.audit.detailTitle", { title: details.title }));
+  if (details.status) parts.push(t("admin.audit.detailStatus", { status: details.status }));
+  if (details.role) parts.push(t("admin.audit.detailRole", { role: details.role }));
   if (details.amount !== undefined) {
-    parts.push(`${Number(details.amount).toLocaleString("ru-RU")} TJS`);
+    parts.push(`${Number(details.amount).toLocaleString(numberLocale)} TJS`);
   }
   if (details.reason) parts.push(details.reason);
-  if (details.ownerEmail) parts.push(`продавец: ${details.ownerEmail}`);
+  if (details.ownerEmail) parts.push(t("admin.audit.detailSeller", { email: details.ownerEmail }));
 
   return parts.join(" · ") || "—";
 }
 
 export default function AdminAuditSection({ token }) {
+  const { t, lang } = useI18n();
+  const numberLocale = lang === "en" ? "en-US" : lang === "tg" ? "tg-TJ" : "ru-RU";
   const [items, setItems] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [refreshing, setRefreshing] = React.useState(false);
   const [error, setError] = React.useState("");
   const [actionFilter, setActionFilter] = React.useState("");
   const [page, setPage] = React.useState(1);
+
+  const ACTION_FILTER_OPTIONS = [
+    { value: "", label: t("admin.audit.allActions") },
+    ...Object.entries(getAuditActionLabels()).map(([value, label]) => ({
+      value,
+      label,
+    })),
+  ];
 
   const load = React.useCallback(async () => {
     try {
@@ -51,7 +54,7 @@ export default function AdminAuditSection({ token }) {
 
       setItems(Array.isArray(data) ? data : []);
     } catch (e) {
-      setError(e.message || "Не удалось загрузить журнал");
+      setError(e.message || t("admin.audit.loadError"));
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -80,9 +83,9 @@ export default function AdminAuditSection({ token }) {
             <ScrollText className="w-4 h-4" />
             Audit log
           </div>
-          <h2 className="text-xl font-bold">Журнал действий</h2>
+          <h2 className="text-xl font-bold">{t("admin.audit.title")}</h2>
           <p className="text-sm text-slate-500 mt-1">
-            Блокировки, смена ролей, удаления объявлений и решения по жалобам.
+            {t("admin.audit.subtitle")}
           </p>
         </div>
 
@@ -92,7 +95,7 @@ export default function AdminAuditSection({ token }) {
           disabled={refreshing}
           className="px-4 py-2 rounded-xl border hover:bg-slate-50 disabled:opacity-60"
         >
-          {refreshing ? "Обновляем..." : "Обновить"}
+          {refreshing ? t("admin.common.refreshing") : t("admin.common.refresh")}
         </button>
       </div>
 
@@ -123,7 +126,7 @@ export default function AdminAuditSection({ token }) {
             className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border disabled:opacity-40"
           >
             <ChevronLeft size={16} />
-            Назад
+            {t("admin.pagination.back")}
           </button>
           <span>{page}</span>
           <button
@@ -132,7 +135,7 @@ export default function AdminAuditSection({ token }) {
             onClick={() => setPage((p) => p + 1)}
             className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border disabled:opacity-40"
           >
-            Вперёд
+            {t("admin.pagination.next")}
             <ChevronRight size={16} />
           </button>
         </div>
@@ -140,17 +143,17 @@ export default function AdminAuditSection({ token }) {
 
       {items.length === 0 ? (
         <div className="rounded-2xl border bg-slate-50 p-8 text-center text-slate-500">
-          Записей пока нет.
+          {t("admin.audit.empty")}
         </div>
       ) : (
         <div className="overflow-x-auto rounded-2xl border">
           <table className="w-full text-sm border-collapse bg-white">
             <thead className="bg-slate-50">
               <tr className="border-b text-left text-slate-500">
-                <th className="py-3 px-3">Когда</th>
-                <th className="py-3 px-3">Кто</th>
-                <th className="py-3 px-3">Действие</th>
-                <th className="py-3 px-3">Детали</th>
+                <th className="py-3 px-3">{t("admin.finance.col.when")}</th>
+                <th className="py-3 px-3">{t("admin.finance.col.who")}</th>
+                <th className="py-3 px-3">{t("admin.finance.col.action")}</th>
+                <th className="py-3 px-3">{t("admin.finance.col.details")}</th>
               </tr>
             </thead>
             <tbody>
@@ -166,10 +169,10 @@ export default function AdminAuditSection({ token }) {
                     <div className="text-xs text-slate-500">{item.actorEmail}</div>
                   </td>
                   <td className="py-3 px-3">
-                    {AUDIT_ACTION_LABELS[item.action] || item.action}
+                    {getAuditActionLabels()[item.action] || item.action}
                   </td>
                   <td className="py-3 px-3 text-slate-600">
-                    {formatDetails(item)}
+                    {formatDetails(item, t, numberLocale)}
                   </td>
                 </tr>
               ))}

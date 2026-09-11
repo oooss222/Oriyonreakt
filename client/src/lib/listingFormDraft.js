@@ -2,6 +2,18 @@ import { api } from "./api";
 
 const DRAFT_STORAGE_KEY = "oriyon_listing_draft_v1";
 const DRAFT_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
+const LANG_STORAGE_KEY = "oriyon_lang";
+
+function getActiveLocale() {
+  try {
+    const lang = String(localStorage.getItem(LANG_STORAGE_KEY) || "").toLowerCase();
+    if (lang === "en") return "en-US";
+    if (lang === "tg") return "tg-TJ";
+  } catch {
+    // ignore
+  }
+  return "ru-RU";
+}
 
 function isBrowser() {
   return typeof window !== "undefined" && typeof localStorage !== "undefined";
@@ -90,7 +102,7 @@ export function formatDraftSavedAt(savedAt) {
   if (!savedAt) return "";
 
   try {
-    return new Date(savedAt).toLocaleString("ru-RU", {
+    return new Date(savedAt).toLocaleString(getActiveLocale(), {
       day: "numeric",
       month: "short",
       hour: "2-digit",

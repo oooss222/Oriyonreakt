@@ -4,8 +4,10 @@ import {
   DAILY_RULE_SPECS,
 } from "../../data/realEstate";
 import { getSpecValue } from "../../lib/realEstate";
+import { useI18n } from "../../i18n";
 
 export default function RealEstateDailyFeatures({ specs = [], compact = false }) {
+  const { t } = useI18n();
   const amenities = parseMultiSpecValue(getSpecValue(specs, "Удобства"));
   const rules = DAILY_RULE_SPECS.map((name) => ({
     name,
@@ -17,7 +19,7 @@ export default function RealEstateDailyFeatures({ specs = [], compact = false })
   return (
     <section className={compact ? "space-y-2" : "space-y-3"}>
       {!compact ? (
-        <h3 className="text-sm font-bold text-ink">Удобства и правила</h3>
+        <h3 className="text-sm font-bold text-ink">{t("realestate.filters.amenitiesRulesTitle")}</h3>
       ) : null}
 
       {amenities.length > 0 ? (

@@ -82,10 +82,26 @@ export function buildCompareShareUrl(cat, entries = [], origin = "") {
   return `${base}${path}?share=${encodeURIComponent(token)}`;
 }
 
+const LANG_STORAGE_KEY = "oriyon_lang";
+const SHARE_TEXT_LABELS = {
+  ru: "Сравнение объявлений на Oriyon.store",
+  en: "Listing comparison on Oriyon.store",
+  tg: "Муқоисаи эълонҳо дар Oriyon.store",
+};
+
+function defaultShareText() {
+  try {
+    const lang = String(localStorage.getItem(LANG_STORAGE_KEY) || "").toLowerCase();
+    return SHARE_TEXT_LABELS[lang] || SHARE_TEXT_LABELS.ru;
+  } catch {
+    return SHARE_TEXT_LABELS.ru;
+  }
+}
+
 export function buildTelegramShareUrl(url, text = "") {
   const params = new URLSearchParams({
     url,
-    text: text || "Сравнение объявлений на Oriyon.store",
+    text: text || defaultShareText(),
   });
   return `https://t.me/share/url?${params.toString()}`;
 }

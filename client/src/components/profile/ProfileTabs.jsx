@@ -12,10 +12,15 @@ import {
 } from "lucide-react";
 import { useI18n } from "../../i18n";
 
-function TabButton({ active, onClick, children, icon: Icon }) {
+function TabButton({ tabKey, active, onClick, children, icon: Icon }) {
   return (
     <button
       type="button"
+      role="tab"
+      id={`profile-tab-${tabKey}`}
+      aria-selected={active}
+      aria-controls={`profile-tabpanel-${tabKey}`}
+      tabIndex={active ? 0 : -1}
       onClick={onClick}
       className={`inline-flex shrink-0 items-center gap-2 px-3 sm:px-4 py-3 text-sm font-semibold border-b-2 transition snap-start ${
         active
@@ -71,21 +76,22 @@ export default function ProfileTabs({
         role="tablist"
         className="flex gap-0.5 overflow-x-auto scrollbar-hide snap-x snap-mandatory border-b border-slate-100"
       >
-        <TabButton active={tab === "my"} onClick={() => setTab("my")} icon={LayoutGrid}>
+        <TabButton tabKey="my" active={tab === "my"} onClick={() => setTab("my")} icon={LayoutGrid}>
           {t("profile.myListings")}
           <CountBadge count={myCount} active={tab === "my"} />
         </TabButton>
 
-        <TabButton active={tab === "fav"} onClick={() => setTab("fav")} icon={FolderHeart}>
+        <TabButton tabKey="fav" active={tab === "fav"} onClick={() => setTab("fav")} icon={FolderHeart}>
           {t("profile.favorites")}
           <CountBadge count={favCount} active={tab === "fav"} />
         </TabButton>
 
-        <TabButton active={tab === "searches"} onClick={() => setTab("searches")} icon={Bookmark}>
+        <TabButton tabKey="searches" active={tab === "searches"} onClick={() => setTab("searches")} icon={Bookmark}>
           {t("profile.searches")}
         </TabButton>
 
         <TabButton
+          tabKey="analytics"
           active={tab === "analytics"}
           onClick={() => setTab("analytics")}
           icon={BarChart3}
@@ -93,12 +99,13 @@ export default function ProfileTabs({
           {t("profile.analytics")}
         </TabButton>
 
-        <TabButton active={tab === "profile"} onClick={() => setTab("profile")} icon={UserIcon}>
+        <TabButton tabKey="profile" active={tab === "profile"} onClick={() => setTab("profile")} icon={UserIcon}>
           {t("profile.profile")}
         </TabButton>
 
         {canOpenModeration && (
           <TabButton
+            tabKey="moderation"
             active={tab === "moderation"}
             onClick={() => setTab("moderation")}
             icon={ClipboardCheck}

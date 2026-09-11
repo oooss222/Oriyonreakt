@@ -22,6 +22,8 @@ function PhotoTile({
   canMoveLeft,
   canMoveRight,
 }) {
+  const { t } = useI18n();
+
   return (
     <div className="relative group">
       <img
@@ -31,7 +33,7 @@ function PhotoTile({
       />
       {isCover ? (
         <span className="absolute left-2 bottom-2 rounded-md bg-ink/80 px-2 py-0.5 text-[10px] font-semibold text-white">
-          Обложка
+          {t("listing.coverBadge")}
         </span>
       ) : null}
 
@@ -42,7 +44,7 @@ function PhotoTile({
             disabled={!canMoveLeft}
             onClick={onMoveLeft}
             className="rounded-full bg-black/70 text-white p-1 disabled:opacity-30"
-            title="Влево"
+            title={t("listing.moveLeft")}
           >
             <ChevronLeft className="w-3.5 h-3.5" />
           </button>
@@ -51,7 +53,7 @@ function PhotoTile({
             disabled={!canMoveRight}
             onClick={onMoveRight}
             className="rounded-full bg-black/70 text-white p-1 disabled:opacity-30"
-            title="Вправо"
+            title={t("listing.moveRight")}
           >
             <ChevronRight className="w-3.5 h-3.5" />
           </button>
@@ -60,7 +62,7 @@ function PhotoTile({
               type="button"
               onClick={onMakeCover}
               className="rounded-full bg-black/70 text-white p-1"
-              title="Сделать обложкой"
+              title={t("listing.makeCover")}
             >
               <Star className="w-3.5 h-3.5" />
             </button>
@@ -70,7 +72,7 @@ function PhotoTile({
           type="button"
           onClick={onRemove}
           className="rounded-full bg-black/70 text-white p-1"
-          title="Удалить фото"
+          title={t("listing.removePhoto")}
         >
           <X className="w-4 h-4" />
         </button>
@@ -179,7 +181,7 @@ export default function ListingFormPhotosSection({
                     allowEmpty: true,
                     placeholder: "",
                   })}
-                  alt={`Фото ${index + 1}`}
+                  alt={t("listing.photoAltIndexed", { index: index + 1 })}
                   isCover={index === 0}
                   onRemove={() => onRemoveExisting?.(index)}
                   onMoveLeft={() => onMoveExisting?.(index, index - 1)}
@@ -194,7 +196,7 @@ export default function ListingFormPhotosSection({
                 <PhotoTile
                   key={`new-${index}`}
                   src={src}
-                  alt={`Новое фото ${index + 1}`}
+                  alt={t("listing.newPhotoAltIndexed", { index: index + 1 })}
                   isCover={existingImages.length === 0 && index === 0}
                   onRemove={() => onRemoveNew?.(index)}
                   onMoveLeft={() => onMoveNew?.(index, index - 1)}

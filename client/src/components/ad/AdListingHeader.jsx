@@ -1,6 +1,7 @@
 import React from "react";
 import { Calendar, Eye, MapPin } from "lucide-react";
 import { formatPublicId, formatViewsLabel } from "../../lib/format";
+import { useI18n } from "../../i18n";
 
 export default function AdListingHeader({
   title,
@@ -9,6 +10,8 @@ export default function AdListingHeader({
   published,
   views,
 }) {
+  const { t } = useI18n();
+
   return (
     <div className="space-y-3">
       {publicId && (
@@ -18,13 +21,13 @@ export default function AdListingHeader({
       )}
 
       <h1 className="text-2xl font-extrabold text-slate-900 leading-tight">
-        {title || "Без названия"}
+        {title || t("listing.noTitle")}
       </h1>
 
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-500">
         <span className="inline-flex items-center gap-1.5">
           <MapPin className="w-4 h-4 shrink-0" />
-          {location || "Душанбе"}
+          {location || t("location.dushanbe")}
         </span>
         {published && (
           <span className="inline-flex items-center gap-1.5">

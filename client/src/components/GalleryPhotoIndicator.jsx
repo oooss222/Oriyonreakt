@@ -1,4 +1,5 @@
 import React from "react";
+import { useI18n } from "../i18n";
 
 export default function GalleryPhotoIndicator({
   total,
@@ -8,6 +9,8 @@ export default function GalleryPhotoIndicator({
   interaction = "click",
   className = "",
 }) {
+  const { t } = useI18n();
+
   if (total <= 1) {
     return null;
   }
@@ -26,7 +29,7 @@ export default function GalleryPhotoIndicator({
           isCompact ? "gap-1" : "max-w-md gap-1.5"
         }`}
         role="tablist"
-        aria-label="Фото объявления"
+        aria-label={t("listing.photoAlt")}
       >
         {Array.from({ length: total }).map((_, index) => {
           const isActive = index === activeIndex;
@@ -42,7 +45,7 @@ export default function GalleryPhotoIndicator({
               type="button"
               role="tab"
               aria-selected={isActive}
-              aria-label={`Фото ${index + 1} из ${total}`}
+              aria-label={t("listing.photoCounter", { current: index + 1, total })}
               onClick={interaction === "click" ? selectPhoto : undefined}
               onMouseEnter={interaction === "hover" ? selectPhoto : undefined}
               className={`group relative min-w-0 flex-1 overflow-hidden rounded-full bg-white/35 backdrop-blur-sm transition-all duration-300 hover:bg-white/50 ${

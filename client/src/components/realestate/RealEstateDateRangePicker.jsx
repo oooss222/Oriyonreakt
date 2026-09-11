@@ -7,13 +7,18 @@ import {
   addMonths,
   buildMonthGrid,
   compareIso,
-  formatNightsLabel,
   formatShortDate,
   getDayRangeState,
   getInitialViewMonth,
   getMonthLabel,
   todayIso,
 } from "../../lib/dateRange";
+// formatNightsLabel comes from i18n/helpers (locale-aware) rather than the
+// hardcoded-Russian duplicate in lib/dateRange.js — see RealEstateListingCard.jsx
+// for the same fix pattern. WEEKDAYS/MONTHS/formatShortDate stay as-is: they live
+// in lib/dateRange.js, which is shared/out of scope for this pass.
+import { formatNightsLabel } from "../../i18n/helpers";
+import { useI18n } from "../../i18n";
 
 const FIELD_LABEL =
   "mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500";
@@ -93,6 +98,7 @@ function CalendarPanel({
   onPickDay,
   minIso,
 }) {
+  const { t } = useI18n();
   const rightMonth = addMonths(viewMonth.year, viewMonth.month, 1);
   const minMonth = getInitialViewMonth();
   const nights = countNights(checkIn, checkOut);
@@ -102,8 +108,8 @@ function CalendarPanel({
 
   const footerHint =
     checkIn && !checkOut
-      ? "Выберите дату выезда"
-      : formatNightsLabel(nights);
+      ? t("realestate.dateRange.selectCheckoutDate")
+      : formatNightsLabel(nights, t);
 
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-2xl ring-1 ring-black/5">
@@ -113,7 +119,7 @@ function CalendarPanel({
           disabled={!canGoPrev}
           onClick={() => onViewMonthChange(addMonths(viewMonth.year, viewMonth.month, -1))}
           className="absolute left-0 top-0 z-10 flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 text-slate-600 transition hover:bg-slate-50 disabled:opacity-40"
-          aria-label="Предыдущий месяц"
+          aria-label={t("realestate.dateRange.prevMonth")}
         >
           <ChevronLeft size={18} />
         </button>
@@ -122,7 +128,7 @@ function CalendarPanel({
           type="button"
           onClick={() => onViewMonthChange(addMonths(viewMonth.year, viewMonth.month, 1))}
           className="absolute right-0 top-0 z-10 flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 text-slate-600 transition hover:bg-slate-50"
-          aria-label="Следующий месяц"
+          aria-label={t("realestate.dateRange.nextMonth")}
         >
           <ChevronRight size={18} />
         </button>
@@ -148,7 +154,7 @@ function CalendarPanel({
       </div>
 
       <div className="mt-5 flex items-center justify-between gap-3 border-t border-dashed border-slate-200 pt-4 text-sm">
-        <span className="font-medium text-slate-600">Длительность проживания</span>
+        <span className="font-medium text-slate-600">{t("realestate.dateRange.stayDuration")}</span>
         <span
           className={`font-semibold ${
             checkIn && !checkOut ? "text-slate-500" : "text-sun-700"
@@ -214,6 +220,7 @@ function DateRangeTrigger({
   onToggle,
   className = "",
 }) {
+  const { t } = useI18n();
   return (
     <button
       ref={triggerRef}
@@ -230,27 +237,27 @@ function DateRangeTrigger({
       <span className="flex min-w-0 flex-1 divide-x divide-slate-200">
         <span className="flex min-w-0 flex-1 flex-col justify-center px-3 py-2">
           <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-400">
-            Заезд
+            {t("realestate.dateRange.checkIn")}
           </span>
           <span
             className={`truncate text-sm font-semibold leading-tight ${
               checkIn ? "text-slate-900" : "text-slate-400"
             }`}
           >
-            {checkIn ? formatShortDate(checkIn) : "Дата"}
+            {checkIn ? formatShortDate(checkIn) : t("realestate.dateRange.datePlaceholder")}
           </span>
         </span>
 
         <span className="flex min-w-0 flex-1 flex-col justify-center px-3 py-2">
           <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-400">
-            Выезд
+            {t("realestate.dateRange.checkOut")}
           </span>
           <span
             className={`truncate text-sm font-semibold leading-tight ${
               checkOut ? "text-slate-900" : "text-slate-400"
             }`}
           >
-            {checkOut ? formatShortDate(checkOut) : "Дата"}
+            {checkOut ? formatShortDate(checkOut) : t("realestate.dateRange.datePlaceholder")}
           </span>
         </span>
       </span>
@@ -271,8 +278,10 @@ export default function RealEstateDateRangePicker({
   onChange,
   variant = "default",
   showLabel = false,
-  label = "Даты проживания",
+  label,
 }) {
+  const { t } = useI18n();
+  const resolvedLabel = label ?? t("realestate.dateRange.stayDatesLabel");
   const [open, setOpen] = React.useState(false);
   const [viewMonth, setViewMonth] = React.useState(() => getInitialViewMonth(checkIn));
   const wrapperRef = React.useRef(null);
@@ -376,14 +385,14 @@ export default function RealEstateDateRangePicker({
             }`}
           >
             <span className="mb-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-400">
-              Заезд
+              {t("realestate.dateRange.checkIn")}
             </span>
             <span
               className={`truncate text-sm font-semibold leading-tight ${
                 checkIn ? "text-slate-900" : "text-slate-400"
               }`}
             >
-              {checkIn ? formatShortDate(checkIn) : "Выберите"}
+              {checkIn ? formatShortDate(checkIn) : t("realestate.dateRange.selectPlaceholder")}
             </span>
           </button>
 
@@ -396,14 +405,14 @@ export default function RealEstateDateRangePicker({
             }`}
           >
             <span className="mb-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-400">
-              Выезд
+              {t("realestate.dateRange.checkOut")}
             </span>
             <span
               className={`truncate text-sm font-semibold leading-tight ${
                 checkOut ? "text-slate-900" : "text-slate-400"
               }`}
             >
-              {checkOut ? formatShortDate(checkOut) : "Выберите"}
+              {checkOut ? formatShortDate(checkOut) : t("realestate.dateRange.selectPlaceholder")}
             </span>
           </button>
         </div>
@@ -416,7 +425,7 @@ export default function RealEstateDateRangePicker({
   return (
     <>
       <div ref={wrapperRef} className="relative min-w-0">
-        {showLabel && <span className={FIELD_LABEL}>{label}</span>}
+        {showLabel && <span className={FIELD_LABEL}>{resolvedLabel}</span>}
 
         <DateRangeTrigger
           triggerRef={triggerRef}

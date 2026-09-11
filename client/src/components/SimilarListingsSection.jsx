@@ -3,7 +3,9 @@ import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { api } from "../lib/api";
 import ListingCard from "./ListingCard";
+import RealEstateListingCard from "./RealEstateListingCard";
 import ListingGridSkeleton from "./ListingGridSkeleton";
+import { isRealEstateListing } from "../lib/realEstate";
 import { useI18n, getCategoryLabel } from "../i18n";
 
 export default function SimilarListingsSection({
@@ -103,9 +105,13 @@ export default function SimilarListingsSection({
 
       {!loading && items.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-          {items.map((item) => (
-            <ListingCard key={item._id || item.id} item={item} />
-          ))}
+          {items.map((item) =>
+            isRealEstateListing(item) ? (
+              <RealEstateListingCard key={item._id || item.id} item={item} />
+            ) : (
+              <ListingCard key={item._id || item.id} item={item} />
+            )
+          )}
         </div>
       )}
     </section>

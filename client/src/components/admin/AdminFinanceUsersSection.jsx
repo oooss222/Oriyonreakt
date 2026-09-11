@@ -2,16 +2,10 @@ import React from "react";
 import { Users, ChevronLeft, ChevronRight } from "lucide-react";
 import { api } from "../../lib/api";
 import { getId, roleLabel, roleBadgeClass } from "../../lib/adminUtils";
+import { useI18n } from "../../i18n";
 import UserDetailModal from "./UserDetailModal";
 
 const PAGE_SIZE = 25;
-
-const SORT_OPTIONS = [
-  { value: "balance_desc", label: "Баланс ↓" },
-  { value: "balance_asc", label: "Баланс ↑" },
-  { value: "created_desc", label: "Дата регистрации ↓" },
-  { value: "name_asc", label: "Имя A→Z" },
-];
 
 function useDebouncedValue(value, delay = 350) {
   const [debounced, setDebounced] = React.useState(value);
@@ -25,6 +19,7 @@ function useDebouncedValue(value, delay = 350) {
 }
 
 export default function AdminFinanceUsersSection({ token, currentUser }) {
+  const { t } = useI18n();
   const [users, setUsers] = React.useState([]);
   const [total, setTotal] = React.useState(0);
   const [totalPages, setTotalPages] = React.useState(1);
@@ -38,6 +33,13 @@ export default function AdminFinanceUsersSection({ token, currentUser }) {
   const [selectedUserId, setSelectedUserId] = React.useState(null);
 
   const debouncedQuery = useDebouncedValue(query);
+
+  const SORT_OPTIONS = [
+    { value: "balance_desc", label: t("admin.finance.users.sortBalanceDesc") },
+    { value: "balance_asc", label: t("admin.finance.users.sortBalanceAsc") },
+    { value: "created_desc", label: t("admin.finance.users.sortCreatedDesc") },
+    { value: "name_asc", label: t("admin.finance.users.sortNameAsc") },
+  ];
 
   const loadUsers = React.useCallback(async () => {
     try {
@@ -55,7 +57,7 @@ export default function AdminFinanceUsersSection({ token, currentUser }) {
       setTotal(Number(data.total || 0));
       setTotalPages(Math.max(1, Number(data.totalPages || 1)));
     } catch (e) {
-      setError(e.message || "Ошибка загрузки пользователей");
+      setError(e.message || t("admin.finance.users.loadError"));
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -91,10 +93,10 @@ export default function AdminFinanceUsersSection({ token, currentUser }) {
           <div>
             <div className="inline-flex items-center gap-2 text-sm text-amber-700 bg-amber-50 border border-amber-100 rounded-full px-3 py-1 mb-2">
               <Users className="w-4 h-4" />
-              Кошельки пользователей
+              {t("admin.finance.users.badge")}
             </div>
             <p className="text-sm text-slate-500">
-              Просмотр балансов и истории операций. Режим только для чтения.
+              {t("admin.finance.users.subtitle")}
             </p>
           </div>
 
@@ -104,7 +106,7 @@ export default function AdminFinanceUsersSection({ token, currentUser }) {
             disabled={refreshing}
             className="px-4 py-2 rounded-xl border hover:bg-slate-50 disabled:opacity-60"
           >
-            {refreshing ? "Обновляем..." : "Обновить"}
+            {refreshing ? t("admin.common.refreshing") : t("admin.common.refresh")}
           </button>
         </div>
 
@@ -118,7 +120,7 @@ export default function AdminFinanceUsersSection({ token, currentUser }) {
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Поиск: имя, email, телефон"
+            placeholder={t("admin.finance.users.searchPlaceholder")}
             className="h-11 rounded-xl border px-3 outline-none focus:ring-2 focus:ring-sun/40 md:col-span-2"
           />
 
@@ -137,8 +139,8 @@ export default function AdminFinanceUsersSection({ token, currentUser }) {
 
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-sm text-slate-500">
           <div>
-            Показано: {users.length} из {total}
-            {query !== debouncedQuery ? " · ищем..." : ""}
+            {t("admin.pagination.shownOf", { shown: users.length, total })}
+            {query !== debouncedQuery ? t("admin.pagination.searchingSuffix") : ""}
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -148,10 +150,10 @@ export default function AdminFinanceUsersSection({ token, currentUser }) {
               className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border disabled:opacity-40"
             >
               <ChevronLeft size={16} />
-              Назад
+              {t("admin.pagination.back")}
             </button>
             <span>
-              {page} / {totalPages}
+              {t("admin.pagination.pageOf", { page, totalPages })}
             </span>
             <button
               type="button"
@@ -159,7 +161,7 @@ export default function AdminFinanceUsersSection({ token, currentUser }) {
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border disabled:opacity-40"
             >
-              Вперёд
+              {t("admin.pagination.next")}
               <ChevronRight size={16} />
             </button>
           </div>
@@ -167,18 +169,18 @@ export default function AdminFinanceUsersSection({ token, currentUser }) {
 
         {users.length === 0 ? (
           <div className="rounded-2xl border bg-slate-50 p-8 text-center text-slate-500">
-            Пользователи не найдены.
+            {t("admin.finance.users.empty")}
           </div>
         ) : (
           <div className="overflow-x-auto rounded-2xl border">
             <table className="w-full text-sm border-collapse bg-white">
               <thead className="bg-slate-50">
                 <tr className="border-b text-left text-slate-500">
-                  <th className="py-3 px-3">Пользователь</th>
+                  <th className="py-3 px-3">{t("admin.finance.col.user")}</th>
                   <th className="py-3 px-3">Email</th>
-                  <th className="py-3 px-3">Роль</th>
-                  <th className="py-3 px-3">Баланс</th>
-                  <th className="py-3 px-3">Статус</th>
+                  <th className="py-3 px-3">{t("admin.finance.users.colRole")}</th>
+                  <th className="py-3 px-3">{t("admin.finance.users.colBalance")}</th>
+                  <th className="py-3 px-3">{t("admin.finance.col.status")}</th>
                 </tr>
               </thead>
 
@@ -194,7 +196,7 @@ export default function AdminFinanceUsersSection({ token, currentUser }) {
                       onClick={() => setSelectedUserId(id)}
                     >
                       <td className="py-3 px-3">
-                        <div className="font-semibold">{user.name || "Без имени"}</div>
+                        <div className="font-semibold">{user.name || t("admin.finance.users.noName")}</div>
                       </td>
                       <td className="py-3 px-3">{user.email}</td>
                       <td className="py-3 px-3">
@@ -212,11 +214,11 @@ export default function AdminFinanceUsersSection({ token, currentUser }) {
                       <td className="py-3 px-3">
                         {user.isBlocked ? (
                           <span className="inline-flex px-2 py-0.5 text-xs rounded-full bg-red-50 text-red-700 border border-red-200">
-                            Заблокирован
+                            {t("admin.finance.users.blocked")}
                           </span>
                         ) : (
                           <span className="inline-flex px-2 py-0.5 text-xs rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-                            Активен
+                            {t("admin.finance.users.active")}
                           </span>
                         )}
                       </td>

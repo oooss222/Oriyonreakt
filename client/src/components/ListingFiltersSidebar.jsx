@@ -10,15 +10,11 @@ import {
 import { getListingFilterGrid } from "../data/filterGrids";
 import { LOCATIONS, formatPriceInput, getPriceDigits, COMMON_SPEC_OPTIONS } from "../data/specOptions";
 import RangeFilter from "./filters/RangeFilter";
+import RadioOption from "./filters/RadioOption";
 import { getDistrictsForCity } from "../data/realEstate";
 import { getSellerFilterOptions } from "../lib/filterConflicts";
+import { commitDraft, clearDependentModelSpec } from "../lib/filterDraft";
 import { useI18n } from "../i18n";
-
-function commitDraft(setDraft, onApply, updater, current) {
-  const next = updater(current);
-  setDraft(next);
-  onApply?.(next);
-}
 
 function FilterSection({ title, defaultOpen = true, children }) {
   const [open, setOpen] = React.useState(defaultOpen);
@@ -43,37 +39,6 @@ function FilterSection({ title, defaultOpen = true, children }) {
   );
 }
 
-function RadioOption({ active, label, count, onSelect }) {
-  return (
-    <button
-      type="button"
-      onClick={onSelect}
-      className="flex w-full items-center justify-between gap-3 rounded-xl px-1 py-1.5 text-left transition hover:bg-mist/70"
-    >
-      <span className="flex min-w-0 items-center gap-2.5">
-        <span
-          className={`grid h-4 w-4 shrink-0 place-items-center rounded-full border-2 transition ${
-            active ? "border-sun" : "border-ink/20"
-          }`}
-        >
-          {active ? <span className="h-2 w-2 rounded-full bg-sun" /> : null}
-        </span>
-        <span
-          className={`truncate text-sm ${
-            active ? "font-semibold text-ink" : "text-ink-600"
-          }`}
-        >
-          {label}
-        </span>
-      </span>
-      {typeof count === "number" ? (
-        <span className="shrink-0 text-xs font-medium text-ink-300">
-          {count.toLocaleString("ru-RU")}
-        </span>
-      ) : null}
-    </button>
-  );
-}
 
 function PillGroup({ value, options, onChange }) {
   return (
@@ -195,8 +160,8 @@ export default function ListingFiltersSidebar({
   const sellerOptions =
     activeCat === "transport"
       ? [
-          { value: "private", label: "Частный продавец" },
-          { value: "company", label: "Компания" },
+          { value: "private", label: t("filter.sellerPrivate") },
+          { value: "company", label: t("filter.sellerCompany") },
         ]
       : [];
 
@@ -213,7 +178,7 @@ export default function ListingFiltersSidebar({
       </div>
 
       <div className="filter-sidebar__body">
-        <FilterSection title="Ключевые слова">
+        <FilterSection title={t("filter.keywords")}>
           <label className="relative block">
             <Search
               size={16}
@@ -227,7 +192,7 @@ export default function ListingFiltersSidebar({
                   search: event.target.value,
                 }))
               }
-              placeholder="Например: iPhone 13 Pro"
+              placeholder={t("filter.keywordsPlaceholder")}
               className="filter-sidebar__input pl-9"
             />
           </label>
@@ -270,11 +235,11 @@ export default function ListingFiltersSidebar({
         ) : null}
 
         {availableSubcategories.length > 0 ? (
-          <FilterSection title="Категория">
-            <div className="space-y-0.5">
+          <FilterSection title={t("listing.category")}>
+            <div className="space-y-0.5" role="radiogroup" aria-label={t("listing.category")}>
               <RadioOption
                 active={!draft.subcategory}
-                label="Все категории"
+                label={t("filter.allCategories")}
                 count={categoryTotal}
                 onSelect={() =>
                   commitDraft(
@@ -326,12 +291,12 @@ export default function ListingFiltersSidebar({
           </FilterSection>
         ) : null}
 
-        <FilterSection title="Цена">
+        <FilterSection title={t("form.price")}>
           <div className="grid grid-cols-2 gap-2">
             <input
               type="text"
               inputMode="numeric"
-              placeholder="от"
+              placeholder={t("filter.from")}
               value={draft.priceFrom ? formatPriceInput(draft.priceFrom) : ""}
               onChange={(event) =>
                 setDraft((current) => ({
@@ -344,7 +309,7 @@ export default function ListingFiltersSidebar({
             <input
               type="text"
               inputMode="numeric"
-              placeholder="до"
+              placeholder={t("filter.to")}
               value={draft.priceTo ? formatPriceInput(draft.priceTo) : ""}
               onChange={(event) =>
                 setDraft((current) => ({
@@ -357,11 +322,11 @@ export default function ListingFiltersSidebar({
           </div>
         </FilterSection>
 
-        <FilterSection title="Город">
+        <FilterSection title={t("filter.city")}>
           <PillGroup
             value={draft.location || ""}
             options={[
-              { value: "", label: "Все" },
+              { value: "", label: t("category.all") },
               ...LOCATIONS.map((city) => ({ value: city, label: city })),
             ]}
             onChange={(value) =>
@@ -390,14 +355,14 @@ export default function ListingFiltersSidebar({
           />
         </FilterSection>
 
-        <FilterSection title="Состояние">
+        <FilterSection title={t("filter.condition")}>
           <PillGroup
             value={conditionValue}
             options={[
-              { value: "", label: "Все" },
+              { value: "", label: t("category.all") },
               ...COMMON_SPEC_OPTIONS.condition.map((option) => ({
                 value: option,
-                label: option === "Новый" ? "Новое" : option,
+                label: option === "Новый" ? t("filter.conditionNew") : option,
               })),
             ]}
             onChange={(value) =>
@@ -431,7 +396,7 @@ export default function ListingFiltersSidebar({
           districtField ||
           sellerOptions.length > 0 ||
           toggleFields.length > 0) && (
-          <FilterSection title="Дополнительно" defaultOpen={false}>
+          <FilterSection title={t("filter.additional")} defaultOpen={false}>
             {regionField ? (
               <SidebarSelect
                 value={draft.region}
@@ -500,13 +465,7 @@ export default function ListingFiltersSidebar({
                         delete nextSpecs[field.specKey];
                       }
 
-                      if (field.specKey === "Марка" || field.specKey === "Марка авто") {
-                        delete nextSpecs.Модель;
-                      }
-
-                      if (field.specKey === "Производитель") {
-                        delete nextSpecs.Модель;
-                      }
+                      clearDependentModelSpec(nextSpecs, field.specKey);
 
                       return {
                         ...current,

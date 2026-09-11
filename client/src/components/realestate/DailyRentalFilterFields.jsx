@@ -6,6 +6,7 @@ import {
   DAILY_SMOKING_OPTIONS,
 } from "../../data/realEstate";
 import MultiPillGroup from "../filters/MultiPillGroup";
+import { useI18n } from "../../i18n";
 
 function ChipGroup({ value, options, onChange }) {
   return (
@@ -29,22 +30,23 @@ function ChipGroup({ value, options, onChange }) {
 }
 
 export default function DailyRentalFilterFields({ draft, setSpec, className = "" }) {
+  const { t } = useI18n();
   return (
     <div className={`space-y-4 ${className}`}>
       <div>
-        <div className="label-caps mb-3">Удобства</div>
+        <div className="label-caps mb-3">{t("realestate.filters.amenitiesLabel")}</div>
         <MultiPillGroup
           values={draft.specs?.["Удобства"] || ""}
           options={DAILY_AMENITY_OPTIONS}
           onChange={(value) => setSpec("Удобства", value)}
         />
         <p className="mt-2 text-[11px] text-ink-400">
-          Можно выбрать несколько — покажем жильё со всеми выбранными опциями
+          {t("realestate.filters.multiSelectHint")}
         </p>
       </div>
 
       <div>
-        <div className="label-caps mb-3">Балкон</div>
+        <div className="label-caps mb-3">{t("realestate.filters.balconyLabel")}</div>
         <ChipGroup
           value={draft.specs?.["Балкон"] || ""}
           options={DAILY_BALCONY_OPTIONS}
@@ -53,7 +55,7 @@ export default function DailyRentalFilterFields({ draft, setSpec, className = ""
       </div>
 
       <div>
-        <div className="label-caps mb-3">Животные</div>
+        <div className="label-caps mb-3">{t("realestate.filters.petsLabel")}</div>
         <ChipGroup
           value={draft.specs?.["Животные"] || ""}
           options={DAILY_PETS_OPTIONS}
@@ -62,7 +64,7 @@ export default function DailyRentalFilterFields({ draft, setSpec, className = ""
       </div>
 
       <div>
-        <div className="label-caps mb-3">Курение</div>
+        <div className="label-caps mb-3">{t("realestate.filters.smokingLabel")}</div>
         <ChipGroup
           value={draft.specs?.["Курение"] || ""}
           options={DAILY_SMOKING_OPTIONS}

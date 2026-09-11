@@ -5,6 +5,7 @@ import { PromotionBadgeGroup } from "./PromotionBadge";
 import { formatViewCount } from "../lib/format";
 import { isCompareSupported } from "../lib/compareListings";
 import { Eye } from "lucide-react";
+import { useI18n } from "../i18n";
 
 export default function ListingCardOverlays({
   views = 0,
@@ -20,6 +21,7 @@ export default function ListingCardOverlays({
   compareCat = "",
   compactBottom = false,
 }) {
+  const { t } = useI18n();
   const viewCount = Number(views || 0);
   const photos = Number(photoCount || 0);
   const canCompare = showCompare && favoriteId && isCompareSupported(compareCat);
@@ -71,7 +73,7 @@ export default function ListingCardOverlays({
         >
           {photos > 0 ? (
             <span className="rounded-full bg-black/55 px-2 py-0.5 text-[10px] font-semibold text-white backdrop-blur-sm">
-              {photos} фото
+              {t("listing.photosCount", { count: photos })}
             </span>
           ) : viewCount > 0 ? (
             <span className="inline-flex items-center gap-1 rounded-full bg-black/50 px-2 py-0.5 text-[10px] font-semibold text-white backdrop-blur-sm">

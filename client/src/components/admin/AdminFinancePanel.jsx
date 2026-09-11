@@ -9,7 +9,8 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { api } from "../../lib/api";
-import { WALLET_TYPE_LABELS } from "../../lib/adminUtils";
+import { getWalletTypeLabels } from "../../lib/adminUtils";
+import { useI18n } from "../../i18n";
 import AdminFinanceUsersSection from "./AdminFinanceUsersSection";
 import {
   FinanceReportsTab,
@@ -20,14 +21,6 @@ import {
 } from "./AdminFinanceExtended";
 
 const PAGE_SIZE = 25;
-
-const TX_TYPES = [
-  { value: "all", label: "Все типы" },
-  { value: "top_up", label: "Пополнение" },
-  { value: "payment", label: "Списание" },
-  { value: "refund", label: "Возврат" },
-  { value: "manual_adjustment", label: "Корректировка" },
-];
 
 function useDebouncedValue(value, delay = 350) {
   const [debounced, setDebounced] = React.useState(value);
@@ -40,25 +33,27 @@ function useDebouncedValue(value, delay = 350) {
   return debounced;
 }
 
-function SummaryCards({ summary }) {
+function SummaryCards({ summary, t }) {
   if (!summary) return null;
 
   return (
     <div className="space-y-4">
       <div className="rounded-2xl border bg-gradient-to-br from-ink-700 to-ink-900 p-6 text-white">
-        <div className="text-sm text-white/70">Суммарный баланс на платформе</div>
+        <div className="text-sm text-white/70">{t("admin.finance.summary.totalBalance")}</div>
         <div className="text-3xl font-bold mt-2">
           {Number(summary.totalBalance || 0).toLocaleString("ru-RU")} TJS
         </div>
         <div className="text-sm text-white/70 mt-2">
-          Пользователей с балансом: {summary.usersWithBalance || 0} из{" "}
-          {summary.usersTotal || 0}
+          {t("admin.finance.summary.usersWithBalance", {
+            withBalance: summary.usersWithBalance || 0,
+            total: summary.usersTotal || 0,
+          })}
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         <div className="rounded-2xl border p-4 bg-white">
-          <div className="text-sm text-slate-500">Сегодня</div>
+          <div className="text-sm text-slate-500">{t("admin.finance.summary.today")}</div>
           <div className="mt-2 flex items-center gap-2 text-emerald-700 font-semibold">
             <ArrowDownLeft size={16} />
             +{Number(summary.today?.credits || 0).toLocaleString("ru-RU")} TJS
@@ -68,15 +63,17 @@ function SummaryCards({ summary }) {
             {Number(summary.today?.debits || 0).toLocaleString("ru-RU")} TJS
           </div>
           <div className="text-xs text-slate-400 mt-2">
-            {summary.today?.creditCount || 0} начислений ·{" "}
-            {summary.today?.debitCount || 0} списаний
+            {t("admin.finance.summary.creditsDebitsCount", {
+              creditCount: summary.today?.creditCount || 0,
+              debitCount: summary.today?.debitCount || 0,
+            })}
           </div>
         </div>
 
         <div className="rounded-2xl border p-4 bg-white">
-          <div className="text-sm text-slate-500">7 дней</div>
+          <div className="text-sm text-slate-500">{t("admin.finance.summary.days7")}</div>
           <div className="text-2xl font-bold mt-2">{summary.week?.transactions || 0}</div>
-          <div className="text-xs text-slate-400 mt-1">операций</div>
+          <div className="text-xs text-slate-400 mt-1">{t("admin.finance.summary.operations")}</div>
           <div className="text-sm mt-2">
             <span className="text-emerald-700">
               +{Number(summary.week?.credits || 0).toLocaleString("ru-RU")}
@@ -89,12 +86,14 @@ function SummaryCards({ summary }) {
         </div>
 
         <div className="rounded-2xl border p-4 bg-white">
-          <div className="text-sm text-slate-500">30 дней</div>
+          <div className="text-sm text-slate-500">{t("admin.finance.summary.days30")}</div>
           <div className="text-2xl font-bold mt-2">{summary.month?.transactions || 0}</div>
-          <div className="text-xs text-slate-400 mt-1">операций</div>
+          <div className="text-xs text-slate-400 mt-1">{t("admin.finance.summary.operations")}</div>
           <div className="text-sm mt-2 text-slate-600">
-            Корректировок: {summary.month?.manualAdjustments || 0} (
-            {Number(summary.month?.manualAdjustmentsSum || 0).toLocaleString("ru-RU")} TJS)
+            {t("admin.finance.summary.adjustments", {
+              count: summary.month?.manualAdjustments || 0,
+              sum: Number(summary.month?.manualAdjustmentsSum || 0).toLocaleString("ru-RU"),
+            })}
           </div>
         </div>
       </div>
@@ -103,7 +102,7 @@ function SummaryCards({ summary }) {
         <div className="rounded-2xl border p-4 bg-white">
           <div className="flex items-center gap-2 mb-3">
             <TrendingUp size={16} className="text-sun-700" />
-            <h4 className="font-semibold">Топ балансов</h4>
+            <h4 className="font-semibold">{t("admin.finance.summary.topBalances")}</h4>
           </div>
           <div className="space-y-2">
             {summary.topBalances.map((item) => (
@@ -128,6 +127,7 @@ function SummaryCards({ summary }) {
 }
 
 function TransactionsTable({ token }) {
+  const { t } = useI18n();
   const [items, setItems] = React.useState([]);
   const [total, setTotal] = React.useState(0);
   const [totalPages, setTotalPages] = React.useState(1);
@@ -142,6 +142,14 @@ function TransactionsTable({ token }) {
   const [page, setPage] = React.useState(1);
 
   const debouncedQuery = useDebouncedValue(query);
+
+  const TX_TYPES = [
+    { value: "all", label: t("admin.finance.tx.typeAll") },
+    { value: "top_up", label: t("admin.finance.tx.typeTopUp") },
+    { value: "payment", label: t("admin.finance.tx.typePayment") },
+    { value: "refund", label: t("admin.finance.tx.typeRefund") },
+    { value: "manual_adjustment", label: t("admin.finance.tx.typeAdjustment") },
+  ];
 
   const load = React.useCallback(async () => {
     try {
@@ -161,7 +169,7 @@ function TransactionsTable({ token }) {
       setTotal(Number(data.total || 0));
       setTotalPages(Math.max(1, Number(data.totalPages || 1)));
     } catch (e) {
-      setError(e.message || "Не удалось загрузить операции");
+      setError(e.message || t("admin.finance.tx.loadError"));
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -192,7 +200,7 @@ function TransactionsTable({ token }) {
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Поиск: email, имя, комментарий"
+          placeholder={t("admin.finance.tx.searchPlaceholder")}
           className="h-11 rounded-xl border px-3 outline-none focus:ring-2 focus:ring-sun/40 md:col-span-2"
         />
 
@@ -225,8 +233,8 @@ function TransactionsTable({ token }) {
 
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-sm text-slate-500">
         <div>
-          Показано: {items.length} из {total}
-          {query !== debouncedQuery ? " · ищем..." : ""}
+          {t("admin.pagination.shownOf", { shown: items.length, total })}
+          {query !== debouncedQuery ? t("admin.pagination.searchingSuffix") : ""}
         </div>
         <div className="flex items-center gap-2">
           <button
@@ -236,10 +244,10 @@ function TransactionsTable({ token }) {
             className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border disabled:opacity-40"
           >
             <ChevronLeft size={16} />
-            Назад
+            {t("admin.pagination.back")}
           </button>
           <span>
-            {page} / {totalPages}
+            {t("admin.pagination.pageOf", { page, totalPages })}
           </span>
           <button
             type="button"
@@ -247,7 +255,7 @@ function TransactionsTable({ token }) {
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
             className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border disabled:opacity-40"
           >
-            Вперёд
+            {t("admin.pagination.next")}
             <ChevronRight size={16} />
           </button>
         </div>
@@ -255,18 +263,18 @@ function TransactionsTable({ token }) {
 
       {items.length === 0 ? (
         <div className="rounded-2xl border bg-slate-50 p-8 text-center text-slate-500">
-          Операции не найдены.
+          {t("admin.finance.tx.empty")}
         </div>
       ) : (
         <div className="overflow-x-auto rounded-2xl border">
           <table className="w-full text-sm border-collapse bg-white">
             <thead className="bg-slate-50">
               <tr className="border-b text-left text-slate-500">
-                <th className="py-3 px-3">Дата</th>
-                <th className="py-3 px-3">Пользователь</th>
-                <th className="py-3 px-3">Тип</th>
-                <th className="py-3 px-3">Сумма</th>
-                <th className="py-3 px-3">Комментарий</th>
+                <th className="py-3 px-3">{t("admin.finance.col.date")}</th>
+                <th className="py-3 px-3">{t("admin.finance.col.user")}</th>
+                <th className="py-3 px-3">{t("admin.finance.col.type")}</th>
+                <th className="py-3 px-3">{t("admin.finance.col.amount")}</th>
+                <th className="py-3 px-3">{t("admin.finance.col.comment")}</th>
               </tr>
             </thead>
             <tbody>
@@ -282,7 +290,7 @@ function TransactionsTable({ token }) {
                     <div className="text-xs text-slate-500">{tx.userEmail || "—"}</div>
                   </td>
                   <td className="py-3 px-3">
-                    {WALLET_TYPE_LABELS[tx.type] || tx.type}
+                    {getWalletTypeLabels()[tx.type] || tx.type}
                   </td>
                   <td
                     className={`py-3 px-3 font-bold whitespace-nowrap ${
@@ -305,23 +313,24 @@ function TransactionsTable({ token }) {
   );
 }
 
-const TABS = [
-  { id: "overview", label: "Сводка" },
-  { id: "reports", label: "Отчёты" },
-  { id: "transactions", label: "Операции" },
-  { id: "wallets", label: "Кошельки" },
-  { id: "audit", label: "Журнал" },
-  { id: "payments", label: "Платежи" },
-  { id: "alif", label: "Alif" },
-  { id: "promotions", label: "VIP/TOP" },
-];
-
 export default function AdminFinancePanel({ token, currentUser, isSuperAdmin }) {
+  const { t } = useI18n();
   const navigate = useNavigate();
   const [tab, setTab] = React.useState("overview");
   const [summary, setSummary] = React.useState(null);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState("");
+
+  const TABS = [
+    { id: "overview", label: t("admin.finance.tabs.overview") },
+    { id: "reports", label: t("admin.finance.tabs.reports") },
+    { id: "transactions", label: t("admin.finance.tabs.transactions") },
+    { id: "wallets", label: t("admin.finance.tabs.wallets") },
+    { id: "audit", label: t("admin.finance.tabs.audit") },
+    { id: "payments", label: t("admin.finance.tabs.payments") },
+    { id: "alif", label: "Alif" },
+    { id: "promotions", label: "VIP/TOP" },
+  ];
 
   React.useEffect(() => {
     let alive = true;
@@ -335,7 +344,7 @@ export default function AdminFinancePanel({ token, currentUser, isSuperAdmin }) 
         if (alive) setSummary(data);
       })
       .catch((e) => {
-        if (alive) setError(e.message || "Не удалось загрузить сводку");
+        if (alive) setError(e.message || t("admin.finance.loadSummaryError"));
       })
       .finally(() => {
         if (alive) setLoading(false);
@@ -351,24 +360,24 @@ export default function AdminFinancePanel({ token, currentUser, isSuperAdmin }) 
       <div className="rounded-2xl border bg-white p-4 md:p-5">
         <div className="inline-flex items-center gap-2 text-sm text-sun-700 bg-sun-50 border border-sun-100 rounded-full px-3 py-1 mb-2">
           <Wallet className="w-4 h-4" />
-          Финансы
+          {t("admin.finance.badge")}
         </div>
-        <h2 className="text-xl font-bold">Кошельки системы</h2>
+        <h2 className="text-xl font-bold">{t("admin.finance.title")}</h2>
         <p className="text-sm text-slate-500 mt-1">
           {isSuperAdmin ? (
             <>
-              Сводка, операции и балансы пользователей. Корректировка баланса — в разделе{" "}
+              {t("admin.finance.subtitleSuperPrefix")}{" "}
               <button
                 type="button"
                 onClick={() => navigate("/admin?section=users")}
                 className="text-sun-700 underline hover:text-sun-800"
               >
-                Пользователи
+                {t("admin.finance.usersLink")}
               </button>
               .
             </>
           ) : (
-            "Сводка, операции и балансы пользователей. Корректировки баланса выполняет супер-админ."
+            t("admin.finance.subtitleNonSuper")
           )}
         </p>
       </div>
@@ -400,7 +409,7 @@ export default function AdminFinancePanel({ token, currentUser, isSuperAdmin }) 
               {error}
             </div>
           )}
-          {!loading && !error && <SummaryCards summary={summary} />}
+          {!loading && !error && <SummaryCards summary={summary} t={t} />}
         </>
       )}
 

@@ -3,6 +3,18 @@ import { getEntryKey } from "./compareListings";
 import { enrichRealEstateListing } from "./realEstate";
 import { getCompareConfig } from "./compareConfig";
 
+const LANG_STORAGE_KEY = "oriyon_lang";
+const NO_TITLE_LABELS = { ru: "Без названия", en: "Untitled", tg: "Бе ном" };
+
+function noTitleLabel() {
+  try {
+    const lang = String(localStorage.getItem(LANG_STORAGE_KEY) || "").toLowerCase();
+    return NO_TITLE_LABELS[lang] || NO_TITLE_LABELS.ru;
+  } catch {
+    return NO_TITLE_LABELS.ru;
+  }
+}
+
 export function externalEntryToListing(entry, cat) {
   const snapshot = entry.snapshot || {};
 
@@ -14,7 +26,7 @@ export function externalEntryToListing(entry, cat) {
     _compareUrl: entry.url || "",
     _compareFetchedAt: entry.fetchedAt || "",
     _isExternal: true,
-    title: snapshot.title || "Без названия",
+    title: snapshot.title || noTitleLabel(),
     price: snapshot.price || "",
     location: snapshot.location || "",
     specs: Array.isArray(snapshot.specs) ? snapshot.specs : [],

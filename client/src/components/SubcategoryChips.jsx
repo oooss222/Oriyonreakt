@@ -1,4 +1,5 @@
 import React from "react";
+import { useI18n } from "../i18n";
 
 export default function SubcategoryChips({
   subcategories = [],
@@ -6,6 +7,8 @@ export default function SubcategoryChips({
   onSelect,
   className = "",
 }) {
+  const { t } = useI18n();
+
   if (!subcategories.length) return null;
 
   return (
@@ -17,7 +20,7 @@ export default function SubcategoryChips({
         onClick={() => onSelect("")}
         className={`chip ${!activeSubcategory ? "chip-active" : ""}`}
       >
-        Все
+        {t("category.all")}
       </button>
 
       {subcategories.map((item) => (

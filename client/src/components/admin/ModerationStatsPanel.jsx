@@ -1,8 +1,10 @@
 import React from "react";
 import { AlertTriangle, Clock3, Flag, Layers3 } from "lucide-react";
 import { api } from "../../lib/api";
+import { useI18n } from "../../i18n";
 
 export default function ModerationStatsPanel({ token }) {
+  const { t } = useI18n();
   const [stats, setStats] = React.useState(null);
   const [loading, setLoading] = React.useState(true);
 
@@ -24,7 +26,7 @@ export default function ModerationStatsPanel({ token }) {
   if (loading) {
     return (
       <div className="rounded-2xl border bg-white p-4 text-sm text-slate-500">
-        Загрузка метрик модерации...
+        {t("admin.moderationStats.loading")}
       </div>
     );
   }
@@ -34,22 +36,22 @@ export default function ModerationStatsPanel({ token }) {
   return (
     <div className="rounded-2xl border bg-white p-4 md:p-5 space-y-4">
       <div>
-        <h3 className="font-bold text-slate-900">SLA и очередь</h3>
+        <h3 className="font-bold text-slate-900">{t("admin.moderationStats.slaTitle")}</h3>
         <p className="text-sm text-slate-500 mt-1">
-          Среднее время модерации за 30 дней: {stats.avgModerationHours} ч
+          {t("admin.moderationStats.avgTime", { hours: stats.avgModerationHours })}
         </p>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <div className="rounded-xl border bg-slate-50 p-3">
-          <div className="text-xs text-slate-500">В очереди</div>
+          <div className="text-xs text-slate-500">{t("admin.moderationStats.inQueue")}</div>
           <div className="text-2xl font-bold">{stats.pending}</div>
         </div>
 
         <div className="rounded-xl border bg-amber-50 p-3">
           <div className="text-xs text-amber-700 flex items-center gap-1">
             <Clock3 size={14} />
-            Старше 24 ч
+            {t("admin.moderationStats.olderThan24h")}
           </div>
           <div className="text-2xl font-bold text-amber-800">
             {stats.pendingOver24h}
@@ -59,7 +61,7 @@ export default function ModerationStatsPanel({ token }) {
         <div className="rounded-xl border bg-red-50 p-3">
           <div className="text-xs text-red-700 flex items-center gap-1">
             <Flag size={14} />
-            Жалобы
+            {t("admin.sections.reports")}
           </div>
           <div className="text-2xl font-bold text-red-800">
             {stats.pendingReports}
@@ -69,7 +71,7 @@ export default function ModerationStatsPanel({ token }) {
         <div className="rounded-xl border bg-indigo-50 p-3">
           <div className="text-xs text-indigo-700 flex items-center gap-1">
             <Layers3 size={14} />
-            Апелляции
+            {t("admin.moderationStats.appeals")}
           </div>
           <div className="text-2xl font-bold text-indigo-800">
             {stats.appealsPending}
@@ -80,7 +82,7 @@ export default function ModerationStatsPanel({ token }) {
       {stats.flagged > 0 && (
         <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800 flex items-center gap-2">
           <AlertTriangle size={16} />
-          {stats.flagged} объявлений с автоматическими флагами
+          {t("admin.moderationStats.flaggedCount", { count: stats.flagged })}
         </div>
       )}
 
@@ -89,9 +91,9 @@ export default function ModerationStatsPanel({ token }) {
           <table className="min-w-full text-sm">
             <thead>
               <tr className="text-left text-slate-500 border-b">
-                <th className="py-2 pr-3">Категория</th>
-                <th className="py-2 pr-3">Одобрено</th>
-                <th className="py-2">Отклонено</th>
+                <th className="py-2 pr-3">{t("admin.moderationStats.colCategory")}</th>
+                <th className="py-2 pr-3">{t("admin.moderationStats.colApproved")}</th>
+                <th className="py-2">{t("admin.moderationStats.colRejected")}</th>
               </tr>
             </thead>
             <tbody>

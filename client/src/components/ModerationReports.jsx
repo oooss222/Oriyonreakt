@@ -4,8 +4,11 @@ import { Flag, ExternalLink, Trash2, Ban } from "lucide-react";
 import { api } from "../lib/api";
 import { REPORT_REASON_LABELS } from "../data/reportReasons";
 import { subscribeModerationQueue } from "../lib/moderationSocket";
+import { useI18n } from "../i18n";
 
 export default function ModerationReports({ token }) {
+  const { t, lang } = useI18n();
+  const numberLocale = lang === "en" ? "en-US" : lang === "tg" ? "tg-TJ" : "ru-RU";
   const [items, setItems] = React.useState([]);
   const [groups, setGroups] = React.useState([]);
   const [status, setStatus] = React.useState("pending");
@@ -32,12 +35,12 @@ export default function ModerationReports({ token }) {
         setGroups([]);
       }
     } catch (e) {
-      setError(e.message || "Не удалось загрузить жалобы");
+      setError(e.message || t("admin.reports.loadError"));
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [token, status]);
+  }, [token, status, t]);
 
   React.useEffect(() => {
     setLoading(true);
@@ -63,7 +66,7 @@ export default function ModerationReports({ token }) {
       if (listingId) removeGroup(listingId);
       else setItems((prev) => prev.filter((item) => item.id !== id));
     } catch (e) {
-      alert(e.message || "Не удалось обновить жалобу");
+      alert(e.message || t("admin.reports.reviewError"));
     } finally {
       setActionLoadingId("");
     }
@@ -76,7 +79,7 @@ export default function ModerationReports({ token }) {
       if (listingId) removeGroup(listingId);
       else setItems((prev) => prev.filter((item) => item.id !== id));
     } catch (e) {
-      alert(e.message || "Не удалось отклонить жалобу");
+      alert(e.message || t("admin.reports.dismissError"));
     } finally {
       setActionLoadingId("");
     }
@@ -84,7 +87,9 @@ export default function ModerationReports({ token }) {
 
   const handleDeleteListing = async (item) => {
     const ok = confirm(
-      `Удалить объявление «${item.listingTitle || "Без названия"}»? Это действие необратимо.`
+      t("admin.reports.deleteListingConfirm", {
+        title: item.listingTitle || t("admin.listings.untitled"),
+      })
     );
     if (!ok) return;
 
@@ -94,15 +99,15 @@ export default function ModerationReports({ token }) {
       if (item.listingId) removeGroup(item.listingId);
       else setItems((prev) => prev.filter((row) => row.id !== item.id));
     } catch (e) {
-      alert(e.message || "Не удалось удалить объявление");
+      alert(e.message || t("admin.reports.deleteListingError"));
     } finally {
       setActionLoadingId("");
     }
   };
 
   const handleBlockOwner = async (item) => {
-    const ownerLabel = item.listingOwnerName || "продавца";
-    const ok = confirm(`Заблокировать ${ownerLabel}?`);
+    const ownerLabel = item.listingOwnerName || t("admin.reports.sellerFallback");
+    const ok = confirm(t("admin.reports.blockOwnerConfirm", { owner: ownerLabel }));
     if (!ok) return;
 
     try {
@@ -111,22 +116,22 @@ export default function ModerationReports({ token }) {
       if (item.listingId) removeGroup(item.listingId);
       else setItems((prev) => prev.filter((row) => row.id !== item.id));
     } catch (e) {
-      alert(e.message || "Не удалось заблокировать продавца");
+      alert(e.message || t("admin.reports.blockOwnerError"));
     } finally {
       setActionLoadingId("");
     }
   };
 
   const statusLabel = {
-    pending: "Новые",
-    reviewed: "Рассмотренные",
-    dismissed: "Отклонённые",
+    pending: t("admin.reports.statusPending"),
+    reviewed: t("admin.reports.statusReviewed"),
+    dismissed: t("admin.reports.statusDismissed"),
   };
 
   if (loading) {
     return (
       <div className="rounded-2xl border bg-white p-4 md:p-5 text-sm text-slate-500">
-        Загрузка жалоб...
+        {t("admin.reports.loading")}
       </div>
     );
   }
@@ -137,13 +142,13 @@ export default function ModerationReports({ token }) {
         <div>
           <div className="inline-flex items-center gap-2 text-sm text-red-700 bg-red-50 border border-red-100 rounded-full px-3 py-1 mb-2">
             <Flag className="w-4 h-4" />
-            Жалобы пользователей
+            {t("admin.reports.badge")}
           </div>
 
-          <h2 className="text-xl font-bold">Жалобы на объявления</h2>
+          <h2 className="text-xl font-bold">{t("admin.reports.title")}</h2>
 
           <p className="text-sm text-slate-500 mt-1">
-            Проверяйте жалобы и принимайте решение по объявлениям.
+            {t("admin.reports.subtitle")}
           </p>
         </div>
 
@@ -153,7 +158,7 @@ export default function ModerationReports({ token }) {
           disabled={refreshing}
           className="px-4 py-2 rounded-xl border hover:bg-slate-50 disabled:opacity-60"
         >
-          {refreshing ? "Обновляем..." : "Обновить"}
+          {refreshing ? t("admin.reports.refreshing") : t("admin.reports.refresh")}
         </button>
       </div>
 
@@ -182,11 +187,11 @@ export default function ModerationReports({ token }) {
 
       {status === "pending" && groups.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-slate-200 p-8 text-center text-slate-500">
-          Жалоб в этой категории нет.
+          {t("admin.reports.empty")}
         </div>
       ) : status !== "pending" && items.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-slate-200 p-8 text-center text-slate-500">
-          Жалоб в этой категории нет.
+          {t("admin.reports.empty")}
         </div>
       ) : status === "pending" ? (
         <div className="space-y-4">
@@ -207,21 +212,21 @@ export default function ModerationReports({ token }) {
                   <div className="min-w-0 space-y-1">
                     <div className="flex flex-wrap items-center gap-2">
                       <div className="font-semibold text-slate-900">
-                        {group.listingTitle || "Без названия"}
+                        {group.listingTitle || t("admin.listings.untitled")}
                       </div>
                       <span className="inline-flex px-2 py-0.5 text-xs rounded-full border bg-red-100 text-red-700 border-red-200">
-                        {group.reportCount} жалоб
+                        {t("admin.reports.reportCount", { count: group.reportCount })}
                       </span>
                       {group.highPriority && (
                         <span className="inline-flex px-2 py-0.5 text-xs rounded-full border bg-red-600 text-white border-red-600">
-                          Приоритет
+                          {t("admin.reports.priority")}
                         </span>
                       )}
                     </div>
 
                     {group.listingOwnerName && (
                       <div className="text-sm text-slate-500">
-                        Продавец: {group.listingOwnerName}
+                        {t("admin.reports.sellerLabel")}: {group.listingOwnerName}
                       </div>
                     )}
 
@@ -243,7 +248,7 @@ export default function ModerationReports({ token }) {
                       className="btn py-2 rounded-xl"
                     >
                       <ExternalLink className="w-4 h-4" />
-                      Открыть
+                      {t("admin.reports.open")}
                     </Link>
 
                     <button
@@ -253,7 +258,7 @@ export default function ModerationReports({ token }) {
                       onClick={() => handleDeleteListing(primary)}
                     >
                       <Trash2 className="w-4 h-4" />
-                      Удалить объявление
+                      {t("admin.reports.deleteListing")}
                     </button>
 
                     {group.listingOwnerId && (
@@ -264,7 +269,7 @@ export default function ModerationReports({ token }) {
                         onClick={() => handleBlockOwner(primary)}
                       >
                         <Ban className="w-4 h-4" />
-                        Заблокировать
+                        {t("admin.reports.block")}
                       </button>
                     )}
 
@@ -274,7 +279,7 @@ export default function ModerationReports({ token }) {
                       disabled={actionLoadingId === primary.id}
                       onClick={() => handleReview(primary.id, group.listingId)}
                     >
-                      Рассмотрено
+                      {t("admin.reports.reviewed")}
                     </button>
                   </div>
                 </div>
@@ -286,9 +291,9 @@ export default function ModerationReports({ token }) {
                         {REPORT_REASON_LABELS[item.reason] || item.reason}
                       </div>
                       <div className="text-slate-500">
-                        {item.reporterName || "Пользователь"} ·{" "}
+                        {item.reporterName || t("admin.reports.userFallback")} ·{" "}
                         {item.createdAt
-                          ? new Date(item.createdAt).toLocaleString("ru-RU")
+                          ? new Date(item.createdAt).toLocaleString(numberLocale)
                           : ""}
                       </div>
                       {item.details && (
@@ -315,25 +320,25 @@ export default function ModerationReports({ token }) {
                   </div>
 
                   <div className="text-sm text-slate-600">
-                    Объявление:{" "}
+                    {t("admin.reports.listingLabel")}:{" "}
                     <Link
                       to={`/ad/${item.listingId}`}
                       className="text-sun hover:text-sun-600 font-medium"
                     >
-                      {item.listingTitle || "Без названия"}
+                      {item.listingTitle || t("admin.listings.untitled")}
                     </Link>
                   </div>
 
                   <div className="text-sm text-slate-500">
-                    От: {item.reporterName || "Пользователь"} ·{" "}
+                    {t("admin.reports.fromLabel")}: {item.reporterName || t("admin.reports.userFallback")} ·{" "}
                     {item.createdAt
-                      ? new Date(item.createdAt).toLocaleString("ru-RU")
+                      ? new Date(item.createdAt).toLocaleString(numberLocale)
                       : ""}
                   </div>
 
                   {item.listingOwnerName && (
                     <div className="text-sm text-slate-500">
-                      Продавец: {item.listingOwnerName}
+                      {t("admin.reports.sellerLabel")}: {item.listingOwnerName}
                     </div>
                   )}
 
@@ -350,7 +355,7 @@ export default function ModerationReports({ token }) {
                     className="btn py-2 rounded-xl"
                   >
                     <ExternalLink className="w-4 h-4" />
-                    Открыть
+                    {t("admin.reports.open")}
                   </Link>
 
                   {status === "pending" && (
@@ -362,7 +367,7 @@ export default function ModerationReports({ token }) {
                         onClick={() => handleDeleteListing(item)}
                       >
                         <Trash2 className="w-4 h-4" />
-                        Удалить объявление
+                        {t("admin.reports.deleteListing")}
                       </button>
 
                       {item.listingOwnerId && (
@@ -373,7 +378,7 @@ export default function ModerationReports({ token }) {
                           onClick={() => handleBlockOwner(item)}
                         >
                           <Ban className="w-4 h-4" />
-                          Заблокировать продавца
+                          {t("admin.reports.blockSeller")}
                         </button>
                       )}
 
@@ -383,7 +388,7 @@ export default function ModerationReports({ token }) {
                         disabled={actionLoadingId === item.id}
                         onClick={() => handleReview(item.id)}
                       >
-                        Рассмотрено
+                        {t("admin.reports.reviewed")}
                       </button>
 
                       <button
@@ -392,7 +397,7 @@ export default function ModerationReports({ token }) {
                         disabled={actionLoadingId === item.id}
                         onClick={() => handleDismiss(item.id)}
                       >
-                        Отклонить
+                        {t("admin.reports.dismiss")}
                       </button>
                     </>
                   )}

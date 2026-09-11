@@ -1,6 +1,7 @@
 import React from "react";
 import { ChevronDown, ChevronUp, Users } from "lucide-react";
 import { GUEST_OPTIONS, formatGuestLabel } from "../../data/realEstate";
+import { useI18n } from "../../i18n";
 
 const FIELD_LABEL =
   "mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500";
@@ -10,10 +11,12 @@ const FIELD_CONTROL =
 export default function RealEstateGuestsPicker({
   value = "",
   onChange,
-  label = "Гости",
+  label,
   showLabel = true,
   variant = "default",
 }) {
+  const { t } = useI18n();
+  const resolvedLabel = label ?? t("realestate.filters.guestsLabel");
   const [open, setOpen] = React.useState(false);
   const rootRef = React.useRef(null);
 
@@ -36,7 +39,7 @@ export default function RealEstateGuestsPicker({
     };
   }, [open]);
 
-  const summary = value ? formatGuestLabel(value) : "Сколько гостей?";
+  const summary = value ? formatGuestLabel(value) : t("realestate.guestsPicker.placeholder");
   const isInline = variant === "inline";
 
   if (isInline) {
@@ -51,7 +54,7 @@ export default function RealEstateGuestsPicker({
             open ? "bg-sun-50/60" : ""
           }`}
         >
-          <span className="mb-0.5 text-xs font-medium text-slate-500">{label}</span>
+          <span className="mb-0.5 text-xs font-medium text-slate-500">{resolvedLabel}</span>
           <span
             className={`truncate text-sm font-semibold ${
               value ? "text-slate-900" : "text-slate-400"
@@ -64,7 +67,7 @@ export default function RealEstateGuestsPicker({
         {open && (
           <div
             role="listbox"
-            aria-label="Количество гостей"
+            aria-label={t("realestate.guestsPicker.ariaLabel")}
             className="absolute left-0 right-0 top-[calc(100%+4px)] z-[250] rounded-xl border border-slate-200 bg-white p-2 shadow-xl lg:left-auto lg:right-0 lg:min-w-[220px]"
           >
             <button
@@ -79,7 +82,7 @@ export default function RealEstateGuestsPicker({
                   : "text-slate-700 hover:bg-slate-50"
               }`}
             >
-              Любое количество
+              {t("realestate.guestsPicker.anyCount")}
             </button>
             {GUEST_OPTIONS.map((option) => (
               <button
@@ -106,7 +109,7 @@ export default function RealEstateGuestsPicker({
 
   return (
     <div ref={rootRef} className="relative block min-w-0">
-      {showLabel && <span className={FIELD_LABEL}>{label}</span>}
+      {showLabel && <span className={FIELD_LABEL}>{resolvedLabel}</span>}
 
       <button
         type="button"
@@ -135,7 +138,7 @@ export default function RealEstateGuestsPicker({
       {open && (
         <div
           role="listbox"
-          aria-label="Количество гостей"
+          aria-label={t("realestate.guestsPicker.ariaLabel")}
           className="absolute left-0 right-0 top-[calc(100%+6px)] z-[250] rounded-xl border border-slate-200 bg-white p-2 shadow-xl"
         >
           <button
@@ -150,7 +153,7 @@ export default function RealEstateGuestsPicker({
                 : "text-slate-700 hover:bg-slate-50"
             }`}
           >
-            Любое количество
+            {t("realestate.guestsPicker.anyCount")}
           </button>
           {GUEST_OPTIONS.map((option) => (
             <button

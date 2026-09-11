@@ -2,6 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { FileText, Trash2, Archive, ChevronLeft, ChevronRight } from "lucide-react";
 import { api } from "../../lib/api";
+import { useI18n } from "../../i18n";
 import { getId } from "../../lib/adminUtils";
 import { getListingThumb } from "../../lib/media";
 import { formatPrice } from "../../lib/format";
@@ -9,24 +10,25 @@ import { HOME_CATEGORIES } from "../../data/categories";
 
 const PAGE_SIZE = 25;
 
-const STATUS_OPTIONS = [
-  { value: "all", label: "Все статусы" },
-  { value: "pending", label: "На модерации" },
-  { value: "approved", label: "Опубликованы" },
-  { value: "rejected", label: "Отклонены" },
-  { value: "sold", label: "Продано" },
-  { value: "archived", label: "Сняты" },
+const STATUS_OPTION_KEYS = [
+  { value: "all", key: "admin.listings.statusAll" },
+  { value: "pending", key: "admin.listings.statusPending" },
+  { value: "approved", key: "admin.listings.statusApproved" },
+  { value: "rejected", key: "admin.listings.statusRejected" },
+  { value: "sold", key: "admin.listings.statusSold" },
+  { value: "archived", key: "admin.listings.statusArchived" },
 ];
 
-const STATUS_LABELS = {
-  pending: "На модерации",
-  approved: "Опубликовано",
-  rejected: "Отклонено",
-  sold: "Продано",
-  archived: "Снято",
+const STATUS_LABEL_KEYS = {
+  pending: "admin.listings.statusPending",
+  approved: "admin.listings.statusApprovedShort",
+  rejected: "admin.listings.statusRejectedShort",
+  sold: "admin.listings.statusSold",
+  archived: "admin.listings.statusArchivedShort",
 };
 
 export default function AdminListingsSection({ token }) {
+  const { t } = useI18n();
   const [items, setItems] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [refreshing, setRefreshing] = React.useState(false);
@@ -52,7 +54,7 @@ export default function AdminListingsSection({ token }) {
 
       setItems(Array.isArray(data) ? data : []);
     } catch (e) {
-      setError(e.message || "Не удалось загрузить объявления");
+      setError(e.message || t("admin.listings.loadError"));
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -68,7 +70,7 @@ export default function AdminListingsSection({ token }) {
   }, [query, statusFilter, catFilter]);
 
   const removeListing = async (id) => {
-    const ok = confirm("Удалить объявление полностью?");
+    const ok = confirm(t("admin.listings.deleteConfirm"));
     if (!ok) return;
 
     try {
@@ -76,7 +78,7 @@ export default function AdminListingsSection({ token }) {
       await api.adminDeleteListing(token, id);
       setItems((prev) => prev.filter((item) => String(getId(item)) !== String(id)));
     } catch (e) {
-      alert(e.message || "Не удалось удалить объявление");
+      alert(e.message || t("admin.listings.deleteError"));
     } finally {
       setActionLoadingId("");
     }
@@ -90,7 +92,7 @@ export default function AdminListingsSection({ token }) {
         prev.map((item) => (String(getId(item)) === String(id) ? updated : item))
       );
     } catch (e) {
-      alert(e.message || "Не удалось снять объявление");
+      alert(e.message || t("admin.listings.archiveError"));
     } finally {
       setActionLoadingId("");
     }
@@ -108,11 +110,11 @@ export default function AdminListingsSection({ token }) {
         <div>
           <div className="inline-flex items-center gap-2 text-sm text-sun-700 bg-sun-50 border border-sun-100 rounded-full px-3 py-1 mb-2">
             <FileText className="w-4 h-4" />
-            Каталог объявлений
+            {t("admin.listings.badge")}
           </div>
-          <h2 className="text-xl font-bold">Все объявления</h2>
+          <h2 className="text-xl font-bold">{t("admin.listings.title")}</h2>
           <p className="text-sm text-slate-500 mt-1">
-            Поиск, фильтры и быстрые действия по любым объявлениям.
+            {t("admin.listings.hint")}
           </p>
         </div>
 
@@ -122,7 +124,7 @@ export default function AdminListingsSection({ token }) {
           disabled={refreshing}
           className="px-4 py-2 rounded-xl border hover:bg-slate-50 disabled:opacity-60"
         >
-          {refreshing ? "Обновляем..." : "Обновить"}
+          {refreshing ? t("admin.users.refreshing") : t("admin.users.refresh")}
         </button>
       </div>
 
@@ -136,7 +138,7 @@ export default function AdminListingsSection({ token }) {
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Поиск: название, город, продавец"
+          placeholder={t("admin.listings.searchPlaceholder")}
           className="h-11 rounded-xl border px-3 outline-none focus:ring-2 focus:ring-sun/40 md:col-span-2"
         />
 
@@ -145,9 +147,9 @@ export default function AdminListingsSection({ token }) {
           onChange={(e) => setStatusFilter(e.target.value)}
           className="h-11 rounded-xl border px-3 outline-none focus:ring-2 focus:ring-sun/40"
         >
-          {STATUS_OPTIONS.map((option) => (
+          {STATUS_OPTION_KEYS.map((option) => (
             <option key={option.value} value={option.value}>
-              {option.label}
+              {t(option.key)}
             </option>
           ))}
         </select>
@@ -157,7 +159,7 @@ export default function AdminListingsSection({ token }) {
           onChange={(e) => setCatFilter(e.target.value)}
           className="h-11 rounded-xl border px-3 outline-none focus:ring-2 focus:ring-sun/40"
         >
-          <option value="all">Все категории</option>
+          <option value="all">{t("admin.listings.allCategories")}</option>
           {HOME_CATEGORIES.map((cat) => (
             <option key={cat.slug} value={cat.slug}>
               {cat.title}
@@ -167,7 +169,7 @@ export default function AdminListingsSection({ token }) {
       </div>
 
       <div className="flex items-center justify-between gap-2 text-sm text-slate-500">
-        <div>Показано: {items.length}</div>
+        <div>{t("admin.listings.shown", { count: items.length })}</div>
         <div className="flex items-center gap-2">
           <button
             type="button"
@@ -176,7 +178,7 @@ export default function AdminListingsSection({ token }) {
             className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border disabled:opacity-40"
           >
             <ChevronLeft size={16} />
-            Назад
+            {t("admin.users.back")}
           </button>
           <span>{page}</span>
           <button
@@ -185,7 +187,7 @@ export default function AdminListingsSection({ token }) {
             onClick={() => setPage((p) => p + 1)}
             className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border disabled:opacity-40"
           >
-            Вперёд
+            {t("admin.users.next")}
             <ChevronRight size={16} />
           </button>
         </div>
@@ -193,7 +195,7 @@ export default function AdminListingsSection({ token }) {
 
       {items.length === 0 ? (
         <div className="rounded-2xl border bg-slate-50 p-8 text-center text-slate-500">
-          Объявления не найдены.
+          {t("admin.listings.notFound")}
         </div>
       ) : (
         <div className="space-y-3">
@@ -208,14 +210,14 @@ export default function AdminListingsSection({ token }) {
               >
                 <img
                   src={getListingThumb(ad)}
-                  alt={ad.title || "Объявление"}
+                  alt={ad.title || t("admin.listings.untitledAlt")}
                   className="w-full md:w-28 h-24 rounded-xl object-cover bg-slate-100"
                 />
 
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2 mb-1">
                     <span className="inline-flex px-2 py-0.5 text-xs rounded-full border bg-slate-50">
-                      {STATUS_LABELS[ad.status] || ad.status}
+                      {(STATUS_LABEL_KEYS[ad.status] && t(STATUS_LABEL_KEYS[ad.status])) || ad.status}
                     </span>
                     <span className="text-xs text-slate-500">
                       {ad.cat}
@@ -227,7 +229,7 @@ export default function AdminListingsSection({ token }) {
                     to={`/ad/${id}`}
                     className="font-semibold hover:text-sun line-clamp-2"
                   >
-                    {ad.title || "Без названия"}
+                    {ad.title || t("admin.listings.untitled")}
                   </Link>
 
                   <div className="text-sm font-bold mt-1">
@@ -235,7 +237,7 @@ export default function AdminListingsSection({ token }) {
                   </div>
 
                   <div className="text-sm text-slate-500 mt-1">
-                    {ad.location || "—"} · продавец: {ad.ownerName || ad.ownerEmail || "—"}
+                    {ad.location || "—"} · {t("admin.listings.sellerPrefix")}: {ad.ownerName || ad.ownerEmail || "—"}
                   </div>
                 </div>
 
@@ -244,7 +246,7 @@ export default function AdminListingsSection({ token }) {
                     to={`/ad/${id}`}
                     className="inline-flex justify-center px-3 py-2 rounded-lg border hover:bg-slate-50 text-sm"
                   >
-                    Открыть
+                    {t("admin.listings.open")}
                   </Link>
 
                   {ad.status === "approved" && (
@@ -255,7 +257,7 @@ export default function AdminListingsSection({ token }) {
                       className="inline-flex items-center justify-center gap-1 px-3 py-2 rounded-lg border hover:bg-slate-50 text-sm disabled:opacity-60"
                     >
                       <Archive size={16} />
-                      Снять
+                      {t("admin.listings.archive")}
                     </button>
                   )}
 
@@ -266,7 +268,7 @@ export default function AdminListingsSection({ token }) {
                     className="inline-flex items-center justify-center gap-1 px-3 py-2 rounded-lg border text-red-700 hover:bg-red-50 text-sm disabled:opacity-60"
                   >
                     <Trash2 size={16} />
-                    Удалить
+                    {t("admin.listings.delete")}
                   </button>
                 </div>
               </article>

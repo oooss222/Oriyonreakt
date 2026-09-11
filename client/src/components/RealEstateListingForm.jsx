@@ -221,14 +221,14 @@ export default function RealEstateListingForm({
           <div className="listing-form-card__head">
             <div className="listing-form-card__title">
               <Building2 className="w-5 h-5 text-sun" />
-              Тип сделки и объекта
+              {t("realestate.form.dealSectionTitle")}
             </div>
           </div>
 
           <div className="listing-form-card__body space-y-4">
             <div>
               <label className="listing-form-label listing-form-label-required">
-                Тип сделки
+                {t("realestate.dealType")}
               </label>
               <div className="flex flex-wrap gap-2">
                 {DEAL_TYPES.map((item) => (
@@ -252,7 +252,7 @@ export default function RealEstateListingForm({
 
             <div>
               <label className="listing-form-label listing-form-label-required">
-                Тип недвижимости
+                {t("realestate.form.propertyType")}
               </label>
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {Object.entries(ALL_RE_SUBCATEGORIES).map(([name, meta]) => (
@@ -281,7 +281,7 @@ export default function RealEstateListingForm({
           <div className="listing-form-card__head">
             <div className="listing-form-card__title">
               <MapPin className="w-5 h-5 text-sun" />
-              Адрес объекта
+              {t("realestate.form.addressSectionTitle")}
             </div>
           </div>
 
@@ -289,7 +289,7 @@ export default function RealEstateListingForm({
             <div className="grid md:grid-cols-2 gap-4">
               <div>
                 <label className="listing-form-label listing-form-label-required">
-                  Город
+                  {t("realestate.city")}
                 </label>
                 <select
                   value={form.location}
@@ -313,7 +313,7 @@ export default function RealEstateListingForm({
               {districts.length > 0 ? (
                 <div>
                   <label className="listing-form-label listing-form-label-required">
-                    Район
+                    {t("realestate.form.districtLabel")}
                   </label>
                   <select
                     value={getSpecValue(specs, "Район")}
@@ -322,7 +322,7 @@ export default function RealEstateListingForm({
                     }
                     className="listing-form-select"
                   >
-                    <option value="">Выберите район</option>
+                    <option value="">{t("realestate.form.selectDistrict")}</option>
                     {districts.map((district) => (
                       <option key={district} value={district}>
                         {district}
@@ -334,7 +334,7 @@ export default function RealEstateListingForm({
             </div>
 
             <div>
-              <label className="listing-form-label">Адрес / ориентир</label>
+              <label className="listing-form-label">{t("realestate.form.addressLabel")}</label>
               <input
                 value={getSpecValue(specs, "Адрес")}
                 onChange={(e) =>
@@ -353,7 +353,7 @@ export default function RealEstateListingForm({
 
             {form.subcategory === "Новостройки" && developments.length > 0 ? (
               <div>
-                <label className="listing-form-label">Жилой комплекс</label>
+                <label className="listing-form-label">{t("realestate.form.complexLabel")}</label>
                 <select
                   value={getSpecValue(specs, "ЖК")}
                   onChange={(e) =>
@@ -361,7 +361,7 @@ export default function RealEstateListingForm({
                   }
                   className="listing-form-select"
                 >
-                  <option value="">Выберите ЖК</option>
+                  <option value="">{t("realestate.form.selectComplex")}</option>
                   {developments.map((item) => (
                     <option key={item.id} value={item.name}>
                       {item.name}
@@ -377,7 +377,7 @@ export default function RealEstateListingForm({
           <div className="listing-form-card__head">
             <div className="listing-form-card__title">
               <ListChecks className="w-5 h-5 text-sun" />
-              Параметры объекта
+              {t("realestate.form.paramsSectionTitle")}
             </div>
           </div>
 
@@ -421,7 +421,7 @@ export default function RealEstateListingForm({
           <div className="listing-form-card__head">
             <div className="listing-form-card__title">
               <Info className="w-5 h-5 text-sun" />
-              Цена и описание
+              {t("realestate.form.priceDescSectionTitle")}
             </div>
           </div>
 
@@ -429,7 +429,7 @@ export default function RealEstateListingForm({
             <div>
               <div className="flex items-center justify-between gap-3 mb-1">
                 <label className="listing-form-label listing-form-label-required">
-                  Заголовок
+                  {t("form.title")}
                 </label>
                 <button
                   type="button"
@@ -437,7 +437,7 @@ export default function RealEstateListingForm({
                   className="inline-flex items-center gap-1 text-xs font-medium text-sun hover:text-sun-700"
                 >
                   <PencilLine className="w-3.5 h-3.5" />
-                  Сгенерировать
+                  {t("form.generateTitle")}
                 </button>
               </div>
               <input
@@ -455,7 +455,7 @@ export default function RealEstateListingForm({
 
             <div>
               <label className="listing-form-label listing-form-label-required">
-                Цена
+                {t("form.price")}
               </label>
               <div className="listing-form-price-wrap">
                 <input
@@ -474,14 +474,14 @@ export default function RealEstateListingForm({
                   inputMode="numeric"
                   autoComplete="off"
                 />
-                <span className="listing-form-price-suffix">с.</span>
+                <span className="listing-form-price-suffix">{t("price.currency")}</span>
               </div>
             </div>
 
             <PriceAdequacyBadge item={pricePreviewListing} />
 
             <div>
-              <label className="listing-form-label">Описание</label>
+              <label className="listing-form-label">{t("form.description")}</label>
               <textarea
                 value={form.description}
                 onChange={(e) =>

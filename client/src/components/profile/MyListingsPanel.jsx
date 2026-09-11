@@ -5,6 +5,7 @@ import {
   SlidersHorizontal,
   MapPin,
   Phone,
+  ChevronDown,
 } from "lucide-react";
 import ListingGridSkeleton from "../ListingGridSkeleton";
 import ProfileListingsGrid from "./ProfileListingsGrid";
@@ -38,6 +39,7 @@ export default function MyListingsPanel({
   const [serviceFilter, setServiceFilter] = React.useState("all");
   const [priceFrom, setPriceFrom] = React.useState("");
   const [priceTo, setPriceTo] = React.useState("");
+  const [filtersOpen, setFiltersOpen] = React.useState(false);
   const [selectMode, setSelectMode] = React.useState(false);
   const [selectedIds, setSelectedIds] = React.useState(() => new Set());
   const [applied, setApplied] = React.useState({
@@ -216,11 +218,26 @@ export default function MyListingsPanel({
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[280px_minmax(0,1fr)] gap-4 items-start">
-        <aside className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm space-y-4 lg:sticky lg:top-20">
-          <div className="flex items-center gap-2">
+        <aside className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm lg:sticky lg:top-20">
+          <button
+            type="button"
+            onClick={() => setFiltersOpen((value) => !value)}
+            className="flex w-full items-center gap-2 lg:cursor-default"
+            aria-expanded={filtersOpen}
+            aria-controls="my-listings-filters"
+          >
             <SlidersHorizontal size={16} className="text-slate-400" />
-            <h3 className="font-bold text-slate-900">{t("profile.filters")}</h3>
-          </div>
+            <h3 className="font-bold text-slate-900 flex-1 text-left">{t("profile.filters")}</h3>
+            <ChevronDown
+              size={18}
+              className={`text-slate-400 transition-transform lg:hidden ${filtersOpen ? "rotate-180" : ""}`}
+            />
+          </button>
+
+          <div
+            id="my-listings-filters"
+            className={`${filtersOpen ? "mt-4 block" : "hidden"} space-y-4 lg:mt-4 lg:block`}
+          >
 
           <label className="block">
             <div className="text-[11px] font-bold uppercase tracking-wide text-slate-400 mb-1.5">
@@ -388,11 +405,15 @@ export default function MyListingsPanel({
 
           <button
             type="button"
-            onClick={applyFilters}
+            onClick={() => {
+              applyFilters();
+              setFiltersOpen(false);
+            }}
             className="w-full rounded-xl bg-slate-900 text-white py-3 text-sm font-semibold hover:bg-slate-800 transition"
           >
             {t("profile.showAds", { count: filtered.length })}
           </button>
+          </div>
         </aside>
 
         <div className="min-w-0 space-y-4">

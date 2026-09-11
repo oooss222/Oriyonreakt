@@ -2,6 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { ClipboardCheck } from "lucide-react";
 import { api } from "../../lib/api";
+import { useI18n } from "../../i18n";
 import { getId } from "../../lib/adminUtils";
 import { getListingThumb } from "../../lib/media";
 import { formatPrice } from "../../lib/format";
@@ -11,6 +12,7 @@ import ModerationStatsPanel from "./ModerationStatsPanel";
 import { subscribeModerationQueue } from "../../lib/moderationSocket";
 
 export default function ModerationListingsPanel({ token, embedded = false }) {
+  const { t } = useI18n();
   const [panelMode, setPanelMode] = React.useState("listings");
   const [items, setItems] = React.useState([]);
   const [status, setStatus] = React.useState("pending");
@@ -32,7 +34,7 @@ export default function ModerationListingsPanel({ token, embedded = false }) {
 
       setItems(Array.isArray(data) ? data : []);
     } catch (e) {
-      setError(e.message || "Ошибка загрузки модерации");
+      setError(e.message || t("admin.moderation.loadError"));
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -40,33 +42,9 @@ export default function ModerationListingsPanel({ token, embedded = false }) {
   }, [token, status]);
 
   React.useEffect(() => {
-    let alive = true;
-
     setLoading(true);
-    setError("");
-
-    api
-      .moderationListings(token, status)
-      .then((data) => {
-        if (alive) {
-          setItems(Array.isArray(data) ? data : []);
-        }
-      })
-      .catch((e) => {
-        if (alive) {
-          setError(e.message || "Ошибка загрузки модерации");
-        }
-      })
-      .finally(() => {
-        if (alive) {
-          setLoading(false);
-        }
-      });
-
-    return () => {
-      alive = false;
-    };
-  }, [token, status]);
+    load();
+  }, [load]);
 
   const filteredItems = React.useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -107,7 +85,7 @@ export default function ModerationListingsPanel({ token, embedded = false }) {
 
   const approveAppeal = React.useCallback(
     async (id) => {
-      const ok = confirm("Одобрить апелляцию и опубликовать объявление?");
+      const ok = confirm(t("admin.moderation.approveAppealConfirm"));
       if (!ok) return;
 
       try {
@@ -117,36 +95,17 @@ export default function ModerationListingsPanel({ token, embedded = false }) {
           arr.filter((item) => String(getId(item)) !== String(id))
         );
       } catch (e) {
-        alert(e.message || "Ошибка одобрения апелляции");
+        alert(e.message || t("admin.moderation.approveAppealError"));
       } finally {
         setActionLoadingId("");
       }
     },
-    [token]
-  );
-
-  const rejectAppeal = React.useCallback(
-    async (id) => {
-      const note = prompt("Комментарий по апелляции (необязательно):") || "";
-
-      try {
-        setActionLoadingId(id);
-        await api.moderationRejectAppeal(token, id, note);
-        setItems((arr) =>
-          arr.filter((item) => String(getId(item)) !== String(id))
-        );
-      } catch (e) {
-        alert(e.message || "Ошибка отклонения апелляции");
-      } finally {
-        setActionLoadingId("");
-      }
-    },
-    [token]
+    [token, t]
   );
 
   const approve = React.useCallback(
     async (id) => {
-      const ok = confirm("Принять это объявление и опубликовать его?");
+      const ok = confirm(t("admin.moderation.approveConfirm"));
       if (!ok) return;
 
       try {
@@ -158,17 +117,17 @@ export default function ModerationListingsPanel({ token, embedded = false }) {
           arr.filter((item) => String(getId(item)) !== String(id))
         );
       } catch (e) {
-        alert(e.message || "Ошибка принятия объявления");
+        alert(e.message || t("admin.moderation.approveError"));
       } finally {
         setActionLoadingId("");
       }
     },
-    [token]
+    [token, t]
   );
 
   const removeListing = React.useCallback(
     async (id) => {
-      const ok = confirm("Удалить объявление полностью?");
+      const ok = confirm(t("admin.listings.deleteConfirm"));
 
       if (!ok) return;
 
@@ -181,16 +140,21 @@ export default function ModerationListingsPanel({ token, embedded = false }) {
           arr.filter((item) => String(getId(item)) !== String(id))
         );
       } catch (e) {
-        alert(e.message || "Ошибка удаления");
+        alert(e.message || t("admin.moderation.deleteError"));
       } finally {
         setActionLoadingId("");
       }
     },
-    [token]
+    [token, t]
   );
 
   const openReject = React.useCallback((ad) => {
-    setRejectTarget(ad);
+    setRejectTarget({ item: ad, kind: "listing" });
+    setRejectReason("");
+  }, []);
+
+  const openRejectAppeal = React.useCallback((ad) => {
+    setRejectTarget({ item: ad, kind: "appeal" });
     setRejectReason("");
   }, []);
 
@@ -202,35 +166,47 @@ export default function ModerationListingsPanel({ token, embedded = false }) {
   const submitReject = React.useCallback(async () => {
     if (!rejectTarget) return;
 
-    const id = getId(rejectTarget);
+    const { item, kind } = rejectTarget;
+    const id = getId(item);
     const reason = rejectReason.trim();
 
     if (reason.length < 5) {
-      alert("Причина должна быть не короче 5 символов");
+      alert(t("admin.moderation.reasonTooShort"));
       return;
     }
 
     try {
       setActionLoadingId(id);
 
-      await api.moderationRejectListing(token, id, reason);
+      if (kind === "appeal") {
+        await api.moderationRejectAppeal(token, id, reason);
+      } else {
+        await api.moderationRejectListing(token, id, reason);
+      }
 
       setItems((arr) =>
-        arr.filter((item) => String(getId(item)) !== String(id))
+        arr.filter((entry) => String(getId(entry)) !== String(id))
       );
 
       closeReject();
     } catch (e) {
-      alert(e.message || "Ошибка отклонения объявления");
+      alert(
+        e.message ||
+          t(
+            kind === "appeal"
+              ? "admin.moderation.rejectAppealError"
+              : "admin.moderation.rejectError"
+          )
+      );
     } finally {
       setActionLoadingId("");
     }
-  }, [token, rejectTarget, rejectReason, closeReject]);
+  }, [token, rejectTarget, rejectReason, closeReject, t]);
 
   const statusLabel = {
-    pending: "На проверке",
-    approved: "Принятые",
-    rejected: "Отклонённые",
+    pending: t("admin.moderation.statusPending"),
+    approved: t("admin.moderation.statusApproved"),
+    rejected: t("admin.moderation.statusRejected"),
   };
 
   const statusBadgeClass = {
@@ -250,7 +226,7 @@ export default function ModerationListingsPanel({ token, embedded = false }) {
             : "bg-white"
         }`}
       >
-        Объявления
+        {t("admin.sections.listings")}
       </button>
       <button
         type="button"
@@ -261,7 +237,7 @@ export default function ModerationListingsPanel({ token, embedded = false }) {
             : "bg-white"
         }`}
       >
-        Жалобы
+        {t("admin.sections.reports")}
       </button>
     </div>
   );
@@ -302,13 +278,13 @@ export default function ModerationListingsPanel({ token, embedded = false }) {
           <div>
             <div className="inline-flex items-center gap-2 text-sm text-sun-700 bg-sun-50 border border-sun-100 rounded-full px-3 py-1 mb-2">
               <ClipboardCheck className="w-4 h-4" />
-              Панель модератора
+              {t("admin.moderation.badge")}
             </div>
 
-            <h2 className="text-xl font-bold">Модерация объявлений</h2>
+            <h2 className="text-xl font-bold">{t("admin.moderation.title")}</h2>
 
             <p className="text-sm text-slate-500 mt-1">
-              Проверка, публикация и отклонение объявлений пользователей.
+              {t("admin.moderation.hint")}
             </p>
           </div>
 
@@ -317,7 +293,7 @@ export default function ModerationListingsPanel({ token, embedded = false }) {
             disabled={refreshing}
             className="px-4 py-2 rounded-xl border hover:bg-slate-50 disabled:opacity-60"
           >
-            {refreshing ? "Обновляем..." : "Обновить"}
+            {refreshing ? t("admin.users.refreshing") : t("admin.users.refresh")}
           </button>
         </div>
 
@@ -337,8 +313,8 @@ export default function ModerationListingsPanel({ token, embedded = false }) {
                 : "bg-slate-50 hover:bg-slate-100"
             }`}
           >
-            <div className="text-xs text-slate-500">Текущий раздел</div>
-            <div className="text-lg font-bold">На проверке</div>
+            <div className="text-xs text-slate-500">{t("admin.moderation.currentSection")}</div>
+            <div className="text-lg font-bold">{t("admin.moderation.statusPending")}</div>
           </button>
 
           <button
@@ -350,8 +326,8 @@ export default function ModerationListingsPanel({ token, embedded = false }) {
                 : "bg-slate-50 hover:bg-slate-100"
             }`}
           >
-            <div className="text-xs text-slate-500">Текущий раздел</div>
-            <div className="text-lg font-bold">Принятые</div>
+            <div className="text-xs text-slate-500">{t("admin.moderation.currentSection")}</div>
+            <div className="text-lg font-bold">{t("admin.moderation.statusApproved")}</div>
           </button>
 
           <button
@@ -363,14 +339,14 @@ export default function ModerationListingsPanel({ token, embedded = false }) {
                 : "bg-slate-50 hover:bg-slate-100"
             }`}
           >
-            <div className="text-xs text-slate-500">Текущий раздел</div>
-            <div className="text-lg font-bold">Отклонённые</div>
+            <div className="text-xs text-slate-500">{t("admin.moderation.currentSection")}</div>
+            <div className="text-lg font-bold">{t("admin.moderation.statusRejected")}</div>
           </button>
 
           <div className="rounded-2xl border bg-sun-50 p-4">
-            <div className="text-xs text-sun-700">Показано</div>
+            <div className="text-xs text-sun-700">{t("admin.moderation.shownLabel")}</div>
             <div className="text-2xl font-bold text-sun-700">{stats.filtered}</div>
-            <div className="text-xs text-sun-700">из {stats.loaded}</div>
+            <div className="text-xs text-sun-700">{t("admin.moderation.ofTotal", { total: stats.loaded })}</div>
           </div>
         </div>
 
@@ -378,7 +354,7 @@ export default function ModerationListingsPanel({ token, embedded = false }) {
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Поиск: название, описание, город, категория"
+            placeholder={t("admin.moderation.searchPlaceholder")}
             className="h-11 rounded-xl border px-3 outline-none focus:ring-2 focus:ring-sun/40 md:col-span-2"
           />
 
@@ -387,25 +363,25 @@ export default function ModerationListingsPanel({ token, embedded = false }) {
             onChange={(e) => setStatus(e.target.value)}
             className="h-11 rounded-xl border px-3 outline-none focus:ring-2 focus:ring-sun/40"
           >
-            <option value="pending">На проверке</option>
-            <option value="approved">Принятые</option>
-            <option value="rejected">Отклонённые</option>
+            <option value="pending">{t("admin.moderation.statusPending")}</option>
+            <option value="approved">{t("admin.moderation.statusApproved")}</option>
+            <option value="rejected">{t("admin.moderation.statusRejected")}</option>
           </select>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
           <div className="rounded-xl border bg-slate-50 p-3">
-            <div className="text-slate-500">С фото</div>
+            <div className="text-slate-500">{t("admin.moderation.withImages")}</div>
             <div className="font-bold">{stats.withImages}</div>
           </div>
 
           <div className="rounded-xl border bg-slate-50 p-3">
-            <div className="text-slate-500">Без фото</div>
+            <div className="text-slate-500">{t("admin.moderation.withoutImages")}</div>
             <div className="font-bold">{stats.withoutImages}</div>
           </div>
 
           <div className="rounded-xl border bg-slate-50 p-3">
-            <div className="text-slate-500">Статус</div>
+            <div className="text-slate-500">{t("admin.moderation.statusLabel")}</div>
             <div
               className={`inline-flex mt-1 px-2 py-0.5 text-xs rounded-full border ${
                 statusBadgeClass[status]
@@ -418,7 +394,7 @@ export default function ModerationListingsPanel({ token, embedded = false }) {
 
         {filteredItems.length === 0 ? (
           <div className="rounded-2xl border bg-slate-50 p-8 text-center text-slate-500">
-            Объявления не найдены.
+            {t("admin.listings.notFound")}
           </div>
         ) : (
           <div className="grid gap-4">
@@ -441,7 +417,7 @@ export default function ModerationListingsPanel({ token, embedded = false }) {
                   >
                     <img
                       src={img}
-                      alt={ad.title || "Объявление"}
+                      alt={ad.title || t("admin.listings.untitledAlt")}
                       className="w-full md:w-40 h-36 md:h-28 rounded-xl object-cover bg-slate-100"
                       loading="lazy"
                     />
@@ -463,19 +439,19 @@ export default function ModerationListingsPanel({ token, embedded = false }) {
 
                       {ad.ownerTrustLevel === "trusted" && (
                         <span className="inline-flex px-2 py-0.5 text-xs rounded-full border bg-emerald-50 text-emerald-700 border-emerald-200">
-                          Доверенный
+                          {t("admin.moderation.trusted")}
                         </span>
                       )}
 
                       {Number(ad.reportCount || 0) > 0 && (
                         <span className="inline-flex px-2 py-0.5 text-xs rounded-full border bg-red-50 text-red-700 border-red-200">
-                          Жалоб: {ad.reportCount}
+                          {t("admin.moderation.reportsCount", { count: ad.reportCount })}
                         </span>
                       )}
 
                       {ad.appealStatus === "pending" && (
                         <span className="inline-flex px-2 py-0.5 text-xs rounded-full border bg-indigo-50 text-indigo-700 border-indigo-200">
-                          Апелляция
+                          {t("admin.moderation.appeal")}
                         </span>
                       )}
                     </div>
@@ -487,11 +463,11 @@ export default function ModerationListingsPanel({ token, embedded = false }) {
                       }
                       className="font-semibold text-slate-900 hover:text-sun line-clamp-2"
                     >
-                      {ad.title || "Без названия"}
+                      {ad.title || t("admin.listings.untitled")}
                     </Link>
 
                     <div className="text-sm text-slate-500 mt-1">
-                      {ad.location || "Локация не указана"} · {ad.cat || "—"}
+                      {ad.location || t("admin.moderation.noLocation")} · {ad.cat || "—"}
                       {ad.subcategory ? ` · ${ad.subcategory}` : ""}
                     </div>
 
@@ -520,7 +496,7 @@ export default function ModerationListingsPanel({ token, embedded = false }) {
 
                     {Array.isArray(ad.contentDiff) && ad.contentDiff.length > 0 && (
                       <div className="mt-3 rounded-xl border bg-slate-50 p-3 text-xs space-y-1">
-                        <div className="font-semibold text-slate-700">Изменения</div>
+                        <div className="font-semibold text-slate-700">{t("admin.moderation.changes")}</div>
                         {ad.contentDiff.map((change) => (
                           <div key={`${id}-${change.field}`} className="text-slate-600">
                             <b>{change.label}:</b> {change.before} → {change.after}
@@ -531,19 +507,19 @@ export default function ModerationListingsPanel({ token, embedded = false }) {
 
                     {ad.appealText && (
                       <div className="mt-3 rounded-xl border border-indigo-200 bg-indigo-50 p-3 text-sm text-indigo-900">
-                        <b>Апелляция:</b> {ad.appealText}
+                        <b>{t("admin.moderation.appeal")}:</b> {ad.appealText}
                       </div>
                     )}
 
                     {ad.autoModerationReason && (
                       <div className="mt-2 text-xs text-slate-500">
-                        Авто-проверка: {ad.autoModerationReason}
+                        {t("admin.moderation.autoCheck")}: {ad.autoModerationReason}
                       </div>
                     )}
 
                     {ad.rejectionReason && (
                       <div className="mt-3 rounded-xl border border-red-200 bg-red-50 text-red-700 p-3 text-sm">
-                        <b>Причина отклонения:</b> {ad.rejectionReason}
+                        <b>{t("admin.moderation.rejectionReasonLabel")}:</b> {ad.rejectionReason}
                       </div>
                     )}
                   </div>
@@ -556,7 +532,7 @@ export default function ModerationListingsPanel({ token, embedded = false }) {
                       }
                       className="inline-flex justify-center px-3 py-2 rounded-lg border hover:bg-slate-50"
                     >
-                      Открыть
+                      {t("admin.listings.open")}
                     </Link>
 
                     {status === "pending" && (
@@ -568,15 +544,15 @@ export default function ModerationListingsPanel({ token, embedded = false }) {
                               disabled={isBusy}
                               className="inline-flex justify-center px-3 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-60"
                             >
-                              Одобрить апелляцию
+                              {t("admin.moderation.approveAppeal")}
                             </button>
 
                             <button
-                              onClick={() => rejectAppeal(id)}
+                              onClick={() => openRejectAppeal(ad)}
                               disabled={isBusy}
                               className="inline-flex justify-center px-3 py-2 rounded-lg border text-indigo-700 hover:bg-indigo-50 disabled:opacity-60"
                             >
-                              Отклонить апелляцию
+                              {t("admin.moderation.rejectAppeal")}
                             </button>
                           </>
                         ) : (
@@ -586,7 +562,7 @@ export default function ModerationListingsPanel({ token, embedded = false }) {
                               disabled={isBusy}
                               className="inline-flex justify-center px-3 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-60"
                             >
-                              {isBusy ? "..." : "Принять"}
+                              {isBusy ? "..." : t("admin.moderation.approve")}
                             </button>
 
                             <button
@@ -594,7 +570,7 @@ export default function ModerationListingsPanel({ token, embedded = false }) {
                               disabled={isBusy}
                               className="inline-flex justify-center px-3 py-2 rounded-lg border text-red-600 hover:bg-red-50 disabled:opacity-60"
                             >
-                              Отклонить
+                              {t("admin.moderation.reject")}
                             </button>
                           </>
                         )}
@@ -606,7 +582,7 @@ export default function ModerationListingsPanel({ token, embedded = false }) {
                       disabled={isBusy}
                       className="inline-flex justify-center px-3 py-2 rounded-lg border text-red-700 hover:bg-red-50 disabled:opacity-60"
                     >
-                      Удалить
+                      {t("admin.listings.delete")}
                     </button>
                   </div>
                 </article>
@@ -616,38 +592,49 @@ export default function ModerationListingsPanel({ token, embedded = false }) {
         )}
 
         {rejectTarget && (
-          <div className="fixed inset-0 z-[100] bg-black/40 flex items-center justify-center px-4">
+          <div
+            className="fixed inset-0 z-[100] bg-black/40 flex items-center justify-center px-4"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="moderation-reject-modal-title"
+          >
             <div className="w-full max-w-lg rounded-2xl bg-white shadow-xl border p-5 space-y-4">
               <div>
-                <h3 className="text-lg font-bold">Отклонить объявление</h3>
+                <h3 id="moderation-reject-modal-title" className="text-lg font-bold">
+                  {rejectTarget.kind === "appeal"
+                    ? t("admin.moderation.rejectAppealModalTitle")
+                    : t("admin.moderation.rejectModalTitle")}
+                </h3>
                 <p className="text-sm text-slate-500 mt-1">
-                  Укажите понятную причину, чтобы пользователь мог исправить объявление.
+                  {rejectTarget.kind === "appeal"
+                    ? t("admin.moderation.rejectAppealModalHint")
+                    : t("admin.moderation.rejectModalHint")}
                 </p>
               </div>
 
               <div className="rounded-xl border bg-slate-50 p-3">
                 <div className="text-sm font-semibold">
-                  {rejectTarget.title || "Без названия"}
+                  {rejectTarget.item.title || t("admin.listings.untitled")}
                 </div>
                 <div className="text-xs text-slate-500 mt-1">
-                  ID: {String(getId(rejectTarget)).slice(0, 8)}...
+                  ID: {String(getId(rejectTarget.item)).slice(0, 8)}...
                 </div>
               </div>
 
               <label className="block">
-                <div className="text-sm font-medium mb-1">Причина отклонения</div>
+                <div className="text-sm font-medium mb-1">{t("admin.moderation.rejectReasonLabel")}</div>
 
                 <textarea
                   value={rejectReason}
                   onChange={(e) => setRejectReason(e.target.value)}
                   rows={5}
-                  placeholder="Например: недостаточно информации, запрещённый товар, некорректная категория..."
+                  placeholder={t("admin.moderation.rejectReasonPlaceholder")}
                   className="w-full rounded-xl border px-3 py-2 outline-none focus:ring-2 focus:ring-sun/40 resize-y"
                 />
               </label>
 
               <div className="text-xs text-slate-500">
-                Минимум 5 символов. Сейчас: {rejectReason.trim().length}
+                {t("admin.moderation.reasonMinLength", { count: rejectReason.trim().length })}
               </div>
 
               <div className="flex justify-end gap-2">
@@ -656,7 +643,7 @@ export default function ModerationListingsPanel({ token, embedded = false }) {
                   onClick={closeReject}
                   className="px-4 py-2 rounded-xl border hover:bg-slate-50"
                 >
-                  Отмена
+                  {t("common.cancel")}
                 </button>
 
                 <button
@@ -664,13 +651,13 @@ export default function ModerationListingsPanel({ token, embedded = false }) {
                   onClick={submitReject}
                   disabled={
                     rejectReason.trim().length < 5 ||
-                    actionLoadingId === getId(rejectTarget)
+                    actionLoadingId === getId(rejectTarget.item)
                   }
                   className="px-4 py-2 rounded-xl bg-red-600 text-white hover:bg-red-700 disabled:opacity-60"
                 >
-                  {actionLoadingId === getId(rejectTarget)
-                    ? "Отклоняем..."
-                    : "Отклонить"}
+                  {actionLoadingId === getId(rejectTarget.item)
+                    ? t("admin.moderation.rejecting")
+                    : t("admin.moderation.reject")}
                 </button>
               </div>
             </div>

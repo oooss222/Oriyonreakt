@@ -1,4 +1,5 @@
 import React from "react";
+import { useI18n } from "../../i18n";
 
 function CheckboxOption({ checked, label, onChange }) {
   return (
@@ -20,16 +21,17 @@ export default function RentalQualityFilterFields({
   onVerifiedOnlyChange,
   className = "",
 }) {
+  const { t } = useI18n();
   return (
     <div className={`space-y-1 ${className}`}>
       <CheckboxOption
         checked={Boolean(draft.onlyWithPhotos)}
-        label="Только с фото"
+        label={t("realestate.filters.onlyWithPhotosLabel")}
         onChange={() => onOnlyWithPhotosChange?.(!draft.onlyWithPhotos)}
       />
       <CheckboxOption
         checked={Boolean(draft.verifiedOnly)}
-        label="Проверенный объект"
+        label={t("realestate.filters.verifiedOnlyLabel")}
         onChange={() => onVerifiedOnlyChange?.(!draft.verifiedOnly)}
       />
     </div>

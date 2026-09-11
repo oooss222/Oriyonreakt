@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { MapPin } from "lucide-react";
 import { buildRealEstateListingUrl } from "../../lib/realEstate";
 import { REAL_ESTATE_CITIES, getDistrictsForCity } from "../../data/realEstate";
+import { useI18n } from "../../i18n";
 
 export default function RealEstateDistrictBar({
   city,
@@ -11,6 +12,9 @@ export default function RealEstateDistrictBar({
   activeDistrict = "",
   filterContext = {},
 }) {
+  const { t, lang } = useI18n();
+  const numberLocale =
+    lang === "en" ? "en-US" : lang === "tg" ? "tg-TJ" : "ru-RU";
   const districts = getDistrictsForCity(city);
 
   const buildDistrictUrl = (district = "") => {
@@ -43,11 +47,13 @@ export default function RealEstateDistrictBar({
             <MapPin size={18} />
           </div>
           <div>
-            <h2 className="text-lg font-bold text-ink">Город и районы</h2>
+            <h2 className="text-lg font-bold text-ink">{t("realestate.districtBar.title")}</h2>
             <p className="text-sm text-ink-400 mt-0.5">
               {totalCount > 0
-                ? `${totalCount.toLocaleString("ru-RU")} объявлений · цены в сомони`
-                : "Душанбе и Худжанд — выберите район"}
+                ? t("realestate.districtBar.countSuffix", {
+                    count: totalCount.toLocaleString(numberLocale),
+                  })
+                : t("realestate.districtBar.defaultHint")}
             </p>
           </div>
         </div>
@@ -74,7 +80,7 @@ export default function RealEstateDistrictBar({
             to={buildDistrictUrl("")}
             className={`chip snap-start ${!activeDistrict ? "chip-active" : ""}`}
           >
-            Весь {city}
+            {t("realestate.districtBar.allCity", { city })}
           </Link>
 
           {districts.map((district) => (

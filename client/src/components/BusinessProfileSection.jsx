@@ -358,7 +358,7 @@ export default function BusinessProfileSection({ token, me, onUpdated }) {
                     companyDescription: e.target.value,
                   }))
                 }
-                placeholder="Агентство недвижимости, работаем с 2015 года…"
+                placeholder={t("business.companyDescriptionPlaceholder")}
               />
             </label>
 
@@ -377,7 +377,7 @@ export default function BusinessProfileSection({ token, me, onUpdated }) {
                       companyAddress: e.target.value,
                     }))
                   }
-                  placeholder={"ул. Рудаки 95, Душанбе\nпр. Рудаки 44, Душанбе"}
+                  placeholder={t("business.addressesPlaceholder")}
                 />
                 <p className="text-xs text-slate-500 mt-1">
                   {t("business.addressesHint")}

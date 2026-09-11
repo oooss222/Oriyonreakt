@@ -2,26 +2,30 @@ import React from "react";
 import { Download, FileSpreadsheet, CalendarRange, Mail } from "lucide-react";
 import { api } from "../../lib/api";
 import { getExportTypesForRole } from "../../lib/adminUtils";
+import { useI18n } from "../../i18n";
 
-const EXPORT_META = {
-  users: {
-    title: "Пользователи",
-    description: "Email, роль, баланс, дата регистрации",
-    dateFilter: true,
-  },
-  listings: {
-    title: "Объявления",
-    description: "Название, категория, статус, владелец",
-    dateFilter: false,
-  },
-  transactions: {
-    title: "Транзакции кошелька",
-    description: "Тип операции, сумма, пользователь",
-    dateFilter: true,
-  },
-};
+function getExportMeta(t) {
+  return {
+    users: {
+      title: t("admin.export.users.title"),
+      description: t("admin.export.users.description"),
+      dateFilter: true,
+    },
+    listings: {
+      title: t("admin.export.listings.title"),
+      description: t("admin.export.listings.description"),
+      dateFilter: false,
+    },
+    transactions: {
+      title: t("admin.export.transactions.title"),
+      description: t("admin.export.transactions.description"),
+      dateFilter: true,
+    },
+  };
+}
 
 export default function AdminExportSection({ token, role = "admin" }) {
+  const { t } = useI18n();
   const [loadingType, setLoadingType] = React.useState("");
   const [sendingReport, setSendingReport] = React.useState(false);
   const [error, setError] = React.useState("");
@@ -31,9 +35,10 @@ export default function AdminExportSection({ token, role = "admin" }) {
   const [reportEmail, setReportEmail] = React.useState("");
 
   const exportTypes = getExportTypesForRole(role);
+  const exportMeta = getExportMeta(t);
   const exportItems = exportTypes.map((type) => ({
     type,
-    ...EXPORT_META[type],
+    ...exportMeta[type],
   }));
 
   const download = async (type) => {
@@ -49,7 +54,7 @@ export default function AdminExportSection({ token, role = "admin" }) {
 
       await api.adminExport(token, type, params);
     } catch (e) {
-      setError(e.message || "Не удалось скачать файл");
+      setError(e.message || t("admin.export.downloadError"));
     } finally {
       setLoadingType("");
     }
@@ -68,10 +73,13 @@ export default function AdminExportSection({ token, role = "admin" }) {
       });
 
       setSuccess(
-        `Отчёт отправлен на ${result.sentTo}. Транзакций: ${result.transactions}.`
+        t("admin.export.reportSent", {
+          sentTo: result.sentTo,
+          count: result.transactions,
+        })
       );
     } catch (e) {
-      setError(e.message || "Не удалось отправить отчёт");
+      setError(e.message || t("admin.export.sendError"));
     } finally {
       setSendingReport(false);
     }
@@ -82,24 +90,24 @@ export default function AdminExportSection({ token, role = "admin" }) {
       <div>
         <div className="inline-flex items-center gap-2 text-sm text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-full px-3 py-1 mb-2">
           <FileSpreadsheet className="w-4 h-4" />
-          Экспорт данных
+          {t("admin.export.badge")}
         </div>
-        <h2 className="text-xl font-bold">CSV-выгрузки</h2>
+        <h2 className="text-xl font-bold">{t("admin.export.title")}</h2>
         <p className="text-sm text-slate-500 mt-1">
           {role === "accountant"
-            ? "Доступны только пользователи и транзакции кошелька."
-            : "Скачайте таблицы для отчётности и бухгалтерии."}
+            ? t("admin.export.subtitleAccountant")
+            : t("admin.export.subtitleDefault")}
         </p>
       </div>
 
       <div className="rounded-2xl border bg-slate-50 p-4 space-y-3">
         <div className="flex items-center gap-2 text-sm font-medium text-slate-700">
           <CalendarRange size={16} />
-          Период (необязательно)
+          {t("admin.export.periodLabel")}
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <label className="text-sm">
-            <span className="text-slate-500 block mb-1">С даты</span>
+            <span className="text-slate-500 block mb-1">{t("admin.finance.period.from")}</span>
             <input
               type="date"
               value={from}
@@ -108,7 +116,7 @@ export default function AdminExportSection({ token, role = "admin" }) {
             />
           </label>
           <label className="text-sm">
-            <span className="text-slate-500 block mb-1">По дату</span>
+            <span className="text-slate-500 block mb-1">{t("admin.finance.period.to")}</span>
             <input
               type="date"
               value={to}
@@ -118,21 +126,21 @@ export default function AdminExportSection({ token, role = "admin" }) {
           </label>
         </div>
         <p className="text-xs text-slate-500">
-          Фильтр по дате применяется к пользователям (регистрация) и транзакциям кошелька.
+          {t("admin.export.periodHint")}
         </p>
       </div>
 
       <div className="rounded-2xl border bg-blue-50 p-4 space-y-3">
         <div className="flex items-center gap-2 text-sm font-medium text-blue-800">
           <Mail size={16} />
-          Отправить отчёт на email
+          {t("admin.export.emailSectionTitle")}
         </div>
         <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-3">
           <input
             type="email"
             value={reportEmail}
             onChange={(e) => setReportEmail(e.target.value)}
-            placeholder="email бухгалтера (если не задан в настройках)"
+            placeholder={t("admin.export.emailPlaceholder")}
             className="h-11 rounded-xl border px-3 bg-white"
           />
           <button
@@ -141,12 +149,11 @@ export default function AdminExportSection({ token, role = "admin" }) {
             onClick={sendReport}
             className="h-11 px-4 rounded-xl bg-blue-700 text-white hover:bg-blue-800 disabled:opacity-60"
           >
-            {sendingReport ? "Отправляем..." : "Отправить CSV"}
+            {sendingReport ? t("admin.export.sending") : t("admin.export.sendButton")}
           </button>
         </div>
         <p className="text-xs text-blue-700">
-          Нужны SMTP-переменные на сервере (SMTP_HOST, SMTP_FROM, …). Автоотчёт 1-го числа
-          настраивается супер-админом.
+          {t("admin.export.smtpHint")}
         </p>
       </div>
 
@@ -170,9 +177,9 @@ export default function AdminExportSection({ token, role = "admin" }) {
               <div className="text-sm text-slate-500 mt-1">{item.description}</div>
               {item.dateFilter && (from || to) && (
                 <div className="text-xs text-emerald-700 mt-2">
-                  Будет выгружено за период
-                  {from ? ` с ${from}` : ""}
-                  {to ? ` по ${to}` : ""}
+                  {t("admin.export.periodWillInclude")}
+                  {from ? t("admin.export.fromSuffix", { from }) : ""}
+                  {to ? t("admin.export.toSuffix", { to }) : ""}
                 </div>
               )}
             </div>
@@ -184,7 +191,7 @@ export default function AdminExportSection({ token, role = "admin" }) {
               className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border hover:bg-slate-100 disabled:opacity-60"
             >
               <Download size={16} />
-              {loadingType === item.type ? "Готовим..." : "Скачать CSV"}
+              {loadingType === item.type ? t("admin.export.preparing") : t("admin.export.downloadButton")}
             </button>
           </div>
         ))}

@@ -8,27 +8,37 @@ import {
 } from "lucide-react";
 import { useI18n } from "../../i18n";
 
-export const Field = ({ label, hint, icon: Icon, right, children }) => (
-  <div className="space-y-1.5">
-    {label && (
-      <label className="text-sm font-medium text-slate-700">{label}</label>
-    )}
-    <div className="relative">
-      {Icon && (
-        <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
-          <Icon size={18} />
-        </span>
+export const Field = ({ label, hint, icon: Icon, right, children }) => {
+  const generatedId = React.useId();
+  const child = React.isValidElement(children)
+    ? React.cloneElement(children, { id: children.props.id || generatedId })
+    : children;
+  const inputId = React.isValidElement(child) ? child.props.id : undefined;
+
+  return (
+    <div className="space-y-1.5">
+      {label && (
+        <label htmlFor={inputId} className="text-sm font-medium text-slate-700">
+          {label}
+        </label>
       )}
-      {children}
-      {right && (
-        <span className="absolute inset-y-0 right-0 flex items-center pr-3">
-          {right}
-        </span>
-      )}
+      <div className="relative">
+        {Icon && (
+          <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+            <Icon size={18} />
+          </span>
+        )}
+        {child}
+        {right && (
+          <span className="absolute inset-y-0 right-0 flex items-center pr-3">
+            {right}
+          </span>
+        )}
+      </div>
+      {hint}
     </div>
-    {hint}
-  </div>
-);
+  );
+};
 
 export const Input = React.forwardRef(function AuthInput(
   { className = "", withIcon, withToggle, ...props },
@@ -58,7 +68,7 @@ export function Alert({ type = "error", children, actionLabel, onAction }) {
   const Icon = type === "success" ? CheckCircle2 : AlertTriangle;
 
   return (
-    <div className={styles}>
+    <div className={styles} role={type === "success" ? "status" : "alert"}>
       <Icon size={18} className="mt-0.5 shrink-0" />
       <div className="text-sm space-y-2">
         <div>{children}</div>

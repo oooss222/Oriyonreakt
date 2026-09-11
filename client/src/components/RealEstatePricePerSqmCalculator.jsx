@@ -6,6 +6,7 @@ import {
   calculateTotalPriceFromPerSqm,
   formatPricePerSqmValue,
 } from "../lib/realEstate";
+import { useI18n } from "../i18n";
 
 function PerSqmInput({ value, onChange, placeholder, disabled = false }) {
   return (
@@ -27,6 +28,7 @@ export default function RealEstatePricePerSqmCalculator({
   onChange,
   disabled = false,
 }) {
+  const { t } = useI18n();
   const [objectPrice, setObjectPrice] = React.useState("");
   const [objectArea, setObjectArea] = React.useState("");
   const [targetPerSqm, setTargetPerSqm] = React.useState("");
@@ -59,7 +61,7 @@ export default function RealEstatePricePerSqmCalculator({
           onChange={(next) =>
             onChange?.({ pricePerSqmFrom: next, pricePerSqmTo })
           }
-          placeholder="от, с./м²"
+          placeholder={t("realestate.calculator.fromPerSqmPlaceholder", { currency: t("price.currency") })}
           disabled={disabled}
         />
         <PerSqmInput
@@ -67,7 +69,7 @@ export default function RealEstatePricePerSqmCalculator({
           onChange={(next) =>
             onChange?.({ pricePerSqmFrom, pricePerSqmTo: next })
           }
-          placeholder="до, с./м²"
+          placeholder={t("realestate.calculator.toPerSqmPlaceholder", { currency: t("price.currency") })}
           disabled={disabled}
         />
       </div>
@@ -75,17 +77,17 @@ export default function RealEstatePricePerSqmCalculator({
       <div className="rounded-xl border border-ink/10 bg-mist p-3 space-y-4">
         <div className="flex items-center gap-2 text-sm font-semibold text-ink">
           <Calculator size={16} className="text-sun" />
-          Калькулятор цены за м²
+          {t("realestate.calculator.title")}
         </div>
 
         <div className="space-y-2">
-          <div className="label-caps">Цена объекта и площадь</div>
+          <div className="label-caps">{t("realestate.calculator.priceAreaLabel")}</div>
           <div className="grid grid-cols-2 gap-2">
             <input
               type="text"
               inputMode="numeric"
               disabled={disabled}
-              placeholder="Цена, с."
+              placeholder={t("realestate.calculator.pricePlaceholder", { currency: t("price.currency") })}
               value={objectPrice ? formatPriceInput(objectPrice) : ""}
               onChange={(e) => setObjectPrice(getPriceDigits(e.target.value))}
               className="mobile-control disabled:opacity-60"
@@ -94,7 +96,7 @@ export default function RealEstatePricePerSqmCalculator({
               type="text"
               inputMode="decimal"
               disabled={disabled}
-              placeholder="Площадь, м²"
+              placeholder={t("realestate.calculator.areaPlaceholder")}
               value={objectArea}
               onChange={(e) =>
                 setObjectArea(e.target.value.replace(/[^\d.,]/g, ""))
@@ -115,7 +117,7 @@ export default function RealEstatePricePerSqmCalculator({
                   onClick={() => applyDerivedPerSqm("to")}
                   className="text-xs font-semibold text-sun-700 hover:text-sun-800 disabled:opacity-60"
                 >
-                  Подставить в «до»
+                  {t("realestate.calculator.applyToTo")}
                 </button>
                 <button
                   type="button"
@@ -123,33 +125,33 @@ export default function RealEstatePricePerSqmCalculator({
                   onClick={() => applyDerivedPerSqm("from")}
                   className="text-xs font-semibold text-sun-700 hover:text-sun-800 disabled:opacity-60"
                 >
-                  Подставить в «от»
+                  {t("realestate.calculator.applyToFrom")}
                 </button>
               </div>
             </div>
           ) : (
             <p className="text-xs text-slate-500">
-              Введите цену и площадь — рассчитаем стоимость квадратного метра.
+              {t("realestate.calculator.enterPriceAreaHint")}
             </p>
           )}
         </div>
 
         <div className="space-y-2">
           <div className="text-xs font-medium uppercase tracking-wide text-slate-500">
-            Бюджет за м² и площадь
+            {t("realestate.calculator.budgetAreaLabel")}
           </div>
           <div className="grid grid-cols-2 gap-2">
             <PerSqmInput
               value={targetPerSqm}
               onChange={setTargetPerSqm}
-              placeholder="с./м²"
+              placeholder={t("realestate.calculator.perSqmPlaceholder", { currency: t("price.currency") })}
               disabled={disabled}
             />
             <input
               type="text"
               inputMode="decimal"
               disabled={disabled}
-              placeholder="Площадь, м²"
+              placeholder={t("realestate.calculator.areaPlaceholder")}
               value={budgetArea}
               onChange={(e) =>
                 setBudgetArea(e.target.value.replace(/[^\d.,]/g, ""))
@@ -160,14 +162,14 @@ export default function RealEstatePricePerSqmCalculator({
 
           {derivedTotalPrice ? (
             <div className="rounded-lg border border-sun/20 bg-white px-3 py-2 text-sm text-slate-700">
-              Итого:{" "}
+              {t("realestate.calculator.totalLabel")}{" "}
               <span className="font-semibold text-sun-800">
-                {formatPriceInput(String(derivedTotalPrice))} с.
+                {formatPriceInput(String(derivedTotalPrice))} {t("price.currency")}
               </span>
             </div>
           ) : (
             <p className="text-xs text-slate-500">
-              Покажем ориентировочную полную стоимость объекта.
+              {t("realestate.calculator.budgetHint")}
             </p>
           )}
         </div>

@@ -1,15 +1,17 @@
 import React from "react";
 import { Link } from "react-router-dom";
-
-const SECONDARY_CTA = {
-  transport: { label: "Продать авто", to: "/add?cat=transport" },
-};
+import { useI18n } from "../i18n";
 
 export default function CategoryHero({ cat, slug, total = 0 }) {
-  const secondary = SECONDARY_CTA[slug] || {
-    label: "Подать объявление",
-    to: `/add?cat=${slug}`,
-  };
+  const { t, lang } = useI18n();
+
+  const numberLocale =
+    lang === "en" ? "en-US" : lang === "tg" ? "tg-TJ" : "ru-RU";
+
+  const secondary =
+    slug === "transport"
+      ? { label: t("category.sellAuto"), to: "/add?cat=transport" }
+      : { label: t("empty.postListing"), to: `/add?cat=${slug}` };
 
   return (
     <header className="category-hero category-hero-banner">
@@ -17,11 +19,11 @@ export default function CategoryHero({ cat, slug, total = 0 }) {
         <div className="p-5 md:p-8 flex flex-col justify-center min-w-0">
           <div className="inline-flex items-center gap-2 mb-3">
             <span className="badge bg-white/10 text-white border-white/20">
-              Категория
+              {t("listing.category")}
             </span>
             {total > 0 && (
               <span className="text-xs text-white/75">
-                {total.toLocaleString("ru-RU")} объявлений
+                {t("listing.count", { count: total.toLocaleString(numberLocale) })}
               </span>
             )}
           </div>
@@ -33,7 +35,7 @@ export default function CategoryHero({ cat, slug, total = 0 }) {
 
           <div className="mt-5 flex flex-wrap gap-2">
             <Link to={`/c/${slug}`} className="btn btn-primary">
-              Все объявления
+              {t("category.allListings")}
             </Link>
             <Link
               to={secondary.to}

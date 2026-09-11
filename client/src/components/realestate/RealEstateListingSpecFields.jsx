@@ -1,5 +1,6 @@
 import React from "react";
 import MultiPillGroup from "../filters/MultiPillGroup";
+import { useI18n } from "../../i18n";
 
 function ChipGroup({ value, options, onChange }) {
   return (
@@ -26,10 +27,11 @@ export default function RealEstateListingSpecFields({
   fields,
   onUpdateByName,
 }) {
+  const { t } = useI18n();
   if (!fields.length) {
     return (
       <div className="px-4 py-6 text-sm text-slate-500">
-        Выберите тип объекта и сделки, чтобы заполнить параметры.
+        {t("realestate.specFields.selectTypeHint")}
       </div>
     );
   }
@@ -66,7 +68,7 @@ export default function RealEstateListingSpecFields({
                   onChange={(e) => onUpdateByName(row.name, e.target.value)}
                   className="listing-form-select"
                 >
-                  <option value="">Выберите</option>
+                  <option value="">{t("realestate.dateRange.selectPlaceholder")}</option>
                   {(row.options || []).map((option) => (
                     <option key={option} value={option}>
                       {option}

@@ -5,6 +5,7 @@ import {
   RENT_TERM_OPTIONS,
   RENT_DEPOSIT_OPTIONS,
 } from "../../data/realEstate";
+import { useI18n } from "../../i18n";
 
 function ChipGroup({ value, options, onChange }) {
   return (
@@ -33,10 +34,11 @@ export default function GarageFilterFields({
   isRent = false,
   className = "",
 }) {
+  const { t } = useI18n();
   return (
     <div className={`space-y-4 ${className}`}>
       <div>
-        <div className="label-caps mb-3">Тип</div>
+        <div className="label-caps mb-3">{t("realestate.type")}</div>
         <ChipGroup
           value={draft.specs?.["Тип"] || ""}
           options={GARAGE_TYPE_OPTIONS}
@@ -45,7 +47,7 @@ export default function GarageFilterFields({
       </div>
 
       <div>
-        <div className="label-caps mb-3">Охрана</div>
+        <div className="label-caps mb-3">{t("realestate.filters.securityLabel")}</div>
         <ChipGroup
           value={draft.specs?.["Охрана"] || ""}
           options={GARAGE_SECURITY_OPTIONS}
@@ -55,10 +57,10 @@ export default function GarageFilterFields({
 
       {isRent ? (
         <div>
-          <div className="label-caps mb-3">Условия аренды</div>
+          <div className="label-caps mb-3">{t("realestate.filters.rentTermsTitle")}</div>
           <div className="space-y-3">
             <div>
-              <div className="mb-2 text-xs font-medium text-ink-500">Срок аренды</div>
+              <div className="mb-2 text-xs font-medium text-ink-500">{t("realestate.filters.rentTermLabel")}</div>
               <ChipGroup
                 value={draft.specs?.["Срок аренды"] || ""}
                 options={RENT_TERM_OPTIONS}
@@ -66,7 +68,7 @@ export default function GarageFilterFields({
               />
             </div>
             <div>
-              <div className="mb-2 text-xs font-medium text-ink-500">Залог</div>
+              <div className="mb-2 text-xs font-medium text-ink-500">{t("realestate.filters.depositLabel")}</div>
               <ChipGroup
                 value={draft.specs?.["Залог"] || ""}
                 options={RENT_DEPOSIT_OPTIONS}

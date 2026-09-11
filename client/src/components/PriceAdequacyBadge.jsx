@@ -2,8 +2,10 @@ import React from "react";
 import { AlertTriangle, CheckCircle2, TrendingDown, TrendingUp } from "lucide-react";
 import { assessListingPrice } from "../lib/priceBenchmarks";
 import { enrichRealEstateListing, getSpecValue } from "../lib/realEstate";
+import { useI18n } from "../i18n";
 
 export default function PriceAdequacyBadge({ item, compact = false }) {
+  const { t } = useI18n();
   const listing = enrichRealEstateListing(item);
   const summary = listing.realEstateSummary || {};
   const specs = Array.isArray(item?.specs) ? item.specs : [];
@@ -23,7 +25,7 @@ export default function PriceAdequacyBadge({ item, compact = false }) {
     return (
       <div className="rounded-2xl border border-lagoon/15 bg-lagoon/5 px-4 py-3 text-sm text-lagoon-700 flex items-start gap-2">
         <CheckCircle2 size={16} className="shrink-0 mt-0.5" />
-        <span>{assessment?.message || "Цена выглядит адекватно для указанных параметров."}</span>
+        <span>{assessment?.message || t("listing.priceAdequate")}</span>
       </div>
     );
   }

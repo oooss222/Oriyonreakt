@@ -6,16 +6,7 @@ function getStickTop(fallback = 124) {
   if (typeof document === "undefined") return fallback;
 
   const header = document.querySelector("header");
-  const breadcrumbs = document.querySelector("[data-ad-breadcrumbs]");
-
-  let top = header?.getBoundingClientRect().height ?? 72;
-
-  if (breadcrumbs) {
-    const crumbsRect = breadcrumbs.getBoundingClientRect();
-    if (crumbsRect.top <= top + 1) {
-      top += crumbsRect.height;
-    }
-  }
+  const top = header?.getBoundingClientRect().height ?? 72;
 
   return top + 12;
 }

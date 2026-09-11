@@ -515,11 +515,11 @@ export default function Profile() {
   if (!token) {
     return (
       <div className="container mx-auto px-4 py-10">
-        <div className="rounded-2xl border bg-white p-6 text-center space-y-3">
-          <h1 className="text-2xl font-bold">Личный кабинет</h1>
-          <p className="text-slate-600">Вы не авторизованы.</p>
+        <div className="card p-6 text-center space-y-3">
+          <h1 className="text-2xl font-bold">{t("home.accountTitle")}</h1>
+          <p className="text-slate-600">{t("profile.notAuthorized")}</p>
           <Link to="/auth" className="btn btn-primary">
-            Войти / Зарегистрироваться
+            {t("profile.loginRegister")}
           </Link>
         </div>
       </div>
