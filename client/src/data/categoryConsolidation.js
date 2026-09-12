@@ -14,6 +14,29 @@ export const LEGACY_SUBCATEGORY_REDIRECTS = {
   },
 };
 
+const CLOTHING_KIDS_TO_KIDS = {
+  "Детская одежда — Для новорождённых": "Одежда и обувь — Для новорождённых",
+  "Детская одежда — Для девочек": "Одежда и обувь — Для девочек",
+  "Детская одежда — Для мальчиков": "Одежда и обувь — Для мальчиков",
+  "Детская одежда — Школьная одежда": "Одежда и обувь — Школьная форма",
+  "Детская одежда — Обувь": "Одежда и обувь — Обувь",
+  "Детская одежда — Верхняя одежда": "Одежда и обувь — Другое",
+  "Детская одежда — Спортивная одежда": "Одежда и обувь — Другое",
+  "Детская одежда — Другое": "Одежда и обувь — Другое",
+  "Обувь — Детская обувь": "Одежда и обувь — Обувь",
+};
+
+const TRAVEL_DAILY_TO_REALESTATE = {
+  "Гостиницы и жильё — Квартиры посуточно": {
+    cat: "realestate",
+    path: "/realestate/dushanbe/kvartiry/posutochno",
+  },
+  "Гостиницы и жильё — Дома посуточно": {
+    cat: "realestate",
+    path: "/realestate/dushanbe/doma/posutochno",
+  },
+};
+
 const REPAIR_MATERIALS_SUBS = [
   "Окна и двери",
   "Дома, срубы и снаряжения",
@@ -33,6 +56,17 @@ export function resolveLegacyCategoryFilters(cat, subcategory) {
       cat: "services",
       subcategory: normalizedSub,
     };
+  }
+
+  if (normalizedCat === "clothing" && CLOTHING_KIDS_TO_KIDS[normalizedSub]) {
+    return {
+      cat: "kids",
+      subcategory: CLOTHING_KIDS_TO_KIDS[normalizedSub],
+    };
+  }
+
+  if (normalizedCat === "travel" && TRAVEL_DAILY_TO_REALESTATE[normalizedSub]) {
+    return TRAVEL_DAILY_TO_REALESTATE[normalizedSub];
   }
 
   const key = `${normalizedCat}::${normalizedSub}`;

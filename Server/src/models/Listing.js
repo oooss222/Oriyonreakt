@@ -7,6 +7,7 @@ const {
   safeLimit,
   safeOffset,
 } = require("../lib/sqlSafety");
+const { expandSubcategoryFilterValues } = require("../lib/subcategoryAliases");
 
 function toNumberOrNull(value) {
   if (value === undefined || value === null || value === "") {
@@ -268,8 +269,15 @@ function buildListingFilters({
   if (subcategory) {
     // Values are trimmed on write and existing rows are normalised at startup,
     // so this compares the raw column and can use idx_listings_subcategory.
-    values.push(String(subcategory).trim());
-    conditions.push(`subcategory = $${values.length}`);
+    // Lifestyle categories also match legacy "Group — Item" aliases.
+    const matches = expandSubcategoryFilterValues(subcategory);
+    if (matches.length <= 1) {
+      values.push(matches[0] || String(subcategory).trim());
+      conditions.push(`subcategory = $${values.length}`);
+    } else {
+      values.push(matches);
+      conditions.push(`subcategory = ANY($${values.length})`);
+    }
   }
 
   if (search) {
@@ -714,8 +722,14 @@ class ListingModel {
     }
 
     if (subcategory) {
-      values.push(String(subcategory).trim());
-      conditions.push(`subcategory = $${values.length}`);
+      const matches = expandSubcategoryFilterValues(subcategory);
+      if (matches.length <= 1) {
+        values.push(matches[0] || String(subcategory).trim());
+        conditions.push(`subcategory = $${values.length}`);
+      } else {
+        values.push(matches);
+        conditions.push(`subcategory = ANY($${values.length})`);
+      }
     }
 
     const result = await query(

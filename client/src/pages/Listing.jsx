@@ -228,6 +228,24 @@ export default function Listing() {
     );
     if (!legacy) return;
 
+    if (legacy.path) {
+      nav(legacy.path, { replace: true });
+      return;
+    }
+
+    if (legacy.cat === "kids" || legacy.cat === "services") {
+      const next = new URLSearchParams(searchParams);
+      next.delete("cat");
+      if (legacy.subcategory) {
+        next.set("subcategory", legacy.subcategory);
+      } else {
+        next.delete("subcategory");
+      }
+      const query = next.toString();
+      nav(`/c/${legacy.cat}${query ? `?${query}` : ""}`, { replace: true });
+      return;
+    }
+
     const next = new URLSearchParams(searchParams);
     if (isCategoryBrowse) {
       next.delete("cat");
@@ -240,7 +258,7 @@ export default function Listing() {
       next.delete("subcategory");
     }
     setSearchParams(next, { replace: true });
-  }, [paramsKey, searchParams, setSearchParams, cat, isCategoryBrowse]);
+  }, [paramsKey, searchParams, setSearchParams, cat, isCategoryBrowse, nav]);
 
   const appliedDraft = React.useMemo(() => {
     const fromQuery = searchParamsToDraft(searchParams);

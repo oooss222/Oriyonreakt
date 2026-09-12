@@ -1,10 +1,11 @@
 import React from "react";
-import { useParams, Link, useNavigate, Navigate } from "react-router-dom";
+import { useParams, Link, Navigate } from "react-router-dom";
 import { DEFAULT_REAL_ESTATE_BROWSE_PATH } from "../lib/realestateSeo";
 import EmptyState from "../components/EmptyState";
 import Breadcrumbs from "../components/Breadcrumbs";
 import CategoryHero from "../components/CategoryHero";
 import TransportQuickFilters from "../components/transport/TransportQuickFilters";
+import CategoryQuickFilters from "../components/CategoryQuickFilters";
 import ListingGridSkeleton from "../components/ListingGridSkeleton";
 import ListingCard from "../components/ListingCard";
 import AdSlot from "../components/AdSlot";
@@ -21,10 +22,16 @@ import { useI18n, getCategoryLabel } from "../i18n";
 import { Search, FolderOpen, Scale, ArrowRight } from "lucide-react";
 
 const PREVIEW_LIMIT = 6;
+const LIFESTYLE_SLUGS = new Set([
+  "food",
+  "kids",
+  "travel",
+  "clothing",
+  "construction",
+]);
 
 export default function Category() {
   const { slug } = useParams();
-  const nav = useNavigate();
   const { t } = useI18n();
 
   const cat = CATS[slug];
@@ -45,15 +52,35 @@ export default function Category() {
     return () => window.removeEventListener("oriyon:compare-change", sync);
   }, [slug]);
 
+  const groupedSubs = React.useMemo(() => {
+    if (!cat?.subGroups?.length) return null;
+
+    const query = q.trim().toLowerCase();
+
+    return cat.subGroups
+      .map(({ group, items }) => {
+        const filtered = items.filter((item) => {
+          if (!query) return true;
+          const full = `${group} — ${item}`.toLowerCase();
+          return full.includes(query) || item.toLowerCase().includes(query);
+        });
+        return filtered.length ? { group, items: filtered } : null;
+      })
+      .filter(Boolean);
+  }, [q, cat]);
+
   const subs = React.useMemo(() => {
     if (!cat) return [];
+    if (groupedSubs) {
+      return groupedSubs.flatMap(({ group, items }) =>
+        items.map((item) => `${group} — ${item}`)
+      );
+    }
 
-    const t = q.trim().toLowerCase();
-
-    if (!t) return cat.subs;
-
-    return cat.subs.filter((s) => s.toLowerCase().includes(t));
-  }, [q, cat]);
+    const query = q.trim().toLowerCase();
+    if (!query) return cat.subs;
+    return cat.subs.filter((s) => s.toLowerCase().includes(query));
+  }, [q, cat, groupedSubs]);
 
   React.useEffect(() => {
     if (!slug) return undefined;
@@ -131,6 +158,24 @@ export default function Category() {
     return stats.bySubcategory?.[sub] || 0;
   }
 
+  function renderSubLink(sub, label = sub) {
+    const count = subCount(sub);
+    const empty = count === 0;
+
+    return (
+      <Link
+        key={sub}
+        to={`/listing?cat=${slug}&subcategory=${encodeURIComponent(sub)}`}
+        className={`subcategory-chip ${
+          empty ? "border-ink/10 bg-mist text-ink-300" : "subcategory-chip-idle"
+        }`}
+      >
+        {label}
+        {count > 0 && <span className="ml-1.5 opacity-70">({count})</span>}
+      </Link>
+    );
+  }
+
   return (
     <div className="container-x py-6 space-y-6">
       <Breadcrumbs
@@ -141,6 +186,21 @@ export default function Category() {
       />
 
       <CategoryHero cat={cat} slug={slug} total={stats.total} />
+
+      {Array.isArray(cat.crossLinks) && cat.crossLinks.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {cat.crossLinks.map((link) => (
+            <Link
+              key={link.to}
+              to={link.to}
+              className="inline-flex items-center gap-1.5 rounded-full border border-sun/30 bg-sun-50 px-3.5 py-1.5 text-sm font-semibold text-sun-800 hover:bg-sun-100 transition"
+            >
+              {link.label}
+              <ArrowRight size={14} />
+            </Link>
+          ))}
+        </div>
+      )}
 
       {isCompareSupported(slug) && compareCount > 0 && (
         <Link
@@ -181,8 +241,9 @@ export default function Category() {
       </div>
 
       {slug === "transport" && <TransportQuickFilters />}
+      {LIFESTYLE_SLUGS.has(slug) && <CategoryQuickFilters slug={slug} />}
 
-      <section>
+      <section className="space-y-5">
         {subs.length === 0 ? (
           <EmptyState
             icon={Search}
@@ -191,6 +252,31 @@ export default function Category() {
             actionLabel={t("empty.resetSearch")}
             onAction={() => setQ("")}
           />
+        ) : groupedSubs ? (
+          <>
+            <div className="flex flex-wrap gap-2">
+              <Link
+                to={`/listing?cat=${slug}`}
+                className="subcategory-chip subcategory-chip-active"
+              >
+                {t("category.all")}
+                {stats.total > 0 && (
+                  <span className="ml-1.5 opacity-80">({stats.total})</span>
+                )}
+              </Link>
+            </div>
+
+            {groupedSubs.map(({ group, items }) => (
+              <div key={group} className="space-y-2">
+                <h3 className="text-sm font-semibold text-ink-600">{group}</h3>
+                <div className="flex flex-wrap gap-2">
+                  {items.map((item) =>
+                    renderSubLink(`${group} — ${item}`, item)
+                  )}
+                </div>
+              </div>
+            ))}
+          </>
         ) : (
           <div className="flex flex-wrap gap-2">
             <Link
@@ -203,27 +289,7 @@ export default function Category() {
               )}
             </Link>
 
-            {subs.map((sub) => {
-              const count = subCount(sub);
-              const empty = count === 0;
-
-              return (
-                <Link
-                  key={sub}
-                  to={`/listing?cat=${slug}&subcategory=${encodeURIComponent(sub)}`}
-                  className={`subcategory-chip ${
-                    empty
-                      ? "border-ink/10 bg-mist text-ink-300"
-                      : "subcategory-chip-idle"
-                  }`}
-                >
-                  {sub}
-                  {count > 0 && (
-                    <span className="ml-1.5 opacity-70">({count})</span>
-                  )}
-                </Link>
-              );
-            })}
+            {subs.map((sub) => renderSubLink(sub))}
           </div>
         )}
       </section>
@@ -261,11 +327,15 @@ export default function Category() {
               className="mb-4"
             />
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3">
-            {preview.map((ad) => (
-              <ListingCard key={ad._id || ad.id} item={ad} trackSource="category" />
-            ))}
-          </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3">
+              {preview.map((ad) => (
+                <ListingCard
+                  key={ad._id || ad.id}
+                  item={ad}
+                  trackSource="category"
+                />
+              ))}
+            </div>
           </>
         )}
       </section>
