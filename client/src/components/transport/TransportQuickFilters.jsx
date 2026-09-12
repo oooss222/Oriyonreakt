@@ -19,12 +19,16 @@ const TRANSPORT_QUICK_FILTERS = [
     to: '/c/transport?subcategory=Легковые%20авто&specs={"Состояние":"Новый"}',
   },
   {
+    label: "Газ/Бензин",
+    to: '/c/transport?subcategory=Легковые%20авто&specs={"Топливо":"Газ/Бензин"}',
+  },
+  {
     label: "Запчасти",
     to: "/c/transport?subcategory=Запчасти",
   },
   {
     label: "Грузовики",
-    to: "/c/transport?subcategory=Грузовики",
+    to: "/c/transport?subcategory=Грузовики%20и%20автобусы",
   },
 ];
 

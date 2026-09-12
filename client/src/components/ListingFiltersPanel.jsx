@@ -78,7 +78,7 @@ function PriceFilterPopover({ draft, setDraft, onApply }) {
   const panelRef = React.useRef(null);
   const [panelStyle, setPanelStyle] = React.useState(null);
   const draftRef = React.useRef(draft);
-  const currency = draft.priceCurrency || "с.";
+  const currency = "с.";
 
   draftRef.current = draft;
 
@@ -186,25 +186,8 @@ function PriceFilterPopover({ draft, setDraft, onApply }) {
                 />
               </div>
 
-              <div className="relative shrink-0">
-                <select
-                  value={currency}
-                  onChange={(e) =>
-                    setDraft((current) => ({
-                      ...current,
-                      priceCurrency: e.target.value,
-                    }))
-                  }
-                  className="h-11 min-w-[4.5rem] appearance-none rounded-lg border border-mist-200 bg-white pl-3 pr-8 text-sm outline-none focus:ring-2 focus:ring-sun/40"
-                >
-                  <option value="с.">с.</option>
-                  <option value="$">$</option>
-                </select>
-
-                <ChevronDown
-                  size={16}
-                  className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-ink-400"
-                />
+              <div className="inline-flex h-11 min-w-[3.5rem] items-center justify-center rounded-lg border border-mist-200 bg-mist-50 px-3 text-sm font-semibold text-ink-600">
+                с.
               </div>
             </div>
           </div>,

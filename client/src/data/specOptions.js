@@ -1,4 +1,11 @@
-export const LOCATIONS = ["Душанбе", "Худжанд"];
+import {
+  LOCATIONS,
+  REGIONS,
+  REGION_CITIES,
+  CITY_COORDINATES,
+} from "./locations";
+
+export { LOCATIONS, REGIONS, REGION_CITIES, CITY_COORDINATES };
 
 export const PRICE_MAX_DIGITS = 12;
 
@@ -12,51 +19,74 @@ export function getPriceDigits(value, maxDigits = PRICE_MAX_DIGITS) {
   return String(value).replace(/[^\d]/g, "").slice(0, maxDigits);
 }
 
+/** Brands popular on the Tajikistan used-car and new-car market. */
 export const CAR_BRANDS = [
   "Toyota",
   "Hyundai",
   "Kia",
+  "Chevrolet",
+  "Daewoo",
+  "Ravon",
+  "Lada",
   "Mercedes-Benz",
   "BMW",
-  "Audi",
   "Volkswagen",
-  "Lada",
-  "Chevrolet",
   "Nissan",
   "Honda",
-  "Ford",
   "Lexus",
-  "Mazda",
   "Mitsubishi",
+  "Mazda",
+  "Audi",
+  "BYD",
+  "Chery",
+  "Geely",
+  "Haval",
+  "Changan",
+  "Opel",
+  "Ford",
 ];
 
 export const CAR_MODELS = {
-  Toyota: ["Camry", "Corolla", "RAV4", "Land Cruiser", "Highlander", "Prius", "Yaris"],
-  Hyundai: ["Sonata", "Elantra", "Tucson", "Santa Fe", "Accent", "Creta", "Palisade"],
-  Kia: ["Sportage", "K5", "Rio", "Sorento", "Cerato", "Seltos", "Carnival"],
-  "Mercedes-Benz": ["E-Class", "C-Class", "S-Class", "GLC", "GLE", "A-Class", "G-Class"],
+  Toyota: ["Camry", "Corolla", "RAV4", "Land Cruiser", "Prado", "Highlander", "Prius", "Yaris", "Hilux"],
+  Hyundai: ["Sonata", "Elantra", "Tucson", "Santa Fe", "Accent", "Creta", "Staria", "Palisade"],
+  Kia: ["Sportage", "K5", "Rio", "Sorento", "Cerato", "Seltos", "Carnival", "Morning"],
+  Chevrolet: ["Cobalt", "Malibu", "Tracker", "Equinox", "Captiva", "Spark", "Nexia", "Lacetti"],
+  Daewoo: ["Nexia", "Matiz", "Gentra", "Lacetti", "Damas", "Tico"],
+  Ravon: ["R2", "R3", "R4", "Nexia R3", "Gentra"],
+  Lada: ["Vesta", "Granta", "Largus", "Niva", "XRAY", "Kalina", "Priora"],
+  "Mercedes-Benz": ["E-Class", "C-Class", "S-Class", "GLC", "GLE", "A-Class", "G-Class", "Sprinter"],
   BMW: ["3 Series", "5 Series", "7 Series", "X3", "X5", "X6", "X7"],
-  Audi: ["A4", "A6", "A8", "Q3", "Q5", "Q7", "Q8"],
-  Volkswagen: ["Polo", "Jetta", "Passat", "Tiguan", "Touareg", "Golf"],
-  Lada: ["Vesta", "Granta", "Largus", "Niva", "XRAY", "Kalina"],
-  Chevrolet: ["Cobalt", "Malibu", "Tracker", "Equinox", "Captiva", "Spark"],
-  Nissan: ["Almera", "Teana", "X-Trail", "Qashqai", "Patrol", "Sentra"],
+  Volkswagen: ["Polo", "Jetta", "Passat", "Tiguan", "Touareg", "Golf", "Transporter"],
+  Nissan: ["Almera", "Teana", "X-Trail", "Qashqai", "Patrol", "Sentra", "Sunny"],
   Honda: ["Accord", "Civic", "CR-V", "Pilot", "Fit", "HR-V"],
-  Ford: ["Focus", "Fusion", "Explorer", "Escape", "Mustang", "F-150"],
   Lexus: ["ES", "RX", "NX", "LX", "IS", "GX"],
-  Mazda: ["3", "6", "CX-5", "CX-9", "CX-30", "MX-5"],
-  Mitsubishi: ["Outlander", "Pajero", "L200", "ASX", "Eclipse Cross", "Lancer"],
+  Mitsubishi: ["Outlander", "Pajero", "L200", "ASX", "Eclipse Cross", "Lancer", "Delica"],
+  Mazda: ["3", "6", "CX-5", "CX-9", "CX-30", "CX-7"],
+  Audi: ["A4", "A6", "A8", "Q3", "Q5", "Q7", "Q8"],
+  BYD: ["Song Plus", "Han", "Seal", "Atto 3", "Tang", "Yuan Plus"],
+  Chery: ["Tiggo 2", "Tiggo 4", "Tiggo 7", "Tiggo 8", "Arrizo 8"],
+  Geely: ["Coolray", "Atlas", "Monjaro", "Emgrand", "Preface"],
+  Haval: ["Jolion", "H6", "Dargo", "F7", "M6"],
+  Changan: ["CS35 Plus", "CS55 Plus", "CS75 Plus", "Uni-T", "Alsvin"],
+  Opel: ["Astra", "Vectra", "Zafira", "Insignia", "Corsa", "Antara"],
+  Ford: ["Focus", "Fusion", "Explorer", "Escape", "Transit", "Mondeo"],
 };
 
 export const PHONE_BRANDS = [
   "Apple",
   "Samsung",
   "Xiaomi",
+  "Redmi",
+  "POCO",
   "Huawei",
   "Honor",
   "Realme",
-  "Google",
+  "Tecno",
+  "Infinix",
+  "Oppo",
+  "Vivo",
   "OnePlus",
+  "Google",
 ];
 
 export const PHONE_MODELS = {
@@ -65,39 +95,62 @@ export const PHONE_MODELS = {
     "iPhone 11",
     "iPhone 12",
     "iPhone 13",
+    "iPhone 13 Pro",
     "iPhone 14",
+    "iPhone 14 Pro",
     "iPhone 15",
     "iPhone 15 Pro",
     "iPhone 15 Pro Max",
+    "iPhone 16",
+    "iPhone 16 Pro",
+    "iPhone 16 Pro Max",
   ],
   Samsung: [
-    "Galaxy A04",
-    "Galaxy A14",
-    "Galaxy A24",
-    "Galaxy A54",
+    "Galaxy A05",
+    "Galaxy A06",
+    "Galaxy A15",
+    "Galaxy A25",
+    "Galaxy A35",
+    "Galaxy A55",
     "Galaxy S21",
     "Galaxy S22",
     "Galaxy S23",
     "Galaxy S24",
+    "Galaxy S25",
     "Galaxy Z Flip",
     "Galaxy Z Fold",
   ],
   Xiaomi: [
-    "Redmi 9",
-    "Redmi 10",
-    "Redmi Note 11",
     "Redmi Note 12",
     "Redmi Note 13",
+    "Redmi Note 14",
+    "Redmi 13C",
+    "Redmi 14C",
     "POCO X5",
+    "POCO X6",
     "POCO F5",
-    "Mi 11",
-    "Mi 12",
+    "POCO F6",
+    "Xiaomi 13",
+    "Xiaomi 14",
   ],
-  Huawei: ["P30", "P40", "P50", "P60", "Nova 9", "Nova 11", "Mate 40", "Mate 50"],
-  Honor: ["Honor 50", "Honor 70", "Honor 90", "Honor X8", "Honor Magic 5"],
-  Realme: ["Realme 9", "Realme 10", "Realme 11", "Realme C55", "Realme GT"],
-  Google: ["Pixel 6", "Pixel 7", "Pixel 8", "Pixel 8 Pro"],
-  OnePlus: ["OnePlus 9", "OnePlus 10", "OnePlus 11", "OnePlus Nord"],
+  Redmi: [
+    "Redmi Note 12",
+    "Redmi Note 13",
+    "Redmi Note 14",
+    "Redmi 13C",
+    "Redmi 14C",
+    "Redmi A3",
+  ],
+  POCO: ["POCO X5", "POCO X6", "POCO F5", "POCO F6", "POCO M6", "POCO C65"],
+  Huawei: ["P30", "P40", "P50", "P60", "Nova 9", "Nova 11", "Nova 12", "Mate 40", "Mate 50", "Mate 60"],
+  Honor: ["Honor 50", "Honor 70", "Honor 90", "Honor 200", "Honor X8", "Honor X9", "Honor Magic 5"],
+  Realme: ["Realme 10", "Realme 11", "Realme 12", "Realme C55", "Realme C67", "Realme GT"],
+  Tecno: ["Spark 20", "Spark 30", "Camon 20", "Camon 30", "Pova 5", "Pova 6"],
+  Infinix: ["Hot 40", "Hot 50", "Note 30", "Note 40", "Zero 30", "Smart 8"],
+  Oppo: ["A18", "A38", "A58", "A78", "Reno 10", "Reno 11", "Find X"],
+  Vivo: ["Y17s", "Y27", "Y36", "Y100", "V29", "V30"],
+  OnePlus: ["OnePlus 10", "OnePlus 11", "OnePlus 12", "OnePlus Nord", "OnePlus Nord CE"],
+  Google: ["Pixel 6", "Pixel 7", "Pixel 8", "Pixel 8 Pro", "Pixel 9"],
 };
 
 export const LAPTOP_BRANDS = [
@@ -112,7 +165,7 @@ export const LAPTOP_BRANDS = [
 ];
 
 export const LAPTOP_MODELS = {
-  Apple: ["MacBook Air M1", "MacBook Air M2", "MacBook Pro 13", "MacBook Pro 14", "MacBook Pro 16"],
+  Apple: ["MacBook Air M1", "MacBook Air M2", "MacBook Air M3", "MacBook Pro 13", "MacBook Pro 14", "MacBook Pro 16"],
   Asus: ["VivoBook", "ZenBook", "TUF Gaming", "ROG Strix", "ExpertBook"],
   Lenovo: ["IdeaPad", "ThinkPad", "Legion", "Yoga", "LOQ"],
   HP: ["Pavilion", "Envy", "Victus", "Omen", "ProBook", "EliteBook"],
@@ -123,6 +176,7 @@ export const LAPTOP_MODELS = {
 };
 
 export const APPLIANCE_BRANDS = [
+  "Artel",
   "Samsung",
   "LG",
   "Bosch",
@@ -130,10 +184,12 @@ export const APPLIANCE_BRANDS = [
   "Hisense",
   "Xiaomi",
   "Indesit",
-  "Artel",
+  "Shivaki",
+  "Avalon",
 ];
 
 export const APPLIANCE_MODELS = {
+  Artel: ["Холодильник", "Стиральная машина", "Телевизор", "Кондиционер", "Газовая плита"],
   Samsung: ["Холодильник RB", "Стиральная машина WW", "Телевизор Crystal UHD", "Пылесос Jet"],
   LG: ["Холодильник DoorCooling", "Стиральная машина F2", "Телевизор OLED", "Кондиционер"],
   Bosch: ["Serie 4", "Serie 6", "Serie 8", "MaxoMixx"],
@@ -141,30 +197,42 @@ export const APPLIANCE_MODELS = {
   Hisense: ["Smart TV", "Холодильник", "Стиральная машина", "Кондиционер"],
   Xiaomi: ["Mi TV", "Robot Vacuum", "Air Purifier", "Стиральная машина"],
   Indesit: ["IWSC", "DF", "IF", "LI"],
-  Artel: ["Холодильник", "Стиральная машина", "Телевизор", "Кондиционер"],
+  Shivaki: ["Холодильник", "Стиральная машина", "Телевизор", "Кондиционер"],
+  Avalon: ["Холодильник", "Стиральная машина", "Плита", "Кондиционер"],
 };
 
 const YEARS = Array.from({ length: 2026 - 1990 + 1 }, (_, i) => String(2026 - i));
 
 export const COMMON_SPEC_OPTIONS = {
-  kpp: ["Автомат", "Механика"],
-  fuel: ["Бензин", "Дизель", "Газ", "Гибрид", "Электро"],
+  kpp: ["Автомат", "Механика", "Робот", "Вариатор"],
+  fuel: ["Бензин", "Дизель", "Газ", "Газ/Бензин", "Гибрид", "Электро"],
   condition: ["Новый", "Б/у"],
-  color: ["Белый", "Чёрный", "Серый", "Синий", "Красный", "Серебристый", "Другой"],
-  memory: ["64 GB", "128 GB", "256 GB", "512 GB", "1 TB"],
+  color: ["Белый", "Чёрный", "Серый", "Серебристый", "Синий", "Красный", "Зелёный", "Бежевый", "Коричневый", "Другой"],
+  memory: ["32 GB", "64 GB", "128 GB", "256 GB", "512 GB", "1 TB"],
   warranty: ["Да", "Нет"],
   years: YEARS,
   material: ["Дерево", "МДФ", "ДСП", "Металл", "Пластик", "Стекло", "Комбинированный"],
   furnitureType: ["Диван", "Кровать", "Шкаф", "Стол", "Стул", "Комод", "Кухня", "Другое"],
-  applianceType: ["Холодильник", "Стиральная машина", "Плита", "Телевизор", "Пылесос", "Кондиционер", "Другое"],
+  applianceType: [
+    "Холодильник",
+    "Стиральная машина",
+    "Плита",
+    "Телевизор",
+    "Пылесос",
+    "Кондиционер",
+    "Микроволновка",
+    "Водонагреватель",
+    "Другое",
+  ],
   computerType: ["Ноутбук", "ПК", "Монитор", "Принтер", "Игровая приставка", "Другое"],
   ram: ["4 GB", "8 GB", "16 GB", "32 GB", "64 GB"],
   storage: ["128 GB SSD", "256 GB SSD", "512 GB SSD", "1 TB SSD", "1 TB HDD", "2 TB HDD"],
   repairType: ["Окна", "Двери", "Кирпич", "Цемент", "Краска", "Инструмент", "Забор", "Другое"],
   partType: ["Двигатель", "Кузов", "Подвеска", "Электрика", "Салон", "Оптика", "Фильтры", "Другое"],
   tireSeason: ["Летние", "Зимние", "Всесезонные"],
-  tireDiameter: ['R13', 'R14', 'R15', 'R16', 'R17', 'R18', 'R19', 'R20', 'R21'],
+  tireDiameter: ["R13", "R14", "R15", "R16", "R17", "R18", "R19", "R20", "R21"],
   tireWidth: ["175", "185", "195", "205", "215", "225", "235", "245", "255", "265"],
+  autoChemicalType: ["Масло", "Антифриз", "Омыватель", "Присадки", "Автокосметика", "Другое"],
   autoServiceType: ["Ремонт", "Диагностика", "Шиномонтаж", "Мойка", "Тюнинг", "Эвакуатор", "Другое"],
   serviceFormat: ["На выезде", "У клиента", "В офисе", "Онлайн"],
   serviceExperience: ["до 1 года", "1–3 года", "3–5 лет", "5+ лет"],
@@ -184,17 +252,12 @@ export const COMMON_SPEC_OPTIONS = {
     "Игровые приставки",
     "Другое",
   ],
-  bodyType: ["Седан", "Хэтчбек", "Универсал", "Кроссовер", "Внедорожник", "Купе", "Минивэн", "Пикап"],
+  bodyType: ["Седан", "Хэтчбек", "Универсал", "Кроссовер", "Внедорожник", "Купе", "Минивэн", "Пикап", "Фургон"],
   drive: ["Передний", "Задний", "Полный"],
-  engineVolume: ["1.0", "1.2", "1.4", "1.6", "1.8", "2.0", "2.4", "2.5", "3.0", "3.5", "4.0+"],
+  engineVolume: ["1.0", "1.2", "1.4", "1.5", "1.6", "1.8", "2.0", "2.4", "2.5", "3.0", "3.5", "4.0+"],
   mileage: ["до 50 000", "50 000 – 100 000", "100 000 – 150 000", "150 000 – 200 000", "от 200 000"],
-};
-
-export const REGIONS = ["Душанбе", "Худжанд"];
-
-export const REGION_CITIES = {
-  Душанбе: ["Душанбе"],
-  Худжанд: ["Худжанд"],
+  clothingSize: ["XS", "S", "M", "L", "XL", "XXL", "XXXL", "Другой"],
+  clothingCondition: ["Новое с биркой", "Новое", "Отличное", "Хорошее", "Б/у"],
 };
 
 export function getDependentOptions(spec, allSpecs) {

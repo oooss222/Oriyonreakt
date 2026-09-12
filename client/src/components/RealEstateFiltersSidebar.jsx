@@ -2,6 +2,7 @@ import React from "react";
 import { SlidersHorizontal, X } from "lucide-react";
 import {
   DEAL_TYPES,
+  ROOM_OPTIONS,
   REAL_ESTATE_CITIES,
   POPULAR_DUSHANBE_DISTRICTS,
   getDistrictsForCity,
@@ -26,8 +27,6 @@ import GarageFilterFields from "./realestate/GarageFilterFields";
 import CommercialFilterFields from "./realestate/CommercialFilterFields";
 import RentalQualityFilterFields from "./realestate/RentalQualityFilterFields";
 import { useI18n } from "../i18n";
-
-const ROOM_OPTIONS = ["1", "2", "3", "4", "5+"];
 
 const SIDEBAR_SUBCATEGORIES = [
   "Квартиры",

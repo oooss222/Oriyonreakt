@@ -1,7 +1,11 @@
+import { CITY_COORDINATES as LOCATION_COORDINATES } from "./locations";
+
 export const REAL_ESTATE_CAT = "realestate";
 
 export const DEFAULT_REAL_ESTATE_BROWSE_PATH =
   "/realestate/dushanbe/kvartiry/kupit";
+
+export { LOCATION_COORDINATES as CITY_COORDINATES };
 
 export const DEAL_TYPES = [
   { value: "Купить", label: "Купить", icon: "buy" },
@@ -158,9 +162,33 @@ export function formatGuestLabel(count = "") {
   return `${n}${String(count).includes("+") ? "+" : ""} ${word}`;
 }
 
-export const REAL_ESTATE_CITIES = ["Душанбе", "Худжанд"];
+export const REAL_ESTATE_CITIES = [
+  "Душанбе",
+  "Худжанд",
+  "Бохтар",
+  "Куляб",
+  "Турсунзаде",
+  "Вахдат",
+  "Истаравшан",
+  "Исфара",
+  "Канибадам",
+  "Пенджикент",
+  "Хорог",
+  "Бустон",
+  "Гулистон",
+  "Норэк",
+  "Яван",
+  "Дангара",
+];
 
-export const REAL_ESTATE_PRIMARY_CITIES = REAL_ESTATE_CITIES;
+export const REAL_ESTATE_PRIMARY_CITIES = [
+  "Душанбе",
+  "Худжанд",
+  "Бохтар",
+  "Куляб",
+  "Турсунзаде",
+  "Вахдат",
+];
 
 export const DUSHANBE_DISTRICTS = [
   "Центр",
@@ -203,11 +231,11 @@ export const CITY_DISTRICTS = {
     "Балх",
     "Согдиён",
   ],
-};
-
-export const CITY_COORDINATES = {
-  Душанбе: { lat: 38.5598, lng: 68.787, zoom: 12 },
-  Худжанд: { lat: 40.283, lng: 69.622, zoom: 12 },
+  Бохтар: ["Центр", "Левобережье", "Правобережье"],
+  Куляб: ["Центр", "Микрорайон", "Вокзал"],
+  Турсунзаде: ["Центр", "Микрорайон"],
+  Вахдат: ["Центр", "Микрорайон"],
+  Хорог: ["Центр", "Хлебзавод", "Тирмиз"],
 };
 
 export function getDistrictsForCity(city = "") {
@@ -215,7 +243,7 @@ export function getDistrictsForCity(city = "") {
 }
 
 export function getCityCoordinates(city = "") {
-  return CITY_COORDINATES[city] || CITY_COORDINATES["Душанбе"];
+  return LOCATION_COORDINATES[city] || LOCATION_COORDINATES["Душанбе"];
 }
 
 export const NOVOSTROYKI_META = {
@@ -303,7 +331,15 @@ export function getPricePresetsForDeal(dealType = "") {
   return REAL_ESTATE_PRICE_PRESETS;
 }
 
-export const LAND_PURPOSE_OPTIONS = ["ИЖС", "Сельхоз", "Коммерция", "Дачный"];
+export const LAND_PURPOSE_OPTIONS = [
+  "Жилая застройка",
+  "Приусадебный",
+  "Дехканский",
+  "Сельхоз",
+  "Коммерция",
+  "Дачный",
+  "ИЖС",
+];
 
 export const LAND_COMMUNICATIONS_OPTIONS = ["Все", "Частично", "Нет"];
 
@@ -396,7 +432,7 @@ export const HOUSE_SPECS = [
   { name: "Материал", type: "select", options: ["Кирпич", "Блок", "Дерево", "Каркас", "Смешанный"] },
   { name: "Коммуникации", type: "select", options: ["Все", "Частично", "Нет"] },
   { name: "Ремонт", type: "select", options: ["Без ремонта", "Косметический", "Евро", "Под ключ"] },
-  { name: "Участок", type: "select", options: ["ИЖС", "Садовый", "Дачный"] },
+  { name: "Участок", type: "select", options: ["Жилая застройка", "Приусадебный", "Дачный", "ИЖС"] },
   { name: "Удобства", type: "multi", options: DAILY_AMENITY_OPTIONS, dailyOnly: true },
   { name: "Техника", type: "multi", options: RENT_APPLIANCE_OPTIONS, rentOnly: true },
   { name: "Коммунальные", type: "select", options: RENT_UTILITIES_OPTIONS, rentOnly: true },

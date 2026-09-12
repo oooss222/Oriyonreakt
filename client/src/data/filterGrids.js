@@ -78,7 +78,7 @@ const TRANSPORT_GRID = {
         specKey: "КПП",
         options: COMMON_SPEC_OPTIONS.kpp,
       },
-      { id: "region", label: "Регион", type: "region", options: REGIONS },
+      { id: "region", label: "Область", type: "region", options: REGIONS },
     ],
     [
       {
@@ -102,7 +102,7 @@ const TRANSPORT_GRID = {
         specKey: "Объем",
         options: COMMON_SPEC_OPTIONS.engineVolume,
       },
-      { id: "location", label: "Город / Район", type: "location", options: LOCATIONS },
+      { id: "location", label: "Город", type: "location", options: LOCATIONS },
     ],
   ],
   more: [{ id: "search", label: "Поиск", type: "search" }],
@@ -143,8 +143,8 @@ const PHONES_GRID = {
         specKey: "Гарантия",
         options: COMMON_SPEC_OPTIONS.warranty,
       },
-      { id: "region", label: "Регион", type: "region", options: REGIONS },
-      { id: "location", label: "Город / Район", type: "location", options: LOCATIONS },
+      { id: "region", label: "Область", type: "region", options: REGIONS },
+      { id: "location", label: "Город", type: "location", options: LOCATIONS },
     ],
   ],
   more: [
@@ -160,8 +160,8 @@ function buildGenericGrid(catKey, subcategory = "") {
   const row1 = [
     { id: "subcategory", label: "Подкатегория", type: "subcategory" },
     { id: "price", label: "Цена", type: "price" },
-    { id: "region", label: "Регион", type: "region", options: REGIONS },
-    { id: "location", label: "Город / Район", type: "location", options: LOCATIONS },
+    { id: "region", label: "Область", type: "region", options: REGIONS },
+    { id: "location", label: "Город", type: "location", options: LOCATIONS },
   ];
 
   if (!specFilters.length) {
@@ -220,8 +220,8 @@ export function getListingFilterGrid(catKey, subcategory = "") {
       [
         { id: "cat", label: "Категория", type: "category" },
         { id: "price", label: "Цена", type: "price" },
-        { id: "region", label: "Регион", type: "region", options: REGIONS },
-        { id: "location", label: "Город / Район", type: "location", options: LOCATIONS },
+        { id: "region", label: "Область", type: "region", options: REGIONS },
+        { id: "location", label: "Город", type: "location", options: LOCATIONS },
       ],
     ],
     more: [

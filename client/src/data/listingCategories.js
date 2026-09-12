@@ -43,6 +43,9 @@ const CAR_SPECS = [
   { name: "Модель", type: "select", dependsOn: "Марка", optionsFrom: CAR_MODELS },
   { name: "Год", type: "select", options: COMMON_SPEC_OPTIONS.years },
   { name: "Пробег", type: "text" },
+  { name: "Кузов", type: "select", options: COMMON_SPEC_OPTIONS.bodyType },
+  { name: "Привод", type: "select", options: COMMON_SPEC_OPTIONS.drive },
+  { name: "Объем", type: "select", options: COMMON_SPEC_OPTIONS.engineVolume },
   { name: "КПП", type: "select", options: COMMON_SPEC_OPTIONS.kpp },
   { name: "Цвет", type: "select", options: COMMON_SPEC_OPTIONS.color },
   { name: "Топливо", type: "select", options: COMMON_SPEC_OPTIONS.fuel },
@@ -70,7 +73,7 @@ const GENERIC_VEHICLE_SPECS = [
 ];
 
 const AUTO_CHEMICALS_SPECS = [
-  { name: "Тип", type: "select", options: COMMON_SPEC_OPTIONS.autoChemicalType || ["Масло", "Антифриз", "Омыватель", "Другое"] },
+  { name: "Тип", type: "select", options: COMMON_SPEC_OPTIONS.autoChemicalType },
   { name: "Состояние", type: "select", options: COMMON_SPEC_OPTIONS.condition },
 ];
 
@@ -357,7 +360,18 @@ export const CATS = {
     desc: "Выпечка, полуфабрикаты, готовые блюда и услуги поваров",
     subs: FOOD_GROUPS.subs,
     subGroups: FOOD_GROUPS.subGroups,
-    specTemplate: [],
+    specTemplate: [
+      {
+        name: "Формат",
+        type: "select",
+        options: ["Готовая еда", "На заказ", "Доставка", "Самовывоз", "Кейтеринг"],
+      },
+      {
+        name: "Состояние",
+        type: "select",
+        options: ["Свежее", "Заморозка", "Полуфабрикат"],
+      },
+    ],
   },
   kids: {
     title: "Детский мир",
@@ -366,7 +380,18 @@ export const CATS = {
     desc: "Одежда, игрушки, коляски, мебель и товары для детей",
     subs: KIDS_GROUPS.subs,
     subGroups: KIDS_GROUPS.subGroups,
-    specTemplate: [],
+    specTemplate: [
+      {
+        name: "Возраст",
+        type: "select",
+        options: ["0–1 год", "1–3 года", "3–6 лет", "6–12 лет", "12+"],
+      },
+      {
+        name: "Состояние",
+        type: "select",
+        options: COMMON_SPEC_OPTIONS.clothingCondition,
+      },
+    ],
   },
   travel: {
     title: "Путешествия",
@@ -375,7 +400,26 @@ export const CATS = {
     desc: "Туры, жильё, экскурсии, билеты и аренда транспорта",
     subs: TRAVEL_GROUPS.subs,
     subGroups: TRAVEL_GROUPS.subGroups,
-    specTemplate: [],
+    specTemplate: [
+      {
+        name: "Направление",
+        type: "select",
+        options: [
+          "По Таджикистану",
+          "Узбекистан",
+          "Турция",
+          "ОАЭ",
+          "Россия",
+          "Европа",
+          "Другое",
+        ],
+      },
+      {
+        name: "Тип",
+        type: "select",
+        options: ["Тур", "Экскурсия", "Билет", "Жильё", "Транспорт"],
+      },
+    ],
   },
   clothing: {
     title: "Одежда",
@@ -384,7 +428,23 @@ export const CATS = {
     desc: "Женская, мужская и детская одежда, обувь и аксессуары",
     subs: CLOTHING_GROUPS.subs,
     subGroups: CLOTHING_GROUPS.subGroups,
-    specTemplate: [],
+    specTemplate: [
+      {
+        name: "Размер",
+        type: "select",
+        options: COMMON_SPEC_OPTIONS.clothingSize,
+      },
+      {
+        name: "Состояние",
+        type: "select",
+        options: COMMON_SPEC_OPTIONS.clothingCondition,
+      },
+      {
+        name: "Сезон",
+        type: "select",
+        options: ["Лето", "Зима", "Демисезон", "Всесезон"],
+      },
+    ],
   },
   construction: {
     title: "Строительство",
@@ -393,7 +453,18 @@ export const CATS = {
     desc: "Материалы, инструменты, техника и строительные услуги",
     subs: CONSTRUCTION_GROUPS.subs,
     subGroups: CONSTRUCTION_GROUPS.subGroups,
-    specTemplate: [],
+    specTemplate: [
+      {
+        name: "Тип",
+        type: "select",
+        options: COMMON_SPEC_OPTIONS.repairType,
+      },
+      {
+        name: "Состояние",
+        type: "select",
+        options: COMMON_SPEC_OPTIONS.condition,
+      },
+    ],
   },
 };
 

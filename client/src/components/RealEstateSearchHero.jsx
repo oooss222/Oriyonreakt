@@ -146,21 +146,8 @@ function HeroPriceFilter({ priceFrom, priceTo, priceCurrency, onChange, dealType
               }
               className="w-1/2 min-w-0 border-r border-mist-200 bg-white px-3 text-sm text-ink-900 outline-none placeholder:text-ink-400"
             />
-            <div className="relative shrink-0">
-              <select
-                value={priceCurrency}
-                onChange={(e) =>
-                  onChange({ priceFrom, priceTo, priceCurrency: e.target.value })
-                }
-                className="h-full min-w-[3.5rem] appearance-none bg-white pl-2.5 pr-7 text-sm text-ink-900 outline-none"
-              >
-                <option value="с.">с.</option>
-                <option value="$">$</option>
-              </select>
-              <ChevronDown
-                size={14}
-                className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-ink-400"
-              />
+            <div className="inline-flex h-full min-w-[3.25rem] items-center justify-center border-l border-mist-200 bg-mist-50 px-2.5 text-sm font-semibold text-ink-600">
+              с.
             </div>
           </div>
 
