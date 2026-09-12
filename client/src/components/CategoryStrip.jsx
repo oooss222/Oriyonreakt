@@ -1,72 +1,138 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { HOME_CATEGORIES } from "../data/categories";
 import { useI18n } from "../i18n";
+
+function getStripLabel(cat, t) {
+  const shortKey = `categoriesShort.${cat.slug}`;
+  const short = t(shortKey);
+  if (short !== shortKey) return short;
+  // Prefer data shortTitle over long i18n labels in the strip.
+  return cat.title || t(`categories.${cat.slug}`);
+}
 
 export default function CategoryStrip({ compact = false }) {
   const { pathname } = useLocation();
   const { t } = useI18n();
+  const scrollerRef = React.useRef(null);
+  const [canPrev, setCanPrev] = React.useState(false);
+  const [canNext, setCanNext] = React.useState(false);
+
+  const updateScrollState = React.useCallback(() => {
+    const el = scrollerRef.current;
+    if (!el) return;
+
+    const maxScroll = el.scrollWidth - el.clientWidth;
+    setCanPrev(el.scrollLeft > 4);
+    setCanNext(maxScroll > 4 && el.scrollLeft < maxScroll - 4);
+  }, []);
+
+  React.useEffect(() => {
+    const el = scrollerRef.current;
+    if (!el) return undefined;
+
+    updateScrollState();
+
+    const onScroll = () => updateScrollState();
+    const onWheel = (event) => {
+      if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return;
+      if (el.scrollWidth <= el.clientWidth) return;
+      event.preventDefault();
+      el.scrollLeft += event.deltaY;
+    };
+
+    el.addEventListener("scroll", onScroll, { passive: true });
+    el.addEventListener("wheel", onWheel, { passive: false });
+
+    const resizeObserver = new ResizeObserver(updateScrollState);
+    resizeObserver.observe(el);
+
+    return () => {
+      el.removeEventListener("scroll", onScroll);
+      el.removeEventListener("wheel", onWheel);
+      resizeObserver.disconnect();
+    };
+  }, [updateScrollState]);
+
+  const scrollByPage = (direction) => {
+    const el = scrollerRef.current;
+    if (!el) return;
+
+    const amount = Math.max(240, Math.round(el.clientWidth * 0.7)) * direction;
+    el.scrollBy({ left: amount, behavior: "smooth" });
+  };
 
   return (
     <div className="border-t border-white/10 bg-ink-800">
-      <div className="container-x">
+      <div className={`category-strip ${compact ? "category-strip--compact" : ""}`}>
+        {canPrev && (
+          <button
+            type="button"
+            className="category-strip__arrow category-strip__arrow--prev"
+            onClick={() => scrollByPage(-1)}
+            aria-label={t("common.prev")}
+          >
+            <ChevronLeft size={20} />
+          </button>
+        )}
+
         <nav
+          ref={scrollerRef}
           aria-label={t("a11y.categories")}
-          className={`flex items-start gap-2 sm:gap-3 lg:gap-4 overflow-x-auto lg:overflow-visible lg:justify-center scroll-smooth [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${
-            compact ? "py-2 lg:py-2.5" : "py-3 lg:py-4"
-          }`}
+          className="category-strip__track"
         >
           {HOME_CATEGORIES.map((cat) => {
             const active =
               pathname === cat.landingPath ||
               pathname === `/c/${cat.slug}` ||
               (cat.slug === "realestate" && pathname.startsWith("/realestate/"));
+            const label = getStripLabel(cat, t);
+            const fullLabel =
+              t(`categories.${cat.slug}`) !== `categories.${cat.slug}`
+                ? t(`categories.${cat.slug}`)
+                : cat.fullTitle || cat.title;
 
             return (
               <Link
                 key={cat.slug}
                 to={cat.landingPath}
-                title={cat.fullTitle || cat.title}
-                className="group shrink-0 flex w-[92px] sm:w-[100px] lg:w-[112px] xl:w-[120px] flex-col items-center text-center"
+                title={fullLabel}
+                className={`category-strip__item group ${
+                  active ? "category-strip__item--active" : ""
+                }`}
               >
-                <div
-                  className={`relative h-[50px] sm:h-[56px] lg:h-[68px] xl:h-[72px] w-full overflow-hidden rounded-xl lg:rounded-2xl bg-ink-600 ring-1 transition duration-200 group-hover:ring-sun/60 group-hover:shadow-md ${
-                    active
-                      ? "ring-sun shadow-[0_0_0_1px_rgba(255,122,26,0.4)]"
-                      : "ring-white/10"
-                  }`}
-                >
+                <div className="category-strip__media">
                   <img
                     src={cat.img}
                     alt=""
                     loading="lazy"
                     draggable={false}
-                    className="absolute inset-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    className="category-strip__img"
                     onError={(e) => {
                       e.currentTarget.src = "/img/placeholder.jpg";
                     }}
                   />
-
-                  <div className="absolute inset-0 bg-gradient-to-t from-ink/60 via-ink/15 to-transparent" />
-
-                  {active && (
-                    <span className="absolute bottom-1 left-1/2 h-1 w-5 -translate-x-1/2 rounded-full bg-sun" />
-                  )}
+                  <div className="category-strip__shade" />
+                  {active && <span className="category-strip__dot" />}
                 </div>
 
-                <span
-                  className={`mt-1.5 lg:mt-2 min-h-[3rem] lg:min-h-[3.25rem] w-full px-0.5 font-medium leading-[1.15] transition group-hover:text-sun ${
-                    active ? "text-sun" : "text-white/95"
-                  } ${compact ? "text-xs" : "text-xs sm:text-sm lg:text-sm"}`}
-                >
-                  {t(`categories.${cat.slug}`) !== `categories.${cat.slug}`
-                    ? t(`categories.${cat.slug}`)
-                    : cat.fullTitle || cat.title}
-                </span>
+                <span className="category-strip__label">{label}</span>
               </Link>
             );
           })}
         </nav>
+
+        {canNext && (
+          <button
+            type="button"
+            className="category-strip__arrow category-strip__arrow--next"
+            onClick={() => scrollByPage(1)}
+            aria-label={t("common.next")}
+          >
+            <ChevronRight size={20} />
+          </button>
+        )}
       </div>
     </div>
   );

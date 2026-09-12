@@ -267,7 +267,7 @@ export const CATS = {
   },
   electronics: {
     title: "Бытовая техника",
-    shortTitle: "Бытовая техника",
+    shortTitle: "Техника",
     img: "/img/electronics.png",
     desc: "Техника для дома",
     subs: [
@@ -291,6 +291,7 @@ export const CATS = {
   },
   computers: {
     title: "Компьютеры и оргтехника",
+    shortTitle: "Компьютеры",
     img: "/img/computers.png",
     desc: "ПК, ноутбуки, оргтехника",
     subs: ["Ноутбуки", "ПК", "Приставки", "Принтеры и сканеры"],
