@@ -9,11 +9,38 @@ const ALIASES_BY_TARGET = (() => {
   return map;
 })();
 
+const GROUP_ALIASES = {
+  "Выпечка и десерты": ["Выпечка", "Выпечка и десерты"],
+  Блюда: ["Готовая еда", "Блюда"],
+  "Полуфабрикаты / заморозка": ["Полуфабрикаты", "Полуфабрикаты / заморозка"],
+  Женщинам: ["Женская", "Женщинам"],
+  Мужчинам: ["Мужская", "Мужчинам"],
+  "Для мальчиков": ["Одежда и обувь — Для мальчиков", "Для мальчиков"],
+  "Для девочек": ["Одежда и обувь — Для девочек", "Для девочек"],
+  "Для новорождённых": ["Одежда и обувь — Для новорождённых", "Для новорождённых"],
+  Транспорт: ["Коляски и автокресла — Велосипеды и самокаты", "Транспорт"],
+};
+
 function expandSubcategoryFilterValues(subcategory = "") {
   const value = String(subcategory || "").trim();
   if (!value) return [];
-  const extras = ALIASES_BY_TARGET[value] || [];
-  return [value, ...extras];
+
+  const set = new Set([value, ...(ALIASES_BY_TARGET[value] || [])]);
+
+  const groupKeys = GROUP_ALIASES[value] || [value];
+  for (const group of groupKeys) {
+    set.add(group);
+    const prefix = `${group} — `;
+    for (const [from, to] of Object.entries(aliases)) {
+      if (from.startsWith(prefix)) {
+        set.add(from);
+        set.add(to);
+      }
+      if (String(to).startsWith(prefix)) set.add(to);
+    }
+  }
+
+  return [...set];
 }
 
 module.exports = {

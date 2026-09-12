@@ -1,8 +1,9 @@
 /**
  * Lifestyle categories (food, kids, travel, clothing, construction):
- * quick chips for landings + legacy subcategory aliases for filters.
+ * Paydo-style landing tiles + legacy subcategory aliases for filters.
  */
 import aliases from "@shared/lifestyleSubcategoryAliases.json";
+import { CATS } from "./listingCategories";
 
 export const LIFESTYLE_SUBCATEGORY_ALIASES = aliases;
 
@@ -16,11 +17,39 @@ const ALIASES_BY_TARGET = (() => {
   return map;
 })();
 
+/** Extra group renames so old listings still match Paydo-style group tiles. */
+const GROUP_ALIASES = {
+  "Выпечка и десерты": ["Выпечка", "Выпечка и десерты"],
+  Блюда: ["Готовая еда", "Блюда"],
+  "Полуфабрикаты / заморозка": ["Полуфабрикаты", "Полуфабрикаты / заморозка"],
+  Женщинам: ["Женская", "Женщинам"],
+  Мужчинам: ["Мужская", "Мужчинам"],
+  "Для мальчиков": ["Одежда и обувь — Для мальчиков", "Для мальчиков"],
+  "Для девочек": ["Одежда и обувь — Для девочек", "Для девочек"],
+  "Для новорождённых": ["Одежда и обувь — Для новорождённых", "Для новорождённых"],
+  Транспорт: ["Коляски и автокресла — Велосипеды и самокаты", "Транспорт"],
+};
+
 export function expandSubcategoryFilterValues(subcategory = "") {
   const value = String(subcategory || "").trim();
   if (!value) return [];
-  const extras = ALIASES_BY_TARGET[value] || [];
-  return [value, ...extras];
+
+  const set = new Set([value, ...(ALIASES_BY_TARGET[value] || [])]);
+
+  const groupKeys = GROUP_ALIASES[value] || [value];
+  for (const group of groupKeys) {
+    set.add(group);
+    const prefix = `${group} — `;
+    for (const [from, to] of Object.entries(LIFESTYLE_SUBCATEGORY_ALIASES)) {
+      if (from.startsWith(prefix)) {
+        set.add(from);
+        set.add(to);
+      }
+      if (String(to).startsWith(prefix)) set.add(to);
+    }
+  }
+
+  return [...set];
 }
 
 export function normalizeLifestyleSubcategory(subcategory = "") {
@@ -28,28 +57,83 @@ export function normalizeLifestyleSubcategory(subcategory = "") {
   return LIFESTYLE_SUBCATEGORY_ALIASES[value] || value;
 }
 
+const TILE_GLYPHS = {
+  food: {
+    "Выпечка и десерты": "Вд",
+    Блюда: "Бл",
+    Фастфуд: "Фф",
+    "Полуфабрикаты / заморозка": "Пф",
+    "Услуги повара": "Пв",
+    "Особое питание": "Оп",
+  },
+  kids: {
+    "Для мальчиков": "М",
+    "Для девочек": "Д",
+    "Для новорождённых": "Н",
+    Игрушки: "Иг",
+    "Коляски и автокресла": "Ко",
+    Транспорт: "Тр",
+    Мебель: "Ме",
+    Услуги: "Ус",
+  },
+  travel: {
+    "Туры по Таджикистану": "Тдж",
+    "Туры за границу": "Зг",
+    "Экскурсии и гиды": "Эк",
+    "Базы отдыха": "Ба",
+    "Транспорт и билеты": "Тб",
+    Снаряжение: "Сн",
+  },
+  clothing: {
+    "Для свадьбы": "Св",
+    Женщинам: "Ж",
+    Мужчинам: "М",
+    Обувь: "Об",
+    Аксессуары: "Ак",
+    "Сумки и чемоданы": "Су",
+    "Ювелирные украшения": "Юв",
+    Ткани: "Тк",
+    "Национальная одежда": "Нац",
+  },
+  construction: {
+    Материалы: "Мт",
+    "Окна и двери": "Од",
+    Электрика: "Эл",
+    Сантехника: "Сн",
+    Инструменты: "Ин",
+    "Аренда техники": "Ар",
+    "Услуги мастеров": "Ум",
+    Проектирование: "Пр",
+  },
+};
+
+export function getLifestyleLandingTiles(slug) {
+  const cat = CATS[slug];
+  if (!cat?.subGroups?.length) return [];
+  const glyphs = TILE_GLYPHS[slug] || {};
+  return cat.subGroups.map(({ group }) => ({
+    label: group,
+    filterValue: group,
+    glyph: glyphs[group] || group.slice(0, 1),
+  }));
+}
+
 export const LIFESTYLE_QUICK_CHIPS = {
   food: [
-    { label: "Самса", subcategory: "Выпечка — Самса" },
-    {
-      label: "Плов",
-      subcategory: "Готовая еда — Плов и национальная кухня",
-    },
+    { label: "Самса", subcategory: "Выпечка и десерты — Самса" },
+    { label: "Плов", subcategory: "Блюда — Плов и национальная кухня" },
     {
       label: "Манты",
-      subcategory: "Полуфабрикаты — Манты и пельмени",
+      subcategory: "Полуфабрикаты / заморозка — Манты и пельмени",
     },
     { label: "Повар", subcategory: "Услуги повара — Домашний повар" },
-    { label: "Кейтеринг", subcategory: "Услуги повара — Кейтеринг" },
+    { label: "Фастфуд", subcategory: "Фастфуд" },
   ],
   kids: [
+    { label: "Мальчикам", subcategory: "Для мальчиков" },
+    { label: "Девочкам", subcategory: "Для девочек" },
+    { label: "Игрушки", subcategory: "Игрушки" },
     { label: "Коляски", subcategory: "Коляски и автокресла — Коляски" },
-    {
-      label: "Автокресла",
-      subcategory: "Коляски и автокресла — Автокресла",
-    },
-    { label: "Игрушки", subcategory: "Игрушки — Развивающие" },
-    { label: "Школа", subcategory: "Одежда и обувь — Школьная форма" },
     { label: "Няни", subcategory: "Услуги — Няни" },
   ],
   travel: [
@@ -72,11 +156,11 @@ export const LIFESTYLE_QUICK_CHIPS = {
     },
   ],
   clothing: [
+    { label: "Женское", subcategory: "Женщинам" },
+    { label: "Мужское", subcategory: "Мужчинам" },
+    { label: "Свадьба", subcategory: "Для свадьбы" },
     { label: "Курта", subcategory: "Национальная одежда — Курта" },
-    { label: "Чапан", subcategory: "Национальная одежда — Чапан" },
-    { label: "Женское", subcategory: "Женская — Платья" },
-    { label: "Мужское", subcategory: "Мужская — Рубашки и футболки" },
-    { label: "Обувь", subcategory: "Обувь — Кроссовки" },
+    { label: "Обувь", subcategory: "Обувь" },
   ],
   construction: [
     { label: "Цемент", subcategory: "Материалы — Цемент и сыпучие" },
@@ -89,7 +173,7 @@ export const LIFESTYLE_QUICK_CHIPS = {
       label: "Ремонт квартир",
       subcategory: "Услуги мастеров — Ремонт квартир",
     },
-    { label: "Электрика", subcategory: "Электрика — Кабели и провода" },
+    { label: "Электрика", subcategory: "Электрика" },
   ],
 };
 

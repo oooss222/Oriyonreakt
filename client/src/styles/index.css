@@ -425,6 +425,80 @@
   .subcategory-chip-idle {
     @apply bg-white text-ink border-ink/15 hover:bg-ink hover:text-white;
   }
+
+  /* Paydo-style subcategory strip on category landings */
+  .subcat-strip {
+    @apply relative;
+  }
+
+  .subcat-strip__track {
+    @apply flex gap-3 sm:gap-3.5 overflow-x-auto scroll-smooth py-1;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .subcat-strip__track::-webkit-scrollbar {
+    display: none;
+  }
+
+  .subcat-strip__item {
+    @apply shrink-0 flex w-[100px] sm:w-[112px] lg:w-[120px] flex-col items-center text-center;
+  }
+
+  .subcat-strip__media {
+    @apply relative grid h-[72px] sm:h-[80px] lg:h-[88px] w-full place-items-center overflow-hidden rounded-2xl bg-mist ring-1 ring-ink/10 transition duration-200;
+  }
+
+  .subcat-strip__item:hover .subcat-strip__media {
+    @apply ring-sun/50 shadow-sm bg-white;
+  }
+
+  .subcat-strip__img {
+    @apply h-full w-full object-cover;
+  }
+
+  .subcat-strip__glyph {
+    @apply text-sm sm:text-base font-semibold tracking-wide text-ink-500 leading-none select-none uppercase;
+  }
+
+  .subcat-strip__label {
+    @apply mt-2 h-9 w-full px-0.5 text-xs sm:text-sm font-medium leading-tight text-ink-700 line-clamp-2 transition;
+  }
+
+  .subcat-strip__item:hover .subcat-strip__label {
+    @apply text-sun-700;
+  }
+
+  .subcat-strip__arrow {
+    @apply absolute top-[36px] sm:top-[40px] z-10 hidden sm:grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full border border-ink/10 bg-white/95 text-ink shadow-soft transition hover:border-sun/40 hover:text-sun;
+  }
+
+  .subcat-strip__arrow--prev {
+    @apply left-0;
+  }
+
+  .subcat-strip__arrow--next {
+    @apply right-0;
+  }
+
+  .subcat-strip:has(.subcat-strip__arrow--prev) .subcat-strip__track {
+    mask-image: linear-gradient(to right, transparent, #000 2rem, #000 100%);
+  }
+
+  .subcat-strip:has(.subcat-strip__arrow--next) .subcat-strip__track {
+    mask-image: linear-gradient(to right, #000 0%, #000 calc(100% - 2rem), transparent);
+  }
+
+  .subcat-strip:has(.subcat-strip__arrow--prev):has(.subcat-strip__arrow--next)
+    .subcat-strip__track {
+    mask-image: linear-gradient(
+      to right,
+      transparent,
+      #000 2rem,
+      #000 calc(100% - 2rem),
+      transparent
+    );
+  }
 }
 
 @layer utilities {

@@ -5,13 +5,14 @@ import EmptyState from "../components/EmptyState";
 import Breadcrumbs from "../components/Breadcrumbs";
 import CategoryHero from "../components/CategoryHero";
 import TransportQuickFilters from "../components/transport/TransportQuickFilters";
-import CategoryQuickFilters from "../components/CategoryQuickFilters";
+import CategorySubcategoryStrip from "../components/CategorySubcategoryStrip";
 import ListingGridSkeleton from "../components/ListingGridSkeleton";
 import ListingCard from "../components/ListingCard";
 import AdSlot from "../components/AdSlot";
 import { usePageMeta } from "../lib/usePageMeta";
 import { api } from "../lib/api";
 import { CATS } from "../data/listingCategories";
+import { getLifestyleLandingTiles } from "../data/categoryLifestyle";
 import {
   readCompareIds,
   COMPARE_MAX,
@@ -21,7 +22,7 @@ import { getComparePath } from "../lib/compareConfig";
 import { useI18n, getCategoryLabel } from "../i18n";
 import { Search, FolderOpen, Scale, ArrowRight } from "lucide-react";
 
-const PREVIEW_LIMIT = 6;
+const PREVIEW_LIMIT = 12;
 const LIFESTYLE_SLUGS = new Set([
   "food",
   "kids",
@@ -33,6 +34,7 @@ const LIFESTYLE_SLUGS = new Set([
 export default function Category() {
   const { slug } = useParams();
   const { t } = useI18n();
+  const isLifestyle = LIFESTYLE_SLUGS.has(slug);
 
   const cat = CATS[slug];
 
@@ -52,8 +54,13 @@ export default function Category() {
     return () => window.removeEventListener("oriyon:compare-change", sync);
   }, [slug]);
 
+  const lifestyleTiles = React.useMemo(
+    () => (isLifestyle ? getLifestyleLandingTiles(slug) : []),
+    [isLifestyle, slug]
+  );
+
   const groupedSubs = React.useMemo(() => {
-    if (!cat?.subGroups?.length) return null;
+    if (isLifestyle || !cat?.subGroups?.length) return null;
 
     const query = q.trim().toLowerCase();
 
@@ -67,10 +74,10 @@ export default function Category() {
         return filtered.length ? { group, items: filtered } : null;
       })
       .filter(Boolean);
-  }, [q, cat]);
+  }, [q, cat, isLifestyle]);
 
   const subs = React.useMemo(() => {
-    if (!cat) return [];
+    if (!cat || isLifestyle) return [];
     if (groupedSubs) {
       return groupedSubs.flatMap(({ group, items }) =>
         items.map((item) => `${group} — ${item}`)
@@ -80,7 +87,7 @@ export default function Category() {
     const query = q.trim().toLowerCase();
     if (!query) return cat.subs;
     return cat.subs.filter((s) => s.toLowerCase().includes(query));
-  }, [q, cat, groupedSubs]);
+  }, [q, cat, groupedSubs, isLifestyle]);
 
   React.useEffect(() => {
     if (!slug) return undefined;
@@ -158,6 +165,16 @@ export default function Category() {
     return stats.bySubcategory?.[sub] || 0;
   }
 
+  function groupCount(group) {
+    const by = stats.bySubcategory || {};
+    let total = by[group] || 0;
+    const prefix = `${group} — `;
+    for (const [key, value] of Object.entries(by)) {
+      if (key.startsWith(prefix)) total += Number(value) || 0;
+    }
+    return total;
+  }
+
   function renderSubLink(sub, label = sub) {
     const count = subCount(sub);
     const empty = count === 0;
@@ -176,6 +193,11 @@ export default function Category() {
     );
   }
 
+  const lifestyleTileItems = lifestyleTiles.map((tile) => ({
+    ...tile,
+    count: groupCount(tile.filterValue || tile.label),
+  }));
+
   return (
     <div className="container-x py-6 space-y-6">
       <Breadcrumbs
@@ -185,7 +207,34 @@ export default function Category() {
         ]}
       />
 
-      <CategoryHero cat={cat} slug={slug} total={stats.total} />
+      {isLifestyle ? (
+        <header className="space-y-4">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <h1 className="font-display text-2xl md:text-3xl font-bold text-ink">
+                {catTitle}
+              </h1>
+              <p className="text-sm text-ink-500 mt-1 max-w-2xl">{cat.desc}</p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Link to={`/listing?cat=${slug}`} className="btn btn-primary">
+                {t("category.allListings")}
+                {stats.total > 0 ? ` (${stats.total})` : ""}
+              </Link>
+              <Link to={`/add?cat=${slug}`} className="btn btn-ghost">
+                {t("empty.postListing")}
+              </Link>
+            </div>
+          </div>
+
+          <CategorySubcategoryStrip
+            items={lifestyleTileItems}
+            slug={slug}
+          />
+        </header>
+      ) : (
+        <CategoryHero cat={cat} slug={slug} total={stats.total} />
+      )}
 
       {Array.isArray(cat.crossLinks) && cat.crossLinks.length > 0 && (
         <div className="flex flex-wrap gap-2">
@@ -224,36 +273,62 @@ export default function Category() {
         />
       )}
 
-      <div className="surface-panel p-3 md:p-4">
-        <div className="flex flex-col md:flex-row md:items-center gap-3">
-          <input
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder={t("empty.searchSubcats")}
-            className="input w-full"
-          />
+      {!isLifestyle && (
+        <div className="surface-panel p-3 md:p-4">
+          <div className="flex flex-col md:flex-row md:items-center gap-3">
+            <input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder={t("empty.searchSubcats")}
+              className="input w-full"
+            />
 
-          <div className="text-xs text-ink-400 md:w-56">
-            {t("category.subcatsFound")}{" "}
-            <span className="font-medium text-ink">{subs.length}</span>
+            <div className="text-xs text-ink-400 md:w-56">
+              {t("category.subcatsFound")}{" "}
+              <span className="font-medium text-ink">{subs.length}</span>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {slug === "transport" && <TransportQuickFilters />}
-      {LIFESTYLE_SLUGS.has(slug) && <CategoryQuickFilters slug={slug} />}
 
-      <section className="space-y-5">
-        {subs.length === 0 ? (
-          <EmptyState
-            icon={Search}
-            title={t("empty.searchQueryTitle", { query: q })}
-            description={t("empty.searchNoMatch")}
-            actionLabel={t("empty.resetSearch")}
-            onAction={() => setQ("")}
-          />
-        ) : groupedSubs ? (
-          <>
+      {!isLifestyle && (
+        <section className="space-y-5">
+          {subs.length === 0 ? (
+            <EmptyState
+              icon={Search}
+              title={t("empty.searchQueryTitle", { query: q })}
+              description={t("empty.searchNoMatch")}
+              actionLabel={t("empty.resetSearch")}
+              onAction={() => setQ("")}
+            />
+          ) : groupedSubs ? (
+            <>
+              <div className="flex flex-wrap gap-2">
+                <Link
+                  to={`/listing?cat=${slug}`}
+                  className="subcategory-chip subcategory-chip-active"
+                >
+                  {t("category.all")}
+                  {stats.total > 0 && (
+                    <span className="ml-1.5 opacity-80">({stats.total})</span>
+                  )}
+                </Link>
+              </div>
+
+              {groupedSubs.map(({ group, items }) => (
+                <div key={group} className="space-y-2">
+                  <h3 className="text-sm font-semibold text-ink-600">{group}</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {items.map((item) =>
+                      renderSubLink(`${group} — ${item}`, item)
+                    )}
+                  </div>
+                </div>
+              ))}
+            </>
+          ) : (
             <div className="flex flex-wrap gap-2">
               <Link
                 to={`/listing?cat=${slug}`}
@@ -264,35 +339,12 @@ export default function Category() {
                   <span className="ml-1.5 opacity-80">({stats.total})</span>
                 )}
               </Link>
+
+              {subs.map((sub) => renderSubLink(sub))}
             </div>
-
-            {groupedSubs.map(({ group, items }) => (
-              <div key={group} className="space-y-2">
-                <h3 className="text-sm font-semibold text-ink-600">{group}</h3>
-                <div className="flex flex-wrap gap-2">
-                  {items.map((item) =>
-                    renderSubLink(`${group} — ${item}`, item)
-                  )}
-                </div>
-              </div>
-            ))}
-          </>
-        ) : (
-          <div className="flex flex-wrap gap-2">
-            <Link
-              to={`/listing?cat=${slug}`}
-              className="subcategory-chip subcategory-chip-active"
-            >
-              {t("category.all")}
-              {stats.total > 0 && (
-                <span className="ml-1.5 opacity-80">({stats.total})</span>
-              )}
-            </Link>
-
-            {subs.map((sub) => renderSubLink(sub))}
-          </div>
-        )}
-      </section>
+          )}
+        </section>
+      )}
 
       <section className="space-y-4">
         <div className="flex items-center justify-between gap-3">
@@ -306,7 +358,7 @@ export default function Category() {
           </Link>
         </div>
 
-        {loadingPreview && <ListingGridSkeleton count={6} />}
+        {loadingPreview && <ListingGridSkeleton count={isLifestyle ? 12 : 6} />}
 
         {!loadingPreview && preview.length === 0 && (
           <EmptyState
