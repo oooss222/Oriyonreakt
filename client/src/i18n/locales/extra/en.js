@@ -250,9 +250,6 @@ export default {
     promotionDesc: "Boost listings to TOP and VIP from your account or listing page.",
     metaTitle: "Classifieds in Tajikistan",
     metaDescription: "Oriyon.store — classifieds marketplace in Tajikistan. Buy and sell goods and services.",
-    heroTitle: "What are you looking for?",
-    categoriesAll: "All categories",
-    categoriesLess: "Show less",
   },
   category: {
     all: "All",

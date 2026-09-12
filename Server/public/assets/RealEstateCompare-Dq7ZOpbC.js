@@ -1,0 +1,1 @@
+import{j as t}from"./index-CxSuCaW7.js";import r from"./ListingCompare-BzHK1nyx.js";import"./react-DvfpccY7.js";import"./icons-DxHXHxwh.js";import"./Breadcrumbs-BNOhPVv_.js";import"./EmptyState-CKG89MAH.js";import"./listingQuickFacts-CxS_4Rqp.js";import"./usePageMeta-C4HOhehH.js";function f(){return t.jsx(r,{cat:"realestate"})}export{f as default};

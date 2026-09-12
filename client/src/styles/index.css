@@ -314,55 +314,6 @@
     @apply text-ink-400;
   }
 
-  .home-category-grid {
-    @apply grid grid-cols-3 gap-2 sm:grid-cols-4 sm:gap-3 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7;
-  }
-
-  /* Two rows on phones; the toggle below expands the rest in place. Hiding
-     by tile count rather than a fixed height keeps whole rows intact. */
-  .home-category-grid--collapsed > *:nth-child(n + 7) {
-    @apply hidden sm:block;
-  }
-
-  /* Block (not flex) so the label's line-clamp survives: a flex child
-     cannot be a -webkit-box, which is what line-clamp relies on. */
-  .home-category-tile {
-    @apply block rounded-2xl border border-ink/10 bg-white p-1.5 pb-2 text-center shadow-soft transition duration-200 sm:p-2 sm:pb-2.5;
-  }
-
-  .home-category-tile:hover {
-    @apply -translate-y-0.5 border-sun/30 shadow-lift;
-  }
-
-  .home-category-tile__media {
-    @apply relative block aspect-square w-full overflow-hidden rounded-xl bg-mist;
-  }
-
-  .home-category-tile__media img {
-    @apply h-full w-full object-cover transition-transform duration-300;
-  }
-
-  .home-category-tile:hover .home-category-tile__media img {
-    @apply scale-105;
-  }
-
-  .home-category-tile__label {
-    @apply mt-1.5 min-h-[2.15rem] px-0.5 text-[11.5px] font-semibold leading-tight text-ink transition-colors sm:mt-2 sm:text-[13px];
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-    overflow: hidden;
-    overflow-wrap: break-word;
-  }
-
-  .home-category-tile:hover .home-category-tile__label {
-    @apply text-sun-700;
-  }
-
-  .home-category-toggle {
-    @apply mt-2 inline-flex h-10 w-full items-center justify-center gap-1.5 rounded-xl border border-ink/10 bg-white text-sm font-semibold text-ink-600 transition hover:border-sun/30 hover:text-sun-700;
-  }
-
   .category-hero {
     @apply rounded-3xl border border-ink/10 bg-white shadow-soft overflow-hidden;
   }

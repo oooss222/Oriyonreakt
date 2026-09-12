@@ -250,9 +250,6 @@ export default {
     promotionDesc: "Эълонҳоро ба TOP ва VIP аз кабинет ё саҳифаи эълон баланд бардоред.",
     metaTitle: "Эълонҳо дар Тоҷикистон",
     metaDescription: "Oriyon.store — бозори эълонҳо дар Тоҷикистон. Харид ва фурӯши мол ва хизматҳо.",
-    heroTitle: "Шумо чӣ меҷӯед?",
-    categoriesAll: "Ҳамаи категорияҳо",
-    categoriesLess: "Печонидан",
   },
   category: {
     all: "Ҳама",
