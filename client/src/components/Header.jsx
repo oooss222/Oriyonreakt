@@ -92,15 +92,16 @@ export default function Header({ variant = "full" }) {
     };
   }, [token, canModerate]);
 
+  // The home page renders its own full category grid in the body, so the
+  // horizontally scrolling strip would just repeat it there.
   const isBrowsePage =
     !isMinimal &&
-    (pathname === "/" ||
-    pathname === "/listing" ||
+    (pathname === "/listing" ||
     pathname === "/realestate" ||
     pathname.startsWith("/realestate/") ||
     pathname.startsWith("/c/"));
 
-  const compactCategories = pathname !== "/";
+  const compactCategories = true;
 
   React.useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 48);

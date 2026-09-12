@@ -250,6 +250,9 @@ export default {
     promotionDesc: "Поднимайте объявления в TOP и VIP прямо из личного кабинета или со страницы объявления.",
     metaTitle: "Объявления в Таджикистане",
     metaDescription: "Oriyon.store — маркетплейс объявлений в Таджикистане. Покупка и продажа товаров и услуг.",
+    heroTitle: "Что вы ищете?",
+    categoriesAll: "Все категории",
+    categoriesLess: "Свернуть",
   },
   category: {
     all: "Все",

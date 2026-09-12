@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import ListingCard from "../components/ListingCard";
 import RealEstateListingCard from "../components/RealEstateListingCard";
 import ListingGridSkeleton from "../components/ListingGridSkeleton";
+import HomeCategoryGrid from "../components/HomeCategoryGrid";
 import AdSlot from "../components/AdSlot";
 import BusinessPromoBanner from "../components/BusinessPromoBanner";
 import { api } from "../lib/api";
@@ -44,19 +45,14 @@ function RealEstateSection({ items }) {
           <div className="w-10 h-10 icon-box-sun shrink-0">
             <Building2 size={20} />
           </div>
-          <div>
-            <h2 className="section-title">{t("categories.realestate")}</h2>
-            <div className="text-sm text-ink-400">
-              {t("listing.count", { count: items.length })}
-            </div>
-          </div>
+          <h2 className="section-title">{t("categories.realestate")}</h2>
         </div>
 
         <Link
           to={DEFAULT_REAL_ESTATE_BROWSE_PATH}
-          className="hidden sm:inline-flex items-center gap-1 text-sm font-semibold text-sun-700 hover:text-sun transition"
+          className="inline-flex shrink-0 items-center gap-1 text-sm font-semibold text-sun-700 hover:text-sun transition"
         >
-          {t("footer.allListings")}
+          {t("home.viewAll")}
           <ArrowRight size={16} />
         </Link>
       </div>
@@ -83,17 +79,12 @@ function HorizontalSection({ title, icon: Icon, items, linkTo = "/listing" }) {
             <Icon className="text-sun" size={20} />
           </div>
 
-          <div>
-            <h2 className="section-title">{title}</h2>
-            <div className="text-sm text-ink-400">
-              {t("listing.count", { count: items.length })}
-            </div>
-          </div>
+          <h2 className="section-title">{title}</h2>
         </div>
 
         <Link
           to={linkTo}
-          className="hidden sm:inline-flex items-center gap-1 text-sm font-semibold text-sun-700 hover:text-sun transition"
+          className="inline-flex shrink-0 items-center gap-1 text-sm font-semibold text-sun-700 hover:text-sun transition"
         >
           {t("home.viewAll")}
           <ArrowRight size={16} />
@@ -234,6 +225,21 @@ export default function Home() {
   return (
     <div className="page-shell">
       <div className="container mx-auto px-4 py-6 space-y-10">
+        {/* Rendered before the listing fetch resolves so the page explains
+            itself immediately instead of showing bare skeletons. */}
+        <section className="space-y-4">
+          <div className="space-y-1">
+            <h1 className="font-display text-2xl sm:text-3xl font-extrabold tracking-tight text-ink">
+              {t("home.heroTitle")}
+            </h1>
+            <p className="text-sm sm:text-base text-ink-400">
+              {t("footer.tagline")}
+            </p>
+          </div>
+
+          <HomeCategoryGrid />
+        </section>
+
         {loading && (
           <ListingGridSkeleton
             count={12}
