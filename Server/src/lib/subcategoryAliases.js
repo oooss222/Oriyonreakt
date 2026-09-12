@@ -27,6 +27,18 @@ function expandSubcategoryFilterValues(subcategory = "") {
 
   const set = new Set([value, ...(ALIASES_BY_TARGET[value] || [])]);
 
+  for (const [modern, legacy] of [
+    ["Женщинам", "Женская"],
+    ["Мужчинам", "Мужская"],
+  ]) {
+    if (value === modern || value.startsWith(`${modern} — `)) {
+      set.add(value.replace(modern, legacy));
+    }
+    if (value === legacy || value.startsWith(`${legacy} — `)) {
+      set.add(value.replace(legacy, modern));
+    }
+  }
+
   const groupKeys = GROUP_ALIASES[value] || [value];
   for (const group of groupKeys) {
     set.add(group);

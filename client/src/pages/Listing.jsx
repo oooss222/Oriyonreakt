@@ -34,6 +34,7 @@ import { usePageMeta } from "../lib/usePageMeta";
 import { sortListingsByMode } from "../lib/listingSort";
 import { CATS, parseSpecsParam } from "../data/listingCategories";
 import { resolveLegacyCategoryFilters } from "../data/categoryConsolidation";
+import ClothingQuickFilters from "../components/clothing/ClothingQuickFilters";
 import { REAL_ESTATE_CAT } from "../data/realEstate";
 import { sanitizeRealEstateDraft } from "../lib/filterConflicts";
 import {
@@ -437,7 +438,13 @@ export default function Listing() {
   const effectiveListingCat = cat || categoryFromPath || (seoDraft ? REAL_ESTATE_CAT : "");
   const catConfig = effectiveListingCat ? CATS[effectiveListingCat] : null;
   const availableSubcategories = React.useMemo(() => {
-    return activeCat ? CATS[activeCat]?.subs || [] : [];
+    const config = activeCat ? CATS[activeCat] : null;
+    if (!config) return [];
+    // Clothing: Paydo-style group tiles in the filter (server expands to items).
+    if (activeCat === "clothing" && Array.isArray(config.subGroups)) {
+      return config.subGroups.map(({ group }) => group);
+    }
+    return config.subs || [];
   }, [activeCat]);
 
   const effectiveSubcategory = appliedDraft.subcategory || subcategory;
@@ -934,6 +941,8 @@ export default function Listing() {
             />
           </div>
         )}
+
+        {effectiveListingCat === "clothing" && <ClothingQuickFilters />}
 
       {loading && <ListingGridSkeleton />}
 

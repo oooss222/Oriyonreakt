@@ -8,6 +8,12 @@ import {
 } from "./specOptions";
 import { CATS, getListSpecFilters } from "./listingCategories";
 import { getRealEstateFilterGrid } from "./realEstateFilters";
+import {
+  CLOTHING_PRICE_PRESETS,
+  CLOTHING_SEASONS,
+  CLOTHING_SIZES,
+  resolveClothingSpecTemplate,
+} from "./clothingFilters";
 
 const TRANSPORT_GRID = {
   rows: [
@@ -153,6 +159,98 @@ const PHONES_GRID = {
   ],
 };
 
+function buildClothingGrid(subcategory = "") {
+  const specs = resolveClothingSpecTemplate(subcategory);
+  const sizeSpec = specs.find((item) => item.name === "Размер");
+  const conditionSpec = specs.find((item) => item.name === "Состояние");
+  const seasonSpec = specs.find((item) => item.name === "Сезон");
+  const colorSpec = specs.find((item) => item.name === "Цвет");
+  const materialSpec = specs.find(
+    (item) => item.name === "Материал" || item.name === "Тип ткани"
+  );
+
+  const row2 = [
+    sizeSpec
+      ? {
+          id: "Размер",
+          label: "Размер",
+          type: "spec",
+          specKey: "Размер",
+          options: sizeSpec.options || CLOTHING_SIZES,
+        }
+      : materialSpec
+        ? {
+            id: materialSpec.name,
+            label: materialSpec.name,
+            type: "spec",
+            specKey: materialSpec.name,
+            options: materialSpec.options,
+          }
+        : null,
+    conditionSpec
+      ? {
+          id: "Состояние",
+          label: "Состояние",
+          type: "spec",
+          specKey: "Состояние",
+          options:
+            conditionSpec.options || COMMON_SPEC_OPTIONS.clothingCondition,
+        }
+      : null,
+    seasonSpec
+      ? {
+          id: "Сезон",
+          label: "Сезон",
+          type: "spec",
+          specKey: "Сезон",
+          options: seasonSpec.options || CLOTHING_SEASONS,
+        }
+      : colorSpec
+        ? {
+            id: "Цвет",
+            label: "Цвет",
+            type: "spec",
+            specKey: "Цвет",
+            options: colorSpec.options,
+          }
+        : null,
+    { id: "location", label: "Город", type: "location", options: LOCATIONS },
+  ];
+
+  while (row2.length < 4) row2.push(null);
+
+  return {
+    rows: [
+      [
+        { id: "subcategory", label: "Раздел", type: "subcategory" },
+        {
+          id: "price",
+          label: "Цена",
+          type: "price",
+          presets: CLOTHING_PRICE_PRESETS,
+        },
+        { id: "region", label: "Область", type: "region", options: REGIONS },
+        colorSpec && seasonSpec
+          ? {
+              id: "Цвет",
+              label: "Цвет",
+              type: "spec",
+              specKey: "Цвет",
+              options: colorSpec.options,
+            }
+          : { id: "sort", label: "Сортировка", type: "sort" },
+      ],
+      row2,
+    ],
+    more: [
+      { id: "search", label: "Поиск", type: "search" },
+      ...(colorSpec && seasonSpec
+        ? [{ id: "sort", label: "Сортировка", type: "sort" }]
+        : []),
+    ],
+  };
+}
+
 
 function buildGenericGrid(catKey, subcategory = "") {
   const specFilters = getListSpecFilters(catKey, subcategory).slice(0, 4);
@@ -205,6 +303,10 @@ export function getListingFilterGrid(catKey, subcategory = "") {
 
   if (catKey === "phones") {
     return PHONES_GRID;
+  }
+
+  if (catKey === "clothing") {
+    return buildClothingGrid(subcategory);
   }
 
   if (catKey === "realestate") {

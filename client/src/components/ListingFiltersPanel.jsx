@@ -71,7 +71,7 @@ function formatPriceSummary(from, to, currency = "с.", t) {
   return "";
 }
 
-function PriceFilterPopover({ draft, setDraft, onApply }) {
+function PriceFilterPopover({ draft, setDraft, onApply, presets = [] }) {
   const { t } = useI18n();
   const [open, setOpen] = React.useState(false);
   const rootRef = React.useRef(null);
@@ -103,7 +103,7 @@ function PriceFilterPopover({ draft, setDraft, onApply }) {
       const panelHeight = panelRef.current?.offsetHeight || 72;
       const spaceBelow = window.innerHeight - rect.bottom;
       const openUp = spaceBelow < panelHeight + 16 && rect.top > panelHeight + 16;
-      const width = Math.min(rect.width, window.innerWidth - 32);
+      const width = Math.min(Math.max(rect.width, 280), window.innerWidth - 32);
 
       setPanelStyle({
         top: openUp ? rect.top - panelHeight - 8 : rect.bottom + 8,
@@ -120,7 +120,7 @@ function PriceFilterPopover({ draft, setDraft, onApply }) {
       window.removeEventListener("resize", update);
       window.removeEventListener("scroll", update, true);
     };
-  }, [open]);
+  }, [open, presets.length]);
 
   React.useEffect(() => {
     if (!open) return undefined;
@@ -190,6 +190,35 @@ function PriceFilterPopover({ draft, setDraft, onApply }) {
                 с.
               </div>
             </div>
+
+            {presets.length > 0 && (
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                {presets.map((preset) => {
+                  const active =
+                    String(draft.priceFrom || "") === String(preset.from || "") &&
+                    String(draft.priceTo || "") === String(preset.to || "");
+                  return (
+                    <button
+                      key={preset.label}
+                      type="button"
+                      className={`chip ${active ? "chip-active" : ""}`}
+                      onClick={() => {
+                        const next = {
+                          ...draftRef.current,
+                          priceFrom: preset.from ? String(preset.from) : "",
+                          priceTo: preset.to ? String(preset.to) : "",
+                        };
+                        setDraft(next);
+                        onApply?.(next);
+                        setOpen(false);
+                      }}
+                    >
+                      {preset.label}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>,
           document.body
         )
@@ -299,6 +328,7 @@ function renderField(
         draft={draft}
         setDraft={setDraft}
         onApply={onApply}
+        presets={field.presets || []}
       />
     );
   }

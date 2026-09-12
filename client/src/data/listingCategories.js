@@ -10,6 +10,10 @@ import {
   COMMON_SPEC_OPTIONS,
 } from "./specOptions";
 import { REPAIR_MATERIALS_SUBS } from "./categoryConsolidation";
+import {
+  CLOTHING_APPAREL_SPECS,
+  resolveClothingSpecTemplate,
+} from "./clothingFilters";
 
 import { REAL_ESTATE_SUB_SPECS } from "./realEstate";
 import { DEFAULT_REAL_ESTATE_BROWSE_PATH } from "./realEstate";
@@ -279,16 +283,20 @@ const CLOTHING_GROUPS = buildGroupedCategory([
     ],
   ],
   [
+    "Национальная одежда",
+    ["Курта", "Чапан", "Национальные платья", "Костюмы", "Другое"],
+  ],
+  [
     "Обувь",
     ["Женская", "Мужская", "Кроссовки", "Сезонная", "Другое"],
   ],
   [
-    "Аксессуары",
-    ["Головные уборы", "Ремни и кошельки", "Очки", "Другое"],
-  ],
-  [
     "Сумки и чемоданы",
     ["Сумки", "Рюкзаки", "Чемоданы", "Другое"],
+  ],
+  [
+    "Аксессуары",
+    ["Головные уборы", "Ремни и кошельки", "Очки", "Другое"],
   ],
   [
     "Ювелирные украшения",
@@ -297,10 +305,6 @@ const CLOTHING_GROUPS = buildGroupedCategory([
   [
     "Ткани",
     ["Атлас и адрас", "Метраж", "Другое"],
-  ],
-  [
-    "Национальная одежда",
-    ["Курта", "Чапан", "Национальные платья", "Костюмы", "Другое"],
   ],
 ]);
 CLOTHING_GROUPS.subs.push("Другое");
@@ -605,7 +609,7 @@ export const CATS = {
     title: "Одежда",
     shortTitle: "Одежда",
     img: "/img/clothing.png",
-    desc: "Национальная, женская и мужская одежда, обувь и аксессуары",
+    desc: "Женская и мужская одежда, национальная, обувь и аксессуары",
     subs: CLOTHING_GROUPS.subs,
     subGroups: CLOTHING_GROUPS.subGroups,
     // Детская одежда — основной раздел в «Детский мир».
@@ -615,23 +619,8 @@ export const CATS = {
         to: "/c/kids",
       },
     ],
-    specTemplate: [
-      {
-        name: "Размер",
-        type: "select",
-        options: COMMON_SPEC_OPTIONS.clothingSize,
-      },
-      {
-        name: "Состояние",
-        type: "select",
-        options: COMMON_SPEC_OPTIONS.clothingCondition,
-      },
-      {
-        name: "Сезон",
-        type: "select",
-        options: ["Лето", "Зима", "Демисезон", "Всесезон"],
-      },
-    ],
+    specTemplate: CLOTHING_APPAREL_SPECS,
+    resolveSpecTemplate: resolveClothingSpecTemplate,
   },
   construction: {
     title: "Строительство",
@@ -710,8 +699,21 @@ export function getSpecTemplate(catKey, subcategory = "") {
   const cat = CATS[catKey];
   if (!cat) return [];
 
-  if (cat.subSpecTemplates?.[subcategory]) {
-    return cat.subSpecTemplates[subcategory];
+  const sub = String(subcategory || "").trim();
+
+  if (sub && cat.subSpecTemplates?.[sub]) {
+    return cat.subSpecTemplates[sub];
+  }
+
+  if (typeof cat.resolveSpecTemplate === "function") {
+    return cat.resolveSpecTemplate(sub) || cat.specTemplate || [];
+  }
+
+  if (sub.includes(" — ") && cat.subSpecTemplates) {
+    const group = sub.split(" — ")[0];
+    if (cat.subSpecTemplates[group]) {
+      return cat.subSpecTemplates[group];
+    }
   }
 
   return cat.specTemplate || [];

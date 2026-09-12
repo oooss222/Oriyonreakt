@@ -36,6 +36,19 @@ export function expandSubcategoryFilterValues(subcategory = "") {
 
   const set = new Set([value, ...(ALIASES_BY_TARGET[value] || [])]);
 
+  // Keep old «Женская / Мужская» listings matching Paydo-style groups.
+  for (const [modern, legacy] of [
+    ["Женщинам", "Женская"],
+    ["Мужчинам", "Мужская"],
+  ]) {
+    if (value === modern || value.startsWith(`${modern} — `)) {
+      set.add(value.replace(modern, legacy));
+    }
+    if (value === legacy || value.startsWith(`${legacy} — `)) {
+      set.add(value.replace(legacy, modern));
+    }
+  }
+
   const groupKeys = GROUP_ALIASES[value] || [value];
   for (const group of groupKeys) {
     set.add(group);
@@ -88,12 +101,12 @@ const TILE_GLYPHS = {
     "Для свадьбы": "Св",
     Женщинам: "Ж",
     Мужчинам: "М",
+    "Национальная одежда": "Нац",
     Обувь: "Об",
-    Аксессуары: "Ак",
     "Сумки и чемоданы": "Су",
+    Аксессуары: "Ак",
     "Ювелирные украшения": "Юв",
     Ткани: "Тк",
-    "Национальная одежда": "Нац",
   },
   construction: {
     Материалы: "Мт",
@@ -161,6 +174,7 @@ export const LIFESTYLE_QUICK_CHIPS = {
     { label: "Свадьба", subcategory: "Для свадьбы" },
     { label: "Курта", subcategory: "Национальная одежда — Курта" },
     { label: "Обувь", subcategory: "Обувь" },
+    { label: "Сумки", subcategory: "Сумки и чемоданы" },
   ],
   construction: [
     { label: "Цемент", subcategory: "Материалы — Цемент и сыпучие" },
