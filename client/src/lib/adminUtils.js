@@ -78,7 +78,7 @@ export const roleBadgeClass = (role) => {
   if (role === "moderator") return "bg-indigo-50 text-indigo-700 border-indigo-200";
   if (role === "accountant") return "bg-amber-50 text-amber-700 border-amber-200";
 
-  return "bg-slate-50 text-slate-700 border-slate-200";
+  return "bg-mist-50 text-ink-700 border-mist-200";
 };
 
 const DEVICE_TYPE_LABELS_BY_LANG = {

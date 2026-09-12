@@ -164,7 +164,7 @@ export default function ListingImageLightbox({
                 <img
                   src={src}
                   alt=""
-                  className="w-16 h-14 sm:w-20 sm:h-16 object-cover bg-slate-800"
+                  className="w-16 h-14 sm:w-20 sm:h-16 object-cover bg-ink-800"
                   draggable={false}
                 />
               </button>

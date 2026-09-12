@@ -23,15 +23,15 @@ export default function RealEstateNovostroykiSection({
               <Building2 size={20} />
             </span>
             <div>
-              <h2 className="text-lg font-bold text-slate-900">{t("realestate.novostroyki.title")}</h2>
-              <p className="text-sm text-slate-500">
+              <h2 className="text-lg font-bold text-ink-900">{t("realestate.novostroyki.title")}</h2>
+              <p className="text-sm text-ink-500">
                 {t("realestate.novostroyki.subtitle", { city })}
               </p>
             </div>
           </div>
 
           {listingCount > 0 && (
-            <p className="text-sm text-slate-600 mt-1">
+            <p className="text-sm text-ink-600 mt-1">
               {t("realestate.novostroyki.countInCatalog", {
                 count: listingCount.toLocaleString(numberLocale),
               })}

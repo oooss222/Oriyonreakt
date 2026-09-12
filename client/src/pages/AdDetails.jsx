@@ -74,30 +74,30 @@ function getSellerName(ad) {
 function PageSkeleton() {
   return (
     <div className="container-x py-6 space-y-6 animate-pulse">
-      <div className="h-4 bg-slate-200 rounded w-64" />
+      <div className="h-4 bg-mist-200 rounded w-64" />
 
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
         <div className="xl:col-span-7 space-y-5">
-          <div className="rounded-3xl bg-slate-200 aspect-[4/3]" />
+          <div className="rounded-3xl bg-mist-200 aspect-[4/3]" />
           <div className="flex gap-2">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="w-20 h-16 rounded-xl bg-slate-200" />
+              <div key={i} className="w-20 h-16 rounded-xl bg-mist-200" />
             ))}
           </div>
           <div className="card p-6 space-y-3">
-            <div className="h-8 bg-slate-200 rounded w-3/4" />
-            <div className="h-4 bg-slate-200 rounded w-1/2" />
-            <div className="h-24 bg-slate-200 rounded" />
+            <div className="h-8 bg-mist-200 rounded w-3/4" />
+            <div className="h-4 bg-mist-200 rounded w-1/2" />
+            <div className="h-24 bg-mist-200 rounded" />
           </div>
         </div>
 
         <div className="xl:col-span-5">
           <div className="card p-6 space-y-4 rounded-3xl">
-            <div className="h-10 bg-slate-200 rounded w-1/2" />
-            <div className="h-12 bg-slate-200 rounded" />
-            <div className="h-16 bg-slate-200 rounded-xl" />
-            <div className="h-11 bg-slate-200 rounded-xl" />
-            <div className="h-11 bg-slate-200 rounded-xl" />
+            <div className="h-10 bg-mist-200 rounded w-1/2" />
+            <div className="h-12 bg-mist-200 rounded" />
+            <div className="h-16 bg-mist-200 rounded-xl" />
+            <div className="h-11 bg-mist-200 rounded-xl" />
+            <div className="h-11 bg-mist-200 rounded-xl" />
           </div>
         </div>
       </div>
@@ -122,7 +122,7 @@ function Toast({ message, onClose }) {
       aria-live="polite"
       className="fixed bottom-24 xl:bottom-8 left-1/2 -translate-x-1/2 z-[110] animate-fade-in-up"
     >
-      <div className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-slate-900 text-white text-sm shadow-lg">
+      <div className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-ink-900 text-white text-sm shadow-lg">
         <Check className="w-4 h-4 text-emerald-400 shrink-0" />
         {message}
       </div>
@@ -577,13 +577,13 @@ export default function AdDetails() {
     return (
       <div className="container-x py-16">
         <div className="max-w-md mx-auto text-center space-y-5 animate-fade-in-up">
-          <div className="w-20 h-20 mx-auto rounded-3xl bg-slate-100 grid place-items-center text-4xl">
+          <div className="w-20 h-20 mx-auto rounded-3xl bg-mist-100 grid place-items-center text-4xl">
             🔍
           </div>
-          <h1 className="text-2xl font-bold text-slate-900">
+          <h1 className="text-2xl font-bold text-ink-900">
             {t("errors.loadFailed")}
           </h1>
-          <p className="text-slate-500">
+          <p className="text-ink-500">
             {t("seller.notFoundDesc")}
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -701,7 +701,7 @@ export default function AdDetails() {
         )}
 
         {(isSold || isArchived) && (
-          <div className="mb-6 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-slate-700">
+          <div className="mb-6 rounded-2xl border border-mist-200 bg-mist-50 p-4 text-ink-700">
             {isSold
               ? isOwner
                 ? t("listing.soldOwner")
@@ -714,12 +714,12 @@ export default function AdDetails() {
           {/* Left column */}
           <div className="xl:flex-[7] min-w-0 space-y-5">
             {/* Gallery */}
-            <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+            <section className="overflow-hidden rounded-3xl border border-mist-200 bg-white shadow-sm">
               <div className="flex flex-col md:flex-row">
                 {images.length > 1 && (
                   <div
                     ref={desktopThumbsRef}
-                    className="hidden md:flex max-h-[520px] w-[88px] shrink-0 flex-col gap-2 overflow-y-auto border-r border-slate-100 p-3 scrollbar-hide"
+                    className="hidden md:flex max-h-[520px] w-[88px] shrink-0 flex-col gap-2 overflow-y-auto border-r border-mist-100 p-3 scrollbar-hide"
                   >
                     {thumbImages.map((src, index) => (
                       <button
@@ -738,7 +738,7 @@ export default function AdDetails() {
                           alt=""
                           loading="lazy"
                           decoding="async"
-                          className="w-full h-16 object-cover bg-slate-50"
+                          className="w-full h-16 object-cover bg-mist-50"
                           onError={(e) => {
                             e.currentTarget.src =
                               "https://placehold.co/120x80?text=—";
@@ -765,7 +765,7 @@ export default function AdDetails() {
                       alt={ad.title || t("listing.photoAlt")}
                       fetchpriority="high"
                       decoding="async"
-                      className="w-full aspect-[4/3] object-contain bg-slate-50"
+                      className="w-full aspect-[4/3] object-contain bg-mist-50"
                       onError={(e) => {
                         e.currentTarget.src =
                           "https://placehold.co/900x600?text=No+Image";
@@ -821,7 +821,7 @@ export default function AdDetails() {
               {images.length > 1 && (
                 <div
                   ref={mobileThumbsRef}
-                  className="flex md:hidden gap-2 p-3 overflow-x-auto scrollbar-hide snap-x snap-mandatory border-t border-slate-100"
+                  className="flex md:hidden gap-2 p-3 overflow-x-auto scrollbar-hide snap-x snap-mandatory border-t border-mist-100"
                 >
                   {thumbImages.map((src, index) => (
                     <button
@@ -840,7 +840,7 @@ export default function AdDetails() {
                         alt=""
                         loading="lazy"
                         decoding="async"
-                        className="w-20 h-16 object-cover bg-slate-50"
+                        className="w-20 h-16 object-cover bg-mist-50"
                         onError={(e) => {
                           e.currentTarget.src =
                             "https://placehold.co/120x80?text=—";
@@ -852,7 +852,7 @@ export default function AdDetails() {
               )}
             </section>
 
-            <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm xl:hidden">
+            <section className="rounded-3xl border border-mist-200 bg-white p-5 shadow-sm xl:hidden">
               <AdListingHeader
                 title={ad.title}
                 publicId={publicId}
@@ -863,7 +863,7 @@ export default function AdDetails() {
             </section>
 
             {!isOwner && (
-              <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm xl:hidden">
+              <section className="rounded-3xl border border-mist-200 bg-white p-5 shadow-sm xl:hidden">
                 <AdPurchasePanel
                   price={price}
                   realEstatePricePerSqm={realEstatePricePerSqm}
@@ -890,9 +890,9 @@ export default function AdDetails() {
             {isRealEstateListing(ad) && <PriceAdequacyBadge item={ad} />}
 
             {isRealEstateListing(ad) && (
-              <section className="rounded-3xl border border-slate-200 bg-white p-5 md:p-6 shadow-sm space-y-2">
-                <h2 className="text-lg font-bold text-slate-900">{t("listing.locationTitle")}</h2>
-                <p className="text-slate-700 flex items-start gap-2">
+              <section className="rounded-3xl border border-mist-200 bg-white p-5 md:p-6 shadow-sm space-y-2">
+                <h2 className="text-lg font-bold text-ink-900">{t("listing.locationTitle")}</h2>
+                <p className="text-ink-700 flex items-start gap-2">
                   <MapPin className="w-4 h-4 text-sun shrink-0 mt-1" />
                   <span>
                     {[ad.location || t("location.dushanbe"), getSpecValue(ad.specs, "Район"), getSpecValue(ad.specs, "Адрес")]
@@ -911,18 +911,18 @@ export default function AdDetails() {
 
             {/* Specs */}
             {filteredSpecs.length > 0 && (
-              <section className="rounded-3xl border border-slate-200 bg-white p-5 md:p-6 shadow-sm">
-                <h2 className="mb-4 text-lg font-bold text-slate-900">
+              <section className="rounded-3xl border border-mist-200 bg-white p-5 md:p-6 shadow-sm">
+                <h2 className="mb-4 text-lg font-bold text-ink-900">
                   {t("form.specs")}
                 </h2>
-                <div className="divide-y divide-slate-100">
+                <div className="divide-y divide-mist-100">
                   {filteredSpecs.map((spec, index) => (
                     <div
                       key={`${spec.name}-${index}`}
                       className="grid grid-cols-1 gap-1 py-3 text-sm sm:grid-cols-2 sm:gap-4"
                     >
-                      <span className="text-slate-500">{spec.name}</span>
-                      <span className="font-semibold text-slate-900 sm:text-right">
+                      <span className="text-ink-500">{spec.name}</span>
+                      <span className="font-semibold text-ink-900 sm:text-right">
                         {String(spec.value)}
                       </span>
                     </div>
@@ -938,9 +938,9 @@ export default function AdDetails() {
             />
 
             {/* Description */}
-            <section className="rounded-3xl border border-slate-200 bg-white p-5 md:p-6 shadow-sm">
-              <h2 className="mb-4 text-lg font-bold text-slate-900">{t("form.description")}</h2>
-              <p className="text-slate-700 whitespace-pre-wrap leading-7 text-[15px]">
+            <section className="rounded-3xl border border-mist-200 bg-white p-5 md:p-6 shadow-sm">
+              <h2 className="mb-4 text-lg font-bold text-ink-900">{t("form.description")}</h2>
+              <p className="text-ink-700 whitespace-pre-wrap leading-7 text-[15px]">
                 {ad.description || t("listing.noDescription")}
               </p>
             </section>
@@ -958,7 +958,7 @@ export default function AdDetails() {
               isOwner ? "" : "hidden xl:block"
             }`}
           >
-              <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+              <section className="rounded-3xl border border-mist-200 bg-white p-6 shadow-sm">
                 <div className="hidden xl:block space-y-5">
                   <AdListingHeader
                     title={ad.title}
@@ -1082,7 +1082,7 @@ export default function AdDetails() {
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <h3 className="text-lg font-bold">{t("report.title")}</h3>
-                  <p className="text-sm text-slate-500 mt-1">
+                  <p className="text-sm text-ink-500 mt-1">
                     {t("report.subtitle")}
                   </p>
                 </div>
@@ -1090,7 +1090,7 @@ export default function AdDetails() {
                 <button
                   type="button"
                   onClick={() => setReportOpen(false)}
-                  className="p-2 rounded-xl border hover:bg-slate-50"
+                  className="p-2 rounded-xl border hover:bg-mist-50"
                   aria-label={t("common.close")}
                 >
                   <X className="w-4 h-4" />
@@ -1104,7 +1104,7 @@ export default function AdDetails() {
                     className={`flex items-center gap-3 rounded-xl border px-3 py-2.5 cursor-pointer transition ${
                       reportReason === item.id
                         ? "border-sun bg-sun-50"
-                        : "border-slate-200 hover:border-slate-300"
+                        : "border-mist-200 hover:border-ink-300"
                     }`}
                   >
                     <input
@@ -1115,7 +1115,7 @@ export default function AdDetails() {
                       onChange={() => setReportReason(item.id)}
                       className="accent-sun"
                     />
-                    <span className="text-sm font-medium text-slate-800">
+                    <span className="text-sm font-medium text-ink-800">
                       {item.label}
                     </span>
                   </label>
@@ -1128,7 +1128,7 @@ export default function AdDetails() {
                   onChange={(e) => setReportDetails(e.target.value)}
                   rows={4}
                   placeholder={t("report.placeholder")}
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-sun/40 resize-y"
+                  className="w-full rounded-xl border border-mist-200 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-sun/40 resize-y"
                 />
               )}
 
@@ -1166,7 +1166,7 @@ export default function AdDetails() {
             />
 
             <div className="relative w-full sm:max-w-sm rounded-t-3xl sm:rounded-2xl bg-white shadow-xl border p-5 space-y-4">
-              <p className="text-sm text-slate-800">
+              <p className="text-sm text-ink-800">
                 {confirmPrompts[confirmAction] || t("listing.confirmStatus")}
               </p>
 

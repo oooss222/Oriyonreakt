@@ -16,8 +16,8 @@ import { useI18n } from "../../i18n";
 const STATUS_DOTS = {
   pending: "bg-amber-400",
   rejected: "bg-red-500",
-  sold: "bg-slate-800",
-  archived: "bg-slate-400",
+  sold: "bg-ink-800",
+  archived: "bg-ink-400",
   approved: "bg-emerald-500",
 };
 
@@ -207,7 +207,7 @@ export default function MyListingsPanel({
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="text-2xl font-bold text-slate-900">{t("profile.myListings")}</h2>
+        <h2 className="text-2xl font-bold text-ink-900">{t("profile.myListings")}</h2>
         <Link
           to="/add"
           className="inline-flex items-center justify-center gap-2 rounded-xl bg-sun px-4 py-2.5 text-sm font-semibold text-white hover:bg-sun-600 transition shadow-sm"
@@ -218,7 +218,7 @@ export default function MyListingsPanel({
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[280px_minmax(0,1fr)] gap-4 items-start">
-        <aside className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm lg:sticky lg:top-20">
+        <aside className="rounded-2xl border border-mist-200/80 bg-white p-4 shadow-sm lg:sticky lg:top-20">
           <button
             type="button"
             onClick={() => setFiltersOpen((value) => !value)}
@@ -226,11 +226,11 @@ export default function MyListingsPanel({
             aria-expanded={filtersOpen}
             aria-controls="my-listings-filters"
           >
-            <SlidersHorizontal size={16} className="text-slate-400" />
-            <h3 className="font-bold text-slate-900 flex-1 text-left">{t("profile.filters")}</h3>
+            <SlidersHorizontal size={16} className="text-ink-400" />
+            <h3 className="font-bold text-ink-900 flex-1 text-left">{t("profile.filters")}</h3>
             <ChevronDown
               size={18}
-              className={`text-slate-400 transition-transform lg:hidden ${filtersOpen ? "rotate-180" : ""}`}
+              className={`text-ink-400 transition-transform lg:hidden ${filtersOpen ? "rotate-180" : ""}`}
             />
           </button>
 
@@ -240,7 +240,7 @@ export default function MyListingsPanel({
           >
 
           <label className="block">
-            <div className="text-[11px] font-bold uppercase tracking-wide text-slate-400 mb-1.5">
+            <div className="text-[11px] font-bold uppercase tracking-wide text-ink-400 mb-1.5">
               {t("profile.sort")}
             </div>
             <select
@@ -265,19 +265,19 @@ export default function MyListingsPanel({
                 }
                 className={`w-full flex items-center gap-2 rounded-xl px-2.5 py-2 text-sm transition ${
                   statusFilter === key
-                    ? "bg-slate-100 font-semibold text-slate-900"
-                    : "text-slate-600 hover:bg-slate-50"
+                    ? "bg-mist-100 font-semibold text-ink-900"
+                    : "text-ink-600 hover:bg-mist-50"
                 }`}
               >
                 <span className={`w-2 h-2 rounded-full ${STATUS_DOTS[key]}`} />
                 <span className="flex-1 text-left">{label}</span>
-                <span className="tabular-nums text-slate-400">{count}</span>
+                <span className="tabular-nums text-ink-400">{count}</span>
               </button>
             ))}
           </div>
 
           <label className="block">
-            <div className="text-[11px] font-bold uppercase tracking-wide text-slate-400 mb-1.5">
+            <div className="text-[11px] font-bold uppercase tracking-wide text-ink-400 mb-1.5">
               {t("profile.filterSection")}
             </div>
             <select
@@ -295,13 +295,13 @@ export default function MyListingsPanel({
           </label>
 
           <label className="block">
-            <div className="text-[11px] font-bold uppercase tracking-wide text-slate-400 mb-1.5">
+            <div className="text-[11px] font-bold uppercase tracking-wide text-ink-400 mb-1.5">
               {t("profile.filterCity")}
             </div>
             <div className="relative">
               <MapPin
                 size={14}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-400 pointer-events-none"
               />
               <select
                 value={city}
@@ -319,13 +319,13 @@ export default function MyListingsPanel({
           </label>
 
           <label className="block">
-            <div className="text-[11px] font-bold uppercase tracking-wide text-slate-400 mb-1.5">
+            <div className="text-[11px] font-bold uppercase tracking-wide text-ink-400 mb-1.5">
               {t("profile.filterPhone")}
             </div>
             <div className="relative">
               <Phone
                 size={14}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-400 pointer-events-none"
               />
               <select
                 value={phoneFilter}
@@ -343,7 +343,7 @@ export default function MyListingsPanel({
           </label>
 
           <div>
-            <div className="text-[11px] font-bold uppercase tracking-wide text-slate-400 mb-2">
+            <div className="text-[11px] font-bold uppercase tracking-wide text-ink-400 mb-2">
               {t("profile.paidServices")}
             </div>
             <div className="flex flex-wrap gap-1.5">
@@ -357,7 +357,7 @@ export default function MyListingsPanel({
                   className={`rounded-full border px-2.5 py-1 text-xs font-semibold transition ${
                     serviceFilter === key
                       ? "border-sun bg-sun/10 text-sun"
-                      : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                      : "border-mist-200 bg-white text-ink-600 hover:bg-mist-50"
                   }`}
                 >
                   {label} {count}
@@ -367,7 +367,7 @@ export default function MyListingsPanel({
           </div>
 
           <div>
-            <div className="text-[11px] font-bold uppercase tracking-wide text-slate-400 mb-1.5">
+            <div className="text-[11px] font-bold uppercase tracking-wide text-ink-400 mb-1.5">
               {t("profile.filterPrice")}
             </div>
             <div className="grid grid-cols-2 gap-2">
@@ -389,7 +389,7 @@ export default function MyListingsPanel({
           </div>
 
           {canManage && (
-            <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
+            <label className="flex items-center gap-2 text-sm text-ink-700 cursor-pointer">
               <input
                 type="checkbox"
                 checked={selectMode}
@@ -409,7 +409,7 @@ export default function MyListingsPanel({
               applyFilters();
               setFiltersOpen(false);
             }}
-            className="w-full rounded-xl bg-slate-900 text-white py-3 text-sm font-semibold hover:bg-slate-800 transition"
+            className="w-full rounded-xl bg-ink-900 text-white py-3 text-sm font-semibold hover:bg-ink-800 transition"
           >
             {t("profile.showAds", { count: filtered.length })}
           </button>
@@ -419,19 +419,19 @@ export default function MyListingsPanel({
         <div className="min-w-0 space-y-4">
           {selectMode && selectedIds.size > 0 && (
             <div className="sticky top-2 z-20 rounded-2xl border bg-white shadow-lg p-3 flex flex-wrap items-center gap-2">
-              <span className="text-sm font-medium text-slate-700 mr-auto">
+              <span className="text-sm font-medium text-ink-700 mr-auto">
                 {t("profile.selected", { count: selectedIds.size })}
               </span>
               <button
                 type="button"
-                className="mobile-btn border hover:bg-slate-50"
+                className="mobile-btn border hover:bg-mist-50"
                 onClick={() => handleBulk("sold")}
               >
                 {t("profile.statusSold")}
               </button>
               <button
                 type="button"
-                className="mobile-btn border hover:bg-slate-50"
+                className="mobile-btn border hover:bg-mist-50"
                 onClick={() => handleBulk("archive")}
               >
                 {t("profile.statusArchived")}

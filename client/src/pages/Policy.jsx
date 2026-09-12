@@ -9,7 +9,7 @@ function PolicyContent({ content }) {
     .filter(Boolean);
 
   return (
-    <div className="space-y-4 text-slate-600">
+    <div className="space-y-4 text-ink-600">
       {blocks.map((block, index) => {
         const lines = block.split("\n");
         const firstLine = lines[0] || "";
@@ -20,7 +20,7 @@ function PolicyContent({ content }) {
         if (isHeading) {
           return (
             <section key={index} className="space-y-2">
-              <h2 className="text-lg font-semibold text-slate-900">{firstLine}</h2>
+              <h2 className="text-lg font-semibold text-ink-900">{firstLine}</h2>
               {lines.slice(1).length > 0 && (
                 <div className="space-y-1">
                   {lines.slice(1).map((line, lineIndex) => (
@@ -80,7 +80,7 @@ export default function Policy() {
         </h1>
 
         {loading ? (
-          <div className="text-sm text-slate-500 animate-pulse">
+          <div className="text-sm text-ink-500 animate-pulse">
             {t("policy.loading")}
           </div>
         ) : error ? (
@@ -89,7 +89,7 @@ export default function Policy() {
           <PolicyContent content={content} />
         )}
 
-        <div className="text-sm text-slate-500 border-t pt-3">
+        <div className="text-sm text-ink-500 border-t pt-3">
           {updatedAt
             ? t("policy.lastUpdated", {
                 date: new Date(updatedAt).toLocaleDateString(),

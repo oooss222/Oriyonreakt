@@ -26,11 +26,11 @@ export default React.memo(function ProfileListingsGrid({
           <PlusCircle className="text-sun" size={26} />
         </div>
 
-        <div className="text-slate-800 font-semibold mb-1">
+        <div className="text-ink-800 font-semibold mb-1">
           {tab === "fav" ? t("favorites.empty") : t("empty.noMyListings")}
         </div>
 
-        <div className="text-sm text-slate-500 mb-4">
+        <div className="text-sm text-ink-500 mb-4">
           {tab === "fav"
             ? t("favorites.emptyHint")
             : t("empty.noMyListingsHint")}
@@ -47,7 +47,7 @@ export default React.memo(function ProfileListingsGrid({
         ) : (
           <Link
             to="/"
-            className="inline-flex items-center gap-2 px-5 py-3 rounded-xl border hover:bg-slate-50 transition"
+            className="inline-flex items-center gap-2 px-5 py-3 rounded-xl border hover:bg-mist-50 transition"
           >
             {t("empty.goHome")}
           </Link>

@@ -11,7 +11,7 @@ export default function Breadcrumbs({ items = [] }) {
   return (
     <nav
       aria-label={t("a11y.breadcrumbs")}
-      className="flex flex-wrap items-center gap-1 text-sm text-slate-500"
+      className="flex flex-wrap items-center gap-1 text-sm text-ink-500"
     >
       {items.map((item, index) => {
         const isLast = index === items.length - 1;
@@ -19,7 +19,7 @@ export default function Breadcrumbs({ items = [] }) {
         return (
           <React.Fragment key={`${item.label}-${index}`}>
             {index > 0 && (
-              <ChevronRight size={14} className="shrink-0 text-slate-400" />
+              <ChevronRight size={14} className="shrink-0 text-ink-400" />
             )}
 
             {item.to && !isLast ? (
@@ -27,7 +27,7 @@ export default function Breadcrumbs({ items = [] }) {
                 {item.label}
               </Link>
             ) : (
-              <span className={isLast ? "text-slate-700 font-medium" : ""}>
+              <span className={isLast ? "text-ink-700 font-medium" : ""}>
                 {item.label}
               </span>
             )}

@@ -18,11 +18,11 @@ function HighlightTile({ icon: Icon, label, value }) {
 
   return (
     <div className="rounded-2xl border bg-white p-4 flex flex-col gap-2 min-h-[88px]">
-      <div className="flex items-center gap-2 text-slate-500 text-xs font-semibold uppercase tracking-wide">
+      <div className="flex items-center gap-2 text-ink-500 text-xs font-semibold uppercase tracking-wide">
         <Icon size={14} className="text-sun shrink-0" />
         {label}
       </div>
-      <div className="text-lg font-bold text-slate-900 leading-tight">{value}</div>
+      <div className="text-lg font-bold text-ink-900 leading-tight">{value}</div>
     </div>
   );
 }
@@ -62,7 +62,7 @@ export default function RealEstateHighlights({ ad }) {
     <section className="card p-5 md:p-6 rounded-3xl space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="text-lg font-bold text-slate-900">{t("realestate.highlights.aboutTitle")}</h2>
+          <h2 className="text-lg font-bold text-ink-900">{t("realestate.highlights.aboutTitle")}</h2>
           {deal && (
             <span className="inline-flex mt-2 px-3 py-1 rounded-full chip chip-active text-xs font-bold">
               {deal}

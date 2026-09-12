@@ -52,7 +52,7 @@ export default function RealEstateDevelopment() {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-6">
+      <div className="container-x py-6">
         <ListingGridSkeleton />
       </div>
     );
@@ -60,7 +60,7 @@ export default function RealEstateDevelopment() {
 
   if (error || !development) {
     return (
-      <div className="container mx-auto px-4 py-10 text-center space-y-3">
+      <div className="container-x py-10 text-center space-y-3">
         <h1 className="text-2xl font-bold">ЖК не найден</h1>
         <Link to="/realestate" className="btn rounded-xl">
           К недвижимости
@@ -70,7 +70,7 @@ export default function RealEstateDevelopment() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-6 space-y-6">
+    <div className="container-x py-6 space-y-6">
       <Breadcrumbs
         items={[
           { label: "Главная", to: "/" },
@@ -82,7 +82,7 @@ export default function RealEstateDevelopment() {
 
       <section className="rounded-3xl overflow-hidden border bg-white">
         <div className="grid lg:grid-cols-2">
-          <div className="relative min-h-[260px] bg-slate-100">
+          <div className="relative min-h-[260px] bg-mist-100">
             {development.imageUrl ? (
               <img
                 src={development.imageUrl}
@@ -90,7 +90,7 @@ export default function RealEstateDevelopment() {
                 className="absolute inset-0 w-full h-full object-cover"
               />
             ) : (
-              <div className="absolute inset-0 grid place-items-center text-slate-400">
+              <div className="absolute inset-0 grid place-items-center text-ink-400">
                 <Building2 size={48} />
               </div>
             )}
@@ -100,10 +100,10 @@ export default function RealEstateDevelopment() {
             <div className="inline-flex items-center gap-2 rounded-full bg-sun-50 text-sun-800 px-3 py-1 text-xs font-bold">
               {development.developer || "Застройщик"}
             </div>
-            <h1 className="text-3xl font-extrabold text-slate-900">{development.name}</h1>
-            <p className="text-slate-600 leading-relaxed">{development.description}</p>
+            <h1 className="text-3xl font-extrabold text-ink-900">{development.name}</h1>
+            <p className="text-ink-600 leading-relaxed">{development.description}</p>
 
-            <div className="flex flex-wrap gap-4 text-sm text-slate-600">
+            <div className="flex flex-wrap gap-4 text-sm text-ink-600">
               <span className="inline-flex items-center gap-1.5">
                 <MapPin size={16} className="text-sun" />
                 {development.city}
@@ -122,7 +122,7 @@ export default function RealEstateDevelopment() {
                 {development.amenities.map((item) => (
                   <span
                     key={item}
-                    className="px-3 py-1 rounded-full bg-slate-100 text-xs font-medium text-slate-700"
+                    className="px-3 py-1 rounded-full bg-mist-100 text-xs font-medium text-ink-700"
                   >
                     {item}
                   </span>
@@ -149,7 +149,7 @@ export default function RealEstateDevelopment() {
         <h2 className="text-xl font-bold">Квартиры в {development.name}</h2>
 
         {listings.length === 0 ? (
-          <div className="rounded-2xl border bg-white p-6 text-slate-600">
+          <div className="rounded-2xl border bg-white p-6 text-ink-600">
             Пока нет активных объявлений в этом ЖК.
           </div>
         ) : (

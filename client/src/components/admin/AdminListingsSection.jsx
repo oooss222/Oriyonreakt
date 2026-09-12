@@ -113,7 +113,7 @@ export default function AdminListingsSection({ token }) {
             {t("admin.listings.badge")}
           </div>
           <h2 className="text-xl font-bold">{t("admin.listings.title")}</h2>
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="text-sm text-ink-500 mt-1">
             {t("admin.listings.hint")}
           </p>
         </div>
@@ -122,7 +122,7 @@ export default function AdminListingsSection({ token }) {
           type="button"
           onClick={load}
           disabled={refreshing}
-          className="px-4 py-2 rounded-xl border hover:bg-slate-50 disabled:opacity-60"
+          className="px-4 py-2 rounded-xl border hover:bg-mist-50 disabled:opacity-60"
         >
           {refreshing ? t("admin.users.refreshing") : t("admin.users.refresh")}
         </button>
@@ -134,7 +134,7 @@ export default function AdminListingsSection({ token }) {
         </div>
       )}
 
-      <div className="rounded-2xl border bg-slate-50 p-3 grid grid-cols-1 md:grid-cols-4 gap-3">
+      <div className="rounded-2xl border bg-mist-50 p-3 grid grid-cols-1 md:grid-cols-4 gap-3">
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
@@ -168,7 +168,7 @@ export default function AdminListingsSection({ token }) {
         </select>
       </div>
 
-      <div className="flex items-center justify-between gap-2 text-sm text-slate-500">
+      <div className="flex items-center justify-between gap-2 text-sm text-ink-500">
         <div>{t("admin.listings.shown", { count: items.length })}</div>
         <div className="flex items-center gap-2">
           <button
@@ -194,7 +194,7 @@ export default function AdminListingsSection({ token }) {
       </div>
 
       {items.length === 0 ? (
-        <div className="rounded-2xl border bg-slate-50 p-8 text-center text-slate-500">
+        <div className="rounded-2xl border bg-mist-50 p-8 text-center text-ink-500">
           {t("admin.listings.notFound")}
         </div>
       ) : (
@@ -211,15 +211,15 @@ export default function AdminListingsSection({ token }) {
                 <img
                   src={getListingThumb(ad)}
                   alt={ad.title || t("admin.listings.untitledAlt")}
-                  className="w-full md:w-28 h-24 rounded-xl object-cover bg-slate-100"
+                  className="w-full md:w-28 h-24 rounded-xl object-cover bg-mist-100"
                 />
 
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2 mb-1">
-                    <span className="inline-flex px-2 py-0.5 text-xs rounded-full border bg-slate-50">
+                    <span className="inline-flex px-2 py-0.5 text-xs rounded-full border bg-mist-50">
                       {(STATUS_LABEL_KEYS[ad.status] && t(STATUS_LABEL_KEYS[ad.status])) || ad.status}
                     </span>
-                    <span className="text-xs text-slate-500">
+                    <span className="text-xs text-ink-500">
                       {ad.cat}
                       {ad.subcategory ? ` · ${ad.subcategory}` : ""}
                     </span>
@@ -236,7 +236,7 @@ export default function AdminListingsSection({ token }) {
                     {formatPrice(ad.price, { emptyLabel: "—" })}
                   </div>
 
-                  <div className="text-sm text-slate-500 mt-1">
+                  <div className="text-sm text-ink-500 mt-1">
                     {ad.location || "—"} · {t("admin.listings.sellerPrefix")}: {ad.ownerName || ad.ownerEmail || "—"}
                   </div>
                 </div>
@@ -244,7 +244,7 @@ export default function AdminListingsSection({ token }) {
                 <div className="flex md:flex-col gap-2 md:min-w-36">
                   <Link
                     to={`/ad/${id}`}
-                    className="inline-flex justify-center px-3 py-2 rounded-lg border hover:bg-slate-50 text-sm"
+                    className="inline-flex justify-center px-3 py-2 rounded-lg border hover:bg-mist-50 text-sm"
                   >
                     {t("admin.listings.open")}
                   </Link>
@@ -254,7 +254,7 @@ export default function AdminListingsSection({ token }) {
                       type="button"
                       disabled={busy}
                       onClick={() => archiveListing(id)}
-                      className="inline-flex items-center justify-center gap-1 px-3 py-2 rounded-lg border hover:bg-slate-50 text-sm disabled:opacity-60"
+                      className="inline-flex items-center justify-center gap-1 px-3 py-2 rounded-lg border hover:bg-mist-50 text-sm disabled:opacity-60"
                     >
                       <Archive size={16} />
                       {t("admin.listings.archive")}

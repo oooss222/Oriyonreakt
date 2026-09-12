@@ -222,7 +222,7 @@ export default function ModerationListingsPanel({ token, embedded = false }) {
         onClick={() => setPanelMode("listings")}
         className={`px-4 py-2 rounded-xl border text-sm font-medium ${
           panelMode === "listings"
-            ? "bg-slate-900 text-white border-slate-900"
+            ? "bg-ink-900 text-white border-ink-900"
             : "bg-white"
         }`}
       >
@@ -233,7 +233,7 @@ export default function ModerationListingsPanel({ token, embedded = false }) {
         onClick={() => setPanelMode("reports")}
         className={`px-4 py-2 rounded-xl border text-sm font-medium ${
           panelMode === "reports"
-            ? "bg-slate-900 text-white border-slate-900"
+            ? "bg-ink-900 text-white border-ink-900"
             : "bg-white"
         }`}
       >
@@ -283,7 +283,7 @@ export default function ModerationListingsPanel({ token, embedded = false }) {
 
             <h2 className="text-xl font-bold">{t("admin.moderation.title")}</h2>
 
-            <p className="text-sm text-slate-500 mt-1">
+            <p className="text-sm text-ink-500 mt-1">
               {t("admin.moderation.hint")}
             </p>
           </div>
@@ -291,7 +291,7 @@ export default function ModerationListingsPanel({ token, embedded = false }) {
           <button
             onClick={load}
             disabled={refreshing}
-            className="px-4 py-2 rounded-xl border hover:bg-slate-50 disabled:opacity-60"
+            className="px-4 py-2 rounded-xl border hover:bg-mist-50 disabled:opacity-60"
           >
             {refreshing ? t("admin.users.refreshing") : t("admin.users.refresh")}
           </button>
@@ -310,10 +310,10 @@ export default function ModerationListingsPanel({ token, embedded = false }) {
             className={`text-left rounded-2xl border p-4 transition ${
               status === "pending"
                 ? "bg-amber-50 border-amber-200"
-                : "bg-slate-50 hover:bg-slate-100"
+                : "bg-mist-50 hover:bg-mist-100"
             }`}
           >
-            <div className="text-xs text-slate-500">{t("admin.moderation.currentSection")}</div>
+            <div className="text-xs text-ink-500">{t("admin.moderation.currentSection")}</div>
             <div className="text-lg font-bold">{t("admin.moderation.statusPending")}</div>
           </button>
 
@@ -323,10 +323,10 @@ export default function ModerationListingsPanel({ token, embedded = false }) {
             className={`text-left rounded-2xl border p-4 transition ${
               status === "approved"
                 ? "bg-emerald-50 border-emerald-200"
-                : "bg-slate-50 hover:bg-slate-100"
+                : "bg-mist-50 hover:bg-mist-100"
             }`}
           >
-            <div className="text-xs text-slate-500">{t("admin.moderation.currentSection")}</div>
+            <div className="text-xs text-ink-500">{t("admin.moderation.currentSection")}</div>
             <div className="text-lg font-bold">{t("admin.moderation.statusApproved")}</div>
           </button>
 
@@ -336,10 +336,10 @@ export default function ModerationListingsPanel({ token, embedded = false }) {
             className={`text-left rounded-2xl border p-4 transition ${
               status === "rejected"
                 ? "bg-red-50 border-red-200"
-                : "bg-slate-50 hover:bg-slate-100"
+                : "bg-mist-50 hover:bg-mist-100"
             }`}
           >
-            <div className="text-xs text-slate-500">{t("admin.moderation.currentSection")}</div>
+            <div className="text-xs text-ink-500">{t("admin.moderation.currentSection")}</div>
             <div className="text-lg font-bold">{t("admin.moderation.statusRejected")}</div>
           </button>
 
@@ -350,7 +350,7 @@ export default function ModerationListingsPanel({ token, embedded = false }) {
           </div>
         </div>
 
-        <div className="rounded-2xl border bg-slate-50 p-3 grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div className="rounded-2xl border bg-mist-50 p-3 grid grid-cols-1 md:grid-cols-3 gap-3">
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
@@ -370,18 +370,18 @@ export default function ModerationListingsPanel({ token, embedded = false }) {
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
-          <div className="rounded-xl border bg-slate-50 p-3">
-            <div className="text-slate-500">{t("admin.moderation.withImages")}</div>
+          <div className="rounded-xl border bg-mist-50 p-3">
+            <div className="text-ink-500">{t("admin.moderation.withImages")}</div>
             <div className="font-bold">{stats.withImages}</div>
           </div>
 
-          <div className="rounded-xl border bg-slate-50 p-3">
-            <div className="text-slate-500">{t("admin.moderation.withoutImages")}</div>
+          <div className="rounded-xl border bg-mist-50 p-3">
+            <div className="text-ink-500">{t("admin.moderation.withoutImages")}</div>
             <div className="font-bold">{stats.withoutImages}</div>
           </div>
 
-          <div className="rounded-xl border bg-slate-50 p-3">
-            <div className="text-slate-500">{t("admin.moderation.statusLabel")}</div>
+          <div className="rounded-xl border bg-mist-50 p-3">
+            <div className="text-ink-500">{t("admin.moderation.statusLabel")}</div>
             <div
               className={`inline-flex mt-1 px-2 py-0.5 text-xs rounded-full border ${
                 statusBadgeClass[status]
@@ -393,7 +393,7 @@ export default function ModerationListingsPanel({ token, embedded = false }) {
         </div>
 
         {filteredItems.length === 0 ? (
-          <div className="rounded-2xl border bg-slate-50 p-8 text-center text-slate-500">
+          <div className="rounded-2xl border bg-mist-50 p-8 text-center text-ink-500">
             {t("admin.listings.notFound")}
           </div>
         ) : (
@@ -418,7 +418,7 @@ export default function ModerationListingsPanel({ token, embedded = false }) {
                     <img
                       src={img}
                       alt={ad.title || t("admin.listings.untitledAlt")}
-                      className="w-full md:w-40 h-36 md:h-28 rounded-xl object-cover bg-slate-100"
+                      className="w-full md:w-40 h-36 md:h-28 rounded-xl object-cover bg-mist-100"
                       loading="lazy"
                     />
                   </Link>
@@ -433,7 +433,7 @@ export default function ModerationListingsPanel({ token, embedded = false }) {
                         {statusLabel[ad.status || status] || ad.status}
                       </span>
 
-                      <span className="text-xs text-slate-500">
+                      <span className="text-xs text-ink-500">
                         ID: {String(id).slice(0, 8)}...
                       </span>
 
@@ -461,12 +461,12 @@ export default function ModerationListingsPanel({ token, embedded = false }) {
                       onClick={() =>
                         sessionStorage.setItem("ad_preview", JSON.stringify(ad))
                       }
-                      className="font-semibold text-slate-900 hover:text-sun line-clamp-2"
+                      className="font-semibold text-ink-900 hover:text-sun line-clamp-2"
                     >
                       {ad.title || t("admin.listings.untitled")}
                     </Link>
 
-                    <div className="text-sm text-slate-500 mt-1">
+                    <div className="text-sm text-ink-500 mt-1">
                       {ad.location || t("admin.moderation.noLocation")} · {ad.cat || "—"}
                       {ad.subcategory ? ` · ${ad.subcategory}` : ""}
                     </div>
@@ -476,7 +476,7 @@ export default function ModerationListingsPanel({ token, embedded = false }) {
                     </div>
 
                     {ad.description && (
-                      <p className="text-sm text-slate-600 mt-2 line-clamp-2">
+                      <p className="text-sm text-ink-600 mt-2 line-clamp-2">
                         {ad.description}
                       </p>
                     )}
@@ -495,10 +495,10 @@ export default function ModerationListingsPanel({ token, embedded = false }) {
                     )}
 
                     {Array.isArray(ad.contentDiff) && ad.contentDiff.length > 0 && (
-                      <div className="mt-3 rounded-xl border bg-slate-50 p-3 text-xs space-y-1">
-                        <div className="font-semibold text-slate-700">{t("admin.moderation.changes")}</div>
+                      <div className="mt-3 rounded-xl border bg-mist-50 p-3 text-xs space-y-1">
+                        <div className="font-semibold text-ink-700">{t("admin.moderation.changes")}</div>
                         {ad.contentDiff.map((change) => (
-                          <div key={`${id}-${change.field}`} className="text-slate-600">
+                          <div key={`${id}-${change.field}`} className="text-ink-600">
                             <b>{change.label}:</b> {change.before} → {change.after}
                           </div>
                         ))}
@@ -512,7 +512,7 @@ export default function ModerationListingsPanel({ token, embedded = false }) {
                     )}
 
                     {ad.autoModerationReason && (
-                      <div className="mt-2 text-xs text-slate-500">
+                      <div className="mt-2 text-xs text-ink-500">
                         {t("admin.moderation.autoCheck")}: {ad.autoModerationReason}
                       </div>
                     )}
@@ -530,7 +530,7 @@ export default function ModerationListingsPanel({ token, embedded = false }) {
                       onClick={() =>
                         sessionStorage.setItem("ad_preview", JSON.stringify(ad))
                       }
-                      className="inline-flex justify-center px-3 py-2 rounded-lg border hover:bg-slate-50"
+                      className="inline-flex justify-center px-3 py-2 rounded-lg border hover:bg-mist-50"
                     >
                       {t("admin.listings.open")}
                     </Link>
@@ -605,18 +605,18 @@ export default function ModerationListingsPanel({ token, embedded = false }) {
                     ? t("admin.moderation.rejectAppealModalTitle")
                     : t("admin.moderation.rejectModalTitle")}
                 </h3>
-                <p className="text-sm text-slate-500 mt-1">
+                <p className="text-sm text-ink-500 mt-1">
                   {rejectTarget.kind === "appeal"
                     ? t("admin.moderation.rejectAppealModalHint")
                     : t("admin.moderation.rejectModalHint")}
                 </p>
               </div>
 
-              <div className="rounded-xl border bg-slate-50 p-3">
+              <div className="rounded-xl border bg-mist-50 p-3">
                 <div className="text-sm font-semibold">
                   {rejectTarget.item.title || t("admin.listings.untitled")}
                 </div>
-                <div className="text-xs text-slate-500 mt-1">
+                <div className="text-xs text-ink-500 mt-1">
                   ID: {String(getId(rejectTarget.item)).slice(0, 8)}...
                 </div>
               </div>
@@ -633,7 +633,7 @@ export default function ModerationListingsPanel({ token, embedded = false }) {
                 />
               </label>
 
-              <div className="text-xs text-slate-500">
+              <div className="text-xs text-ink-500">
                 {t("admin.moderation.reasonMinLength", { count: rejectReason.trim().length })}
               </div>
 
@@ -641,7 +641,7 @@ export default function ModerationListingsPanel({ token, embedded = false }) {
                 <button
                   type="button"
                   onClick={closeReject}
-                  className="px-4 py-2 rounded-xl border hover:bg-slate-50"
+                  className="px-4 py-2 rounded-xl border hover:bg-mist-50"
                 >
                   {t("common.cancel")}
                 </button>

@@ -115,8 +115,8 @@ function buildCountQuery(draft) {
 
 function FilterSection({ title, children }) {
   return (
-    <section className="py-3 border-b border-slate-100 last:border-b-0">
-      <h3 className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400 mb-3">
+    <section className="py-3 border-b border-mist-100 last:border-b-0">
+      <h3 className="text-xs font-bold uppercase tracking-[0.12em] text-ink-400 mb-3">
         {title}
       </h3>
       <div className="space-y-3">{children}</div>
@@ -126,8 +126,8 @@ function FilterSection({ title, children }) {
 
 function FilterRow({ label, children }) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-[9rem_1fr] gap-2 sm:gap-4 py-3 border-b border-slate-100 last:border-b-0">
-      <div className="text-sm font-medium text-slate-700 sm:pt-2.5">{label}</div>
+    <div className="grid grid-cols-1 sm:grid-cols-[9rem_1fr] gap-2 sm:gap-4 py-3 border-b border-mist-100 last:border-b-0">
+      <div className="text-sm font-medium text-ink-700 sm:pt-2.5">{label}</div>
       <div className="min-w-0">{children}</div>
     </div>
   );
@@ -557,7 +557,7 @@ export default function RealEstateMoreFiltersModal({
         <div className="flex shrink-0 items-center justify-between gap-3 border-b px-4 py-3">
           <h2
             id="re-more-filters-title"
-            className="text-lg font-bold text-slate-900"
+            className="text-lg font-bold text-ink-900"
           >
             {t("realestate.moreFilters")}
           </h2>
@@ -566,7 +566,7 @@ export default function RealEstateMoreFiltersModal({
             type="button"
             onClick={onClose}
             data-autofocus
-            className="p-2 rounded-xl border border-slate-200 hover:bg-slate-50 transition"
+            className="p-2 rounded-xl border border-mist-200 hover:bg-mist-50 transition"
             aria-label={t("common.close")}
           >
             <X size={18} />

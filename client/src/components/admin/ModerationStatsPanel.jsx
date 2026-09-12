@@ -25,7 +25,7 @@ export default function ModerationStatsPanel({ token }) {
 
   if (loading) {
     return (
-      <div className="rounded-2xl border bg-white p-4 text-sm text-slate-500">
+      <div className="rounded-2xl border bg-white p-4 text-sm text-ink-500">
         {t("admin.moderationStats.loading")}
       </div>
     );
@@ -36,15 +36,15 @@ export default function ModerationStatsPanel({ token }) {
   return (
     <div className="rounded-2xl border bg-white p-4 md:p-5 space-y-4">
       <div>
-        <h3 className="font-bold text-slate-900">{t("admin.moderationStats.slaTitle")}</h3>
-        <p className="text-sm text-slate-500 mt-1">
+        <h3 className="font-bold text-ink-900">{t("admin.moderationStats.slaTitle")}</h3>
+        <p className="text-sm text-ink-500 mt-1">
           {t("admin.moderationStats.avgTime", { hours: stats.avgModerationHours })}
         </p>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <div className="rounded-xl border bg-slate-50 p-3">
-          <div className="text-xs text-slate-500">{t("admin.moderationStats.inQueue")}</div>
+        <div className="rounded-xl border bg-mist-50 p-3">
+          <div className="text-xs text-ink-500">{t("admin.moderationStats.inQueue")}</div>
           <div className="text-2xl font-bold">{stats.pending}</div>
         </div>
 
@@ -90,7 +90,7 @@ export default function ModerationStatsPanel({ token }) {
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm">
             <thead>
-              <tr className="text-left text-slate-500 border-b">
+              <tr className="text-left text-ink-500 border-b">
                 <th className="py-2 pr-3">{t("admin.moderationStats.colCategory")}</th>
                 <th className="py-2 pr-3">{t("admin.moderationStats.colApproved")}</th>
                 <th className="py-2">{t("admin.moderationStats.colRejected")}</th>
@@ -98,7 +98,7 @@ export default function ModerationStatsPanel({ token }) {
             </thead>
             <tbody>
               {stats.byCategory.map((row) => (
-                <tr key={row.cat} className="border-b border-slate-100">
+                <tr key={row.cat} className="border-b border-mist-100">
                   <td className="py-2 pr-3 font-medium">{row.cat}</td>
                   <td className="py-2 pr-3 text-emerald-700">{row.approved}</td>
                   <td className="py-2 text-red-700">{row.rejected}</td>

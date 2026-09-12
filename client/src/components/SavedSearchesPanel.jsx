@@ -61,16 +61,16 @@ export default function SavedSearchesPanel({ onApply }) {
   return (
     <div className="rounded-2xl border bg-white p-4 space-y-3">
       <div>
-        <div className="text-sm font-semibold text-slate-900">{t("search.savedSearches")}</div>
-        <div className="text-xs text-slate-500 mt-1">
+        <div className="text-sm font-semibold text-ink-900">{t("search.savedSearches")}</div>
+        <div className="text-xs text-ink-500 mt-1">
           {token ? t("search.savedHintLoggedIn") : t("search.savedHintGuest")}
         </div>
       </div>
 
       {loading ? (
-        <div className="text-sm text-slate-500">{t("common.loading")}</div>
+        <div className="text-sm text-ink-500">{t("common.loading")}</div>
       ) : items.length === 0 ? (
-        <div className="rounded-xl border border-dashed bg-slate-50/80 p-6 text-center text-sm text-slate-500">
+        <div className="rounded-xl border border-dashed bg-mist-50/80 p-6 text-center text-sm text-ink-500">
           {t("search.empty")}
         </div>
       ) : (
@@ -90,10 +90,10 @@ export default function SavedSearchesPanel({ onApply }) {
                   })
                 }
               >
-                <div className="font-medium text-sm text-slate-900 truncate">
+                <div className="font-medium text-sm text-ink-900 truncate">
                   {item.label || t("search.defaultLabel")}
                 </div>
-                <div className="text-xs text-slate-500 mt-1">
+                <div className="text-xs text-ink-500 mt-1">
                   {token
                     ? item.alertsEnabled
                       ? t("search.alertsOn")

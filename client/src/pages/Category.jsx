@@ -132,7 +132,7 @@ export default function Category() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-6 space-y-6">
+    <div className="container-x py-6 space-y-6">
       <Breadcrumbs
         items={[
           { label: t("nav.home"), to: "/" },
@@ -145,7 +145,7 @@ export default function Category() {
       {isCompareSupported(slug) && compareCount > 0 && (
         <Link
           to={getComparePath(slug)}
-          className="flex items-center justify-between gap-3 rounded-2xl border border-slate-900/10 bg-slate-900 px-4 py-3.5 text-white hover:bg-slate-800 transition shadow-sm"
+          className="flex items-center justify-between gap-3 rounded-2xl border border-ink-900/10 bg-ink-900 px-4 py-3.5 text-white hover:bg-ink-800 transition shadow-sm"
         >
           <span className="inline-flex items-center gap-2 text-sm font-semibold">
             <Scale size={18} className="text-sun" />

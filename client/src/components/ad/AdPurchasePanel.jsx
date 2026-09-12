@@ -55,7 +55,7 @@ export default function AdPurchasePanel({
     <div className="space-y-5">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <div className="text-3xl font-extrabold text-slate-900 tracking-tight">
+          <div className="text-3xl font-extrabold text-ink-900 tracking-tight">
             {price}
           </div>
           {realEstatePricePerSqm && (
@@ -71,7 +71,7 @@ export default function AdPurchasePanel({
             className={`inline-flex h-10 w-10 items-center justify-center rounded-full border transition ${
               isFav
                 ? "border-red-200 bg-red-50 text-red-500"
-                : "border-slate-200 bg-white text-slate-500 hover:text-red-500"
+                : "border-mist-200 bg-white text-ink-500 hover:text-red-500"
             }`}
             onClick={onToggleFav}
             aria-label={isFav ? t("favorites.ariaRemove") : t("favorites.add")}
@@ -90,7 +90,7 @@ export default function AdPurchasePanel({
 
           <button
             type="button"
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 hover:bg-slate-50 transition"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-mist-200 bg-white text-ink-500 hover:bg-mist-50 transition"
             onClick={onShare}
             aria-label={t("compare.share")}
           >
@@ -103,7 +103,7 @@ export default function AdPurchasePanel({
         </div>
       </div>
 
-      <div className="border-t border-slate-100 pt-5 space-y-4">
+      <div className="border-t border-mist-100 pt-5 space-y-4">
         <div className="flex items-center gap-3">
           {ad.owner ? (
             <Link
@@ -130,25 +130,25 @@ export default function AdPurchasePanel({
             {ad.owner ? (
               <Link
                 to={`/seller/${ad.owner}`}
-                className="block truncate font-bold text-slate-900 hover:text-sun transition"
+                className="block truncate font-bold text-ink-900 hover:text-sun transition"
               >
                 {sellerName}
               </Link>
             ) : (
-              <div className="truncate font-bold text-slate-900">{sellerName}</div>
+              <div className="truncate font-bold text-ink-900">{sellerName}</div>
             )}
-            <div className="text-sm text-slate-500">
+            <div className="text-sm text-ink-500">
               {sellerTypeLabel(ad.ownerSellerType || "private", t)}
             </div>
             {registeredLabel && (
-              <div className="text-xs text-slate-400 mt-0.5">
+              <div className="text-xs text-ink-400 mt-0.5">
                 {t("seller.memberSince", { date: registeredLabel })}
               </div>
             )}
             {sellerReviews.summary.count > 0 && (
               <div className="mt-1 flex items-center gap-2">
                 <StarRating value={sellerReviews.summary.average} size={14} />
-                <span className="text-xs text-slate-500">
+                <span className="text-xs text-ink-500">
                   {Number(sellerReviews.summary.average).toFixed(1)} (
                   {sellerReviews.summary.count})
                 </span>
@@ -175,14 +175,14 @@ export default function AdPurchasePanel({
           layout="ad"
         />
       ) : isInactive ? (
-        <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+        <div className="rounded-2xl border border-mist-200 bg-mist-50 px-4 py-3 text-sm text-ink-600">
           {t("seller.contactUnavailable")}
         </div>
       ) : null}
 
       <button
         type="button"
-        className="inline-flex items-center gap-1.5 text-sm text-slate-500 transition hover:text-red-600"
+        className="inline-flex items-center gap-1.5 text-sm text-ink-500 transition hover:text-red-600"
         onClick={onReport}
       >
         <Flag className="h-3.5 w-3.5" />

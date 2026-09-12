@@ -130,7 +130,7 @@ export default function ModerationReports({ token }) {
 
   if (loading) {
     return (
-      <div className="rounded-2xl border bg-white p-4 md:p-5 text-sm text-slate-500">
+      <div className="rounded-2xl border bg-white p-4 md:p-5 text-sm text-ink-500">
         {t("admin.reports.loading")}
       </div>
     );
@@ -147,7 +147,7 @@ export default function ModerationReports({ token }) {
 
           <h2 className="text-xl font-bold">{t("admin.reports.title")}</h2>
 
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="text-sm text-ink-500 mt-1">
             {t("admin.reports.subtitle")}
           </p>
         </div>
@@ -156,7 +156,7 @@ export default function ModerationReports({ token }) {
           type="button"
           onClick={load}
           disabled={refreshing}
-          className="px-4 py-2 rounded-xl border hover:bg-slate-50 disabled:opacity-60"
+          className="px-4 py-2 rounded-xl border hover:bg-mist-50 disabled:opacity-60"
         >
           {refreshing ? t("admin.reports.refreshing") : t("admin.reports.refresh")}
         </button>
@@ -176,8 +176,8 @@ export default function ModerationReports({ token }) {
             onClick={() => setStatus(value)}
             className={`px-4 py-2 rounded-xl border text-sm font-medium transition ${
               status === value
-                ? "bg-slate-900 text-white border-slate-900"
-                : "bg-white text-slate-700 hover:bg-slate-50"
+                ? "bg-ink-900 text-white border-ink-900"
+                : "bg-white text-ink-700 hover:bg-mist-50"
             }`}
           >
             {statusLabel[value]}
@@ -186,11 +186,11 @@ export default function ModerationReports({ token }) {
       </div>
 
       {status === "pending" && groups.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-slate-200 p-8 text-center text-slate-500">
+        <div className="rounded-2xl border border-dashed border-mist-200 p-8 text-center text-ink-500">
           {t("admin.reports.empty")}
         </div>
       ) : status !== "pending" && items.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-slate-200 p-8 text-center text-slate-500">
+        <div className="rounded-2xl border border-dashed border-mist-200 p-8 text-center text-ink-500">
           {t("admin.reports.empty")}
         </div>
       ) : status === "pending" ? (
@@ -205,13 +205,13 @@ export default function ModerationReports({ token }) {
                 className={`rounded-2xl border p-4 space-y-3 ${
                   group.highPriority
                     ? "border-red-300 bg-red-50/40"
-                    : "border-slate-200 bg-white"
+                    : "border-mist-200 bg-white"
                 }`}
               >
                 <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
                   <div className="min-w-0 space-y-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <div className="font-semibold text-slate-900">
+                      <div className="font-semibold text-ink-900">
                         {group.listingTitle || t("admin.listings.untitled")}
                       </div>
                       <span className="inline-flex px-2 py-0.5 text-xs rounded-full border bg-red-100 text-red-700 border-red-200">
@@ -225,7 +225,7 @@ export default function ModerationReports({ token }) {
                     </div>
 
                     {group.listingOwnerName && (
-                      <div className="text-sm text-slate-500">
+                      <div className="text-sm text-ink-500">
                         {t("admin.reports.sellerLabel")}: {group.listingOwnerName}
                       </div>
                     )}
@@ -234,7 +234,7 @@ export default function ModerationReports({ token }) {
                       {(group.reasons || []).map((reason, idx) => (
                         <span
                           key={`${group.listingId}-${reason}-${idx}`}
-                          className="inline-flex px-2 py-0.5 text-[11px] rounded-full border bg-white text-slate-700"
+                          className="inline-flex px-2 py-0.5 text-[11px] rounded-full border bg-white text-ink-700"
                         >
                           {REPORT_REASON_LABELS[reason] || reason}
                         </span>
@@ -286,18 +286,18 @@ export default function ModerationReports({ token }) {
 
                 <div className="space-y-2 border-t pt-3">
                   {group.reports.map((item) => (
-                    <div key={item.id} className="rounded-xl bg-slate-50 p-3 text-sm">
+                    <div key={item.id} className="rounded-xl bg-mist-50 p-3 text-sm">
                       <div className="font-medium">
                         {REPORT_REASON_LABELS[item.reason] || item.reason}
                       </div>
-                      <div className="text-slate-500">
+                      <div className="text-ink-500">
                         {item.reporterName || t("admin.reports.userFallback")} ·{" "}
                         {item.createdAt
                           ? new Date(item.createdAt).toLocaleString(numberLocale)
                           : ""}
                       </div>
                       {item.details && (
-                        <p className="text-slate-700 mt-1">{item.details}</p>
+                        <p className="text-ink-700 mt-1">{item.details}</p>
                       )}
                     </div>
                   ))}
@@ -311,15 +311,15 @@ export default function ModerationReports({ token }) {
           {items.map((item) => (
             <div
               key={item.id}
-              className="rounded-2xl border border-slate-200 p-4 space-y-3"
+              className="rounded-2xl border border-mist-200 p-4 space-y-3"
             >
               <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
                 <div className="min-w-0 space-y-1">
-                  <div className="font-semibold text-slate-900">
+                  <div className="font-semibold text-ink-900">
                     {REPORT_REASON_LABELS[item.reason] || item.reason}
                   </div>
 
-                  <div className="text-sm text-slate-600">
+                  <div className="text-sm text-ink-600">
                     {t("admin.reports.listingLabel")}:{" "}
                     <Link
                       to={`/ad/${item.listingId}`}
@@ -329,7 +329,7 @@ export default function ModerationReports({ token }) {
                     </Link>
                   </div>
 
-                  <div className="text-sm text-slate-500">
+                  <div className="text-sm text-ink-500">
                     {t("admin.reports.fromLabel")}: {item.reporterName || t("admin.reports.userFallback")} ·{" "}
                     {item.createdAt
                       ? new Date(item.createdAt).toLocaleString(numberLocale)
@@ -337,13 +337,13 @@ export default function ModerationReports({ token }) {
                   </div>
 
                   {item.listingOwnerName && (
-                    <div className="text-sm text-slate-500">
+                    <div className="text-sm text-ink-500">
                       {t("admin.reports.sellerLabel")}: {item.listingOwnerName}
                     </div>
                   )}
 
                   {item.details && (
-                    <p className="text-sm text-slate-700 bg-slate-50 rounded-xl p-3 mt-2">
+                    <p className="text-sm text-ink-700 bg-mist-50 rounded-xl p-3 mt-2">
                       {item.details}
                     </p>
                   )}

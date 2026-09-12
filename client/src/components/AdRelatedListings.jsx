@@ -43,13 +43,13 @@ export default function AdRelatedListings({ ad, listingUrl, catLabel }) {
   if (!loading && items.length === 0) return null;
 
   return (
-    <section className="rounded-3xl border border-slate-200 bg-white p-5 md:p-6 shadow-sm space-y-4">
+    <section className="rounded-3xl border border-mist-200 bg-white p-5 md:p-6 shadow-sm space-y-4">
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
-          <h2 className="text-lg md:text-xl font-bold text-slate-900">
+          <h2 className="text-lg md:text-xl font-bold text-ink-900">
             {t("listing.relatedTitle")}
           </h2>
-          <p className="mt-0.5 truncate text-sm text-slate-500">
+          <p className="mt-0.5 truncate text-sm text-ink-500">
             {ad?.subcategory
               ? `${catLabel} · ${ad.subcategory}`
               : t("listing.categoryLabel", { name: catLabel })}

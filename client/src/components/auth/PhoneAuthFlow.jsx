@@ -112,7 +112,7 @@ export default function PhoneAuthFlow({
       <Field
         label={t("auth.phoneCodeLabel")}
         hint={
-          <p className="text-xs text-slate-500 mt-1">{t("auth.phoneCodeHint")}</p>
+          <p className="text-xs text-ink-500 mt-1">{t("auth.phoneCodeHint")}</p>
         }
       >
         <OtpInput

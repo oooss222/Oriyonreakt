@@ -45,8 +45,8 @@ export default function WalletPanel({
             <Wallet className="text-sun" size={22} />
           </div>
           <div>
-            <div className="text-sm text-slate-500">{t("promotion.walletBalance")}</div>
-            <div className="text-3xl font-extrabold text-slate-900">
+            <div className="text-sm text-ink-500">{t("promotion.walletBalance")}</div>
+            <div className="text-3xl font-extrabold text-ink-900">
               {walletBalance.toLocaleString(numberLocale)} TJS
             </div>
           </div>
@@ -65,7 +65,7 @@ export default function WalletPanel({
         <h3 className="text-lg font-semibold">{t("wallet.recentOperations")}</h3>
 
         {walletHistory.length === 0 ? (
-          <div className="rounded-xl border bg-slate-50 p-5 text-center text-slate-500 text-sm">
+          <div className="rounded-xl border bg-mist-50 p-5 text-center text-ink-500 text-sm">
             {t("wallet.noOperations")}
           </div>
         ) : (
@@ -81,7 +81,7 @@ export default function WalletPanel({
                       operation.description ||
                       t("wallet.operation")}
                   </div>
-                  <div className="text-xs text-slate-500">
+                  <div className="text-xs text-ink-500">
                     {operation.createdAt
                       ? new Date(operation.createdAt).toLocaleString(numberLocale)
                       : ""}

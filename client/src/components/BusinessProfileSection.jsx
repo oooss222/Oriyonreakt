@@ -228,7 +228,7 @@ export default function BusinessProfileSection({ token, me, onUpdated }) {
 
   return (
     <div className="rounded-3xl border bg-white overflow-hidden">
-      <div className="px-5 py-5 border-b bg-gradient-to-r from-slate-50 to-white">
+      <div className="px-5 py-5 border-b bg-gradient-to-r from-mist-50 to-white">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <div className="inline-flex items-center gap-2 text-sun-700 font-semibold">
@@ -236,7 +236,7 @@ export default function BusinessProfileSection({ token, me, onUpdated }) {
               Oriyon Premium
             </div>
             <h2 className="text-xl font-bold mt-2">{t("business.premiumAccount")}</h2>
-            <p className="text-sm text-slate-500 mt-1 max-w-2xl">
+            <p className="text-sm text-ink-500 mt-1 max-w-2xl">
               {t("business.premiumDesc")}
             </p>
           </div>
@@ -253,8 +253,8 @@ export default function BusinessProfileSection({ token, me, onUpdated }) {
 
       <div className="p-5 space-y-5">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <div className="rounded-2xl border bg-slate-50 p-4">
-            <div className="text-xs text-slate-500">{t("business.activeListings")}</div>
+          <div className="rounded-2xl border bg-mist-50 p-4">
+            <div className="text-xs text-ink-500">{t("business.activeListings")}</div>
             <div className="text-2xl font-bold mt-1">
               {loadingStats ? "…" : activeListings}
             </div>
@@ -271,10 +271,10 @@ export default function BusinessProfileSection({ token, me, onUpdated }) {
         {!isCompany && (
           <div className="rounded-2xl border border-dashed border-blue-200 bg-blue-50/50 p-4 space-y-4">
             <div>
-              <div className="font-semibold text-slate-900">
+              <div className="font-semibold text-ink-900">
                 {t("business.benefitsTitle")}
               </div>
-              <ul className="mt-3 space-y-2 text-sm text-slate-600">
+              <ul className="mt-3 space-y-2 text-sm text-ink-600">
                 {getBusinessBenefits(t).map((item) => (
                   <li key={item} className="flex items-start gap-2">
                     <BadgeCheck className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
@@ -303,7 +303,7 @@ export default function BusinessProfileSection({ token, me, onUpdated }) {
         {isCompany && (
           <div className="space-y-4 pt-2">
             <div className="flex flex-col sm:flex-row gap-4">
-              <div className="w-24 h-24 rounded-2xl border bg-slate-50 overflow-hidden grid place-items-center shrink-0">
+              <div className="w-24 h-24 rounded-2xl border bg-mist-50 overflow-hidden grid place-items-center shrink-0">
                 {form.companyLogo ? (
                   <img
                     src={form.companyLogo}
@@ -311,7 +311,7 @@ export default function BusinessProfileSection({ token, me, onUpdated }) {
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <Building2 className="text-slate-300" size={32} />
+                  <Building2 className="text-ink-300" size={32} />
                 )}
               </div>
 
@@ -333,7 +333,7 @@ export default function BusinessProfileSection({ token, me, onUpdated }) {
                   />
                 </label>
 
-                <label className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border cursor-pointer hover:bg-slate-50 transition">
+                <label className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border cursor-pointer hover:bg-mist-50 transition">
                   <Upload size={16} />
                   {uploadingLogo ? t("business.uploading") : t("business.uploadLogo")}
                   <input
@@ -379,7 +379,7 @@ export default function BusinessProfileSection({ token, me, onUpdated }) {
                   }
                   placeholder={t("business.addressesPlaceholder")}
                 />
-                <p className="text-xs text-slate-500 mt-1">
+                <p className="text-xs text-ink-500 mt-1">
                   {t("business.addressesHint")}
                 </p>
               </label>
@@ -423,11 +423,11 @@ export default function BusinessProfileSection({ token, me, onUpdated }) {
 
             <div className="rounded-2xl border border-blue-100 bg-blue-50/40 p-4 space-y-4">
               <div>
-                <div className="font-semibold text-slate-900 inline-flex items-center gap-2">
+                <div className="font-semibold text-ink-900 inline-flex items-center gap-2">
                   <RefreshCw size={18} className="text-blue-600" />
                   {t("business.autoBumpTitle")}
                 </div>
-                <p className="text-sm text-slate-600 mt-1">
+                <p className="text-sm text-ink-600 mt-1">
                   {t("business.autoBumpDesc")}
                 </p>
               </div>
@@ -444,7 +444,7 @@ export default function BusinessProfileSection({ token, me, onUpdated }) {
                     }))
                   }
                 />
-                <span className="text-sm text-slate-700">
+                <span className="text-sm text-ink-700">
                   {t("business.autoBumpEnable")}
                 </span>
               </label>
@@ -469,7 +469,7 @@ export default function BusinessProfileSection({ token, me, onUpdated }) {
                     }))
                   }
                 />
-                <p className="text-xs text-slate-500 mt-1">
+                <p className="text-xs text-ink-500 mt-1">
                   {t("business.bumpIntervalHint", {
                     min: MIN_AUTO_BUMP_INTERVAL_HOURS,
                     max: MAX_AUTO_BUMP_INTERVAL_HOURS,
@@ -477,7 +477,7 @@ export default function BusinessProfileSection({ token, me, onUpdated }) {
                 </p>
               </label>
 
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-ink-500">
                 {t("business.lastBump")}{" "}
                 {formatDateTime(
                   stats?.listingAutoBumpLastAt || me?.listingAutoBumpLastAt,
@@ -503,7 +503,7 @@ export default function BusinessProfileSection({ token, me, onUpdated }) {
                   type="button"
                   onClick={bumpAllListingsNow}
                   disabled={bumpingAll}
-                  className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border bg-white text-sm font-semibold text-slate-700 hover:bg-slate-50 transition disabled:opacity-60"
+                  className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border bg-white text-sm font-semibold text-ink-700 hover:bg-mist-50 transition disabled:opacity-60"
                 >
                   <RefreshCw size={16} />
                   {bumpingAll ? t("business.bumping") : t("business.bumpAllNow")}

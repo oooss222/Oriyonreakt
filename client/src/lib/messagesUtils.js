@@ -64,7 +64,7 @@ export function avatarColorFromName(name) {
     "from-sun to-sun-600",
     "from-lagoon to-lagoon-700",
     "from-sun-500 to-amber-600",
-    "from-lagoon-500 to-slate-700",
+    "from-lagoon-500 to-ink-700",
     "from-ink-600 to-ink",
     "from-sun-600 to-rose-600",
   ];

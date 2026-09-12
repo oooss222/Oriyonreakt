@@ -39,11 +39,11 @@ function getStatusMap(t) {
     },
     sold: {
       label: t("profile.statusSold"),
-      className: "bg-slate-700 text-white",
+      className: "bg-ink-700 text-white",
     },
     archived: {
       label: t("profile.statusArchived"),
-      className: "bg-slate-500 text-white",
+      className: "bg-ink-500 text-white",
     },
   };
 }
@@ -52,9 +52,9 @@ function CardAction({ as: Component = "button", icon: Icon, children, variant = 
   const variants = {
     primary: "bg-sun text-white hover:bg-sun-600 shadow-sm",
     danger: "border border-red-200 bg-white text-red-600 hover:bg-red-50",
-    muted: "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50",
+    muted: "border border-mist-200 bg-white text-ink-700 hover:bg-mist-50",
     success: "border border-emerald-200 bg-white text-emerald-700 hover:bg-emerald-50",
-    ghost: "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50",
+    ghost: "border border-mist-200 bg-white text-ink-600 hover:bg-mist-50",
     teal: "border border-teal-200 bg-teal-50 text-teal-800",
   };
 
@@ -101,7 +101,7 @@ export default React.memo(function ProfileListingCard({
       className={[
         "group relative flex flex-col overflow-hidden rounded-2xl border bg-white shadow-sm transition-all duration-300 hover:shadow-lg",
         getPromotionCardClass({ vip: ad.vip, top: ad.top }),
-        selected ? "ring-2 ring-sun border-sun" : "border-slate-200",
+        selected ? "ring-2 ring-sun border-sun" : "border-mist-200",
         inactive ? "opacity-75" : "",
       ].join(" ")}
     >
@@ -126,7 +126,7 @@ export default React.memo(function ProfileListingCard({
             src={imgUrl}
             alt={ad.title || t("listing.title")}
             className={[
-              "w-full bg-slate-100 object-cover transition-transform duration-500 group-hover:scale-[1.03]",
+              "w-full bg-mist-100 object-cover transition-transform duration-500 group-hover:scale-[1.03]",
               compact ? "h-36" : "h-40 sm:h-44",
               getPromotionMediaClass({ vip: ad.vip }),
             ].join(" ")}
@@ -150,7 +150,7 @@ export default React.memo(function ProfileListingCard({
         </div>
 
         <div className="space-y-1.5 p-3">
-          <h3 className="line-clamp-2 text-sm font-semibold leading-snug text-slate-900 transition group-hover:text-sun">
+          <h3 className="line-clamp-2 text-sm font-semibold leading-snug text-ink-900 transition group-hover:text-sun">
             {ad.title || t("listing.noTitle")}
           </h3>
 
@@ -161,19 +161,19 @@ export default React.memo(function ProfileListingCard({
             {!canManage && <FavoriteButton id={id} defaultActive={isFavorite} compact />}
           </div>
 
-          <div className="flex items-center gap-1 line-clamp-1 text-xs text-slate-500">
-            <MapPin size={12} className="shrink-0 text-slate-400" />
+          <div className="flex items-center gap-1 line-clamp-1 text-xs text-ink-500">
+            <MapPin size={12} className="shrink-0 text-ink-400" />
             {ad.location || ad.city || t("profile.noLocation")}
           </div>
 
           {phone && (
-            <div className="flex items-center gap-1 text-xs text-slate-500 tabular-nums">
-              <Phone size={12} className="shrink-0 text-slate-400" />
+            <div className="flex items-center gap-1 text-xs text-ink-500 tabular-nums">
+              <Phone size={12} className="shrink-0 text-ink-400" />
               {phone}
             </div>
           )}
 
-          <div className="flex items-center justify-between gap-2 text-[11px] text-slate-400">
+          <div className="flex items-center justify-between gap-2 text-[11px] text-ink-400">
             <span>{formatListingDate(ad, { emptyLabel: "—" })}</span>
             <span className="inline-flex items-center gap-1">
               <Eye size={12} />
@@ -198,7 +198,7 @@ export default React.memo(function ProfileListingCard({
       )}
 
       {canManage && (
-        <div className="mt-auto border-t border-slate-100 bg-slate-50/60 p-3">
+        <div className="mt-auto border-t border-mist-100 bg-mist-50/60 p-3">
           {status === "rejected" && ad.appealStatus !== "pending" && (
             <div className="grid grid-cols-[1fr_auto_auto] gap-2">
               <CardAction as={Link} to={`/edit/${id}`} icon={Pencil} variant="primary">

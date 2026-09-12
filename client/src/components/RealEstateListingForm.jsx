@@ -267,7 +267,7 @@ export default function RealEstateListingForm({
                     }`}
                   >
                     <div className="font-semibold">{name}</div>
-                    <div className="text-xs text-slate-500 mt-1">
+                    <div className="text-xs text-ink-500 mt-1">
                       {meta.desc}
                     </div>
                   </button>

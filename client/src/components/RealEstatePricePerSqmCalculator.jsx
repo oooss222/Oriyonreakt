@@ -130,14 +130,14 @@ export default function RealEstatePricePerSqmCalculator({
               </div>
             </div>
           ) : (
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-ink-500">
               {t("realestate.calculator.enterPriceAreaHint")}
             </p>
           )}
         </div>
 
         <div className="space-y-2">
-          <div className="text-xs font-medium uppercase tracking-wide text-slate-500">
+          <div className="text-xs font-medium uppercase tracking-wide text-ink-500">
             {t("realestate.calculator.budgetAreaLabel")}
           </div>
           <div className="grid grid-cols-2 gap-2">
@@ -161,14 +161,14 @@ export default function RealEstatePricePerSqmCalculator({
           </div>
 
           {derivedTotalPrice ? (
-            <div className="rounded-lg border border-sun/20 bg-white px-3 py-2 text-sm text-slate-700">
+            <div className="rounded-lg border border-sun/20 bg-white px-3 py-2 text-sm text-ink-700">
               {t("realestate.calculator.totalLabel")}{" "}
               <span className="font-semibold text-sun-800">
                 {formatPriceInput(String(derivedTotalPrice))} {t("price.currency")}
               </span>
             </div>
           ) : (
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-ink-500">
               {t("realestate.calculator.budgetHint")}
             </p>
           )}

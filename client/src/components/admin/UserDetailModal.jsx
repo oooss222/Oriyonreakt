@@ -264,7 +264,7 @@ export default function UserDetailModal({
         <div className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b bg-white px-4 md:px-5 py-4">
           <div>
             <h3 id="user-detail-modal-title" className="text-lg font-bold">{t("admin.userDetail.title")}</h3>
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-ink-500">
               {readOnly
                 ? t("admin.userDetail.subtitleReadOnly")
                 : t("admin.userDetail.subtitleFull")}
@@ -273,7 +273,7 @@ export default function UserDetailModal({
           <button
             type="button"
             onClick={onClose}
-            className="p-2 rounded-xl border hover:bg-slate-50"
+            className="p-2 rounded-xl border hover:bg-mist-50"
             aria-label={t("common.close")}
           >
             <X size={18} />
@@ -282,7 +282,7 @@ export default function UserDetailModal({
 
         <div className="p-4 md:p-5 space-y-5">
           {loading && (
-            <div className="text-sm text-slate-500 animate-pulse">{t("common.loading")}</div>
+            <div className="text-sm text-ink-500 animate-pulse">{t("common.loading")}</div>
           )}
 
           {error && (
@@ -293,11 +293,11 @@ export default function UserDetailModal({
 
           {!loading && user && (
             <>
-              <div className="rounded-2xl border bg-slate-50 p-4 space-y-3">
+              <div className="rounded-2xl border bg-mist-50 p-4 space-y-3">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <div className="text-xl font-bold">{user.name || t("admin.users.noName")}</div>
-                    <div className="text-sm text-slate-500 mt-1">ID: {getId(user)}</div>
+                    <div className="text-sm text-ink-500 mt-1">ID: {getId(user)}</div>
                   </div>
 
                   <span
@@ -311,22 +311,22 @@ export default function UserDetailModal({
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                   <div className="flex items-center gap-2">
-                    <Mail size={16} className="text-slate-400" />
+                    <Mail size={16} className="text-ink-400" />
                     {user.email}
                   </div>
                   <div className="flex items-center gap-2">
-                    <Phone size={16} className="text-slate-400" />
+                    <Phone size={16} className="text-ink-400" />
                     {user.phone || t("admin.users.noPhone")}
                   </div>
                   <div className="flex items-center gap-2">
-                    <Clock size={16} className="text-slate-400" />
+                    <Clock size={16} className="text-ink-400" />
                     {t("admin.userDetail.registeredAt")}:{" "}
                     {user.createdAt
                       ? new Date(user.createdAt).toLocaleString(numberLocale)
                       : "—"}
                   </div>
                   <div className="flex items-center gap-2">
-                    <Clock size={16} className="text-slate-400" />
+                    <Clock size={16} className="text-ink-400" />
                     {t("admin.userDetail.lastSeenAt")}:{" "}
                     {user.lastSeen
                       ? new Date(user.lastSeen).toLocaleString(numberLocale)
@@ -334,13 +334,13 @@ export default function UserDetailModal({
                   </div>
                   {isSuperAdmin ? (
                     <div className="sm:col-span-2 rounded-xl border bg-white p-3 text-sm space-y-1">
-                      <div className="inline-flex items-center gap-1 font-semibold text-slate-800">
+                      <div className="inline-flex items-center gap-1 font-semibold text-ink-800">
                         <Smartphone size={15} />
                         {t("admin.userDetail.registrationDevice")}
                       </div>
                       <div>{formatRegistrationDevice(user)}</div>
                       {user.registrationUserAgent ? (
-                        <div className="text-xs text-slate-500 break-all">
+                        <div className="text-xs text-ink-500 break-all">
                           {user.registrationUserAgent}
                         </div>
                       ) : null}
@@ -353,9 +353,9 @@ export default function UserDetailModal({
                         {user.companyName || t("admin.users.accountBusiness")}
                       </div>
                       {user.companyDescription && (
-                        <p className="text-slate-600">{user.companyDescription}</p>
+                        <p className="text-ink-600">{user.companyDescription}</p>
                       )}
-                      <div className="text-xs text-slate-500">
+                      <div className="text-xs text-ink-500">
                         {user.businessVerified
                           ? t("admin.userDetail.verifiedBusiness")
                           : t("admin.userDetail.awaitingVerification")}
@@ -449,12 +449,12 @@ export default function UserDetailModal({
                 <h4 className="font-semibold mb-3">{t("admin.sections.listings")}</h4>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
                   <div className="rounded-xl border p-3 bg-white">
-                    <div className="text-slate-500">{t("admin.userDetail.total")}</div>
+                    <div className="text-ink-500">{t("admin.userDetail.total")}</div>
                     <div className="text-xl font-bold">{listings.total || 0}</div>
                   </div>
                   {Object.entries(listingStatusLabel).map(([key, label]) => (
                     <div key={key} className="rounded-xl border p-3 bg-white">
-                      <div className="text-slate-500">{label}</div>
+                      <div className="text-ink-500">{label}</div>
                       <div className="text-xl font-bold">{listings[key] || 0}</div>
                     </div>
                   ))}
@@ -472,7 +472,7 @@ export default function UserDetailModal({
                 </div>
 
                 {isSuperAdmin && !readOnly && (
-                  <div className="rounded-xl border bg-slate-50 p-3 space-y-3">
+                  <div className="rounded-xl border bg-mist-50 p-3 space-y-3">
                     <div className="text-sm font-medium">{t("admin.userDetail.balanceAdjustment")}</div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <input
@@ -514,7 +514,7 @@ export default function UserDetailModal({
                 <div>
                   <div className="text-sm font-medium mb-2">{t("admin.userDetail.transactionHistory")}</div>
                   {transactions.length === 0 ? (
-                    <div className="text-sm text-slate-500">{t("admin.userDetail.noTransactions")}</div>
+                    <div className="text-sm text-ink-500">{t("admin.userDetail.noTransactions")}</div>
                   ) : (
                     <div className="space-y-2 max-h-56 overflow-y-auto">
                       {transactions.map((tx) => (
@@ -527,9 +527,9 @@ export default function UserDetailModal({
                               {getWalletTypeLabels()[tx.type] || tx.type}
                             </div>
                             {tx.description && (
-                              <div className="text-slate-500">{tx.description}</div>
+                              <div className="text-ink-500">{tx.description}</div>
                             )}
-                            <div className="text-xs text-slate-400 mt-1">
+                            <div className="text-xs text-ink-400 mt-1">
                               {tx.createdAt
                                 ? new Date(tx.createdAt).toLocaleString(numberLocale)
                                 : "—"}

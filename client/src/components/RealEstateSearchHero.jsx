@@ -18,10 +18,9 @@ import { buildRealEstateListingUrl } from "../lib/realEstate";
 import { formatPriceInput, getPriceDigits } from "../data/specOptions";
 import { useI18n, pluralRealEstateListings } from "../i18n";
 
-const FIELD_LABEL =
-  "mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500";
+const FIELD_LABEL = "label-caps mb-1.5 block";
 const FIELD_CONTROL =
-  "h-11 w-full rounded-xl border border-slate-200/90 bg-white text-sm font-medium text-slate-900 outline-none transition focus:border-sun/50 focus:ring-2 focus:ring-sun/20 appearance-none";
+  "h-11 w-full rounded-xl border border-mist-200/90 bg-white text-sm font-medium text-ink-900 outline-none transition focus:border-sun/50 focus:ring-2 focus:ring-sun/20 appearance-none";
 
 function formatHeroPriceSummary(from, to, currency, t) {
   const fromLabel = from ? formatPriceInput(from) : "";
@@ -45,7 +44,7 @@ function HeroSelect({ label, value, onChange, children, className = "", icon: Ic
         {Icon && (
           <Icon
             size={15}
-            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-400"
           />
         )}
         <select
@@ -57,7 +56,7 @@ function HeroSelect({ label, value, onChange, children, className = "", icon: Ic
         </select>
         <ChevronDown
           size={15}
-          className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"
+          className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-ink-400"
         />
       </div>
     </label>
@@ -101,14 +100,14 @@ function HeroPriceFilter({ priceFrom, priceTo, priceCurrency, onChange, dealType
         aria-haspopup="dialog"
         onClick={() => setOpen((value) => !value)}
         className={`${FIELD_CONTROL} flex items-center justify-between gap-3 px-3 text-left ${
-          summary ? "text-slate-900" : "text-slate-500"
+          summary ? "text-ink-900" : "text-ink-500"
         }`}
       >
         <span className="truncate">{summary || t("realestate.anyPrice")}</span>
         {open ? (
-          <ChevronUp size={15} className="shrink-0 text-slate-400" />
+          <ChevronUp size={15} className="shrink-0 text-ink-400" />
         ) : (
-          <ChevronDown size={15} className="shrink-0 text-slate-400" />
+          <ChevronDown size={15} className="shrink-0 text-ink-400" />
         )}
       </button>
 
@@ -116,9 +115,9 @@ function HeroPriceFilter({ priceFrom, priceTo, priceCurrency, onChange, dealType
         <div
           role="dialog"
           aria-label={t("realestate.priceRange")}
-          className="absolute left-0 right-0 top-[calc(100%+6px)] z-50 rounded-xl border border-slate-200 bg-white p-2 shadow-xl text-slate-900"
+          className="absolute left-0 right-0 top-[calc(100%+6px)] z-50 rounded-xl border border-mist-200 bg-white p-2 shadow-xl text-ink-900"
         >
-          <div className="flex h-11 items-stretch overflow-hidden rounded-lg border border-slate-200">
+          <div className="flex h-11 items-stretch overflow-hidden rounded-lg border border-mist-200">
             <input
               type="text"
               inputMode="numeric"
@@ -131,7 +130,7 @@ function HeroPriceFilter({ priceFrom, priceTo, priceCurrency, onChange, dealType
                   priceCurrency,
                 })
               }
-              className="w-1/2 min-w-0 border-r border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none placeholder:text-slate-400"
+              className="w-1/2 min-w-0 border-r border-mist-200 bg-white px-3 text-sm text-ink-900 outline-none placeholder:text-ink-400"
             />
             <input
               type="text"
@@ -145,7 +144,7 @@ function HeroPriceFilter({ priceFrom, priceTo, priceCurrency, onChange, dealType
                   priceCurrency,
                 })
               }
-              className="w-1/2 min-w-0 border-r border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none placeholder:text-slate-400"
+              className="w-1/2 min-w-0 border-r border-mist-200 bg-white px-3 text-sm text-ink-900 outline-none placeholder:text-ink-400"
             />
             <div className="relative shrink-0">
               <select
@@ -153,14 +152,14 @@ function HeroPriceFilter({ priceFrom, priceTo, priceCurrency, onChange, dealType
                 onChange={(e) =>
                   onChange({ priceFrom, priceTo, priceCurrency: e.target.value })
                 }
-                className="h-full min-w-[3.5rem] appearance-none bg-white pl-2.5 pr-7 text-sm text-slate-900 outline-none"
+                className="h-full min-w-[3.5rem] appearance-none bg-white pl-2.5 pr-7 text-sm text-ink-900 outline-none"
               >
                 <option value="с.">с.</option>
                 <option value="$">$</option>
               </select>
               <ChevronDown
                 size={14}
-                className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-slate-400"
+                className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-ink-400"
               />
             </div>
           </div>
@@ -178,7 +177,7 @@ function HeroPriceFilter({ priceFrom, priceTo, priceCurrency, onChange, dealType
                       priceCurrency,
                     })
                   }
-                  className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-medium text-slate-600 hover:border-sun/40 hover:bg-sun-50 hover:text-sun-800"
+                  className="rounded-full border border-mist-200 bg-mist-50 px-2.5 py-1 text-[11px] font-medium text-ink-600 hover:border-sun/40 hover:bg-sun-50 hover:text-sun-800"
                 >
                   {preset.label.replace("Любая", "").trim() || preset.label}
                 </button>
@@ -378,11 +377,11 @@ export default function RealEstateSearchHero({
 
         <div className="relative overflow-visible">
           {isDaily ? (
-            <div className="rounded-2xl bg-white/95 p-4 text-slate-900 shadow-xl ring-1 ring-slate-900/5 md:p-5">
+            <div className="rounded-2xl bg-white/95 p-4 text-ink-900 shadow-xl ring-1 ring-ink-900/5 md:p-5">
               <div
                 role="tablist"
                 aria-label={t("realestate.dealType")}
-                className="mb-4 inline-flex w-full gap-1 rounded-xl border border-slate-200/80 bg-slate-100/80 p-1 sm:w-auto"
+                className="mb-4 inline-flex w-full gap-1 rounded-xl border border-mist-200/80 bg-mist-100/80 p-1 sm:w-auto"
               >
                 {DEAL_TYPES.map((item) => {
                   const active = dealType === item.value;
@@ -397,7 +396,7 @@ export default function RealEstateSearchHero({
                       className={`min-h-[42px] flex-1 rounded-lg px-4 py-2.5 text-sm font-semibold transition sm:flex-none sm:min-w-[6.5rem] ${
                         active
                           ? "bg-sun text-white shadow-sm"
-                          : "text-slate-600 hover:bg-white hover:text-slate-900"
+                          : "text-ink-600 hover:bg-white hover:text-ink-900"
                       }`}
                     >
                       {item.label}
@@ -426,11 +425,11 @@ export default function RealEstateSearchHero({
               </form>
             </div>
           ) : (
-            <div className="rounded-2xl bg-white p-4 text-slate-900 shadow-xl ring-1 ring-slate-900/5 md:p-5">
+            <div className="rounded-2xl bg-white p-4 text-ink-900 shadow-xl ring-1 ring-ink-900/5 md:p-5">
               <div
                 role="tablist"
                 aria-label={t("realestate.dealType")}
-                className="mb-4 inline-flex w-full gap-1 rounded-xl border border-slate-200/80 bg-slate-100/80 p-1 sm:w-auto"
+                className="mb-4 inline-flex w-full gap-1 rounded-xl border border-mist-200/80 bg-mist-100/80 p-1 sm:w-auto"
               >
                 {DEAL_TYPES.map((item) => {
                   const active = dealType === item.value;
@@ -445,7 +444,7 @@ export default function RealEstateSearchHero({
                       className={`min-h-[42px] flex-1 rounded-lg px-4 py-2.5 text-sm font-semibold transition sm:flex-none sm:min-w-[6.5rem] ${
                         active
                           ? "bg-sun text-white shadow-sm"
-                          : "text-slate-600 hover:bg-white hover:text-slate-900"
+                          : "text-ink-600 hover:bg-white hover:text-ink-900"
                       }`}
                     >
                       {item.label}
@@ -466,7 +465,7 @@ export default function RealEstateSearchHero({
                   <div className="relative">
                     <MapPin
                       size={15}
-                      className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 z-10"
+                      className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-400 z-10"
                     />
                     <RealEstateCitySelect
                       value={city}
@@ -475,7 +474,7 @@ export default function RealEstateSearchHero({
                     />
                     <ChevronDown
                       size={15}
-                      className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"
+                      className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-ink-400"
                     />
                   </div>
                 </label>
@@ -531,12 +530,12 @@ export default function RealEstateSearchHero({
               {!listingPage && !isDaily && (
                 <RealEstateQuickCollections
                   city={city}
-                  className="border-t border-slate-100 pt-3 scroll-fade-x"
+                  className="border-t border-mist-100 pt-3 scroll-fade-x"
                 />
               )}
 
               {!listingPage && (
-              <div className="flex flex-col gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:items-stretch">
+              <div className="flex flex-col gap-3 border-t border-mist-100 pt-4 sm:flex-row sm:items-stretch">
                 <button
                   type="submit"
                   className="mobile-btn min-h-[46px] flex-1 bg-sun font-bold text-white shadow-sm hover:bg-sun-600"
@@ -548,10 +547,10 @@ export default function RealEstateSearchHero({
                 <button
                   type="button"
                   onClick={() => setMoreOpen(true)}
-                  className={`mobile-btn min-h-[46px] border bg-white font-semibold text-slate-700 hover:bg-slate-50 sm:min-w-[10.5rem] ${
+                  className={`mobile-btn min-h-[46px] border bg-white font-semibold text-ink-700 hover:bg-mist-50 sm:min-w-[10.5rem] ${
                     hasActiveFilters
                       ? "border-sun/40 ring-1 ring-sun/15"
-                      : "border-slate-200"
+                      : "border-mist-200"
                   }`}
                 >
                   <SlidersHorizontal size={18} />

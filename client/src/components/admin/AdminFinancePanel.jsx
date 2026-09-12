@@ -53,7 +53,7 @@ function SummaryCards({ summary, t }) {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         <div className="rounded-2xl border p-4 bg-white">
-          <div className="text-sm text-slate-500">{t("admin.finance.summary.today")}</div>
+          <div className="text-sm text-ink-500">{t("admin.finance.summary.today")}</div>
           <div className="mt-2 flex items-center gap-2 text-emerald-700 font-semibold">
             <ArrowDownLeft size={16} />
             +{Number(summary.today?.credits || 0).toLocaleString("ru-RU")} TJS
@@ -62,7 +62,7 @@ function SummaryCards({ summary, t }) {
             <ArrowUpRight size={16} />
             {Number(summary.today?.debits || 0).toLocaleString("ru-RU")} TJS
           </div>
-          <div className="text-xs text-slate-400 mt-2">
+          <div className="text-xs text-ink-400 mt-2">
             {t("admin.finance.summary.creditsDebitsCount", {
               creditCount: summary.today?.creditCount || 0,
               debitCount: summary.today?.debitCount || 0,
@@ -71,9 +71,9 @@ function SummaryCards({ summary, t }) {
         </div>
 
         <div className="rounded-2xl border p-4 bg-white">
-          <div className="text-sm text-slate-500">{t("admin.finance.summary.days7")}</div>
+          <div className="text-sm text-ink-500">{t("admin.finance.summary.days7")}</div>
           <div className="text-2xl font-bold mt-2">{summary.week?.transactions || 0}</div>
-          <div className="text-xs text-slate-400 mt-1">{t("admin.finance.summary.operations")}</div>
+          <div className="text-xs text-ink-400 mt-1">{t("admin.finance.summary.operations")}</div>
           <div className="text-sm mt-2">
             <span className="text-emerald-700">
               +{Number(summary.week?.credits || 0).toLocaleString("ru-RU")}
@@ -86,10 +86,10 @@ function SummaryCards({ summary, t }) {
         </div>
 
         <div className="rounded-2xl border p-4 bg-white">
-          <div className="text-sm text-slate-500">{t("admin.finance.summary.days30")}</div>
+          <div className="text-sm text-ink-500">{t("admin.finance.summary.days30")}</div>
           <div className="text-2xl font-bold mt-2">{summary.month?.transactions || 0}</div>
-          <div className="text-xs text-slate-400 mt-1">{t("admin.finance.summary.operations")}</div>
-          <div className="text-sm mt-2 text-slate-600">
+          <div className="text-xs text-ink-400 mt-1">{t("admin.finance.summary.operations")}</div>
+          <div className="text-sm mt-2 text-ink-600">
             {t("admin.finance.summary.adjustments", {
               count: summary.month?.manualAdjustments || 0,
               sum: Number(summary.month?.manualAdjustmentsSum || 0).toLocaleString("ru-RU"),
@@ -108,11 +108,11 @@ function SummaryCards({ summary, t }) {
             {summary.topBalances.map((item) => (
               <div
                 key={item.id}
-                className="flex items-center justify-between gap-3 rounded-xl border bg-slate-50 px-3 py-2 text-sm"
+                className="flex items-center justify-between gap-3 rounded-xl border bg-mist-50 px-3 py-2 text-sm"
               >
                 <div>
                   <div className="font-medium">{item.name || item.email}</div>
-                  <div className="text-xs text-slate-500">{item.email}</div>
+                  <div className="text-xs text-ink-500">{item.email}</div>
                 </div>
                 <div className="font-bold text-sun-700">
                   {Number(item.walletBalance || 0).toLocaleString("ru-RU")} TJS
@@ -196,7 +196,7 @@ function TransactionsTable({ token }) {
         </div>
       )}
 
-      <div className="rounded-2xl border bg-slate-50 p-3 grid grid-cols-1 md:grid-cols-5 gap-3">
+      <div className="rounded-2xl border bg-mist-50 p-3 grid grid-cols-1 md:grid-cols-5 gap-3">
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
@@ -231,7 +231,7 @@ function TransactionsTable({ token }) {
         />
       </div>
 
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-sm text-slate-500">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-sm text-ink-500">
         <div>
           {t("admin.pagination.shownOf", { shown: items.length, total })}
           {query !== debouncedQuery ? t("admin.pagination.searchingSuffix") : ""}
@@ -262,14 +262,14 @@ function TransactionsTable({ token }) {
       </div>
 
       {items.length === 0 ? (
-        <div className="rounded-2xl border bg-slate-50 p-8 text-center text-slate-500">
+        <div className="rounded-2xl border bg-mist-50 p-8 text-center text-ink-500">
           {t("admin.finance.tx.empty")}
         </div>
       ) : (
         <div className="overflow-x-auto rounded-2xl border">
           <table className="w-full text-sm border-collapse bg-white">
-            <thead className="bg-slate-50">
-              <tr className="border-b text-left text-slate-500">
+            <thead className="bg-mist-50">
+              <tr className="border-b text-left text-ink-500">
                 <th className="py-3 px-3">{t("admin.finance.col.date")}</th>
                 <th className="py-3 px-3">{t("admin.finance.col.user")}</th>
                 <th className="py-3 px-3">{t("admin.finance.col.type")}</th>
@@ -279,15 +279,15 @@ function TransactionsTable({ token }) {
             </thead>
             <tbody>
               {items.map((tx) => (
-                <tr key={tx.id} className="border-b last:border-b-0 hover:bg-slate-50">
-                  <td className="py-3 px-3 text-slate-500 whitespace-nowrap">
+                <tr key={tx.id} className="border-b last:border-b-0 hover:bg-mist-50">
+                  <td className="py-3 px-3 text-ink-500 whitespace-nowrap">
                     {tx.createdAt
                       ? new Date(tx.createdAt).toLocaleString("ru-RU")
                       : "—"}
                   </td>
                   <td className="py-3 px-3">
                     <div className="font-medium">{tx.userName || "—"}</div>
-                    <div className="text-xs text-slate-500">{tx.userEmail || "—"}</div>
+                    <div className="text-xs text-ink-500">{tx.userEmail || "—"}</div>
                   </td>
                   <td className="py-3 px-3">
                     {getWalletTypeLabels()[tx.type] || tx.type}
@@ -300,7 +300,7 @@ function TransactionsTable({ token }) {
                     {Number(tx.amount) >= 0 ? "+" : ""}
                     {Number(tx.amount).toLocaleString("ru-RU")} TJS
                   </td>
-                  <td className="py-3 px-3 text-slate-500 max-w-xs truncate">
+                  <td className="py-3 px-3 text-ink-500 max-w-xs truncate">
                     {tx.description || "—"}
                   </td>
                 </tr>
@@ -363,7 +363,7 @@ export default function AdminFinancePanel({ token, currentUser, isSuperAdmin }) 
           {t("admin.finance.badge")}
         </div>
         <h2 className="text-xl font-bold">{t("admin.finance.title")}</h2>
-        <p className="text-sm text-slate-500 mt-1">
+        <p className="text-sm text-ink-500 mt-1">
           {isSuperAdmin ? (
             <>
               {t("admin.finance.subtitleSuperPrefix")}{" "}
@@ -390,8 +390,8 @@ export default function AdminFinancePanel({ token, currentUser, isSuperAdmin }) 
             onClick={() => setTab(item.id)}
             className={`px-4 py-2 rounded-xl text-sm font-medium border transition ${
               tab === item.id
-                ? "bg-slate-900 text-white border-slate-900"
-                : "bg-white text-slate-700 hover:bg-slate-50"
+                ? "bg-ink-900 text-white border-ink-900"
+                : "bg-white text-ink-700 hover:bg-mist-50"
             }`}
           >
             {item.label}

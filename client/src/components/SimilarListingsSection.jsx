@@ -84,8 +84,8 @@ export default function SimilarListingsSection({
     <section className="space-y-4 pt-2">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-bold text-slate-900">{sectionTitle}</h2>
-          <p className="text-sm text-slate-500 mt-0.5">
+          <h2 className="text-xl font-bold text-ink-900">{sectionTitle}</h2>
+          <p className="text-sm text-ink-500 mt-0.5">
             {subcategory
               ? `${catLabel} · ${subcategory}`
               : t("listing.categoryLabel", { name: catLabel })}

@@ -12,7 +12,7 @@ export default function SavedSearchesTab() {
     <div className="space-y-4">
       <div className="rounded-2xl border bg-white p-4 md:p-5">
         <h2 className="text-xl font-bold">{t("search.savedSearches")}</h2>
-        <p className="text-sm text-slate-500 mt-1">
+        <p className="text-sm text-ink-500 mt-1">
           {t("search.savedTabHint")}
         </p>
       </div>

@@ -552,7 +552,7 @@ export default function ListingCompare({ cat }) {
 
   if (!config) {
     return (
-      <div className="container mx-auto px-4 py-10">
+      <div className="container-x py-10">
         <EmptyState
           icon={Scale}
           title={t("compare.unavailable")}
@@ -657,7 +657,7 @@ export default function ListingCompare({ cat }) {
   };
 
   return (
-    <div className="container mx-auto px-4 py-6 space-y-4">
+    <div className="container-x py-6 space-y-4">
       <Breadcrumbs items={breadcrumbs} />
 
       <div className="flex flex-wrap items-center justify-between gap-3">

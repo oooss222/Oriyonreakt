@@ -8,7 +8,7 @@ function BarChart({ items, labelKey, valueKey, emptyLabel }) {
   const { t } = useI18n();
 
   if (!items?.length) {
-    return <div className="text-sm text-slate-500">{emptyLabel || t("admin.analytics.noData")}</div>;
+    return <div className="text-sm text-ink-500">{emptyLabel || t("admin.analytics.noData")}</div>;
   }
 
   const max = Math.max(...items.map((item) => Number(item[valueKey] || 0)), 1);
@@ -21,16 +21,16 @@ function BarChart({ items, labelKey, valueKey, emptyLabel }) {
 
         return (
           <div key={String(item[labelKey])} className="flex items-center gap-3 text-sm">
-            <div className="w-28 truncate text-slate-600" title={item[labelKey]}>
+            <div className="w-28 truncate text-ink-600" title={item[labelKey]}>
               {item[labelKey]}
             </div>
-            <div className="flex-1 h-7 rounded-full bg-slate-100 overflow-hidden">
+            <div className="flex-1 h-7 rounded-full bg-mist-100 overflow-hidden">
               <div
                 className="h-full rounded-full bg-gradient-to-r from-sun to-sun-600 transition-all"
                 style={{ width: `${width}%` }}
               />
             </div>
-            <div className="w-10 text-right font-semibold text-slate-700">{value}</div>
+            <div className="w-10 text-right font-semibold text-ink-700">{value}</div>
           </div>
         );
       })}
@@ -103,7 +103,7 @@ export default function AdminAnalyticsSection({ token }) {
             {t("admin.analytics.badge")}
           </div>
           <h2 className="text-xl font-bold">{t("admin.analytics.title")}</h2>
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="text-sm text-ink-500 mt-1">
             {t("admin.analytics.subtitle")}
           </p>
         </div>
@@ -146,12 +146,12 @@ export default function AdminAnalyticsSection({ token }) {
         <h3 className="font-semibold">{t("admin.analytics.moderatorActivity")}</h3>
 
         {(data?.moderatorActivity || []).length === 0 ? (
-          <div className="text-sm text-slate-500">{t("admin.analytics.noActions")}</div>
+          <div className="text-sm text-ink-500">{t("admin.analytics.noActions")}</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm border-collapse">
               <thead>
-                <tr className="border-b text-left text-slate-500">
+                <tr className="border-b text-left text-ink-500">
                   <th className="py-2 px-2">{t("admin.analytics.col.staff")}</th>
                   <th className="py-2 px-2">{t("admin.analytics.col.approved")}</th>
                   <th className="py-2 px-2">{t("admin.analytics.col.rejected")}</th>
@@ -164,7 +164,7 @@ export default function AdminAnalyticsSection({ token }) {
                   <tr key={row.actorId || row.email} className="border-b last:border-b-0">
                     <td className="py-2 px-2">
                       <div className="font-medium">{row.name}</div>
-                      <div className="text-xs text-slate-500">{row.email}</div>
+                      <div className="text-xs text-ink-500">{row.email}</div>
                     </td>
                     <td className="py-2 px-2">{row.approvals}</td>
                     <td className="py-2 px-2">{row.rejections}</td>

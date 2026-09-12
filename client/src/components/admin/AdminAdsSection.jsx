@@ -217,7 +217,7 @@ export default function AdminAdsSection({ token }) {
 
   if (loading) {
     return (
-      <div className="rounded-2xl border bg-white p-6 text-sm text-slate-500">
+      <div className="rounded-2xl border bg-white p-6 text-sm text-ink-500">
         {t("admin.ads.loading")}
       </div>
     );
@@ -228,11 +228,11 @@ export default function AdminAdsSection({ token }) {
       <div className="rounded-2xl border bg-white p-4 md:p-5">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+            <h2 className="text-xl font-bold text-ink-900 flex items-center gap-2">
               <Megaphone className="text-sun" size={22} />
               {t("admin.ads.title")}
             </h2>
-            <p className="text-sm text-slate-500 mt-1">
+            <p className="text-sm text-ink-500 mt-1">
               {t("admin.ads.subtitle")}
             </p>
           </div>
@@ -245,29 +245,29 @@ export default function AdminAdsSection({ token }) {
 
         {stats && (
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-5">
-            <div className="rounded-2xl border bg-slate-50 p-4">
-              <div className="text-xs text-slate-500">{t("admin.ads.stats.total")}</div>
-              <div className="text-2xl font-bold text-slate-900">{stats.total || 0}</div>
+            <div className="rounded-2xl border bg-mist-50 p-4">
+              <div className="text-xs text-ink-500">{t("admin.ads.stats.total")}</div>
+              <div className="text-2xl font-bold text-ink-900">{stats.total || 0}</div>
             </div>
             <div className="rounded-2xl border bg-emerald-50 p-4">
               <div className="text-xs text-emerald-700">{t("admin.ads.stats.active")}</div>
               <div className="text-2xl font-bold text-emerald-900">{stats.active || 0}</div>
             </div>
             <div className="rounded-2xl border bg-white p-4">
-              <div className="text-xs text-slate-500 flex items-center gap-1">
+              <div className="text-xs text-ink-500 flex items-center gap-1">
                 <BarChart3 size={14} />
                 {t("admin.ads.stats.impressions")}
               </div>
-              <div className="text-2xl font-bold text-slate-900">
+              <div className="text-2xl font-bold text-ink-900">
                 {Number(stats.impressions || 0).toLocaleString("ru-RU")}
               </div>
             </div>
             <div className="rounded-2xl border bg-white p-4">
-              <div className="text-xs text-slate-500">CTR</div>
-              <div className="text-2xl font-bold text-slate-900">
+              <div className="text-xs text-ink-500">CTR</div>
+              <div className="text-2xl font-bold text-ink-900">
                 {formatAdCtr(stats.clicks, stats.impressions)}
               </div>
-              <div className="text-xs text-slate-400 mt-1">
+              <div className="text-xs text-ink-400 mt-1">
                 {t("admin.ads.clicksCount", {
                   count: Number(stats.clicks || 0).toLocaleString("ru-RU"),
                 })}
@@ -286,7 +286,7 @@ export default function AdminAdsSection({ token }) {
       <div className="rounded-2xl border bg-white overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm">
-            <thead className="bg-slate-50 text-slate-500">
+            <thead className="bg-mist-50 text-ink-500">
               <tr>
                 <th className="text-left px-4 py-3 font-medium">{t("admin.ads.col.campaign")}</th>
                 <th className="text-left px-4 py-3 font-medium">{t("admin.ads.col.zone")}</th>
@@ -299,31 +299,31 @@ export default function AdminAdsSection({ token }) {
             <tbody>
               {items.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-4 py-8 text-center text-slate-500">
+                  <td colSpan={6} className="px-4 py-8 text-center text-ink-500">
                     {t("admin.ads.empty")}
                   </td>
                 </tr>
               ) : (
                 items.map((item) => (
-                  <tr key={getId(item)} className="border-t border-slate-100">
+                  <tr key={getId(item)} className="border-t border-mist-100">
                     <td className="px-4 py-3">
-                      <div className="font-medium text-slate-900">{item.title}</div>
-                      <div className="text-xs text-slate-500">
+                      <div className="font-medium text-ink-900">{item.title}</div>
+                      <div className="text-xs text-ink-500">
                         {item.advertiser || t("admin.ads.noAdvertiser")}
                         {item.cat ? ` · ${item.cat}` : t("admin.ads.allCategoriesSuffix")}
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-slate-600">
+                    <td className="px-4 py-3 text-ink-600">
                       {PLACEMENT_LABELS[item.placement] || item.placement}
                     </td>
-                    <td className="px-4 py-3 text-slate-600">
+                    <td className="px-4 py-3 text-ink-600">
                       {FORMAT_LABELS[item.format] || item.format}
                     </td>
-                    <td className="px-4 py-3 text-slate-600">
+                    <td className="px-4 py-3 text-ink-600">
                       <div>{t("admin.ads.impressionsCount", {
                         count: Number(item.impressions || 0).toLocaleString("ru-RU"),
                       })}</div>
-                      <div className="text-xs text-slate-400">
+                      <div className="text-xs text-ink-400">
                         {t("admin.ads.clicksCount", {
                           count: Number(item.clicks || 0).toLocaleString("ru-RU"),
                         })}{" · "}
@@ -335,7 +335,7 @@ export default function AdminAdsSection({ token }) {
                         className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${
                           item.active
                             ? "bg-emerald-50 text-emerald-700"
-                            : "bg-slate-100 text-slate-500"
+                            : "bg-mist-100 text-ink-500"
                         }`}
                       >
                         {item.active ? t("admin.ads.active") : t("admin.ads.inactive")}
@@ -345,7 +345,7 @@ export default function AdminAdsSection({ token }) {
                       <div className="flex justify-end gap-2">
                         <button
                           type="button"
-                          className="p-2 rounded-xl border hover:bg-slate-50"
+                          className="p-2 rounded-xl border hover:bg-mist-50"
                           onClick={() => openEdit(item)}
                           aria-label={t("admin.ads.edit")}
                         >
@@ -387,13 +387,13 @@ export default function AdminAdsSection({ token }) {
             onSubmit={submit}
             className="relative w-full md:max-w-3xl max-h-[92vh] overflow-y-auto rounded-t-3xl md:rounded-3xl bg-white p-5 md:p-6 shadow-2xl"
           >
-            <h3 id="admin-ads-modal-title" className="text-lg font-bold text-slate-900 mb-4">
+            <h3 id="admin-ads-modal-title" className="text-lg font-bold text-ink-900 mb-4">
               {editingId ? t("admin.ads.editTitle") : t("admin.ads.newTitle")}
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <label className="block space-y-1">
-                <span className="text-sm text-slate-600">{t("admin.ads.form.title")}</span>
+                <span className="text-sm text-ink-600">{t("admin.ads.form.title")}</span>
                 <input
                   className="input w-full"
                   value={form.title}
@@ -403,7 +403,7 @@ export default function AdminAdsSection({ token }) {
               </label>
 
               <label className="block space-y-1">
-                <span className="text-sm text-slate-600">{t("admin.ads.form.advertiser")}</span>
+                <span className="text-sm text-ink-600">{t("admin.ads.form.advertiser")}</span>
                 <input
                   className="input w-full"
                   value={form.advertiser}
@@ -412,7 +412,7 @@ export default function AdminAdsSection({ token }) {
               </label>
 
               <label className="block space-y-1">
-                <span className="text-sm text-slate-600">{t("admin.ads.form.zone")}</span>
+                <span className="text-sm text-ink-600">{t("admin.ads.form.zone")}</span>
                 <select
                   className="input w-full"
                   value={form.placement}
@@ -427,7 +427,7 @@ export default function AdminAdsSection({ token }) {
               </label>
 
               <label className="block space-y-1">
-                <span className="text-sm text-slate-600">{t("admin.ads.col.format")}</span>
+                <span className="text-sm text-ink-600">{t("admin.ads.col.format")}</span>
                 <select
                   className="input w-full"
                   value={form.format}
@@ -442,7 +442,7 @@ export default function AdminAdsSection({ token }) {
               </label>
 
               <label className="block space-y-1">
-                <span className="text-sm text-slate-600">{t("admin.ads.form.category")}</span>
+                <span className="text-sm text-ink-600">{t("admin.ads.form.category")}</span>
                 <select
                   className="input w-full"
                   value={form.cat}
@@ -458,7 +458,7 @@ export default function AdminAdsSection({ token }) {
               </label>
 
               <label className="block space-y-1">
-                <span className="text-sm text-slate-600">{t("admin.ads.form.priority")}</span>
+                <span className="text-sm text-ink-600">{t("admin.ads.form.priority")}</span>
                 <input
                   type="number"
                   className="input w-full"
@@ -470,7 +470,7 @@ export default function AdminAdsSection({ token }) {
               </label>
 
               <label className="block space-y-1">
-                <span className="text-sm text-slate-600">{t("admin.ads.form.startsAt")}</span>
+                <span className="text-sm text-ink-600">{t("admin.ads.form.startsAt")}</span>
                 <input
                   type="datetime-local"
                   className="input w-full"
@@ -480,7 +480,7 @@ export default function AdminAdsSection({ token }) {
               </label>
 
               <label className="block space-y-1">
-                <span className="text-sm text-slate-600">{t("admin.ads.form.endsAt")}</span>
+                <span className="text-sm text-ink-600">{t("admin.ads.form.endsAt")}</span>
                 <input
                   type="datetime-local"
                   className="input w-full"
@@ -493,7 +493,7 @@ export default function AdminAdsSection({ token }) {
             {form.format !== "html" && (
               <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                 <label className="block space-y-1 md:col-span-2">
-                  <span className="text-sm text-slate-600">{t("admin.ads.form.headline")}</span>
+                  <span className="text-sm text-ink-600">{t("admin.ads.form.headline")}</span>
                   <input
                     className="input w-full"
                     value={form.headline}
@@ -502,7 +502,7 @@ export default function AdminAdsSection({ token }) {
                 </label>
 
                 <label className="block space-y-1 md:col-span-2">
-                  <span className="text-sm text-slate-600">{t("admin.ads.form.description")}</span>
+                  <span className="text-sm text-ink-600">{t("admin.ads.form.description")}</span>
                   <textarea
                     className="input w-full min-h-[90px]"
                     value={form.description}
@@ -511,7 +511,7 @@ export default function AdminAdsSection({ token }) {
                 </label>
 
                 <label className="block space-y-1 md:col-span-2">
-                  <span className="text-sm text-slate-600">{t("admin.ads.form.link")}</span>
+                  <span className="text-sm text-ink-600">{t("admin.ads.form.link")}</span>
                   <input
                     className="input w-full"
                     value={form.linkUrl}
@@ -521,7 +521,7 @@ export default function AdminAdsSection({ token }) {
                 </label>
 
                 <label className="block space-y-1 md:col-span-2">
-                  <span className="text-sm text-slate-600">{t("admin.ads.form.imageUrl")}</span>
+                  <span className="text-sm text-ink-600">{t("admin.ads.form.imageUrl")}</span>
                   <input
                     className="input w-full"
                     value={form.imageUrl}
@@ -556,7 +556,7 @@ export default function AdminAdsSection({ token }) {
 
             {form.format === "html" && (
               <label className="block space-y-1 mt-4">
-                <span className="text-sm text-slate-600">{t("admin.ads.form.htmlCode")}</span>
+                <span className="text-sm text-ink-600">{t("admin.ads.form.htmlCode")}</span>
                 <textarea
                   className="input w-full min-h-[160px] font-mono text-xs"
                   value={form.htmlCode}
@@ -566,7 +566,7 @@ export default function AdminAdsSection({ token }) {
               </label>
             )}
 
-            <label className="mt-4 inline-flex items-center gap-2 text-sm text-slate-700">
+            <label className="mt-4 inline-flex items-center gap-2 text-sm text-ink-700">
               <input
                 type="checkbox"
                 checked={form.active}

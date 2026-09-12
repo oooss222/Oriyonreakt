@@ -180,7 +180,7 @@ export default function AdminUsersSection({
             </div>
 
             <h2 className="text-xl font-bold">{t("admin.sections.users")}</h2>
-            <p className="text-sm text-slate-500 mt-1">
+            <p className="text-sm text-ink-500 mt-1">
               {t("admin.users.hint")}
             </p>
           </div>
@@ -189,7 +189,7 @@ export default function AdminUsersSection({
             type="button"
             onClick={loadUsers}
             disabled={refreshing}
-            className="px-4 py-2 rounded-xl border hover:bg-slate-50 disabled:opacity-60"
+            className="px-4 py-2 rounded-xl border hover:bg-mist-50 disabled:opacity-60"
           >
             {refreshing ? t("admin.users.refreshing") : t("admin.users.refresh")}
           </button>
@@ -201,7 +201,7 @@ export default function AdminUsersSection({
           </div>
         )}
 
-        <div className="rounded-2xl border bg-slate-50 p-3 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-6 gap-3">
+        <div className="rounded-2xl border bg-mist-50 p-3 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-6 gap-3">
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
@@ -256,7 +256,7 @@ export default function AdminUsersSection({
           </select>
         </div>
 
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-sm text-slate-500">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-sm text-ink-500">
           <div>
             {t("admin.users.shownOfTotal", { shown: users.length, total })}
             {query !== debouncedQuery ? ` · ${t("admin.users.searching")}` : ""}
@@ -287,14 +287,14 @@ export default function AdminUsersSection({
         </div>
 
         {users.length === 0 ? (
-          <div className="rounded-2xl border bg-slate-50 p-8 text-center text-slate-500">
+          <div className="rounded-2xl border bg-mist-50 p-8 text-center text-ink-500">
             {t("admin.users.notFound")}
           </div>
         ) : (
           <div className="overflow-x-auto rounded-2xl border">
             <table className="w-full text-sm border-collapse bg-white">
-              <thead className="bg-slate-50">
-                <tr className="border-b text-left text-slate-500">
+              <thead className="bg-mist-50">
+                <tr className="border-b text-left text-ink-500">
                   <th className="py-3 px-3">{t("admin.users.colUser")}</th>
                   <th className="py-3 px-3">{t("admin.users.colContacts")}</th>
                   <th className="py-3 px-3">{t("admin.users.colType")}</th>
@@ -318,7 +318,7 @@ export default function AdminUsersSection({
                   return (
                     <tr
                       key={id}
-                      className="border-b last:border-b-0 hover:bg-slate-50 cursor-pointer"
+                      className="border-b last:border-b-0 hover:bg-mist-50 cursor-pointer"
                       onClick={() => setSelectedUserId(id)}
                     >
                       <td className="py-3 px-3">
@@ -327,7 +327,7 @@ export default function AdminUsersSection({
                             ? user.companyName
                             : user.name || t("admin.users.noName")}
                         </div>
-                        <div className="text-xs text-slate-500">
+                        <div className="text-xs text-ink-500">
                           {user.sellerType === "company" && user.companyName
                             ? user.name
                             : `ID: ${String(id).slice(0, 8)}...`}
@@ -336,7 +336,7 @@ export default function AdminUsersSection({
 
                       <td className="py-3 px-3">
                         <div>{user.email}</div>
-                        <div className="text-xs text-slate-500">
+                        <div className="text-xs text-ink-500">
                           {user.phone || t("admin.users.noPhone")}
                         </div>
                       </td>
@@ -355,7 +355,7 @@ export default function AdminUsersSection({
                               : t("admin.users.accountBusiness")}
                           </span>
                         ) : (
-                          <span className="text-xs text-slate-400">{t("admin.users.private")}</span>
+                          <span className="text-xs text-ink-400">{t("admin.users.private")}</span>
                         )}
                       </td>
 
@@ -402,12 +402,12 @@ export default function AdminUsersSection({
                       </td>
 
                       {isSuperAdmin ? (
-                        <td className="py-3 px-3 text-xs text-slate-600">
+                        <td className="py-3 px-3 text-xs text-ink-600">
                           {formatRegistrationDevice(user)}
                         </td>
                       ) : null}
 
-                      <td className="py-3 px-3 text-slate-500">
+                      <td className="py-3 px-3 text-ink-500">
                         {user.createdAt
                           ? new Date(user.createdAt).toLocaleDateString("ru-RU")
                           : "—"}

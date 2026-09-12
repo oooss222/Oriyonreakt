@@ -233,7 +233,7 @@ export default function Home() {
 
   return (
     <div className="page-shell">
-      <div className="container mx-auto px-4 py-6 space-y-10">
+      <div className="container-x py-6 space-y-10">
         {loading && (
           <ListingGridSkeleton
             count={12}

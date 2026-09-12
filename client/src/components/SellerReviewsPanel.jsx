@@ -14,7 +14,7 @@ export function StarRating({ value = 0, size = 16, className = "" }) {
           <Star
             key={index}
             size={size}
-            className={filled ? "fill-amber-400 text-amber-400" : "text-slate-300"}
+            className={filled ? "fill-amber-400 text-amber-400" : "text-ink-300"}
           />
         );
       })}
@@ -72,10 +72,10 @@ export default function SellerReviewsPanel({
     <div className="rounded-2xl border bg-white p-4 md:p-5 space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <div className="text-lg font-semibold text-slate-900">{t("seller.reviewsTitle")}</div>
+          <div className="text-lg font-semibold text-ink-900">{t("seller.reviewsTitle")}</div>
           <div className="flex items-center gap-2 mt-1">
             <StarRating value={summary.average} />
-            <span className="text-sm text-slate-600">
+            <span className="text-sm text-ink-600">
               {Number(summary.average || 0).toFixed(1)} ·{" "}
               {t("seller.reviewsCount", { count: summary.count || 0 })}
             </span>
@@ -84,8 +84,8 @@ export default function SellerReviewsPanel({
       </div>
 
       {canReview && (
-        <form onSubmit={submit} className="rounded-2xl border bg-slate-50 p-4 space-y-3">
-          <div className="text-sm font-medium text-slate-800">{t("seller.leaveReview")}</div>
+        <form onSubmit={submit} className="rounded-2xl border bg-mist-50 p-4 space-y-3">
+          <div className="text-sm font-medium text-ink-800">{t("seller.leaveReview")}</div>
 
           <div className="flex items-center gap-2">
             {[1, 2, 3, 4, 5].map((value) => (
@@ -96,7 +96,7 @@ export default function SellerReviewsPanel({
                 className={`rounded-lg px-2 py-1 text-sm border ${
                   rating >= value
                     ? "bg-amber-100 border-amber-300 text-amber-800"
-                    : "bg-white border-slate-200 text-slate-500"
+                    : "bg-white border-mist-200 text-ink-500"
                 }`}
               >
                 {value}
@@ -129,20 +129,20 @@ export default function SellerReviewsPanel({
 
       <div className="space-y-3">
         {items.length === 0 ? (
-          <div className="text-sm text-slate-500">{t("seller.reviewsEmpty")}</div>
+          <div className="text-sm text-ink-500">{t("seller.reviewsEmpty")}</div>
         ) : (
           items.map((item) => (
-            <div key={item.id} className="rounded-xl border bg-slate-50 p-3">
+            <div key={item.id} className="rounded-xl border bg-mist-50 p-3">
               <div className="flex items-center justify-between gap-3">
-                <div className="font-medium text-slate-900">
+                <div className="font-medium text-ink-900">
                   {item.reviewerName || t("seller.buyerFallback")}
                 </div>
                 <StarRating value={item.rating} size={14} />
               </div>
               {item.comment && (
-                <div className="text-sm text-slate-600 mt-2">{item.comment}</div>
+                <div className="text-sm text-ink-600 mt-2">{item.comment}</div>
               )}
-              <div className="text-xs text-slate-400 mt-2">
+              <div className="text-xs text-ink-400 mt-2">
                 {item.createdAt
                   ? new Date(item.createdAt).toLocaleDateString(numberLocale)
                   : ""}

@@ -203,12 +203,12 @@ export default function Admin() {
   };
 
   return (
-    <div className="page-container py-6 md:py-8">
+    <div className="page-container admin-shell py-6 md:py-8">
       <div className="mb-5 flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
         <div>
           <Link
             to="/profile"
-            className="inline-flex items-center gap-1 text-sm text-slate-500 hover:text-slate-800 mb-2"
+            className="inline-flex items-center gap-1 text-sm text-ink-500 hover:text-ink-800 mb-2"
           >
             <ArrowLeft size={16} />
             {t("admin.page.backToProfile")}
@@ -224,7 +224,7 @@ export default function Admin() {
               {roleLabel(role)}
             </span>
           </div>
-          <p className="text-sm text-slate-500 mt-1 max-w-2xl">
+          <p className="text-sm text-ink-500 mt-1 max-w-2xl">
             {isSuperAdmin
               ? t("admin.page.subtitleSuperAdmin")
               : isAdmin
@@ -238,7 +238,7 @@ export default function Admin() {
         <div className="flex flex-wrap gap-2">
           <Link
             to="/messages"
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border bg-white hover:bg-slate-50 text-sm font-semibold"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border bg-white hover:bg-mist-50 text-sm font-semibold"
           >
             <MessageCircle size={16} />
             {t("nav.messages")}
@@ -247,7 +247,7 @@ export default function Admin() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[250px_1fr] gap-5">
-        <aside className="rounded-2xl border bg-white p-3 h-fit lg:sticky lg:top-24">
+        <aside className="admin-panel p-3 h-fit lg:sticky lg:top-24">
           <nav className="flex lg:flex-col gap-1 overflow-x-auto pb-1 lg:pb-0">
             {visibleSections.map((item) => {
               const Icon = item.icon;
@@ -261,8 +261,8 @@ export default function Admin() {
                   onClick={() => setSection(item.id)}
                   className={`inline-flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl text-sm font-medium whitespace-nowrap transition w-full ${
                     active
-                      ? "bg-slate-900 text-white"
-                      : "hover:bg-slate-50 text-slate-700"
+                      ? "bg-ink text-white"
+                      : "hover:bg-mist-50 text-ink-700"
                   }`}
                 >
                   <span className="inline-flex items-center gap-2 min-w-0">
@@ -271,7 +271,7 @@ export default function Admin() {
                   </span>
                   {badge > 0 && (
                     <span
-                      className={`min-w-[20px] h-5 px-1.5 rounded-full text-[11px] font-bold flex items-center justify-center ${
+                      className={`min-w-[20px] h-5 px-1.5 rounded-full text-xs font-bold flex items-center justify-center ${
                         active
                           ? "bg-sun text-white"
                           : "bg-red-100 text-red-700"

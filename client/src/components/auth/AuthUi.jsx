@@ -18,13 +18,13 @@ export const Field = ({ label, hint, icon: Icon, right, children }) => {
   return (
     <div className="space-y-1.5">
       {label && (
-        <label htmlFor={inputId} className="text-sm font-medium text-slate-700">
+        <label htmlFor={inputId} className="text-sm font-medium text-ink-700">
           {label}
         </label>
       )}
       <div className="relative">
         {Icon && (
-          <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+          <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-ink-400">
             <Icon size={18} />
           </span>
         )}
@@ -89,7 +89,7 @@ export function PasswordToggle({ visible, onToggle, label }) {
     <button
       type="button"
       onClick={onToggle}
-      className="text-slate-400 hover:text-slate-600 transition"
+      className="text-ink-400 hover:text-ink-600 transition"
       aria-label={
         visible ? t("auth.hideField", { field: label }) : t("auth.showField", { field: label })
       }

@@ -4,9 +4,9 @@ import { GUEST_OPTIONS, formatGuestLabel } from "../../data/realEstate";
 import { useI18n } from "../../i18n";
 
 const FIELD_LABEL =
-  "mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500";
+  "label-caps mb-1.5 block";
 const FIELD_CONTROL =
-  "h-11 w-full rounded-xl border border-slate-200/90 bg-white text-sm font-medium text-slate-900 outline-none transition focus:border-sun/50 focus:ring-2 focus:ring-sun/20";
+  "h-11 w-full rounded-xl border border-mist-200/90 bg-white text-sm font-medium text-ink-900 outline-none transition focus:border-sun/50 focus:ring-2 focus:ring-sun/20";
 
 export default function RealEstateGuestsPicker({
   value = "",
@@ -50,14 +50,14 @@ export default function RealEstateGuestsPicker({
           aria-expanded={open}
           aria-haspopup="listbox"
           onClick={() => setOpen((state) => !state)}
-          className={`flex w-full flex-col px-4 py-3.5 text-left transition hover:bg-slate-50/80 ${
+          className={`flex w-full flex-col px-4 py-3.5 text-left transition hover:bg-mist-50/80 ${
             open ? "bg-sun-50/60" : ""
           }`}
         >
-          <span className="mb-0.5 text-xs font-medium text-slate-500">{resolvedLabel}</span>
+          <span className="mb-0.5 text-xs font-medium text-ink-500">{resolvedLabel}</span>
           <span
             className={`truncate text-sm font-semibold ${
-              value ? "text-slate-900" : "text-slate-400"
+              value ? "text-ink-900" : "text-ink-400"
             }`}
           >
             {summary}
@@ -68,7 +68,7 @@ export default function RealEstateGuestsPicker({
           <div
             role="listbox"
             aria-label={t("realestate.guestsPicker.ariaLabel")}
-            className="absolute left-0 right-0 top-[calc(100%+4px)] z-[250] rounded-xl border border-slate-200 bg-white p-2 shadow-xl lg:left-auto lg:right-0 lg:min-w-[220px]"
+            className="absolute left-0 right-0 top-[calc(100%+4px)] z-[250] rounded-xl border border-mist-200 bg-white p-2 shadow-xl lg:left-auto lg:right-0 lg:min-w-[220px]"
           >
             <button
               type="button"
@@ -79,7 +79,7 @@ export default function RealEstateGuestsPicker({
               className={`flex w-full items-center rounded-lg px-3 py-2.5 text-sm font-medium transition ${
                 !value
                   ? "bg-sun-50 text-sun-800"
-                  : "text-slate-700 hover:bg-slate-50"
+                  : "text-ink-700 hover:bg-mist-50"
               }`}
             >
               {t("realestate.guestsPicker.anyCount")}
@@ -95,7 +95,7 @@ export default function RealEstateGuestsPicker({
                 className={`flex w-full items-center rounded-lg px-3 py-2.5 text-sm font-medium transition ${
                   value === option
                     ? "bg-sun-50 text-sun-800"
-                    : "text-slate-700 hover:bg-slate-50"
+                    : "text-ink-700 hover:bg-mist-50"
                 }`}
               >
                 {formatGuestLabel(option)}
@@ -120,18 +120,18 @@ export default function RealEstateGuestsPicker({
           open
             ? "border-sun ring-2 ring-sun/20"
             : value
-              ? "text-slate-900"
-              : "text-slate-500"
+              ? "text-ink-900"
+              : "text-ink-500"
         }`}
       >
         <span className="inline-flex items-center gap-2 truncate">
-          <Users size={15} className="shrink-0 text-slate-400" />
+          <Users size={15} className="shrink-0 text-ink-400" />
           {summary}
         </span>
         {open ? (
-          <ChevronUp size={15} className="shrink-0 text-slate-400" />
+          <ChevronUp size={15} className="shrink-0 text-ink-400" />
         ) : (
-          <ChevronDown size={15} className="shrink-0 text-slate-400" />
+          <ChevronDown size={15} className="shrink-0 text-ink-400" />
         )}
       </button>
 
@@ -139,7 +139,7 @@ export default function RealEstateGuestsPicker({
         <div
           role="listbox"
           aria-label={t("realestate.guestsPicker.ariaLabel")}
-          className="absolute left-0 right-0 top-[calc(100%+6px)] z-[250] rounded-xl border border-slate-200 bg-white p-2 shadow-xl"
+          className="absolute left-0 right-0 top-[calc(100%+6px)] z-[250] rounded-xl border border-mist-200 bg-white p-2 shadow-xl"
         >
           <button
             type="button"
@@ -150,7 +150,7 @@ export default function RealEstateGuestsPicker({
             className={`flex w-full items-center rounded-lg px-3 py-2.5 text-sm font-medium transition ${
               !value
                 ? "bg-sun-50 text-sun-800"
-                : "text-slate-700 hover:bg-slate-50"
+                : "text-ink-700 hover:bg-mist-50"
             }`}
           >
             {t("realestate.guestsPicker.anyCount")}
@@ -166,7 +166,7 @@ export default function RealEstateGuestsPicker({
               className={`flex w-full items-center rounded-lg px-3 py-2.5 text-sm font-medium transition ${
                 value === option
                   ? "bg-sun-50 text-sun-800"
-                  : "text-slate-700 hover:bg-slate-50"
+                  : "text-ink-700 hover:bg-mist-50"
               }`}
             >
               {formatGuestLabel(option)}

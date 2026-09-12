@@ -181,14 +181,14 @@ export default function Seller() {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-6 space-y-6">
-        <div className="h-4 w-48 bg-slate-200 rounded animate-pulse" />
+      <div className="container-x py-6 space-y-6">
+        <div className="h-4 w-48 bg-mist-200 rounded animate-pulse" />
         <div className="card p-6 rounded-3xl animate-pulse space-y-4">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-2xl bg-slate-200" />
+            <div className="w-16 h-16 rounded-2xl bg-mist-200" />
             <div className="space-y-2 flex-1">
-              <div className="h-6 bg-slate-200 rounded w-40" />
-              <div className="h-4 bg-slate-200 rounded w-56" />
+              <div className="h-6 bg-mist-200 rounded w-40" />
+              <div className="h-4 bg-mist-200 rounded w-56" />
             </div>
           </div>
         </div>
@@ -199,7 +199,7 @@ export default function Seller() {
 
   if (error || !seller) {
     return (
-      <div className="container mx-auto px-4 py-10">
+      <div className="container-x py-10">
         <EmptyState
           icon={User}
           title={t("seller.notFound")}
@@ -212,7 +212,7 @@ export default function Seller() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-6 space-y-6">
+    <div className="container-x py-6 space-y-6">
       <Breadcrumbs
         items={[
           { label: t("nav.home"), to: "/" },
@@ -237,7 +237,7 @@ export default function Seller() {
 
           <div className="min-w-0 flex-1 space-y-2">
             <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-2xl font-bold text-slate-900">{sellerName}</h1>
+              <h1 className="text-2xl font-bold text-ink-900">{sellerName}</h1>
 
               <BusinessBadge
                 sellerType={seller.sellerType}
@@ -267,7 +267,7 @@ export default function Seller() {
               )}
             </div>
 
-            <div className="flex flex-wrap items-center gap-3 text-sm text-slate-500">
+            <div className="flex flex-wrap items-center gap-3 text-sm text-ink-500">
               <span className="inline-flex items-center gap-1.5">
                 {seller.sellerType === "company" ? (
                   <Building2 className="w-4 h-4" />
@@ -290,7 +290,7 @@ export default function Seller() {
         </div>
 
         {seller.sellerType === "company" && seller.companyDescription && (
-          <div className="rounded-2xl border bg-slate-50 p-4 text-sm text-slate-700 leading-relaxed">
+          <div className="rounded-2xl border bg-mist-50 p-4 text-sm text-ink-700 leading-relaxed">
             {seller.companyDescription}
           </div>
         )}
@@ -303,9 +303,9 @@ export default function Seller() {
               {companyAddresses.map((address) => (
                 <span
                   key={address}
-                  className="inline-flex items-center gap-1.5 text-slate-600"
+                  className="inline-flex items-center gap-1.5 text-ink-600"
                 >
-                  <MapPin className="w-4 h-4 text-slate-400" />
+                  <MapPin className="w-4 h-4 text-ink-400" />
                   {address}
                 </span>
               ))}
@@ -386,10 +386,10 @@ export default function Seller() {
       <section className="space-y-4">
         <div className="flex items-end justify-between gap-3 px-1">
           <div>
-            <h2 className="text-xl font-bold text-slate-900">
+            <h2 className="text-xl font-bold text-ink-900">
               {t("seller.sellerListings")}
             </h2>
-            <p className="text-sm text-slate-500 mt-1">
+            <p className="text-sm text-ink-500 mt-1">
               {t("seller.activeListingsDesc")}
             </p>
           </div>

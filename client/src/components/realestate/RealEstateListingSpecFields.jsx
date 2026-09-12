@@ -30,7 +30,7 @@ export default function RealEstateListingSpecFields({
   const { t } = useI18n();
   if (!fields.length) {
     return (
-      <div className="px-4 py-6 text-sm text-slate-500">
+      <div className="px-4 py-6 text-sm text-ink-500">
         {t("realestate.specFields.selectTypeHint")}
       </div>
     );

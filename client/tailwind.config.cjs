@@ -61,8 +61,8 @@ module.exports = {
         },
       },
       fontFamily: {
+        /* Manrope covers Cyrillic; Outfit is Latin-only in self-hosted subset */
         display: [
-          "Outfit",
           "Manrope",
           "ui-sans-serif",
           "system-ui",
@@ -70,11 +70,20 @@ module.exports = {
         ],
         sans: [
           "Manrope",
-          "Outfit",
           "ui-sans-serif",
           "system-ui",
           "sans-serif",
         ],
+      },
+      container: {
+        center: true,
+        padding: {
+          DEFAULT: "1rem",
+          sm: "1.5rem",
+        },
+        screens: {
+          "2xl": "80rem",
+        },
       },
       borderRadius: {
         card: "1rem",

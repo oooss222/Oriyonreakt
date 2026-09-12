@@ -64,7 +64,7 @@ export default function PromotionPlanModal({
             >
               {title}
             </h2>
-            <p className="text-sm text-slate-600 mt-1">
+            <p className="text-sm text-ink-600 mt-1">
               {t("promotion.selectPeriod")}
             </p>
           </div>
@@ -72,7 +72,7 @@ export default function PromotionPlanModal({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full border bg-white/80 p-2 text-slate-500 hover:text-slate-800"
+            className="rounded-full border bg-white/80 p-2 text-ink-500 hover:text-ink-800"
           >
             <X className="w-4 h-4" />
           </button>
@@ -95,7 +95,7 @@ export default function PromotionPlanModal({
                     : "border-white/80 bg-white/70 hover:bg-white"
                 }`}
               >
-                <span className="font-semibold text-slate-900">
+                <span className="font-semibold text-ink-900">
                   {formatPromotionDaysLabel(t, plan.days)}
                 </span>
                 <span className="font-bold text-ink">
@@ -107,7 +107,7 @@ export default function PromotionPlanModal({
         </div>
 
         <div className="border-t border-white/70 px-5 py-4 space-y-3 bg-white/60 rounded-b-3xl">
-          <div className="flex items-center justify-between text-sm text-slate-600">
+          <div className="flex items-center justify-between text-sm text-ink-600">
             <span>{t("promotion.walletBalance")}</span>
             <span className="font-semibold text-ink">
               {formatMoney(walletBalance)}

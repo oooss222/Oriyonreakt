@@ -80,7 +80,7 @@ export default function SellerContactButtons({
 
         <button
           type="button"
-          className="btn w-full rounded-2xl border border-slate-200 bg-white py-3 font-semibold hover:bg-slate-50"
+          className="btn w-full rounded-2xl border border-mist-200 bg-white py-3 font-semibold hover:bg-mist-50"
           onClick={onChat}
         >
           <MessageCircle className="h-5 w-5" />
@@ -127,7 +127,7 @@ export default function SellerContactButtons({
         (phoneVisible ? (
           <a
             href={`tel:${phone}`}
-            className={`btn w-full rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 ${btnSize}`}
+            className={`btn w-full rounded-2xl border border-mist-200 bg-white hover:bg-mist-50 ${btnSize}`}
           >
             <Phone className="w-5 h-5" />
             {phone}
@@ -135,7 +135,7 @@ export default function SellerContactButtons({
         ) : (
           <button
             type="button"
-            className={`btn w-full rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 ${btnSize}`}
+            className={`btn w-full rounded-2xl border border-mist-200 bg-white hover:bg-mist-50 ${btnSize}`}
             onClick={onRevealPhone}
           >
             <Phone className="w-5 h-5" />
@@ -155,7 +155,7 @@ export default function SellerContactButtons({
       )}
 
       {!hasPhone && !whatsappHref && (
-        <p className="text-xs text-center text-slate-500 px-2">
+        <p className="text-xs text-center text-ink-500 px-2">
           {t("seller.preferChat")}
         </p>
       )}

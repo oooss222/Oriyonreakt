@@ -226,7 +226,7 @@ export default function Header({ variant = "full" }) {
   return (
     <>
       <header className="sticky top-0 z-50 bg-ink-700 text-white border-b border-white/5 shadow-soft">
-        <div className="container mx-auto px-3 sm:px-4 lg:px-6">
+        <div className="container-x">
         <div
           className={`hidden lg:flex items-center gap-2 sm:gap-3 transition-all duration-300 ${
             scrolled ? "h-14" : "h-16 lg:h-[72px]"
@@ -376,6 +376,16 @@ export default function Header({ variant = "full" }) {
             </Link>
 
             <LanguageSwitcher />
+
+            <Link
+              to={comparePath}
+              className="relative shrink-0 p-2 rounded-lg hover:bg-white/10 transition"
+              title={t("nav.compare")}
+              aria-label={t("nav.compare")}
+            >
+              <Scale size={20} />
+              <UnreadBadge count={compareCount} color="bg-sun" />
+            </Link>
 
             <div className="flex-1 min-w-0 relative">
               {searchField(true)}

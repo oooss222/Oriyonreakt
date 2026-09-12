@@ -21,14 +21,14 @@ import { formatNightsLabel } from "../../i18n/helpers";
 import { useI18n } from "../../i18n";
 
 const FIELD_LABEL =
-  "mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500";
+  "label-caps mb-1.5 block";
 
 function MonthGrid({ year, month, checkIn, checkOut, minIso, onPickDay }) {
   const cells = buildMonthGrid(year, month, minIso);
 
   return (
     <div className="min-w-0">
-      <div className="mb-3 text-center text-sm font-semibold text-slate-800">
+      <div className="mb-3 text-center text-sm font-semibold text-ink-800">
         {getMonthLabel(year, month)}
       </div>
 
@@ -36,7 +36,7 @@ function MonthGrid({ year, month, checkIn, checkOut, minIso, onPickDay }) {
         {WEEKDAYS.map((day) => (
           <div
             key={day}
-            className="py-1 text-center text-[11px] font-semibold uppercase tracking-wide text-slate-400"
+            className="py-1 text-center text-[11px] font-semibold uppercase tracking-wide text-ink-400"
           >
             {day}
           </div>
@@ -70,14 +70,14 @@ function MonthGrid({ year, month, checkIn, checkOut, minIso, onPickDay }) {
                 type="button"
                 disabled={cell.disabled}
                 onClick={() => onPickDay(cell.iso)}
-                className={`absolute inset-0 mx-auto flex h-10 w-10 items-center justify-center text-sm font-medium transition disabled:cursor-not-allowed disabled:text-slate-300 ${
+                className={`absolute inset-0 mx-auto flex h-10 w-10 items-center justify-center text-sm font-medium transition disabled:cursor-not-allowed disabled:text-ink-300 ${
                   selected
                     ? "rounded-xl bg-sun text-white shadow-sm"
                     : inSelection
                       ? "text-sun-800"
                       : cell.disabled
-                        ? "text-slate-300"
-                        : "rounded-xl text-slate-800 hover:bg-sun-50 hover:text-sun-800"
+                        ? "text-ink-300"
+                        : "rounded-xl text-ink-800 hover:bg-sun-50 hover:text-sun-800"
                 }`}
               >
                 {cell.day}
@@ -112,13 +112,13 @@ function CalendarPanel({
       : formatNightsLabel(nights, t);
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-2xl ring-1 ring-black/5">
+    <div className="rounded-2xl border border-mist-200 bg-white p-4 shadow-2xl ring-1 ring-black/5">
       <div className="relative mb-2">
         <button
           type="button"
           disabled={!canGoPrev}
           onClick={() => onViewMonthChange(addMonths(viewMonth.year, viewMonth.month, -1))}
-          className="absolute left-0 top-0 z-10 flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 text-slate-600 transition hover:bg-slate-50 disabled:opacity-40"
+          className="absolute left-0 top-0 z-10 flex h-9 w-9 items-center justify-center rounded-full border border-mist-200 text-ink-600 transition hover:bg-mist-50 disabled:opacity-40"
           aria-label={t("realestate.dateRange.prevMonth")}
         >
           <ChevronLeft size={18} />
@@ -127,7 +127,7 @@ function CalendarPanel({
         <button
           type="button"
           onClick={() => onViewMonthChange(addMonths(viewMonth.year, viewMonth.month, 1))}
-          className="absolute right-0 top-0 z-10 flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 text-slate-600 transition hover:bg-slate-50"
+          className="absolute right-0 top-0 z-10 flex h-9 w-9 items-center justify-center rounded-full border border-mist-200 text-ink-600 transition hover:bg-mist-50"
           aria-label={t("realestate.dateRange.nextMonth")}
         >
           <ChevronRight size={18} />
@@ -153,11 +153,11 @@ function CalendarPanel({
         </div>
       </div>
 
-      <div className="mt-5 flex items-center justify-between gap-3 border-t border-dashed border-slate-200 pt-4 text-sm">
-        <span className="font-medium text-slate-600">{t("realestate.dateRange.stayDuration")}</span>
+      <div className="mt-5 flex items-center justify-between gap-3 border-t border-dashed border-mist-200 pt-4 text-sm">
+        <span className="font-medium text-ink-600">{t("realestate.dateRange.stayDuration")}</span>
         <span
           className={`font-semibold ${
-            checkIn && !checkOut ? "text-slate-500" : "text-sun-700"
+            checkIn && !checkOut ? "text-ink-500" : "text-sun-700"
           }`}
         >
           {footerHint}
@@ -231,17 +231,17 @@ function DateRangeTrigger({
       className={`flex min-h-[52px] w-full items-stretch rounded-xl border bg-white p-0 text-left text-sm outline-none transition ${
         open
           ? "border-sun ring-2 ring-sun/20"
-          : "border-slate-200/90 hover:border-slate-300 focus:border-sun/50 focus:ring-2 focus:ring-sun/20"
+          : "border-mist-200/90 hover:border-ink-300 focus:border-sun/50 focus:ring-2 focus:ring-sun/20"
       } ${className}`}
     >
-      <span className="flex min-w-0 flex-1 divide-x divide-slate-200">
+      <span className="flex min-w-0 flex-1 divide-x divide-mist-200">
         <span className="flex min-w-0 flex-1 flex-col justify-center px-3 py-2">
-          <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-400">
+          <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-ink-400">
             {t("realestate.dateRange.checkIn")}
           </span>
           <span
             className={`truncate text-sm font-semibold leading-tight ${
-              checkIn ? "text-slate-900" : "text-slate-400"
+              checkIn ? "text-ink-900" : "text-ink-400"
             }`}
           >
             {checkIn ? formatShortDate(checkIn) : t("realestate.dateRange.datePlaceholder")}
@@ -249,12 +249,12 @@ function DateRangeTrigger({
         </span>
 
         <span className="flex min-w-0 flex-1 flex-col justify-center px-3 py-2">
-          <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-400">
+          <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-ink-400">
             {t("realestate.dateRange.checkOut")}
           </span>
           <span
             className={`truncate text-sm font-semibold leading-tight ${
-              checkOut ? "text-slate-900" : "text-slate-400"
+              checkOut ? "text-ink-900" : "text-ink-400"
             }`}
           >
             {checkOut ? formatShortDate(checkOut) : t("realestate.dateRange.datePlaceholder")}
@@ -262,7 +262,7 @@ function DateRangeTrigger({
         </span>
       </span>
 
-      <span className="flex w-10 shrink-0 items-center justify-center border-l border-slate-200 text-slate-400">
+      <span className="flex w-10 shrink-0 items-center justify-center border-l border-mist-200 text-ink-400">
         <ChevronDown
           size={16}
           className={`transition ${open ? "rotate-180" : ""}`}
@@ -373,23 +373,23 @@ export default function RealEstateDateRangePicker({
   if (isInline) {
     return (
       <>
-        <div ref={wrapperRef} className="flex min-w-0 divide-x divide-slate-200">
+        <div ref={wrapperRef} className="flex min-w-0 divide-x divide-mist-200">
           <button
             ref={triggerRef}
             type="button"
             aria-expanded={open}
             aria-haspopup="dialog"
             onClick={() => setOpen((value) => !value)}
-            className={`flex min-w-0 flex-1 flex-col px-4 py-3.5 text-left transition hover:bg-slate-50/80 ${
+            className={`flex min-w-0 flex-1 flex-col px-4 py-3.5 text-left transition hover:bg-mist-50/80 ${
               open ? "bg-sun-50/60" : ""
             }`}
           >
-            <span className="mb-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-400">
+            <span className="mb-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-ink-400">
               {t("realestate.dateRange.checkIn")}
             </span>
             <span
               className={`truncate text-sm font-semibold leading-tight ${
-                checkIn ? "text-slate-900" : "text-slate-400"
+                checkIn ? "text-ink-900" : "text-ink-400"
               }`}
             >
               {checkIn ? formatShortDate(checkIn) : t("realestate.dateRange.selectPlaceholder")}
@@ -400,16 +400,16 @@ export default function RealEstateDateRangePicker({
             type="button"
             aria-expanded={open}
             onClick={() => setOpen((value) => !value)}
-            className={`flex min-w-0 flex-1 flex-col px-4 py-3.5 text-left transition hover:bg-slate-50/80 ${
+            className={`flex min-w-0 flex-1 flex-col px-4 py-3.5 text-left transition hover:bg-mist-50/80 ${
               open ? "bg-sun-50/60" : ""
             }`}
           >
-            <span className="mb-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-400">
+            <span className="mb-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-ink-400">
               {t("realestate.dateRange.checkOut")}
             </span>
             <span
               className={`truncate text-sm font-semibold leading-tight ${
-                checkOut ? "text-slate-900" : "text-slate-400"
+                checkOut ? "text-ink-900" : "text-ink-400"
               }`}
             >
               {checkOut ? formatShortDate(checkOut) : t("realestate.dateRange.selectPlaceholder")}

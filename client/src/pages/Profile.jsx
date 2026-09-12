@@ -514,10 +514,10 @@ export default function Profile() {
 
   if (!token) {
     return (
-      <div className="container mx-auto px-4 py-10">
+      <div className="container-x py-10">
         <div className="card p-6 text-center space-y-3">
           <h1 className="text-2xl font-bold">{t("home.accountTitle")}</h1>
-          <p className="text-slate-600">{t("profile.notAuthorized")}</p>
+          <p className="text-ink-600">{t("profile.notAuthorized")}</p>
           <Link to="/auth" className="btn btn-primary">
             {t("profile.loginRegister")}
           </Link>
@@ -527,7 +527,7 @@ export default function Profile() {
   }
 
   return (
-    <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 space-y-5 sm:space-y-6 max-w-7xl">
+    <div className="container-x py-4 sm:py-8 space-y-5 sm:space-y-6">
       <ProfileTabs
         tab={tab}
         setTab={setTab}
@@ -608,7 +608,7 @@ export default function Profile() {
         <div className="rounded-2xl border bg-white p-4 md:p-5">
           <div className="mb-3 flex items-center justify-between">
             <h2 className="text-lg font-semibold">{t("profile.favorites")}</h2>
-            <div className="text-sm text-slate-500">
+            <div className="text-sm text-ink-500">
               {t("profile.totalCount", { count: favItems.length })}
             </div>
           </div>

@@ -93,21 +93,21 @@ export default function AdminExportSection({ token, role = "admin" }) {
           {t("admin.export.badge")}
         </div>
         <h2 className="text-xl font-bold">{t("admin.export.title")}</h2>
-        <p className="text-sm text-slate-500 mt-1">
+        <p className="text-sm text-ink-500 mt-1">
           {role === "accountant"
             ? t("admin.export.subtitleAccountant")
             : t("admin.export.subtitleDefault")}
         </p>
       </div>
 
-      <div className="rounded-2xl border bg-slate-50 p-4 space-y-3">
-        <div className="flex items-center gap-2 text-sm font-medium text-slate-700">
+      <div className="rounded-2xl border bg-mist-50 p-4 space-y-3">
+        <div className="flex items-center gap-2 text-sm font-medium text-ink-700">
           <CalendarRange size={16} />
           {t("admin.export.periodLabel")}
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <label className="text-sm">
-            <span className="text-slate-500 block mb-1">{t("admin.finance.period.from")}</span>
+            <span className="text-ink-500 block mb-1">{t("admin.finance.period.from")}</span>
             <input
               type="date"
               value={from}
@@ -116,7 +116,7 @@ export default function AdminExportSection({ token, role = "admin" }) {
             />
           </label>
           <label className="text-sm">
-            <span className="text-slate-500 block mb-1">{t("admin.finance.period.to")}</span>
+            <span className="text-ink-500 block mb-1">{t("admin.finance.period.to")}</span>
             <input
               type="date"
               value={to}
@@ -125,7 +125,7 @@ export default function AdminExportSection({ token, role = "admin" }) {
             />
           </label>
         </div>
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-ink-500">
           {t("admin.export.periodHint")}
         </p>
       </div>
@@ -171,10 +171,10 @@ export default function AdminExportSection({ token, role = "admin" }) {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {exportItems.map((item) => (
-          <div key={item.type} className="rounded-2xl border p-4 space-y-3 bg-slate-50">
+          <div key={item.type} className="rounded-2xl border p-4 space-y-3 bg-mist-50">
             <div>
               <div className="font-semibold">{item.title}</div>
-              <div className="text-sm text-slate-500 mt-1">{item.description}</div>
+              <div className="text-sm text-ink-500 mt-1">{item.description}</div>
               {item.dateFilter && (from || to) && (
                 <div className="text-xs text-emerald-700 mt-2">
                   {t("admin.export.periodWillInclude")}
@@ -188,7 +188,7 @@ export default function AdminExportSection({ token, role = "admin" }) {
               type="button"
               disabled={loadingType === item.type}
               onClick={() => download(item.type)}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border hover:bg-slate-100 disabled:opacity-60"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border hover:bg-mist-100 disabled:opacity-60"
             >
               <Download size={16} />
               {loadingType === item.type ? t("admin.export.preparing") : t("admin.export.downloadButton")}

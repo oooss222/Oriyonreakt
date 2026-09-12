@@ -27,15 +27,15 @@ function KpiCard({ label, value, change, changeSuffix, hint }) {
   const numberLocale = lang === "en" ? "en-US" : lang === "tg" ? "tg-TJ" : "ru-RU";
 
   return (
-    <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm">
-      <div className="text-sm text-slate-500 mb-1">{label}</div>
+    <div className="rounded-2xl border border-mist-200/80 bg-white p-4 shadow-sm">
+      <div className="text-sm text-ink-500 mb-1">{label}</div>
       <div className="flex items-baseline gap-2">
-        <div className="text-2xl sm:text-3xl font-extrabold tabular-nums text-slate-900">
+        <div className="text-2xl sm:text-3xl font-extrabold tabular-nums text-ink-900">
           {Number(value || 0).toLocaleString(numberLocale)}
         </div>
         <ChangeBadge value={change} suffix={changeSuffix} />
       </div>
-      {hint && <div className="mt-1 text-xs text-slate-400">{hint}</div>}
+      {hint && <div className="mt-1 text-xs text-ink-400">{hint}</div>}
     </div>
   );
 }
@@ -93,7 +93,7 @@ function GroupedBarChart({ series, hidden }) {
                 )
               )}
             </div>
-            <div className="text-[10px] sm:text-xs text-slate-400 font-medium">{label}</div>
+            <div className="text-[10px] sm:text-xs text-ink-400 font-medium">{label}</div>
           </div>
         );
       })}
@@ -152,11 +152,11 @@ export default function SellerAnalyticsPanel({ token }) {
     <div className="space-y-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900">{t("profile.analytics")}</h2>
-          <p className="text-sm text-slate-500 mt-1">{t("profile.analyticsSubtitle")}</p>
+          <h2 className="text-2xl font-bold text-ink-900">{t("profile.analytics")}</h2>
+          <p className="text-sm text-ink-500 mt-1">{t("profile.analyticsSubtitle")}</p>
         </div>
 
-        <div className="inline-flex rounded-xl border border-slate-200 bg-white p-1 shadow-sm">
+        <div className="inline-flex rounded-xl border border-mist-200 bg-white p-1 shadow-sm">
           {[
             ["7d", t("profile.analyticsPeriod7")],
             ["30d", t("profile.analyticsPeriod30")],
@@ -167,7 +167,7 @@ export default function SellerAnalyticsPanel({ token }) {
               type="button"
               onClick={() => setPeriod(key)}
               className={`rounded-lg px-3 py-1.5 text-sm font-semibold transition ${
-                period === key ? "bg-sun text-white" : "text-slate-600 hover:bg-slate-50"
+                period === key ? "bg-sun text-white" : "text-ink-600 hover:bg-mist-50"
               }`}
             >
               {label}
@@ -215,9 +215,9 @@ export default function SellerAnalyticsPanel({ token }) {
           </div>
 
           <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1.4fr)_minmax(0,0.8fr)] gap-4">
-            <section className="rounded-2xl border border-slate-200/80 bg-white p-4 md:p-5 shadow-sm">
+            <section className="rounded-2xl border border-mist-200/80 bg-white p-4 md:p-5 shadow-sm">
               <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
-                <h3 className="text-lg font-bold text-slate-900">
+                <h3 className="text-lg font-bold text-ink-900">
                   {t("profile.analyticsDynamics", { period: periodLabel })}
                 </h3>
                 <div className="flex flex-wrap gap-3 text-xs font-medium">
@@ -243,7 +243,7 @@ export default function SellerAnalyticsPanel({ token }) {
                     >
                       <span className={`w-2.5 h-2.5 rounded-sm ${color}`} />
                       {label}
-                      <span className="text-slate-400 tabular-nums">
+                      <span className="text-ink-400 tabular-nums">
                         {Number(count || 0).toLocaleString(numberLocale)}
                       </span>
                     </button>
@@ -252,19 +252,19 @@ export default function SellerAnalyticsPanel({ token }) {
               </div>
 
               <GroupedBarChart series={series} hidden={hidden} />
-              <p className="mt-3 text-xs text-slate-400">{t("profile.analyticsChartHint")}</p>
+              <p className="mt-3 text-xs text-ink-400">{t("profile.analyticsChartHint")}</p>
             </section>
 
-            <section className="rounded-2xl border border-slate-200/80 bg-white p-4 md:p-5 shadow-sm">
-              <h3 className="text-lg font-bold text-slate-900">
+            <section className="rounded-2xl border border-mist-200/80 bg-white p-4 md:p-5 shadow-sm">
+              <h3 className="text-lg font-bold text-ink-900">
                 {t("profile.analyticsByPhone")}
               </h3>
-              <p className="text-sm text-slate-500 mt-1 mb-4">
+              <p className="text-sm text-ink-500 mt-1 mb-4">
                 {t("profile.analyticsByPhoneHint")}
               </p>
 
               {phoneReveals.length === 0 ? (
-                <p className="text-sm text-slate-400 py-8 text-center">
+                <p className="text-sm text-ink-400 py-8 text-center">
                   {t("profile.analyticsNoPhones")}
                 </p>
               ) : (
@@ -272,14 +272,14 @@ export default function SellerAnalyticsPanel({ token }) {
                   {phoneReveals.map((row) => (
                     <div key={row.phone}>
                       <div className="flex items-center justify-between gap-2 text-sm mb-1.5">
-                        <span className="font-medium text-slate-700 tabular-nums">
+                        <span className="font-medium text-ink-700 tabular-nums">
                           {row.phone}
                         </span>
                         <span className="font-bold text-teal-700 tabular-nums">
                           {row.count}
                         </span>
                       </div>
-                      <div className="h-2.5 rounded-full bg-slate-100 overflow-hidden">
+                      <div className="h-2.5 rounded-full bg-mist-100 overflow-hidden">
                         <div
                           className="h-full rounded-full bg-teal-500"
                           style={{
@@ -294,16 +294,16 @@ export default function SellerAnalyticsPanel({ token }) {
             </section>
           </div>
 
-          <section className="rounded-2xl border border-slate-200/80 bg-white shadow-sm overflow-hidden">
-            <div className="px-4 md:px-5 py-4 border-b border-slate-100">
-              <h3 className="text-lg font-bold text-slate-900">{t("profile.analyticsTop")}</h3>
-              <p className="text-sm text-slate-500">{t("profile.analyticsTopHint")}</p>
+          <section className="rounded-2xl border border-mist-200/80 bg-white shadow-sm overflow-hidden">
+            <div className="px-4 md:px-5 py-4 border-b border-mist-100">
+              <h3 className="text-lg font-bold text-ink-900">{t("profile.analyticsTop")}</h3>
+              <p className="text-sm text-ink-500">{t("profile.analyticsTopHint")}</p>
             </div>
 
             <div className="overflow-x-auto">
               <table className="w-full min-w-[640px] text-sm">
                 <thead>
-                  <tr className="text-[11px] uppercase tracking-wide text-slate-400 border-b border-slate-100">
+                  <tr className="text-[11px] uppercase tracking-wide text-ink-400 border-b border-mist-100">
                     <th className="text-left font-semibold px-4 py-3">
                       {t("profile.analyticsColAd")}
                     </th>
@@ -324,7 +324,7 @@ export default function SellerAnalyticsPanel({ token }) {
                 <tbody>
                   {topListings.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="px-4 py-10 text-center text-slate-400">
+                      <td colSpan={5} className="px-4 py-10 text-center text-ink-400">
                         {t("profile.analyticsEmptyTop")}
                       </td>
                     </tr>
@@ -336,7 +336,7 @@ export default function SellerAnalyticsPanel({ token }) {
                       return (
                         <tr
                           key={id}
-                          className="border-b border-slate-50 hover:bg-slate-50/70 transition"
+                          className="border-b border-mist-50 hover:bg-mist-50/70 transition"
                         >
                           <td className="px-4 py-3">
                             <Link
@@ -346,13 +346,13 @@ export default function SellerAnalyticsPanel({ token }) {
                               <img
                                 src={thumb}
                                 alt=""
-                                className="w-11 h-11 rounded-lg object-cover bg-slate-100 shrink-0"
+                                className="w-11 h-11 rounded-lg object-cover bg-mist-100 shrink-0"
                               />
                               <div className="min-w-0">
-                                <div className="font-semibold text-slate-900 truncate group-hover:text-sun">
+                                <div className="font-semibold text-ink-900 truncate group-hover:text-sun">
                                   {ad.title}
                                 </div>
-                                <div className="text-xs text-slate-400 truncate">
+                                <div className="text-xs text-ink-400 truncate">
                                   {[ad.cat, ad.location].filter(Boolean).join(" · ")}
                                 </div>
                               </div>

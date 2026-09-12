@@ -118,7 +118,7 @@ export default function RealEstate() {
   const categoryLabel = getCategoryLabel(REAL_ESTATE_CAT, t);
 
   return (
-    <div className="container mx-auto px-3 sm:px-4 py-5 sm:py-8 space-y-8 max-w-6xl">
+    <div className="container-x py-5 sm:py-8 space-y-8">
       <Breadcrumbs
         items={[
           { label: t("nav.home"), to: "/" },
@@ -142,8 +142,8 @@ export default function RealEstate() {
         to="/realestate/sravnenie"
         className={`flex items-center justify-between gap-3 rounded-2xl border px-4 py-3.5 transition shadow-sm ${
           compareCount > 0
-            ? "border-slate-900/10 bg-slate-900 text-white hover:bg-slate-800"
-            : "border-slate-200 bg-white text-slate-900 hover:border-sun/30 hover:bg-sun-50/30"
+            ? "border-ink-900/10 bg-ink-900 text-white hover:bg-ink-800"
+            : "border-mist-200 bg-white text-ink-900 hover:border-sun/30 hover:bg-sun-50/30"
         }`}
       >
         <span className="inline-flex items-center gap-3 min-w-0">
@@ -161,7 +161,7 @@ export default function RealEstate() {
             </span>
             <span
               className={`block text-xs mt-0.5 truncate ${
-                compareCount > 0 ? "text-white/60" : "text-slate-500"
+                compareCount > 0 ? "text-white/60" : "text-ink-500"
               }`}
             >
               {t("realestate.compareHint", { max: COMPARE_MAX })}
@@ -170,7 +170,7 @@ export default function RealEstate() {
         </span>
         <ArrowRight
           size={18}
-          className={compareCount > 0 ? "text-white/70 shrink-0" : "text-slate-400 shrink-0"}
+          className={compareCount > 0 ? "text-white/70 shrink-0" : "text-ink-400 shrink-0"}
         />
       </Link>
 
@@ -229,7 +229,7 @@ export default function RealEstate() {
                 to={`/realestate/zhk/${item.slug}`}
                 className="group rounded-2xl border bg-white overflow-hidden hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5"
               >
-                <div className="relative aspect-[16/10] bg-slate-100 overflow-hidden">
+                <div className="relative aspect-[16/10] bg-mist-100 overflow-hidden">
                   {item.imageUrl ? (
                     <img
                       src={item.imageUrl}
@@ -237,7 +237,7 @@ export default function RealEstate() {
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
                   ) : (
-                    <div className="w-full h-full grid place-items-center text-slate-300">
+                    <div className="w-full h-full grid place-items-center text-ink-300">
                       <Building2 size={40} />
                     </div>
                   )}
@@ -250,15 +250,15 @@ export default function RealEstate() {
                 </div>
 
                 <div className="p-4 space-y-1">
-                  <div className="font-bold text-slate-900 group-hover:text-sun transition">
+                  <div className="font-bold text-ink-900 group-hover:text-sun transition">
                     {item.name}
                   </div>
-                  <div className="text-sm text-slate-500">
+                  <div className="text-sm text-ink-500">
                     {item.district ? `${item.district}, ` : ""}
                     {item.city}
                   </div>
                   {item.completionDate && (
-                    <div className="text-xs text-slate-400 pt-1">
+                    <div className="text-xs text-ink-400 pt-1">
                       {t("realestate.completion", { date: item.completionDate })}
                     </div>
                   )}
@@ -280,12 +280,12 @@ export default function RealEstate() {
         {loading && <ListingGridSkeleton count={8} />}
 
         {!loading && listings.length === 0 && fallbackListings.length === 0 && (
-          <div className="rounded-2xl border border-dashed bg-slate-50/50 p-10 text-center">
-            <Building2 className="mx-auto text-slate-300 mb-3" size={40} />
-            <div className="font-semibold text-slate-800">
+          <div className="rounded-2xl border border-dashed bg-mist-50/50 p-10 text-center">
+            <Building2 className="mx-auto text-ink-300 mb-3" size={40} />
+            <div className="font-semibold text-ink-800">
               {t("realestate.emptyInCity", { city })}
             </div>
-            <p className="text-sm text-slate-500 mt-2 mb-5 max-w-md mx-auto">
+            <p className="text-sm text-ink-500 mt-2 mb-5 max-w-md mx-auto">
               {t("realestate.emptyHint")}
             </p>
             <Link
@@ -300,7 +300,7 @@ export default function RealEstate() {
 
         {!loading && listings.length === 0 && fallbackListings.length > 0 && (
           <div className="space-y-4">
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-ink-500">
               {t("realestate.fallbackHint", { city })}
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">

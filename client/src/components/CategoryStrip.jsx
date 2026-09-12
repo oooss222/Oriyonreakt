@@ -9,7 +9,7 @@ export default function CategoryStrip({ compact = false }) {
 
   return (
     <div className="border-t border-white/10 bg-ink-800">
-      <div className="container mx-auto max-w-7xl px-2 sm:px-4">
+      <div className="container-x">
         <nav
           aria-label={t("a11y.categories")}
           className={`flex items-start gap-2 sm:gap-3 lg:gap-4 overflow-x-auto lg:overflow-visible lg:justify-center scroll-smooth [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${
@@ -57,7 +57,7 @@ export default function CategoryStrip({ compact = false }) {
                 <span
                   className={`mt-1.5 lg:mt-2 min-h-[3rem] lg:min-h-[3.25rem] w-full px-0.5 font-medium leading-[1.15] transition group-hover:text-sun ${
                     active ? "text-sun" : "text-white/95"
-                  } ${compact ? "text-[10px] lg:text-xs" : "text-[10px] sm:text-[11px] lg:text-xs"}`}
+                  } ${compact ? "text-xs" : "text-xs sm:text-sm lg:text-sm"}`}
                 >
                   {t(`categories.${cat.slug}`) !== `categories.${cat.slug}`
                     ? t(`categories.${cat.slug}`)

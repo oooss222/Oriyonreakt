@@ -37,9 +37,9 @@ export default function CompareGalleryRow({ items = [] }) {
   };
 
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-3 md:p-4 shadow-sm space-y-3">
+    <section className="rounded-2xl border border-mist-200 bg-white p-3 md:p-4 shadow-sm space-y-3">
       <div className="flex items-center justify-between gap-3">
-        <h3 className="text-sm font-bold text-slate-900 inline-flex items-center gap-2">
+        <h3 className="text-sm font-bold text-ink-900 inline-flex items-center gap-2">
           <Images size={16} className="text-sun" />
           {t("compare.galleryTitle")}
         </h3>
@@ -48,18 +48,18 @@ export default function CompareGalleryRow({ items = [] }) {
             <button
               type="button"
               onClick={() => go(-1)}
-              className="rounded-lg border p-1.5 text-slate-500 hover:bg-slate-50"
+              className="rounded-lg border p-1.5 text-ink-500 hover:bg-mist-50"
               aria-label={t("a11y.photoPrev")}
             >
               <ChevronLeft size={16} />
             </button>
-            <span className="text-xs tabular-nums text-slate-500">
+            <span className="text-xs tabular-nums text-ink-500">
               {index + 1}/{maxLen}
             </span>
             <button
               type="button"
               onClick={() => go(1)}
-              className="rounded-lg border p-1.5 text-slate-500 hover:bg-slate-50"
+              className="rounded-lg border p-1.5 text-ink-500 hover:bg-mist-50"
               aria-label={t("a11y.photoNext")}
             >
               <ChevronRight size={16} />
@@ -85,7 +85,7 @@ export default function CompareGalleryRow({ items = [] }) {
             "/img/placeholder.jpg";
           return (
             <div key={col.key} className="space-y-1.5">
-              <div className="aspect-[4/3] overflow-hidden rounded-xl bg-slate-100">
+              <div className="aspect-[4/3] overflow-hidden rounded-xl bg-mist-100">
                 <img
                   src={src}
                   alt={col.title}
@@ -96,8 +96,8 @@ export default function CompareGalleryRow({ items = [] }) {
                   }}
                 />
               </div>
-              <div className="text-xs font-medium text-slate-600 line-clamp-1">{col.title}</div>
-              <div className="text-[11px] text-slate-400">
+              <div className="text-xs font-medium text-ink-600 line-clamp-1">{col.title}</div>
+              <div className="text-[11px] text-ink-400">
                 {col.images.length
                   ? t("compare.galleryPhotos", { count: col.images.length })
                   : t("compare.galleryNoPhotos")}

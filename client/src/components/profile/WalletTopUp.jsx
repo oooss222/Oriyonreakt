@@ -148,7 +148,7 @@ export default React.memo(function WalletTopUp({ token, onSuccess }) {
 
   return (
     <form onSubmit={submit} className="space-y-4">
-      <div className="rounded-xl border bg-slate-50 p-3 text-sm text-slate-600">{paymentHint}</div>
+      <div className="rounded-xl border bg-mist-50 p-3 text-sm text-ink-600">{paymentHint}</div>
 
       {paymentConfig.environment === "test" && paymentConfig.alifEnabled && (
         <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900 space-y-2">
@@ -175,7 +175,7 @@ export default React.memo(function WalletTopUp({ token, onSuccess }) {
               className={`mobile-btn border ${
                 Number(amount) === item
                   ? "bg-sun text-white border-sun"
-                  : "bg-white hover:bg-slate-50"
+                  : "bg-white hover:bg-mist-50"
               }`}
             >
               {item} TJS
@@ -197,7 +197,7 @@ export default React.memo(function WalletTopUp({ token, onSuccess }) {
             placeholder={t("wallet.amountPlaceholder")}
             className="mobile-control pr-14"
           />
-          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-500">TJS</span>
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-ink-500">TJS</span>
         </div>
       </label>
 

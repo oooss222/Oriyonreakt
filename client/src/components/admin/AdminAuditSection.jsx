@@ -84,7 +84,7 @@ export default function AdminAuditSection({ token }) {
             Audit log
           </div>
           <h2 className="text-xl font-bold">{t("admin.audit.title")}</h2>
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="text-sm text-ink-500 mt-1">
             {t("admin.audit.subtitle")}
           </p>
         </div>
@@ -93,7 +93,7 @@ export default function AdminAuditSection({ token }) {
           type="button"
           onClick={load}
           disabled={refreshing}
-          className="px-4 py-2 rounded-xl border hover:bg-slate-50 disabled:opacity-60"
+          className="px-4 py-2 rounded-xl border hover:bg-mist-50 disabled:opacity-60"
         >
           {refreshing ? t("admin.common.refreshing") : t("admin.common.refresh")}
         </button>
@@ -118,7 +118,7 @@ export default function AdminAuditSection({ token }) {
           ))}
         </select>
 
-        <div className="flex items-center gap-2 text-sm text-slate-500">
+        <div className="flex items-center gap-2 text-sm text-ink-500">
           <button
             type="button"
             disabled={page <= 1}
@@ -142,14 +142,14 @@ export default function AdminAuditSection({ token }) {
       </div>
 
       {items.length === 0 ? (
-        <div className="rounded-2xl border bg-slate-50 p-8 text-center text-slate-500">
+        <div className="rounded-2xl border bg-mist-50 p-8 text-center text-ink-500">
           {t("admin.audit.empty")}
         </div>
       ) : (
         <div className="overflow-x-auto rounded-2xl border">
           <table className="w-full text-sm border-collapse bg-white">
-            <thead className="bg-slate-50">
-              <tr className="border-b text-left text-slate-500">
+            <thead className="bg-mist-50">
+              <tr className="border-b text-left text-ink-500">
                 <th className="py-3 px-3">{t("admin.finance.col.when")}</th>
                 <th className="py-3 px-3">{t("admin.finance.col.who")}</th>
                 <th className="py-3 px-3">{t("admin.finance.col.action")}</th>
@@ -159,19 +159,19 @@ export default function AdminAuditSection({ token }) {
             <tbody>
               {items.map((item) => (
                 <tr key={item.id} className="border-b last:border-b-0">
-                  <td className="py-3 px-3 text-slate-500 whitespace-nowrap">
+                  <td className="py-3 px-3 text-ink-500 whitespace-nowrap">
                     {item.createdAt
                       ? new Date(item.createdAt).toLocaleString("ru-RU")
                       : "—"}
                   </td>
                   <td className="py-3 px-3">
                     <div className="font-medium">{item.actorName || "—"}</div>
-                    <div className="text-xs text-slate-500">{item.actorEmail}</div>
+                    <div className="text-xs text-ink-500">{item.actorEmail}</div>
                   </td>
                   <td className="py-3 px-3">
                     {getAuditActionLabels()[item.action] || item.action}
                   </td>
-                  <td className="py-3 px-3 text-slate-600">
+                  <td className="py-3 px-3 text-ink-600">
                     {formatDetails(item, t, numberLocale)}
                   </td>
                 </tr>

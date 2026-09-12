@@ -13,7 +13,7 @@ function AdLabel() {
   const { t } = useI18n();
 
   return (
-    <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+    <span className="inline-flex items-center rounded-full bg-mist-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-ink-500">
       {t("ads.label")}
     </span>
   );
@@ -31,7 +31,7 @@ function BannerAd({ ad, className = "" }) {
           loading="lazy"
         />
       ) : (
-        <div className="flex h-full min-h-[90px] items-center justify-center bg-slate-100 px-4 text-center text-sm text-slate-500">
+        <div className="flex h-full min-h-[90px] items-center justify-center bg-mist-100 px-4 text-center text-sm text-ink-500">
           {ad.headline || ad.title || t("ads.bannerFallback")}
         </div>
       )}
@@ -40,7 +40,7 @@ function BannerAd({ ad, className = "" }) {
 
   if (!ad.linkUrl) {
     return (
-      <div className={`overflow-hidden rounded-2xl border border-slate-200 bg-white ${className}`}>
+      <div className={`overflow-hidden rounded-2xl border border-mist-200 bg-white ${className}`}>
         {content}
       </div>
     );
@@ -52,7 +52,7 @@ function BannerAd({ ad, className = "" }) {
       target="_blank"
       rel="noopener noreferrer sponsored"
       onClick={() => trackAd(ad.id, "click")}
-      className={`block overflow-hidden rounded-2xl border border-slate-200 bg-white transition hover:shadow-md ${className}`}
+      className={`block overflow-hidden rounded-2xl border border-mist-200 bg-white transition hover:shadow-md ${className}`}
     >
       {content}
     </a>
@@ -63,14 +63,14 @@ function NativeAd({ ad, className = "", compact = false }) {
   const { t } = useI18n();
   const body = (
     <div
-      className={`rounded-2xl border border-slate-200 bg-white p-3 ${
+      className={`rounded-2xl border border-mist-200 bg-white p-3 ${
         ad.linkUrl ? "transition hover:shadow-md" : ""
       } ${className}`}
     >
       <div className="mb-2 flex items-center justify-between gap-2">
         <AdLabel />
         {ad.advertiser ? (
-          <span className="truncate text-xs text-slate-400">{ad.advertiser}</span>
+          <span className="truncate text-xs text-ink-400">{ad.advertiser}</span>
         ) : null}
       </div>
 
@@ -78,7 +78,7 @@ function NativeAd({ ad, className = "", compact = false }) {
         <img
           src={ad.imageUrl}
           alt={ad.headline || ad.title || t("ads.label")}
-          className={`mb-3 w-full rounded-xl object-cover bg-slate-100 ${
+          className={`mb-3 w-full rounded-xl object-cover bg-mist-100 ${
             compact ? "h-28" : "h-36"
           }`}
           loading="lazy"
@@ -86,11 +86,11 @@ function NativeAd({ ad, className = "", compact = false }) {
       ) : null}
 
       <div className="space-y-1">
-        <div className={`font-semibold text-slate-900 ${compact ? "text-sm" : "text-base"}`}>
+        <div className={`font-semibold text-ink-900 ${compact ? "text-sm" : "text-base"}`}>
           {ad.headline || ad.title || t("ads.nativeFallback")}
         </div>
         {ad.description ? (
-          <p className={`text-slate-500 ${compact ? "text-xs line-clamp-2" : "text-sm line-clamp-3"}`}>
+          <p className={`text-ink-500 ${compact ? "text-xs line-clamp-2" : "text-sm line-clamp-3"}`}>
             {ad.description}
           </p>
         ) : null}
@@ -128,7 +128,7 @@ function HtmlAd({ ad, className = "" }) {
   }
 
   return (
-    <div className={`overflow-hidden rounded-2xl border border-slate-200 bg-white p-2 ${className}`}>
+    <div className={`overflow-hidden rounded-2xl border border-mist-200 bg-white p-2 ${className}`}>
       <div className="mb-2 px-1">
         <AdLabel />
       </div>

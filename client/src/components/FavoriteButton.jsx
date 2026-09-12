@@ -86,8 +86,8 @@ export default function FavoriteButton({
           active
             ? "text-red-500"
             : overlay
-              ? "text-slate-500 group-hover:text-red-500"
-              : "text-gray-700 group-hover:text-red-600"
+              ? "text-ink-500 group-hover:text-red-500"
+              : "text-ink-700 group-hover:text-red-600"
         }`}
         fill={active ? "currentColor" : "none"}
       />

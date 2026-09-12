@@ -724,7 +724,7 @@ export default function Listing() {
   );
 
   return (
-    <div className="container mx-auto px-4 py-6">
+    <div className="container-x py-6">
       {isRealEstate && (
         <div className="mb-5 space-y-5 lg:hidden">
           <Breadcrumbs items={breadcrumbItems} />

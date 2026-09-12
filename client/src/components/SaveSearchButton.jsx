@@ -94,7 +94,7 @@ export default function SaveSearchButton({
             ? "border-emerald-200 bg-emerald-50 text-emerald-700"
             : duplicate
               ? "border-amber-200 bg-amber-50 text-amber-800"
-              : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+              : "border-mist-200 bg-white text-ink-700 hover:bg-mist-50"
         } ${compact ? "px-3 py-2" : "px-4 py-2.5"}`}
       >
         {saved ? (
@@ -123,7 +123,7 @@ export default function SaveSearchButton({
       )}
 
       {!token && saved && (
-        <span className="text-[11px] text-center text-slate-500">
+        <span className="text-[11px] text-center text-ink-500">
           {t("search.loginToSync")}
         </span>
       )}

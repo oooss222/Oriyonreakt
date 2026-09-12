@@ -54,16 +54,16 @@ export default function MortgageCalculator({ price = "" }) {
     <section className="card p-5 md:p-6 rounded-3xl space-y-4">
       <div className="flex items-center gap-2">
         <Calculator size={18} className="text-sun" />
-        <h2 className="text-lg font-bold text-slate-900">{t("realestate.mortgage.title")}</h2>
+        <h2 className="text-lg font-bold text-ink-900">{t("realestate.mortgage.title")}</h2>
       </div>
 
-      <p className="text-sm text-slate-500">
+      <p className="text-sm text-ink-500">
         {t("realestate.mortgage.hint")}
       </p>
 
       <div className="grid sm:grid-cols-2 gap-3">
         <label className="block text-sm">
-          <span className="font-medium text-slate-700">{t("realestate.mortgage.priceLabel")}</span>
+          <span className="font-medium text-ink-700">{t("realestate.mortgage.priceLabel")}</span>
           <input
             value={amount ? formatPriceInput(amount) : ""}
             onChange={(e) => setAmount(getPriceDigits(e.target.value))}
@@ -73,7 +73,7 @@ export default function MortgageCalculator({ price = "" }) {
         </label>
 
         <label className="block text-sm">
-          <span className="font-medium text-slate-700">{t("realestate.mortgage.downPaymentLabel")}</span>
+          <span className="font-medium text-ink-700">{t("realestate.mortgage.downPaymentLabel")}</span>
           <input
             type="number"
             min="0"
@@ -85,7 +85,7 @@ export default function MortgageCalculator({ price = "" }) {
         </label>
 
         <label className="block text-sm">
-          <span className="font-medium text-slate-700">{t("realestate.mortgage.termLabel")}</span>
+          <span className="font-medium text-ink-700">{t("realestate.mortgage.termLabel")}</span>
           <input
             type="number"
             min="1"
@@ -97,7 +97,7 @@ export default function MortgageCalculator({ price = "" }) {
         </label>
 
         <label className="block text-sm">
-          <span className="font-medium text-slate-700">{t("realestate.mortgage.rateLabel")}</span>
+          <span className="font-medium text-ink-700">{t("realestate.mortgage.rateLabel")}</span>
           <input
             type="number"
             min="0"
@@ -118,15 +118,15 @@ export default function MortgageCalculator({ price = "" }) {
           </div>
         </div>
         <div className="rounded-2xl border p-4">
-          <div className="text-xs text-slate-500 font-semibold">{t("realestate.mortgage.loanLabel")}</div>
+          <div className="text-xs text-ink-500 font-semibold">{t("realestate.mortgage.loanLabel")}</div>
           <div className="text-lg font-bold mt-1">{formatMoney(result.loan, numberLocale)}</div>
         </div>
         <div className="rounded-2xl border p-4">
-          <div className="text-xs text-slate-500 font-semibold">{t("realestate.mortgage.downPaymentAmountLabel")}</div>
+          <div className="text-xs text-ink-500 font-semibold">{t("realestate.mortgage.downPaymentAmountLabel")}</div>
           <div className="text-lg font-bold mt-1">{formatMoney(result.downPayment, numberLocale)}</div>
         </div>
         <div className="rounded-2xl border p-4">
-          <div className="text-xs text-slate-500 font-semibold">{t("realestate.mortgage.overpayLabel")}</div>
+          <div className="text-xs text-ink-500 font-semibold">{t("realestate.mortgage.overpayLabel")}</div>
           <div className="text-lg font-bold mt-1">{formatMoney(result.overpay, numberLocale)}</div>
         </div>
       </div>

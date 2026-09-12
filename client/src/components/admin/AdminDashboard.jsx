@@ -19,7 +19,7 @@ import { useI18n } from "../../i18n";
 
 function StatCard({ label, value, hint, tone = "slate" }) {
   const tones = {
-    slate: "bg-slate-50",
+    slate: "bg-mist-50",
     emerald: "bg-emerald-50",
     red: "bg-red-50",
     amber: "bg-amber-50",
@@ -30,9 +30,9 @@ function StatCard({ label, value, hint, tone = "slate" }) {
 
   return (
     <div className={`rounded-2xl border p-4 ${tones[tone] || tones.slate}`}>
-      <div className="text-xs text-slate-500">{label}</div>
+      <div className="text-xs text-ink-500">{label}</div>
       <div className="text-2xl font-bold mt-1">{value}</div>
-      {hint && <div className="text-xs text-slate-500 mt-1">{hint}</div>}
+      {hint && <div className="text-xs text-ink-500 mt-1">{hint}</div>}
     </div>
   );
 }
@@ -54,14 +54,14 @@ function PriorityCard({ icon: Icon, title, count, hint, tone, onClick }) {
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <div className="inline-flex items-center gap-2 text-sm font-semibold text-slate-800">
+          <div className="inline-flex items-center gap-2 text-sm font-semibold text-ink-800">
             <Icon size={16} />
             {title}
           </div>
           <div className="text-3xl font-bold mt-2">{count}</div>
-          <div className="text-xs text-slate-600 mt-1">{hint}</div>
+          <div className="text-xs text-ink-600 mt-1">{hint}</div>
         </div>
-        <ArrowRight size={18} className="text-slate-400 shrink-0 mt-1" />
+        <ArrowRight size={18} className="text-ink-400 shrink-0 mt-1" />
       </div>
     </button>
   );
@@ -124,7 +124,7 @@ export default function AdminDashboard({
               : t("admin.dashboard.badgeAdmin")}
           </div>
           <h2 className="text-xl font-bold">{t("admin.dashboard.title")}</h2>
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="text-sm text-ink-500 mt-1">
             {isSuperAdmin
               ? t("admin.dashboard.subtitleSuperAdmin")
               : t("admin.dashboard.subtitleAdmin")}
@@ -133,7 +133,7 @@ export default function AdminDashboard({
 
         <Link
           to="/messages"
-          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border bg-white hover:bg-slate-50 text-sm font-semibold shrink-0"
+          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border bg-white hover:bg-mist-50 text-sm font-semibold shrink-0"
         >
           <MessageCircle size={16} />
           {t("admin.dashboard.messagesLink")}
@@ -214,7 +214,7 @@ export default function AdminDashboard({
       </div>
 
       <div>
-        <h3 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
+        <h3 className="text-sm font-semibold text-ink-700 mb-3 flex items-center gap-2">
           <Users size={16} />
           {t("admin.dashboard.usersHeading")}
         </h3>
@@ -249,7 +249,7 @@ export default function AdminDashboard({
       </div>
 
       <div>
-        <h3 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
+        <h3 className="text-sm font-semibold text-ink-700 mb-3 flex items-center gap-2">
           <FileText size={16} />
           {t("admin.sections.listings")}
         </h3>
@@ -270,7 +270,7 @@ export default function AdminDashboard({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div className="rounded-2xl border bg-white p-4">
-          <div className="flex items-center gap-2 text-sm font-semibold text-slate-700 mb-3">
+          <div className="flex items-center gap-2 text-sm font-semibold text-ink-700 mb-3">
             <BadgeCheck size={16} />
             {t("admin.dashboard.businessAccountsHeading")}
           </div>
@@ -279,7 +279,7 @@ export default function AdminDashboard({
               <div className="text-3xl font-bold text-blue-700">
                 {business?.totalCompanies || 0}
               </div>
-              <div className="text-sm text-slate-500">{t("admin.dashboard.businessCompaniesHint")}</div>
+              <div className="text-sm text-ink-500">{t("admin.dashboard.businessCompaniesHint")}</div>
             </div>
             {pendingBusiness > 0 && (
               <button
@@ -296,7 +296,7 @@ export default function AdminDashboard({
         </div>
 
         <div className="rounded-2xl border bg-white p-4">
-          <div className="flex items-center gap-2 text-sm font-semibold text-slate-700 mb-3">
+          <div className="flex items-center gap-2 text-sm font-semibold text-ink-700 mb-3">
             <Wallet size={16} />
             {t("admin.dashboard.walletsHeading")}
           </div>
@@ -304,7 +304,7 @@ export default function AdminDashboard({
             <div className="text-3xl font-bold text-sun-700">
               {Number(wallet.totalBalance || 0).toLocaleString("ru-RU")} TJS
             </div>
-            <div className="text-sm text-slate-500 flex items-center gap-1 mt-1">
+            <div className="text-sm text-ink-500 flex items-center gap-1 mt-1">
               <Clock size={14} />
               {t("admin.dashboard.walletsHint")}
             </div>
@@ -313,7 +313,7 @@ export default function AdminDashboard({
       </div>
 
       {!isSuperAdmin && (
-        <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
+        <div className="rounded-2xl border border-dashed border-mist-200 bg-mist-50 p-4 text-sm text-ink-600">
           {t("admin.dashboard.roleNoticePrefix")}{" "}
           <strong>{roleLabel(role)}</strong>. {t("admin.dashboard.roleNoticeBody")}
         </div>

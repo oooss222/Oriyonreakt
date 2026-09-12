@@ -14,10 +14,10 @@ export default function RealEstateSectionHeader({
       <div className="min-w-0">
         <div className="flex items-center gap-2">
           {Icon && <Icon size={20} className="text-sun shrink-0" />}
-          <h2 className="text-xl font-bold text-slate-900">{title}</h2>
+          <h2 className="text-xl font-bold text-ink-900">{title}</h2>
         </div>
         {description && (
-          <p className="text-sm text-slate-500 mt-1 leading-relaxed">{description}</p>
+          <p className="text-sm text-ink-500 mt-1 leading-relaxed">{description}</p>
         )}
       </div>
 

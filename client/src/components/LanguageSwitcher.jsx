@@ -42,7 +42,7 @@ export default function LanguageSwitcher({ className = "" }) {
         <div
           role="listbox"
           aria-label={t("lang.switch")}
-          className="absolute right-0 top-[calc(100%+0.35rem)] z-[60] min-w-[9rem] overflow-hidden rounded-xl border border-slate-200 bg-white text-slate-900 shadow-lift"
+          className="absolute right-0 top-[calc(100%+0.35rem)] z-[60] min-w-[9rem] overflow-hidden rounded-xl border border-mist-200 bg-white text-ink-900 shadow-lift"
         >
           {SUPPORTED_LANGS.map((code) => {
             const active = code === lang;
@@ -60,11 +60,11 @@ export default function LanguageSwitcher({ className = "" }) {
                 className={`flex w-full items-center justify-between gap-3 px-3 py-2.5 text-sm transition ${
                   active
                     ? "bg-sun-50 text-sun-700 font-semibold"
-                    : "hover:bg-slate-50"
+                    : "hover:bg-mist-50"
                 }`}
               >
                 <span>{t(`lang.${code}`)}</span>
-                <span className="text-xs font-bold text-slate-400">
+                <span className="text-xs font-bold text-ink-400">
                   {LANG_LABELS[code]}
                 </span>
               </button>

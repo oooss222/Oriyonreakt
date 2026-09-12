@@ -31,8 +31,8 @@ function FilterSelect({
           value={value || ""}
           disabled={disabled}
           onChange={(e) => onChange(e.target.value)}
-          className={`w-full h-12 appearance-none rounded-xl bg-white px-4 pr-10 text-sm outline-none transition shadow-sm border border-white/80 focus:ring-2 focus:ring-sun/40 disabled:bg-slate-100 disabled:text-slate-400 ${
-            value ? "text-slate-900 font-medium" : "text-slate-500"
+          className={`w-full h-12 appearance-none rounded-xl bg-white px-4 pr-10 text-sm outline-none transition shadow-sm border border-white/80 focus:ring-2 focus:ring-sun/40 disabled:bg-mist-100 disabled:text-ink-400 ${
+            value ? "text-ink-900 font-medium" : "text-ink-500"
           }`}
         >
           <option value="">{placeholder || label}</option>
@@ -45,7 +45,7 @@ function FilterSelect({
 
         <ChevronDown
           size={18}
-          className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"
+          className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-ink-400"
         />
       </div>
     </label>
@@ -148,7 +148,7 @@ function PriceFilterPopover({ draft, setDraft, onApply }) {
       ? createPortal(
           <div
             ref={panelRef}
-            className="fixed z-[300] rounded-xl border border-slate-200 bg-white p-3 shadow-xl"
+            className="fixed z-[300] rounded-xl border border-mist-200 bg-white p-3 shadow-xl"
             style={{
               top: panelStyle.top,
               left: panelStyle.left,
@@ -156,7 +156,7 @@ function PriceFilterPopover({ draft, setDraft, onApply }) {
             }}
           >
             <div className="flex items-stretch gap-2">
-              <div className="flex flex-1 h-11 rounded-lg border border-slate-200 overflow-hidden">
+              <div className="flex flex-1 h-11 rounded-lg border border-mist-200 overflow-hidden">
                 <input
                   type="text"
                   inputMode="numeric"
@@ -168,7 +168,7 @@ function PriceFilterPopover({ draft, setDraft, onApply }) {
                       priceFrom: getPriceDigits(e.target.value),
                     }))
                   }
-                  className="w-1/2 h-full px-3 text-sm outline-none border-r border-slate-200 placeholder:text-slate-400"
+                  className="w-1/2 h-full px-3 text-sm outline-none border-r border-mist-200 placeholder:text-ink-400"
                 />
 
                 <input
@@ -182,7 +182,7 @@ function PriceFilterPopover({ draft, setDraft, onApply }) {
                       priceTo: getPriceDigits(e.target.value),
                     }))
                   }
-                  className="w-1/2 h-full px-3 text-sm outline-none placeholder:text-slate-400"
+                  className="w-1/2 h-full px-3 text-sm outline-none placeholder:text-ink-400"
                 />
               </div>
 
@@ -195,7 +195,7 @@ function PriceFilterPopover({ draft, setDraft, onApply }) {
                       priceCurrency: e.target.value,
                     }))
                   }
-                  className="h-11 min-w-[4.5rem] appearance-none rounded-lg border border-slate-200 bg-white pl-3 pr-8 text-sm outline-none focus:ring-2 focus:ring-sun/40"
+                  className="h-11 min-w-[4.5rem] appearance-none rounded-lg border border-mist-200 bg-white pl-3 pr-8 text-sm outline-none focus:ring-2 focus:ring-sun/40"
                 >
                   <option value="с.">с.</option>
                   <option value="$">$</option>
@@ -203,7 +203,7 @@ function PriceFilterPopover({ draft, setDraft, onApply }) {
 
                 <ChevronDown
                   size={16}
-                  className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-slate-400"
+                  className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-ink-400"
                 />
               </div>
             </div>
@@ -217,15 +217,15 @@ function PriceFilterPopover({ draft, setDraft, onApply }) {
       <button
         type="button"
         onClick={() => setOpen((value) => !value)}
-        className={`w-full h-12 flex items-center justify-between gap-3 rounded-xl bg-white px-4 text-sm outline-none transition shadow-sm border border-white/80 hover:border-slate-200 focus:ring-2 focus:ring-sun/40 ${
-          summary ? "text-slate-900 font-medium" : "text-slate-500"
+        className={`w-full h-12 flex items-center justify-between gap-3 rounded-xl bg-white px-4 text-sm outline-none transition shadow-sm border border-white/80 hover:border-mist-200 focus:ring-2 focus:ring-sun/40 ${
+          summary ? "text-ink-900 font-medium" : "text-ink-500"
         }`}
       >
         <span className="truncate">{summary || t("form.price")}</span>
         {open ? (
-          <ChevronUp size={18} className="shrink-0 text-slate-400" />
+          <ChevronUp size={18} className="shrink-0 text-ink-400" />
         ) : (
-          <ChevronDown size={18} className="shrink-0 text-slate-400" />
+          <ChevronDown size={18} className="shrink-0 text-ink-400" />
         )}
       </button>
 
@@ -507,7 +507,7 @@ function renderField(
 
     return (
       <div>
-        <div className="mb-1 text-xs font-medium text-slate-500 px-1">{field.label}</div>
+        <div className="mb-1 text-xs font-medium text-ink-500 px-1">{field.label}</div>
         <RangeFilter
           from={draft[fromKey] || ""}
           to={draft[toKey] || ""}
@@ -542,8 +542,8 @@ function renderField(
         }
         className={`h-12 w-full rounded-xl border px-4 text-sm font-semibold transition ${
           active
-            ? "bg-slate-900 text-white border-slate-900"
-            : "bg-white text-slate-600 border-white/80 shadow-sm"
+            ? "bg-ink-900 text-white border-ink-900"
+            : "bg-white text-ink-600 border-white/80 shadow-sm"
         }`}
       >
         {field.label}
@@ -690,7 +690,7 @@ export default function ListingFiltersPanel({
       <div
         className={`mt-4 pt-4 border-t border-ink/10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 ${
           compact
-            ? "sticky bottom-0 z-10 -mx-0 px-3 py-3 bg-white border-t border-slate-200 shadow-[0_-8px_24px_rgba(0,0,0,0.06)]"
+            ? "sticky bottom-0 z-10 -mx-0 px-3 py-3 bg-white border-t border-mist-200 shadow-[0_-8px_24px_rgba(0,0,0,0.06)]"
             : ""
         }`}
       >
@@ -710,7 +710,7 @@ export default function ListingFiltersPanel({
             <button
               type="button"
               onClick={onReset}
-              className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700 transition"
+              className="inline-flex items-center gap-1.5 text-sm text-ink-500 hover:text-ink-700 transition"
             >
               <X size={15} />
               {t("filter.reset")}

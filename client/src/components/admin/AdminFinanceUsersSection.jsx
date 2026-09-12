@@ -95,7 +95,7 @@ export default function AdminFinanceUsersSection({ token, currentUser }) {
               <Users className="w-4 h-4" />
               {t("admin.finance.users.badge")}
             </div>
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-ink-500">
               {t("admin.finance.users.subtitle")}
             </p>
           </div>
@@ -104,7 +104,7 @@ export default function AdminFinanceUsersSection({ token, currentUser }) {
             type="button"
             onClick={loadUsers}
             disabled={refreshing}
-            className="px-4 py-2 rounded-xl border hover:bg-slate-50 disabled:opacity-60"
+            className="px-4 py-2 rounded-xl border hover:bg-mist-50 disabled:opacity-60"
           >
             {refreshing ? t("admin.common.refreshing") : t("admin.common.refresh")}
           </button>
@@ -116,7 +116,7 @@ export default function AdminFinanceUsersSection({ token, currentUser }) {
           </div>
         )}
 
-        <div className="rounded-2xl border bg-slate-50 p-3 grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div className="rounded-2xl border bg-mist-50 p-3 grid grid-cols-1 md:grid-cols-3 gap-3">
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
@@ -137,7 +137,7 @@ export default function AdminFinanceUsersSection({ token, currentUser }) {
           </select>
         </div>
 
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-sm text-slate-500">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-sm text-ink-500">
           <div>
             {t("admin.pagination.shownOf", { shown: users.length, total })}
             {query !== debouncedQuery ? t("admin.pagination.searchingSuffix") : ""}
@@ -168,14 +168,14 @@ export default function AdminFinanceUsersSection({ token, currentUser }) {
         </div>
 
         {users.length === 0 ? (
-          <div className="rounded-2xl border bg-slate-50 p-8 text-center text-slate-500">
+          <div className="rounded-2xl border bg-mist-50 p-8 text-center text-ink-500">
             {t("admin.finance.users.empty")}
           </div>
         ) : (
           <div className="overflow-x-auto rounded-2xl border">
             <table className="w-full text-sm border-collapse bg-white">
-              <thead className="bg-slate-50">
-                <tr className="border-b text-left text-slate-500">
+              <thead className="bg-mist-50">
+                <tr className="border-b text-left text-ink-500">
                   <th className="py-3 px-3">{t("admin.finance.col.user")}</th>
                   <th className="py-3 px-3">Email</th>
                   <th className="py-3 px-3">{t("admin.finance.users.colRole")}</th>
@@ -192,7 +192,7 @@ export default function AdminFinanceUsersSection({ token, currentUser }) {
                   return (
                     <tr
                       key={id}
-                      className="border-b last:border-b-0 hover:bg-slate-50 cursor-pointer"
+                      className="border-b last:border-b-0 hover:bg-mist-50 cursor-pointer"
                       onClick={() => setSelectedUserId(id)}
                     >
                       <td className="py-3 px-3">

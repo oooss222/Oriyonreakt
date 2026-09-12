@@ -97,7 +97,7 @@ export default function AdminSettingsSection({ token }) {
           {t("admin.settings.badge")}
         </div>
         <h2 className="text-xl font-bold">{t("admin.settings.title")}</h2>
-        <p className="text-sm text-slate-500 mt-1">
+        <p className="text-sm text-ink-500 mt-1">
           {t("admin.settings.subtitle")}
         </p>
       </div>
@@ -156,13 +156,13 @@ export default function AdminSettingsSection({ token }) {
               }
               className="h-11 w-full rounded-xl border px-3"
             />
-            <div className="text-xs text-slate-500 mt-1">
+            <div className="text-xs text-ink-500 mt-1">
               {t("admin.settings.bumpPriceHint")}
             </div>
           </label>
         </div>
 
-        <div className="rounded-2xl border bg-slate-50 p-4 space-y-3">
+        <div className="rounded-2xl border bg-mist-50 p-4 space-y-3">
           <div className="font-medium">{t("admin.settings.accountingTitle")}</div>
           <label className="block">
             <div className="text-sm font-medium mb-1">{t("admin.settings.reportEmailLabel")}</div>
@@ -193,14 +193,14 @@ export default function AdminSettingsSection({ token }) {
             />
             <div>
               <div className="font-medium">{t("admin.settings.monthlyReportLabel")}</div>
-              <div className="text-sm text-slate-500">
+              <div className="text-sm text-ink-500">
                 {t("admin.settings.monthlyReportDesc")}
               </div>
             </div>
           </label>
         </div>
 
-        <label className="flex items-center gap-3 rounded-xl border bg-slate-50 p-4 cursor-pointer">
+        <label className="flex items-center gap-3 rounded-xl border bg-mist-50 p-4 cursor-pointer">
           <input
             type="checkbox"
             checked={form.registrationEnabled}
@@ -214,7 +214,7 @@ export default function AdminSettingsSection({ token }) {
           />
           <div>
             <div className="font-medium">{t("admin.settings.registrationLabel")}</div>
-            <div className="text-sm text-slate-500">
+            <div className="text-sm text-ink-500">
               {t("admin.settings.registrationDesc")}
             </div>
           </div>
@@ -235,7 +235,7 @@ export default function AdminSettingsSection({ token }) {
         <button
           type="submit"
           disabled={saving}
-          className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-slate-900 text-white hover:bg-slate-800 disabled:opacity-60"
+          className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-ink-900 text-white hover:bg-ink-800 disabled:opacity-60"
         >
           <Save size={18} />
           {saving ? t("admin.settings.saving") : t("admin.settings.saveButton")}
