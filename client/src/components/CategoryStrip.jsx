@@ -66,16 +66,19 @@ export default function CategoryStrip({ compact = false }) {
   return (
     <div className="border-t border-white/10 bg-ink-800">
       <div className={`category-strip ${compact ? "category-strip--compact" : ""}`}>
-        {canPrev && (
-          <button
-            type="button"
-            className="category-strip__arrow category-strip__arrow--prev"
-            onClick={() => scrollByPage(-1)}
-            aria-label={t("common.prev")}
-          >
-            <ChevronLeft size={20} />
-          </button>
-        )}
+        <button
+          type="button"
+          className={`category-strip__arrow category-strip__arrow--prev ${
+            canPrev ? "" : "category-strip__arrow--hidden"
+          }`}
+          onClick={() => scrollByPage(-1)}
+          aria-label={t("common.prev")}
+          aria-hidden={!canPrev}
+          tabIndex={canPrev ? 0 : -1}
+          disabled={!canPrev}
+        >
+          <ChevronLeft size={20} />
+        </button>
 
         <nav
           ref={scrollerRef}
@@ -123,16 +126,19 @@ export default function CategoryStrip({ compact = false }) {
           })}
         </nav>
 
-        {canNext && (
-          <button
-            type="button"
-            className="category-strip__arrow category-strip__arrow--next"
-            onClick={() => scrollByPage(1)}
-            aria-label={t("common.next")}
-          >
-            <ChevronRight size={20} />
-          </button>
-        )}
+        <button
+          type="button"
+          className={`category-strip__arrow category-strip__arrow--next ${
+            canNext ? "" : "category-strip__arrow--hidden"
+          }`}
+          onClick={() => scrollByPage(1)}
+          aria-label={t("common.next")}
+          aria-hidden={!canNext}
+          tabIndex={canNext ? 0 : -1}
+          disabled={!canNext}
+        >
+          <ChevronRight size={20} />
+        </button>
       </div>
     </div>
   );

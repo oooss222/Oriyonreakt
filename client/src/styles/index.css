@@ -315,11 +315,11 @@
   }
 
   .category-strip {
-    @apply relative mx-auto max-w-7xl px-4 sm:px-6;
+    @apply relative mx-auto flex max-w-7xl items-center px-4 sm:px-6;
   }
 
   .category-strip__track {
-    @apply flex gap-3 sm:gap-4 overflow-x-auto scroll-smooth py-3 lg:py-4;
+    @apply flex min-w-0 flex-1 gap-3 sm:gap-4 overflow-x-auto scroll-smooth py-3 lg:py-4;
     -ms-overflow-style: none;
     scrollbar-width: none;
     scroll-padding-inline: 0.5rem;
@@ -376,34 +376,20 @@
   }
 
   .category-strip__arrow {
-    @apply absolute top-1/2 z-10 hidden sm:grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full border border-white/15 bg-ink-700/95 text-white shadow-lift backdrop-blur-sm transition hover:bg-ink-600 hover:border-sun/50;
+    @apply relative z-10 hidden sm:grid h-10 w-10 shrink-0 place-items-center rounded-full border border-white/15 bg-ink-700/95 text-white shadow-lift backdrop-blur-sm transition hover:bg-ink-600 hover:border-sun/50;
+  }
+
+  .category-strip__arrow:disabled,
+  .category-strip__arrow--hidden {
+    @apply pointer-events-none invisible;
   }
 
   .category-strip__arrow--prev {
-    @apply left-1 sm:left-2;
+    @apply mr-1;
   }
 
   .category-strip__arrow--next {
-    @apply right-1 sm:right-2;
-  }
-
-  .category-strip:has(.category-strip__arrow--prev) .category-strip__track {
-    mask-image: linear-gradient(to right, transparent, #000 2.5rem, #000 100%);
-  }
-
-  .category-strip:has(.category-strip__arrow--next) .category-strip__track {
-    mask-image: linear-gradient(to right, #000 0%, #000 calc(100% - 2.5rem), transparent);
-  }
-
-  .category-strip:has(.category-strip__arrow--prev):has(.category-strip__arrow--next)
-    .category-strip__track {
-    mask-image: linear-gradient(
-      to right,
-      transparent,
-      #000 2.5rem,
-      #000 calc(100% - 2.5rem),
-      transparent
-    );
+    @apply ml-1;
   }
 
   .category-hero {
