@@ -57,6 +57,40 @@ const GROUP_ALIASES = {
   Снаряжение: ["Снаряжение", "Туристическое снаряжение"],
 };
 
+/** Canonical group → items so group filters match listings without relying only on aliases. */
+const GROUP_ITEMS = {
+  "Туры по Таджикистану": [
+    "Фанские горы",
+    "Памир и Хорог",
+    "Искандеркуль",
+    "Семь озёр",
+    "Худжанд и Согд",
+    "Другие маршруты",
+  ],
+  "Туры за границу": ["Узбекистан", "Турция", "ОАЭ", "Россия", "Другое"],
+  "Экскурсии и гиды": [
+    "Гиды",
+    "Групповые экскурсии",
+    "Индивидуальные",
+    "Горные маршруты",
+    "Другое",
+  ],
+  "Базы отдыха": [
+    "Базы и дома отдыха",
+    "Горные домики",
+    "Кемпинг и глэмпинг",
+    "Другое",
+  ],
+  "Транспорт и билеты": [
+    "Аренда авто",
+    "Авто с водителем",
+    "Трансфер",
+    "Авиа и ж/д билеты",
+    "Другое",
+  ],
+  Снаряжение: ["Палатки и спальники", "Рюкзаки", "Альпинизм", "Другое"],
+};
+
 export function expandSubcategoryFilterValues(subcategory = "") {
   const value = String(subcategory || "").trim();
   if (!value) return [];
@@ -90,6 +124,15 @@ export function expandSubcategoryFilterValues(subcategory = "") {
       }
       if (String(to).startsWith(prefix)) set.add(to);
     }
+    const items = GROUP_ITEMS[group];
+    if (items) {
+      for (const item of items) set.add(`${group} — ${item}`);
+    }
+  }
+
+  const directItems = GROUP_ITEMS[value];
+  if (directItems) {
+    for (const item of directItems) set.add(`${value} — ${item}`);
   }
 
   return [...set];
