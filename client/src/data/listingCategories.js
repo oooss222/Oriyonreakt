@@ -26,6 +26,10 @@ import {
   TRAVEL_TOUR_SPECS,
   resolveTravelSpecTemplate,
 } from "./travelFilters";
+import {
+  CONSTRUCTION_GOODS_SPECS,
+  resolveConstructionSpecTemplate,
+} from "./constructionFilters";
 
 import { REAL_ESTATE_SUB_SPECS } from "./realEstate";
 import { DEFAULT_REAL_ESTATE_BROWSE_PATH } from "./realEstate";
@@ -610,18 +614,8 @@ export const CATS = {
     desc: "Материалы, аренда техники, окна, электрика и услуги мастеров",
     subs: CONSTRUCTION_GROUPS.subs,
     subGroups: CONSTRUCTION_GROUPS.subGroups,
-    specTemplate: [
-      {
-        name: "Тип сделки",
-        type: "select",
-        options: ["Продажа", "Аренда", "Услуга"],
-      },
-      {
-        name: "Состояние",
-        type: "select",
-        options: COMMON_SPEC_OPTIONS.condition,
-      },
-    ],
+    specTemplate: CONSTRUCTION_GOODS_SPECS,
+    resolveSpecTemplate: resolveConstructionSpecTemplate,
   },
 };
 
