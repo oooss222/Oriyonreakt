@@ -1,5 +1,5 @@
 import React from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import ListingCard from "../components/ListingCard";
 import RealEstateListingCard from "../components/RealEstateListingCard";
 import ListingGridSkeleton from "../components/ListingGridSkeleton";
@@ -12,7 +12,6 @@ import { getDefaultCity } from "../lib/recommendationProfile";
 import { CONSENT_EVENT } from "../lib/cookieConsent";
 import { sortListingsByPromotion } from "../lib/listingSort";
 import { usePageMeta } from "../lib/usePageMeta";
-import { trackSearch } from "../lib/track";
 import { REAL_ESTATE_CAT, DEFAULT_REAL_ESTATE_BROWSE_PATH } from "../data/realEstate";
 import {
   PlusCircle,
@@ -20,13 +19,13 @@ import {
   Tag,
   ArrowRight,
   TrendingUp,
+  BadgeCheck,
   Flame,
+  Home as HomeIcon,
   Smartphone,
   Monitor,
   Building2,
   Eye,
-  Search,
-  Tv,
 } from "lucide-react";
 
 function RealEstateSection({ items }) {
@@ -80,7 +79,7 @@ function HorizontalSection({ title, icon: Icon, items, linkTo = "/listing" }) {
     <section className="space-y-4">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <div className="w-10 h-10 icon-box-sun shrink-0">
+          <div className="w-10 h-10 rounded-2xl bg-sun-50 grid place-items-center ring-1 ring-sun/15">
             <Icon className="text-sun" size={20} />
           </div>
 
@@ -110,68 +109,6 @@ function HorizontalSection({ title, icon: Icon, items, linkTo = "/listing" }) {
             trackSource="home"
           />
         ))}
-      </div>
-    </section>
-  );
-}
-
-function HomeHero() {
-  const { t } = useI18n();
-  const nav = useNavigate();
-  const [q, setQ] = React.useState("");
-
-  const submit = (event) => {
-    event?.preventDefault?.();
-    const text = q.trim();
-    if (text) {
-      trackSearch(text);
-      nav(`/listing?search=${encodeURIComponent(text)}`);
-      return;
-    }
-    nav("/listing");
-  };
-
-  return (
-    <section className="home-hero" aria-label={t("home.heroAria")}>
-      <div className="home-hero__media" aria-hidden="true">
-        <img
-          src="/img/realestate.png"
-          alt=""
-          fetchPriority="high"
-          decoding="async"
-        />
-      </div>
-      <div className="home-hero__shade" aria-hidden="true" />
-
-      <div className="home-hero__content">
-        <div className="home-hero__brand">
-          Oriyon<span className="text-sun">.</span>
-          <span className="text-white/70 font-semibold text-[0.55em] align-middle">
-            store
-          </span>
-        </div>
-
-        <p className="home-hero__lead">{t("home.heroLead")}</p>
-
-        <div className="home-hero__actions">
-          <form className="home-hero__search" onSubmit={submit} role="search">
-            <Search size={18} className="ml-4 shrink-0 text-ink-300" aria-hidden />
-            <input
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder={t("home.heroSearchPlaceholder")}
-              aria-label={t("home.heroSearchPlaceholder")}
-            />
-            <button type="submit" className="btn btn-primary rounded-none rounded-r-2xl px-5">
-              {t("common.find")}
-            </button>
-          </form>
-
-          <Link to="/add" className="btn btn-accent shrink-0 sm:min-w-[11rem]">
-            <PlusCircle size={18} />
-            {t("footer.postListing")}
-          </Link>
-        </div>
       </div>
     </section>
   );
@@ -296,22 +233,7 @@ export default function Home() {
 
   return (
     <div className="page-shell">
-      <HomeHero />
-
       <div className="container-x py-6 space-y-10">
-        <div className="home-trust" role="list">
-          <span role="listitem">
-            <ShieldCheck size={16} className="inline mr-1.5 text-sun align-text-bottom" />
-            <strong>{t("home.trustModeration")}</strong>
-          </span>
-          <span role="listitem">
-            <strong>{t("home.trustAccount")}</strong>
-          </span>
-          <span role="listitem">
-            <strong>{t("home.trustPromotion")}</strong>
-          </span>
-        </div>
-
         {loading && (
           <ListingGridSkeleton
             count={12}
@@ -345,62 +267,103 @@ export default function Home() {
                   {t("home.noPublishedHint")}
                 </p>
 
-                <Link to="/add" className="btn btn-primary mt-4">
+                <Link
+                  to="/add"
+                  className="btn btn-primary mt-4"
+                >
                   <PlusCircle size={18} />
                   {t("footer.postListing")}
                 </Link>
               </div>
             ) : (
               <div className="space-y-10">
-                {recentlyViewed.length > 0 && (
-                  <HorizontalSection
-                    title={t("home.viewed")}
-                    icon={Eye}
-                    items={recentlyViewed}
-                    linkTo="/listing"
-                  />
-                )}
+            {recentlyViewed.length > 0 && (
+              <HorizontalSection
+                title={t("home.viewed")}
+                icon={Eye}
+                items={recentlyViewed}
+                linkTo="/listing"
+              />
+            )}
 
-                <HorizontalSection
-                  title={personalized ? t("home.pickedForYou") : t("home.hotDeals")}
-                  icon={personalized ? Tag : Flame}
-                  items={hotListings}
-                  linkTo="/listing"
-                />
+            <HorizontalSection
+              title={personalized ? t("home.pickedForYou") : t("home.hotDeals")}
+              icon={personalized ? Tag : Flame}
+              items={hotListings}
+              linkTo="/listing"
+            />
 
-                <AdSlot placement="home_mid" className="overflow-hidden rounded-3xl" />
+            <AdSlot placement="home_mid" className="overflow-hidden rounded-3xl" />
 
-                <HorizontalSection
-                  title={t("categories.electronics")}
-                  icon={Tv}
-                  items={electronicsListings}
-                  linkTo="/c/electronics"
-                />
+            <HorizontalSection
+              title={t("categories.electronics")}
+              icon={HomeIcon}
+              items={electronicsListings}
+              linkTo="/c/electronics"
+            />
 
-                <HorizontalSection
-                  title={t("categories.phones")}
-                  icon={Smartphone}
-                  items={phonesListings}
-                  linkTo="/c/phones"
-                />
+            <HorizontalSection
+              title={t("categories.phones")}
+              icon={Smartphone}
+              items={phonesListings}
+              linkTo="/c/phones"
+            />
 
-                <HorizontalSection
-                  title={t("categories.computers")}
-                  icon={Monitor}
-                  items={computersListings}
-                  linkTo="/c/computers"
-                />
+            <HorizontalSection
+              title={t("categories.computers")}
+              icon={Monitor}
+              items={computersListings}
+              linkTo="/c/computers"
+            />
 
-                <HorizontalSection
-                  title={t("home.newListings")}
-                  icon={TrendingUp}
-                  items={newestListings}
-                  linkTo="/listing"
-                />
-              </div>
+            <HorizontalSection
+              title={t("home.newListings")}
+              icon={TrendingUp}
+              items={newestListings}
+              linkTo="/listing"
+            />
+          </div>
             )}
           </>
         )}
+
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="surface-panel p-5">
+            <div className="w-11 h-11 icon-box-sun mb-3">
+              <ShieldCheck />
+            </div>
+
+            <h3 className="font-display font-bold text-lg text-ink">
+              {t("home.moderationTitle")}
+            </h3>
+
+            <p className="text-sm text-ink-400 mt-2">{t("home.moderationDesc")}</p>
+          </div>
+
+          <div className="surface-panel p-5">
+            <div className="w-11 h-11 icon-box-sun mb-3">
+              <BadgeCheck />
+            </div>
+
+            <h3 className="font-display font-bold text-lg text-ink">
+              {t("home.accountTitle")}
+            </h3>
+
+            <p className="text-sm text-ink-400 mt-2">{t("home.accountDesc")}</p>
+          </div>
+
+          <div className="surface-panel p-5">
+            <div className="w-11 h-11 icon-box-ink mb-3">
+              <ShieldCheck />
+            </div>
+
+            <h3 className="font-display font-bold text-lg text-ink">
+              {t("home.promotionTitle")}
+            </h3>
+
+            <p className="text-sm text-ink-400 mt-2">{t("home.promotionDesc")}</p>
+          </div>
+        </section>
       </div>
     </div>
   );
