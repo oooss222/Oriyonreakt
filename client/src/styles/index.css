@@ -192,12 +192,31 @@
   }
 
   .sheet {
-    @apply fixed inset-x-0 bottom-0 z-[71] max-h-[92vh] overflow-hidden rounded-t-3xl
+    @apply fixed inset-x-0 bottom-0 z-[71] flex max-h-[92vh] flex-col overflow-hidden rounded-t-3xl
            border border-ink/10 bg-white shadow-lift;
   }
 
   .sheet__handle {
-    @apply mx-auto mt-3 mb-1 h-1.5 w-10 rounded-full bg-ink/15;
+    @apply mx-auto mt-3 mb-1 h-1.5 w-10 shrink-0 rounded-full bg-ink/15;
+  }
+
+  .sheet__header {
+    @apply flex shrink-0 items-center justify-between gap-3 border-b border-ink/10 px-4 pb-3;
+  }
+
+  .sheet__body {
+    @apply min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 pt-3;
+  }
+
+  .sheet__footer {
+    @apply flex shrink-0 flex-col gap-2 border-t border-ink/10 bg-white px-4 py-3
+           pb-[calc(0.75rem+env(safe-area-inset-bottom))] sm:flex-row sm:items-center sm:justify-between;
+  }
+
+  .listing-sticky-chips {
+    @apply sticky z-20 -mx-4 border-b border-ink/10 bg-mist/95 px-4 py-2 backdrop-blur lg:hidden;
+    /* Clear sticky header (logo + search row on mobile). */
+    top: 4.5rem;
   }
 
   .section-title {

@@ -950,7 +950,7 @@ export default function Listing() {
         </div>
 
         {showSubcategoryChips && (
-          <div className="lg:hidden sticky top-0 z-20 -mx-4 px-4 py-2 bg-mist/95 backdrop-blur border-b border-ink/10">
+          <div className="listing-sticky-chips">
             <SubcategoryChips
               subcategories={availableSubcategories}
               activeSubcategory={effectiveSubcategory}
@@ -1046,29 +1046,36 @@ export default function Listing() {
       </div>
 
       {mobileFiltersOpen && !isRealEstate && (
-        <div className="lg:hidden fixed inset-0 z-[70]">
+        <>
           <button
             type="button"
             aria-label={t("a11y.closeFilters")}
-            className="absolute inset-0 bg-black/40"
+            className="sheet-backdrop lg:hidden"
             onClick={() => setMobileFiltersOpen(false)}
           />
 
-          <div className="absolute inset-x-0 bottom-0 flex max-h-[92vh] flex-col rounded-t-3xl bg-mist shadow-2xl">
-            <div className="flex shrink-0 items-center justify-between gap-3 border-b border-ink/10 px-4 py-3">
-              <h2 className="text-lg font-semibold">{t("listing.filters")}</h2>
+          <div
+            className="sheet lg:hidden"
+            role="dialog"
+            aria-modal="true"
+            aria-label={t("listing.filters")}
+          >
+            <div className="sheet__handle" aria-hidden="true" />
+
+            <div className="sheet__header">
+              <h2 className="text-lg font-semibold text-ink">{t("listing.filters")}</h2>
 
               <button
                 type="button"
                 onClick={() => setMobileFiltersOpen(false)}
-                className="p-2 rounded-xl border bg-white hover:bg-mist"
+                className="btn-ghost p-2"
                 aria-label={t("common.close")}
               >
                 <X size={18} />
               </button>
             </div>
 
-            <div className="min-h-0 flex-1 overflow-y-auto px-3 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
+            <div className="sheet__body">
               <ListingFiltersPanel
                 draft={draft}
                 setDraft={setDraft}
@@ -1082,10 +1089,39 @@ export default function Listing() {
                 hasActiveFilters={hasActiveFilters}
                 hideSubcategoryField={showSubcategoryChips}
                 compact
+                hideActions
               />
             </div>
+
+            <div className="sheet__footer">
+              {hasActiveFilters ? (
+                <button
+                  type="button"
+                  onClick={resetFilters}
+                  className="inline-flex items-center justify-center gap-1.5 h-11 px-4 text-sm text-ink-500 hover:text-ink-700 transition"
+                >
+                  <X size={15} />
+                  {t("filter.reset")}
+                </button>
+              ) : (
+                <span className="hidden sm:block" />
+              )}
+
+              <button
+                type="button"
+                onClick={() => applyFilters()}
+                className="inline-flex flex-1 justify-center items-center gap-2 h-11 px-5 rounded-xl bg-sun text-white hover:bg-sun-600 transition text-sm font-semibold shadow-sm sm:flex-none sm:min-w-[12rem]"
+              >
+                <Search size={16} />
+                {previewLoading
+                  ? t("filter.showLoading")
+                  : t("filter.showCount", {
+                      count: (draftIsDirty ? previewTotal : total).toLocaleString("ru-RU"),
+                    })}
+              </button>
+            </div>
           </div>
-        </div>
+        </>
       )}
 
       {isRealEstate && (

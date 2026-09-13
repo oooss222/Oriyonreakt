@@ -51,11 +51,7 @@ function PillGroup({ value, options, onChange }) {
             key={option.value || "__all__"}
             type="button"
             onClick={() => onChange(option.value)}
-            className={`rounded-full border px-3.5 py-1.5 text-sm font-medium transition ${
-              active
-                ? "border-ink bg-ink text-white"
-                : "border-ink/12 bg-white text-ink-600 hover:border-ink/25"
-            }`}
+            className={`chip ${active ? "chip-active" : ""}`}
           >
             {option.label}
           </button>

@@ -580,6 +580,7 @@ export default function ListingFiltersPanel({
   hasActiveFilters = false,
   compact = false,
   hideSubcategoryField = false,
+  hideActions = false,
   layout = "default",
 }) {
   const { t } = useI18n();
@@ -616,7 +617,7 @@ export default function ListingFiltersPanel({
         compact ? "p-0 border-0 shadow-none bg-transparent" : "p-4 md:p-5"
       }`}
     >
-      <div className={`space-y-3 ${compact ? "pb-24" : ""}`}>
+      <div className={`space-y-3 ${compact && !hideActions ? "pb-24" : ""}`}>
         {grid.rows.map((row, rowIndex) => (
           <div key={`row-${rowIndex}`} className={rowGridClass}>
             {row.map((field, fieldIndex) => (
@@ -700,6 +701,7 @@ export default function ListingFiltersPanel({
         </div>
       )}
 
+      {!hideActions ? (
       <div
         className={`mt-4 pt-4 border-t border-ink/10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 ${
           compact
@@ -746,6 +748,18 @@ export default function ListingFiltersPanel({
           </button>
         </div>
       </div>
+      ) : grid.more?.length > 0 ? (
+        <div className="mt-3 pt-3 border-t border-ink/10">
+          <button
+            type="button"
+            onClick={() => setMoreOpen((value) => !value)}
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-sun hover:text-sun-700 transition"
+          >
+            {moreOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            {moreOpen ? t("filter.fewerFilters") : t("filter.moreFilters")}
+          </button>
+        </div>
+      ) : null}
     </div>
   );
 }
