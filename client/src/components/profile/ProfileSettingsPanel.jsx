@@ -19,18 +19,18 @@ import { useI18n } from "../../i18n";
 
 function SectionCard({ icon: Icon, title, description, children, className = "" }) {
   return (
-    <section className={`rounded-2xl border border-ink/8 bg-white overflow-hidden shadow-soft ${className}`}>
-      <div className="px-5 py-4 border-b border-ink/8">
-        <div className="flex items-start gap-3 min-w-0">
+    <section className={`panel overflow-hidden ${className}`}>
+      <div className="border-b border-ink/10 px-5 py-4">
+        <div className="flex min-w-0 items-start gap-3">
           {Icon && (
-            <div className="w-10 h-10 rounded-xl bg-sun/10 grid place-items-center shrink-0">
-              <Icon size={18} className="text-sun" />
+            <div className="icon-box-sun h-10 w-10 shrink-0">
+              <Icon size={18} />
             </div>
           )}
           <div className="min-w-0">
-            <h2 className="font-display text-lg font-bold text-ink tracking-tight">{title}</h2>
+            <h2 className="font-display text-lg font-bold tracking-tight text-ink">{title}</h2>
             {description && (
-              <p className="text-sm text-ink-400 mt-0.5 leading-relaxed">{description}</p>
+              <p className="mt-0.5 text-sm leading-relaxed text-ink-400">{description}</p>
             )}
           </div>
         </div>
@@ -42,13 +42,13 @@ function SectionCard({ icon: Icon, title, description, children, className = "" 
 
 function Field({ label, hint, badge, children }) {
   return (
-    <label className="block">
-      <div className="flex items-center gap-2 mb-1.5">
-        <span className="text-sm font-medium text-ink-600">{label}</span>
+    <label className="field">
+      <div className="flex items-center gap-2">
+        <span className="field__label mb-0">{label}</span>
         {badge}
       </div>
       {children}
-      {hint && <p className="text-xs text-ink-300 mt-1.5">{hint}</p>}
+      {hint && <p className="field__hint">{hint}</p>}
     </label>
   );
 }

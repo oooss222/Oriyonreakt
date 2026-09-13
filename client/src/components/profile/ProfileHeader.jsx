@@ -29,11 +29,11 @@ export default function ProfileHeader({
     me?.sellerType === "company" ? t("profile.sellerCompany") : t("profile.sellerPrivate");
 
   return (
-    <div className="rounded-2xl border border-ink/8 bg-white shadow-soft overflow-hidden">
+    <div className="panel overflow-hidden">
       <div className="p-4 md:p-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex items-start gap-4 min-w-0">
-            <div className="relative w-16 h-16 sm:w-[4.5rem] sm:h-[4.5rem] rounded-2xl bg-sun text-white font-bold text-xl grid place-items-center shrink-0 shadow-soft">
+          <div className="flex min-w-0 items-start gap-4">
+            <div className="relative grid h-16 w-16 shrink-0 place-items-center rounded-2xl bg-sun text-xl font-bold text-white shadow-soft sm:h-[4.5rem] sm:w-[4.5rem]">
               {initials !== "?" ? initials : <UserIcon size={28} />}
             </div>
 
@@ -62,11 +62,11 @@ export default function ProfileHeader({
             <button
               type="button"
               onClick={onOpenWallet}
-              className="inline-flex items-center gap-2 rounded-xl bg-sun px-4 py-2.5 text-sm font-semibold text-white hover:bg-sun-600 transition shadow-soft"
+              className="btn btn-primary"
             >
               <Wallet size={16} />
               {t("nav.wallet")}
-              <span className="opacity-90 tabular-nums">
+              <span className="tabular-nums opacity-90">
                 {formatMoney(walletBalance, { currency: "с.", emptyLabel: "0 с." })}
               </span>
             </button>
@@ -74,7 +74,7 @@ export default function ProfileHeader({
             {userId && (
               <Link
                 to={`/seller/${userId}`}
-                className="inline-flex items-center gap-1.5 rounded-xl border border-ink/10 bg-white px-3.5 py-2.5 text-sm font-medium text-ink-600 hover:border-sun/40 hover:text-sun transition"
+                className="btn btn-secondary"
               >
                 {t("profile.howOthersSee")}
                 <ExternalLink size={14} />
@@ -83,7 +83,7 @@ export default function ProfileHeader({
 
             <button
               type="button"
-              className="inline-flex items-center gap-1.5 rounded-xl border border-ink/10 bg-white px-3.5 py-2.5 text-sm font-medium text-ink-600 hover:bg-mist transition"
+              className="btn btn-secondary"
               onClick={onLogout}
             >
               <LogOut size={16} />

@@ -31,7 +31,7 @@ export default function WalletPanel({
           <button
             type="button"
             onClick={onOpenPromote}
-            className="mobile-btn bg-sun text-white hover:bg-sun-600 shrink-0"
+            className="btn btn-primary shrink-0"
           >
             <TrendingUp size={18} />
             {t("home.promotionTitle")}
@@ -39,10 +39,10 @@ export default function WalletPanel({
         </div>
       )}
 
-      <div className="rounded-2xl border bg-white p-4 md:p-5 space-y-4">
+      <div className="panel space-y-4 p-4 md:p-5">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-sun-50 grid place-items-center">
-            <Wallet className="text-sun" size={22} />
+          <div className="icon-box-sun h-12 w-12">
+            <Wallet size={22} />
           </div>
           <div>
             <div className="text-sm text-ink-500">{t("promotion.walletBalance")}</div>
@@ -61,7 +61,7 @@ export default function WalletPanel({
         <WalletTopUp token={token} onSuccess={onWalletSuccess} />
       </div>
 
-      <div className="rounded-2xl border bg-white p-4 md:p-5 space-y-3">
+      <div className="panel space-y-3 p-4 md:p-5">
         <h3 className="text-lg font-semibold">{t("wallet.recentOperations")}</h3>
 
         {walletHistory.length === 0 ? (

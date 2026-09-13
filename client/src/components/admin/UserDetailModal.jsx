@@ -1,4 +1,5 @@
 import React from "react";
+import { createPortal } from "react-dom";
 import { Link, useNavigate } from "react-router-dom";
 import {
   X,
@@ -253,18 +254,31 @@ export default function UserDetailModal({
     archived: t("admin.userDetail.listingsArchived"),
   };
 
-  return (
-    <div
-      className="fixed inset-0 z-[120] bg-black/40 flex items-end md:items-center justify-center p-0 md:p-4"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="user-detail-modal-title"
-    >
-      <div className="w-full md:max-w-3xl max-h-[92vh] overflow-y-auto rounded-t-3xl md:rounded-2xl bg-white shadow-xl border">
-        <div className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b bg-white px-4 md:px-5 py-4">
-          <div>
-            <h3 id="user-detail-modal-title" className="text-lg font-bold">{t("admin.userDetail.title")}</h3>
-            <p className="text-sm text-ink-500">
+  if (typeof document === "undefined") return null;
+
+  return createPortal(
+    <>
+      <button
+        type="button"
+        className="sheet-backdrop sheet-backdrop--top"
+        aria-label={t("common.close")}
+        onClick={onClose}
+      />
+
+      <div
+        className="sheet sheet--top sheet--dialog sheet--dialog-lg"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="user-detail-modal-title"
+      >
+        <div className="sheet__handle sm:hidden" aria-hidden="true" />
+
+        <div className="sheet__header">
+          <div className="min-w-0">
+            <h3 id="user-detail-modal-title" className="text-lg font-bold text-ink">
+              {t("admin.userDetail.title")}
+            </h3>
+            <p className="mt-1 text-sm text-ink-500">
               {readOnly
                 ? t("admin.userDetail.subtitleReadOnly")
                 : t("admin.userDetail.subtitleFull")}
@@ -273,35 +287,35 @@ export default function UserDetailModal({
           <button
             type="button"
             onClick={onClose}
-            className="p-2 rounded-xl border hover:bg-mist-50"
+            className="btn-ghost p-2"
             aria-label={t("common.close")}
           >
             <X size={18} />
           </button>
         </div>
 
-        <div className="p-4 md:p-5 space-y-5">
+        <div className="sheet__body space-y-5 pb-5">
           {loading && (
             <div className="text-sm text-ink-500 animate-pulse">{t("common.loading")}</div>
           )}
 
           {error && (
-            <div className="rounded-xl border border-red-200 bg-red-50 text-red-700 p-3">
+            <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-red-700">
               {error}
             </div>
           )}
 
           {!loading && user && (
             <>
-              <div className="admin-stat space-y-3">
+              <div className="admin-panel space-y-3 p-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <div className="text-xl font-bold">{user.name || t("admin.users.noName")}</div>
-                    <div className="text-sm text-ink-500 mt-1">ID: {getId(user)}</div>
+                    <div className="mt-1 text-sm text-ink-500">ID: {getId(user)}</div>
                   </div>
 
                   <span
-                    className={`inline-flex px-2 py-0.5 text-xs rounded-full border ${roleBadgeClass(
+                    className={`inline-flex rounded-full border px-2 py-0.5 text-xs ${roleBadgeClass(
                       user.role
                     )}`}
                   >
@@ -309,7 +323,7 @@ export default function UserDetailModal({
                   </span>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                <div className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
                   <div className="flex items-center gap-2">
                     <Mail size={16} className="text-ink-400" />
                     {user.email}
@@ -333,22 +347,22 @@ export default function UserDetailModal({
                       : "—"}
                   </div>
                   {isSuperAdmin ? (
-                    <div className="sm:col-span-2 rounded-xl border bg-white p-3 text-sm space-y-1">
+                    <div className="space-y-1 rounded-xl border border-ink/10 bg-white p-3 text-sm sm:col-span-2">
                       <div className="inline-flex items-center gap-1 font-semibold text-ink-800">
                         <Smartphone size={15} />
                         {t("admin.userDetail.registrationDevice")}
                       </div>
                       <div>{formatRegistrationDevice(user)}</div>
                       {user.registrationUserAgent ? (
-                        <div className="text-xs text-ink-500 break-all">
+                        <div className="break-all text-xs text-ink-500">
                           {user.registrationUserAgent}
                         </div>
                       ) : null}
                     </div>
                   ) : null}
                   {user.sellerType === "company" && (
-                    <div className="rounded-xl border bg-blue-50 p-3 text-sm space-y-1">
-                      <div className="inline-flex items-center gap-1 font-semibold text-blue-800">
+                    <div className="space-y-1 rounded-xl border border-lagoon/20 bg-lagoon-50 p-3 text-sm sm:col-span-2">
+                      <div className="inline-flex items-center gap-1 font-semibold text-lagoon-800">
                         <Building2 size={15} />
                         {user.companyName || t("admin.users.accountBusiness")}
                       </div>
@@ -367,7 +381,7 @@ export default function UserDetailModal({
                 <div className="flex flex-wrap gap-2">
                   <Link
                     to={`/seller/${getId(user)}`}
-                    className="inline-flex items-center gap-1 px-3 py-2 rounded-xl border hover:bg-white text-sm"
+                    className="btn btn-secondary btn-sm"
                   >
                     <ExternalLink size={16} />
                     {t("admin.userDetail.publicPage")}
@@ -378,10 +392,10 @@ export default function UserDetailModal({
                       type="button"
                       disabled={!manageable || actionLoading}
                       onClick={toggleBlock}
-                      className={`inline-flex items-center gap-1 px-3 py-2 rounded-xl border text-sm disabled:opacity-40 ${
+                      className={`btn btn-sm disabled:opacity-40 ${
                         user.isBlocked
-                          ? "hover:bg-emerald-50 text-emerald-700"
-                          : "hover:bg-red-50 text-red-700"
+                          ? "border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+                          : "border-red-200 text-red-700 hover:bg-red-50"
                       }`}
                     >
                       {user.isBlocked ? <Unlock size={16} /> : <Ban size={16} />}
@@ -394,10 +408,10 @@ export default function UserDetailModal({
                       type="button"
                       disabled={actionLoading}
                       onClick={toggleBusinessVerify}
-                      className={`inline-flex items-center gap-1 px-3 py-2 rounded-xl border text-sm disabled:opacity-40 ${
+                      className={`btn btn-sm disabled:opacity-40 ${
                         user.businessVerified
-                          ? "hover:bg-amber-50 text-amber-700"
-                          : "hover:bg-emerald-50 text-emerald-700"
+                          ? "border-amber-200 text-amber-700 hover:bg-amber-50"
+                          : "border-emerald-200 text-emerald-700 hover:bg-emerald-50"
                       }`}
                     >
                       <BadgeCheck size={16} />
@@ -412,10 +426,10 @@ export default function UserDetailModal({
                       type="button"
                       disabled={actionLoading}
                       onClick={toggleBusinessAccount}
-                      className={`inline-flex items-center gap-1 px-3 py-2 rounded-xl border text-sm disabled:opacity-40 ${
+                      className={`btn btn-sm disabled:opacity-40 ${
                         user.sellerType === "company"
-                          ? "hover:bg-red-50 text-red-700"
-                          : "hover:bg-blue-50 text-blue-700"
+                          ? "border-red-200 text-red-700 hover:bg-red-50"
+                          : "border-lagoon-200 text-lagoon-700 hover:bg-lagoon-50"
                       }`}
                     >
                       <Building2 size={16} />
@@ -428,12 +442,12 @@ export default function UserDetailModal({
 
                 {isSuperAdmin && !readOnly && (
                   <div>
-                    <div className="text-sm font-medium mb-1">{t("admin.userDetail.roleLabel")}</div>
+                    <div className="mb-1 text-sm font-medium">{t("admin.userDetail.roleLabel")}</div>
                     <select
                       value={user.role || "user"}
                       disabled={actionLoading}
                       onChange={(e) => changeRole(e.target.value)}
-                      className="h-10 rounded-xl border px-3 bg-white"
+                      className="input h-10"
                     >
                       {ROLES.map((item) => (
                         <option key={item} value={item}>
@@ -446,22 +460,22 @@ export default function UserDetailModal({
               </div>
 
               <div>
-                <h4 className="font-semibold mb-3">{t("admin.sections.listings")}</h4>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
-                  <div className="rounded-xl border p-3 bg-white">
-                    <div className="text-ink-500">{t("admin.userDetail.total")}</div>
-                    <div className="text-xl font-bold">{listings.total || 0}</div>
+                <h4 className="mb-3 font-semibold">{t("admin.sections.listings")}</h4>
+                <div className="grid grid-cols-2 gap-2 text-sm md:grid-cols-3">
+                  <div className="admin-stat">
+                    <div className="admin-stat__label">{t("admin.userDetail.total")}</div>
+                    <div className="admin-stat__value text-xl">{listings.total || 0}</div>
                   </div>
                   {Object.entries(listingStatusLabel).map(([key, label]) => (
-                    <div key={key} className="rounded-xl border p-3 bg-white">
-                      <div className="text-ink-500">{label}</div>
-                      <div className="text-xl font-bold">{listings[key] || 0}</div>
+                    <div key={key} className="admin-stat">
+                      <div className="admin-stat__label">{label}</div>
+                      <div className="admin-stat__value text-xl">{listings[key] || 0}</div>
                     </div>
                   ))}
                 </div>
               </div>
 
-              <div className="rounded-2xl border p-4 space-y-4">
+              <div className="admin-panel space-y-4 p-4">
                 <div className="flex items-center gap-2">
                   <Wallet size={18} className="text-sun-700" />
                   <h4 className="font-semibold">{t("admin.userDetail.wallet")}</h4>
@@ -472,22 +486,22 @@ export default function UserDetailModal({
                 </div>
 
                 {isSuperAdmin && !readOnly && (
-                  <div className="rounded-xl border bg-mist-50 p-3 space-y-3">
+                  <div className="space-y-3 rounded-xl border border-ink/10 bg-mist/60 p-3">
                     <div className="text-sm font-medium">{t("admin.userDetail.balanceAdjustment")}</div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                       <input
                         value={adjustAmount}
                         onChange={(e) =>
                           setAdjustAmount(e.target.value.replace(/[^\d.,]/g, ""))
                         }
                         placeholder={t("admin.userDetail.amountPlaceholder")}
-                        className="h-10 rounded-xl border px-3 bg-white"
+                        className="input h-10"
                       />
                       <input
                         value={adjustDescription}
                         onChange={(e) => setAdjustDescription(e.target.value)}
                         placeholder={t("admin.userDetail.commentPlaceholder")}
-                        className="h-10 rounded-xl border px-3 bg-white"
+                        className="input h-10"
                       />
                     </div>
                     <div className="flex flex-wrap gap-2">
@@ -495,7 +509,7 @@ export default function UserDetailModal({
                         type="button"
                         disabled={adjustLoading}
                         onClick={() => adjustWallet(1)}
-                        className="px-4 py-2 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-60"
+                        className="btn btn-lagoon btn-sm disabled:opacity-60"
                       >
                         {t("admin.userDetail.credit")}
                       </button>
@@ -503,7 +517,7 @@ export default function UserDetailModal({
                         type="button"
                         disabled={adjustLoading}
                         onClick={() => adjustWallet(-1)}
-                        className="px-4 py-2 rounded-xl bg-red-600 text-white hover:bg-red-700 disabled:opacity-60"
+                        className="btn btn-danger btn-sm disabled:opacity-60"
                       >
                         {t("admin.userDetail.debit")}
                       </button>
@@ -512,15 +526,15 @@ export default function UserDetailModal({
                 )}
 
                 <div>
-                  <div className="text-sm font-medium mb-2">{t("admin.userDetail.transactionHistory")}</div>
+                  <div className="mb-2 text-sm font-medium">{t("admin.userDetail.transactionHistory")}</div>
                   {transactions.length === 0 ? (
                     <div className="text-sm text-ink-500">{t("admin.userDetail.noTransactions")}</div>
                   ) : (
-                    <div className="space-y-2 max-h-56 overflow-y-auto">
+                    <div className="max-h-56 space-y-2 overflow-y-auto">
                       {transactions.map((tx) => (
                         <div
                           key={tx.id}
-                          className="flex items-start justify-between gap-3 rounded-xl border bg-white p-3 text-sm"
+                          className="flex items-start justify-between gap-3 rounded-xl border border-ink/10 bg-white p-3 text-sm"
                         >
                           <div>
                             <div className="font-medium">
@@ -529,14 +543,14 @@ export default function UserDetailModal({
                             {tx.description && (
                               <div className="text-ink-500">{tx.description}</div>
                             )}
-                            <div className="text-xs text-ink-400 mt-1">
+                            <div className="mt-1 text-xs text-ink-400">
                               {tx.createdAt
                                 ? new Date(tx.createdAt).toLocaleString(numberLocale)
                                 : "—"}
                             </div>
                           </div>
                           <div
-                            className={`font-bold whitespace-nowrap ${
+                            className={`whitespace-nowrap font-bold ${
                               Number(tx.amount) >= 0
                                 ? "text-emerald-700"
                                 : "text-red-700"
@@ -555,6 +569,7 @@ export default function UserDetailModal({
           )}
         </div>
       </div>
-    </div>
+    </>,
+    document.body
   );
 }

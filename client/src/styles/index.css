@@ -231,6 +231,10 @@
     @apply sm:max-w-sm;
   }
 
+  .sheet--dialog-lg {
+    @apply sm:max-w-3xl;
+  }
+
   .ad-gallery {
     @apply panel overflow-hidden;
   }

@@ -71,10 +71,10 @@ export default function ProfileTabs({
   const { t } = useI18n();
 
   return (
-    <div className="rounded-2xl border border-mist-200/80 bg-white px-1 sm:px-2 shadow-sm">
+    <div className="panel px-1 sm:px-2">
       <div
         role="tablist"
-        className="flex gap-0.5 overflow-x-auto scrollbar-hide snap-x snap-mandatory border-b border-mist-100"
+        className="flex gap-0.5 overflow-x-auto scrollbar-hide snap-x snap-mandatory border-b border-ink/10"
       >
         <TabButton tabKey="my" active={tab === "my"} onClick={() => setTab("my")} icon={LayoutGrid}>
           {t("profile.myListings")}

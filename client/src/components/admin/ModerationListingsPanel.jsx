@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { ClipboardCheck } from "lucide-react";
+import { ClipboardCheck, X } from "lucide-react";
 import { api } from "../../lib/api";
 import { useI18n } from "../../i18n";
 import { getId } from "../../lib/adminUtils";
@@ -584,52 +584,72 @@ export default function ModerationListingsPanel({ token, embedded = false }) {
         )}
 
         {rejectTarget && (
-          <div
-            className="fixed inset-0 z-[100] bg-black/40 flex items-center justify-center px-4"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="moderation-reject-modal-title"
-          >
-            <div className="w-full max-w-lg rounded-2xl bg-white shadow-xl border p-5 space-y-4">
-              <div>
-                <h3 id="moderation-reject-modal-title" className="text-lg font-bold">
-                  {rejectTarget.kind === "appeal"
-                    ? t("admin.moderation.rejectAppealModalTitle")
-                    : t("admin.moderation.rejectModalTitle")}
-                </h3>
-                <p className="text-sm text-ink-500 mt-1">
-                  {rejectTarget.kind === "appeal"
-                    ? t("admin.moderation.rejectAppealModalHint")
-                    : t("admin.moderation.rejectModalHint")}
-                </p>
-              </div>
+          <>
+            <button
+              type="button"
+              className="sheet-backdrop sheet-backdrop--top"
+              aria-label={t("common.close")}
+              onClick={closeReject}
+            />
 
-              <div className="rounded-xl border bg-mist-50 p-3">
-                <div className="text-sm font-semibold">
-                  {rejectTarget.item.title || t("admin.listings.untitled")}
+            <div
+              className="sheet sheet--top sheet--dialog"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="moderation-reject-modal-title"
+            >
+              <div className="sheet__handle sm:hidden" aria-hidden="true" />
+
+              <div className="sheet__header">
+                <div className="min-w-0">
+                  <h3 id="moderation-reject-modal-title" className="text-lg font-bold text-ink">
+                    {rejectTarget.kind === "appeal"
+                      ? t("admin.moderation.rejectAppealModalTitle")
+                      : t("admin.moderation.rejectModalTitle")}
+                  </h3>
+                  <p className="mt-1 text-sm text-ink-500">
+                    {rejectTarget.kind === "appeal"
+                      ? t("admin.moderation.rejectAppealModalHint")
+                      : t("admin.moderation.rejectModalHint")}
+                  </p>
                 </div>
-                <div className="text-xs text-ink-500 mt-1">
-                  ID: {String(getId(rejectTarget.item)).slice(0, 8)}...
+                <button
+                  type="button"
+                  onClick={closeReject}
+                  className="btn-ghost p-2"
+                  aria-label={t("common.close")}
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              <div className="sheet__body space-y-3 pb-3">
+                <div className="panel p-3">
+                  <div className="text-sm font-semibold">
+                    {rejectTarget.item.title || t("admin.listings.untitled")}
+                  </div>
+                  <div className="mt-1 text-xs text-ink-500">
+                    ID: {String(getId(rejectTarget.item)).slice(0, 8)}...
+                  </div>
+                </div>
+
+                <label className="field">
+                  <span className="field__label">{t("admin.moderation.rejectReasonLabel")}</span>
+                  <textarea
+                    value={rejectReason}
+                    onChange={(e) => setRejectReason(e.target.value)}
+                    rows={5}
+                    placeholder={t("admin.moderation.rejectReasonPlaceholder")}
+                    className="input w-full resize-y"
+                  />
+                </label>
+
+                <div className="text-xs text-ink-500">
+                  {t("admin.moderation.reasonMinLength", { count: rejectReason.trim().length })}
                 </div>
               </div>
 
-              <label className="block">
-                <div className="text-sm font-medium mb-1">{t("admin.moderation.rejectReasonLabel")}</div>
-
-                <textarea
-                  value={rejectReason}
-                  onChange={(e) => setRejectReason(e.target.value)}
-                  rows={5}
-                  placeholder={t("admin.moderation.rejectReasonPlaceholder")}
-                  className="w-full rounded-xl border px-3 py-2 outline-none focus:ring-2 focus:ring-sun/40 resize-y"
-                />
-              </label>
-
-              <div className="text-xs text-ink-500">
-                {t("admin.moderation.reasonMinLength", { count: rejectReason.trim().length })}
-              </div>
-
-              <div className="flex justify-end gap-2">
+              <div className="sheet__footer sm:justify-end">
                 <button
                   type="button"
                   onClick={closeReject}
@@ -645,7 +665,7 @@ export default function ModerationListingsPanel({ token, embedded = false }) {
                     rejectReason.trim().length < 5 ||
                     actionLoadingId === getId(rejectTarget.item)
                   }
-                  className="px-4 py-2 rounded-xl bg-red-600 text-white hover:bg-red-700 disabled:opacity-60"
+                  className="btn btn-danger disabled:opacity-60"
                 >
                   {actionLoadingId === getId(rejectTarget.item)
                     ? t("admin.moderation.rejecting")
@@ -653,7 +673,7 @@ export default function ModerationListingsPanel({ token, embedded = false }) {
                 </button>
               </div>
             </div>
-          </div>
+          </>
         )}
       </div>
     </div>
