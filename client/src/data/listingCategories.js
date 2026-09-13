@@ -132,10 +132,6 @@ const REPAIR_MATERIALS_SPECS = [
   { name: "Состояние", type: "select", options: COMMON_SPEC_OPTIONS.condition },
 ];
 
-const REPAIR_MATERIALS_SUB_TEMPLATES = Object.fromEntries(
-  REPAIR_MATERIALS_SUBS.map((name) => [name, REPAIR_MATERIALS_SPECS])
-);
-
 // Builds a flat, DB-compatible `subs` list ("Группа — Пункт") from a
 // two-level {group, items[]} definition, so listings keep storing a single
 // subcategory string while the picker UI can still show groups. Reused
@@ -578,7 +574,6 @@ export const CATS = {
     desc: "Специалисты, ремонт, обучение и сервис",
     subs: [
       "Ремонт и строительство",
-      ...REPAIR_MATERIALS_SUBS,
       "Красота и здоровье",
       "Образование и репетиторы",
       "IT и digital",
@@ -598,8 +593,13 @@ export const CATS = {
       "Ремонт авто": AUTO_REPAIR_SERVICE_SPECS,
       "Ремонт телефонов и планшетов": PHONE_REPAIR_SERVICE_SPECS,
       "Ремонт компьютеров и бытовой техники": TECH_REPAIR_SERVICE_SPECS,
-      ...REPAIR_MATERIALS_SUB_TEMPLATES,
     },
+    crossLinks: [
+      {
+        label: "Стройматериалы и инструменты",
+        to: "/c/construction",
+      },
+    ],
   },
   repair: {
     title: "Ремонт",

@@ -47,14 +47,37 @@ const REPAIR_MATERIALS_SUBS = [
   "Прочее для ремонта",
 ];
 
+/** Old goods-only repair subs → construction (they are not services). */
+const REPAIR_MATERIALS_TO_CONSTRUCTION = {
+  "Окна и двери": "Окна и двери",
+  "Ворота и заборы": "Окна и двери — Ворота",
+  Стройматериалы: "Материалы",
+  Инструменты: "Инструменты",
+  "Дома, срубы и снаряжения": "Материалы — Другое",
+  "Средства индивидуальной защиты": "Инструменты — Другое",
+  "Прочее для ремонта": "Другое",
+};
+
 export function resolveLegacyCategoryFilters(cat, subcategory) {
   const normalizedCat = String(cat || "").trim();
   const normalizedSub = String(subcategory || "").trim();
 
   if (normalizedCat === "repair") {
     return {
-      cat: "services",
-      subcategory: normalizedSub,
+      cat: "construction",
+      subcategory:
+        REPAIR_MATERIALS_TO_CONSTRUCTION[normalizedSub] || normalizedSub,
+    };
+  }
+
+  // Goods that used to live under Services → Construction.
+  if (
+    normalizedCat === "services" &&
+    REPAIR_MATERIALS_TO_CONSTRUCTION[normalizedSub]
+  ) {
+    return {
+      cat: "construction",
+      subcategory: REPAIR_MATERIALS_TO_CONSTRUCTION[normalizedSub],
     };
   }
 
@@ -73,4 +96,4 @@ export function resolveLegacyCategoryFilters(cat, subcategory) {
   return LEGACY_SUBCATEGORY_REDIRECTS[key] || null;
 }
 
-export { REPAIR_MATERIALS_SUBS };
+export { REPAIR_MATERIALS_SUBS, REPAIR_MATERIALS_TO_CONSTRUCTION };

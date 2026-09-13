@@ -44,7 +44,7 @@ function CategoryListingRoute() {
   }
 
   if (slug === "repair") {
-    return <Navigate to="/c/services" replace />;
+    return <Navigate to="/c/construction" replace />;
   }
 
   return <Listing />;

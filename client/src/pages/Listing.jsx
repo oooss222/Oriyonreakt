@@ -239,7 +239,11 @@ export default function Listing() {
       return;
     }
 
-    if (legacy.cat === "kids" || legacy.cat === "services") {
+    if (
+      legacy.cat === "kids" ||
+      legacy.cat === "services" ||
+      legacy.cat === "construction"
+    ) {
       const next = new URLSearchParams(searchParams);
       next.delete("cat");
       if (legacy.subcategory) {

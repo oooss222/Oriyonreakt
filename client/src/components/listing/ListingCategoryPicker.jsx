@@ -34,7 +34,9 @@ export default function ListingCategoryPicker({ onSelect, selected = "" }) {
           {t("listing.pickCategoryHint")}
         </p>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-          {Object.entries(CATS).map(([key, cat]) => {
+          {Object.entries(CATS)
+            .filter(([, cat]) => !cat.hiddenFromHome)
+            .map(([key, cat]) => {
             const active = selected === key;
 
             return (
