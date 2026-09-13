@@ -189,6 +189,8 @@ export default {
     TOO_MANY_ATTEMPTS: "Слишком много попыток. Запросите новый код",
     WRONG_CODE: "Неверный код",
     NAME_REQUIRED: "Укажите, как к вам обращаться",
+    BLOCKED_DISPLAY_NAME:
+      "Укажите настоящее имя. Нельзя регистрироваться под именами вроде «Бародар», «Хочи», «Ака», «Апа», «Сохибхона».",
     INVALID_EMAIL: "Некорректный email",
     IDENTITY_REQUIRED: "Укажите email или номер телефона",
     INVALID_CREDENTIALS: "Неверный email или пароль.",

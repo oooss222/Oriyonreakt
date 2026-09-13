@@ -189,6 +189,8 @@ export default {
     TOO_MANY_ATTEMPTS: "Кӯшишҳои зиёд. Рамзи нав дархост кунед",
     WRONG_CODE: "Рамз нодуруст",
     NAME_REQUIRED: "Номи худро ворид кунед",
+    BLOCKED_DISPLAY_NAME:
+      "Номи ҳақиқии худро нависед. Номҳои монанди «Бародар», «Хочи», «Ака», «Апа», «Сохибхона» иҷозат дода намешаванд.",
     INVALID_EMAIL: "Email нодуруст",
     IDENTITY_REQUIRED: "Email ё рақами телефонро ворид кунед",
     INVALID_CREDENTIALS: "Email ё парол нодуруст аст.",

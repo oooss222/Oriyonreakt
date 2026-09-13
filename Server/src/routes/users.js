@@ -3,6 +3,7 @@ const auth = require("../middleware/auth");
 const User = require("../models/User");
 const Wallet = require("../models/Wallet");
 const { walletTopUpLimiter } = require("../middleware/rateLimit");
+const { isBlockedDisplayName } = require("../lib/blockedDisplayNames");
 
 router.get("/:id/public", async (req, res) => {
   try {
@@ -99,6 +100,17 @@ router.put("/me", auth, async (req, res) => {
             : []
           : undefined,
     };
+
+    if (
+      updateFields.name !== undefined &&
+      isBlockedDisplayName(updateFields.name)
+    ) {
+      return res.status(400).json({
+        error:
+          "Укажите настоящее имя. Нельзя использовать имена вроде «Бародар», «Хочи», «Ака», «Апа», «Сохибхона».",
+        code: "BLOCKED_DISPLAY_NAME",
+      });
+    }
 
     if (current.sellerType === "company") {
       Object.assign(updateFields, {

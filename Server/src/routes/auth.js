@@ -6,6 +6,7 @@ const SiteSettings = require("../models/SiteSettings");
 const { requestOtp, verifyOtp } = require("../lib/phoneOtp");
 const { formatPhoneDisplay, normalizePhone, isValidTjPhone } = require("../lib/phoneUtils");
 const { getRegistrationDeviceFromRequest } = require("../lib/registrationDevice");
+const { isBlockedDisplayName } = require("../lib/blockedDisplayNames");
 
 function makeToken(user) {
   if (!process.env.JWT_SECRET) {
@@ -79,6 +80,14 @@ router.post("/register", async (req, res) => {
       return res.status(400).json({
         error: "Пароль должен быть не короче 8 символов",
         code: "WEAK_PASSWORD",
+      });
+    }
+
+    if (isBlockedDisplayName(name)) {
+      return res.status(400).json({
+        error:
+          "Укажите настоящее имя. Нельзя регистрироваться под именами вроде «Бародар», «Хочи», «Ака», «Апа», «Сохибхона».",
+        code: "BLOCKED_DISPLAY_NAME",
       });
     }
 
@@ -432,6 +441,14 @@ router.post("/phone/verify", async (req, res) => {
         return res.status(400).json({
           error: PHONE_ERRORS.NAME_REQUIRED,
           code: "NAME_REQUIRED",
+        });
+      }
+
+      if (isBlockedDisplayName(name)) {
+        return res.status(400).json({
+          error:
+            "Укажите настоящее имя. Нельзя регистрироваться под именами вроде «Бародар», «Хочи», «Ака», «Апа», «Сохибхона».",
+          code: "BLOCKED_DISPLAY_NAME",
         });
       }
 

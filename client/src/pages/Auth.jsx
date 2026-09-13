@@ -21,6 +21,7 @@ import {
   applyIdentityCheckResult,
   translateAuthMessage,
 } from "../lib/authIdentity";
+import { isBlockedDisplayName } from "../lib/blockedDisplayNames";
 import { useI18n } from "../i18n";
 
 function getAuthSubtitle(returnTo, tab, t) {
@@ -339,6 +340,11 @@ export default function Auth() {
       return;
     }
 
+    if (tab === "register" && isBlockedDisplayName(phoneName)) {
+      setErr(t("errors.BLOCKED_DISPLAY_NAME"));
+      return;
+    }
+
     if (tab === "register" && !phoneAgree) {
       setErr(t("auth.errPolicyRequired"));
       return;
@@ -440,6 +446,10 @@ export default function Auth() {
     try {
       if (!reg.name || !reg.email || !reg.password || !reg.confirm) {
         throw new Error(t("auth.errAllFieldsRequired"));
+      }
+
+      if (isBlockedDisplayName(reg.name)) {
+        throw new Error(t("errors.BLOCKED_DISPLAY_NAME"));
       }
 
       if (!/^\S+@\S+\.\S+$/.test(reg.email.trim())) {

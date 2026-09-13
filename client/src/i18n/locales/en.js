@@ -189,6 +189,8 @@ export default {
     TOO_MANY_ATTEMPTS: "Too many attempts. Request a new code",
     WRONG_CODE: "Incorrect code",
     NAME_REQUIRED: "Please enter your name",
+    BLOCKED_DISPLAY_NAME:
+      "Please use your real name. Names like Barodar, Khoji, Aka, Apa, or Sohibkhona are not allowed.",
     INVALID_EMAIL: "Invalid email",
     IDENTITY_REQUIRED: "Enter email or phone number",
     INVALID_CREDENTIALS: "Incorrect email or password.",
