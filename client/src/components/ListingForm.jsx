@@ -866,14 +866,14 @@ export default function ListingForm({
             <button
               type="button"
               onClick={restoreDraft}
-              className="rounded-xl bg-sun text-white px-4 py-2 text-sm font-semibold hover:opacity-90"
+              className="btn btn-primary btn-sm"
             >
               {t("listing.continue")}
             </button>
             <button
               type="button"
               onClick={discardDraft}
-              className="rounded-xl border border-ink/10 bg-white px-4 py-2 text-sm font-medium hover:bg-mist"
+              className="btn btn-secondary btn-sm"
             >
               {t("listing.startOver")}
             </button>

@@ -28,6 +28,31 @@ function getInitials(name) {
     .toUpperCase();
 }
 
+function SellerAvatar({ ad, sellerName }) {
+  const content = ad.ownerCompanyLogo ? (
+    <img
+      src={ad.ownerCompanyLogo}
+      alt=""
+      className="h-full w-full object-cover"
+    />
+  ) : (
+    getInitials(sellerName)
+  );
+
+  const className =
+    "flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-lagoon text-sm font-bold text-white ring-1 ring-lagoon/20 transition hover:opacity-90";
+
+  if (ad.owner) {
+    return (
+      <Link to={`/seller/${ad.owner}`} className={className}>
+        {content}
+      </Link>
+    );
+  }
+
+  return <div className={className}>{content}</div>;
+}
+
 export default function AdPurchasePanel({
   price,
   realEstatePricePerSqm = "",
@@ -45,6 +70,7 @@ export default function AdPurchasePanel({
   onShare,
   copied,
   onReport,
+  hideContacts = false,
 }) {
   const { t } = useI18n();
   const compareCat = isRealEstateListing(ad) ? "realestate" : ad?.cat;
@@ -55,23 +81,23 @@ export default function AdPurchasePanel({
     <div className="space-y-5">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <div className="text-3xl font-extrabold text-ink-900 tracking-tight">
+          <div className="text-3xl font-extrabold tracking-tight text-ink">
             {price}
           </div>
           {realEstatePricePerSqm && (
-            <div className="text-sm font-semibold text-sun-700 mt-1">
+            <div className="mt-1 text-sm font-semibold text-sun-700">
               {realEstatePricePerSqm}
             </div>
           )}
         </div>
 
-        <div className="flex items-center gap-1.5 shrink-0">
+        <div className="flex shrink-0 items-center gap-1.5">
           <button
             type="button"
-            className={`inline-flex h-10 w-10 items-center justify-center rounded-full border transition ${
+            className={`inline-flex h-11 w-11 items-center justify-center rounded-full border transition ${
               isFav
                 ? "border-red-200 bg-red-50 text-red-500"
-                : "border-mist-200 bg-white text-ink-500 hover:text-red-500"
+                : "border-ink/10 bg-white text-ink-500 hover:border-ink/20 hover:text-red-500"
             }`}
             onClick={onToggleFav}
             aria-label={isFav ? t("favorites.ariaRemove") : t("favorites.add")}
@@ -90,12 +116,12 @@ export default function AdPurchasePanel({
 
           <button
             type="button"
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-mist-200 bg-white text-ink-500 hover:bg-mist-50 transition"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-ink/10 bg-white text-ink-500 transition hover:border-ink/20 hover:bg-mist-50"
             onClick={onShare}
             aria-label={t("compare.share")}
           >
             {copied ? (
-              <Check className="h-4 w-4 text-emerald-600" />
+              <Check className="h-4 w-4 text-lagoon" />
             ) : (
               <Share2 className="h-4 w-4" />
             )}
@@ -103,45 +129,26 @@ export default function AdPurchasePanel({
         </div>
       </div>
 
-      <div className="border-t border-mist-100 pt-5 space-y-4">
+      <div className="space-y-4 border-t border-ink/10 pt-5">
         <div className="flex items-center gap-3">
-          {ad.owner ? (
-            <Link
-              to={`/seller/${ad.owner}`}
-              className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-sm font-bold text-white hover:opacity-90 transition overflow-hidden"
-            >
-              {ad.ownerCompanyLogo ? (
-                <img
-                  src={ad.ownerCompanyLogo}
-                  alt=""
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                getInitials(sellerName)
-              )}
-            </Link>
-          ) : (
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-sm font-bold text-white">
-              {getInitials(sellerName)}
-            </div>
-          )}
+          <SellerAvatar ad={ad} sellerName={sellerName} />
 
           <div className="min-w-0">
             {ad.owner ? (
               <Link
                 to={`/seller/${ad.owner}`}
-                className="block truncate font-bold text-ink-900 hover:text-sun transition"
+                className="block truncate font-bold text-ink hover:text-sun transition"
               >
                 {sellerName}
               </Link>
             ) : (
-              <div className="truncate font-bold text-ink-900">{sellerName}</div>
+              <div className="truncate font-bold text-ink">{sellerName}</div>
             )}
             <div className="text-sm text-ink-500">
               {sellerTypeLabel(ad.ownerSellerType || "private", t)}
             </div>
             {registeredLabel && (
-              <div className="text-xs text-ink-400 mt-0.5">
+              <div className="mt-0.5 text-xs text-ink-400">
                 {t("seller.memberSince", { date: registeredLabel })}
               </div>
             )}
@@ -157,28 +164,29 @@ export default function AdPurchasePanel({
           </div>
         </div>
 
-        <div className="flex items-start gap-2 rounded-2xl border border-emerald-100 bg-emerald-50 px-3 py-2.5 text-xs text-emerald-800">
-          <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
+        <div className="flex items-start gap-2 rounded-xl border border-lagoon/20 bg-lagoon-50 px-3 py-2.5 text-xs text-lagoon-800">
+          <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-lagoon" />
           <span>{t("auth.trustLoginItem3Text")}</span>
         </div>
       </div>
 
-      {canContact ? (
-        <SellerContactButtons
-          phone={ad.phone}
-          whatsapp={ad.sellerWhatsapp}
-          telegram={ad.sellerTelegram}
-          phoneVisible={phoneVisible}
-          onRevealPhone={onRevealPhone}
-          onChat={onChat}
-          canContact={canContact}
-          layout="ad"
-        />
-      ) : isInactive ? (
-        <div className="rounded-2xl border border-mist-200 bg-mist-50 px-4 py-3 text-sm text-ink-600">
-          {t("seller.contactUnavailable")}
-        </div>
-      ) : null}
+      {!hideContacts &&
+        (canContact ? (
+          <SellerContactButtons
+            phone={ad.phone}
+            whatsapp={ad.sellerWhatsapp}
+            telegram={ad.sellerTelegram}
+            phoneVisible={phoneVisible}
+            onRevealPhone={onRevealPhone}
+            onChat={onChat}
+            canContact={canContact}
+            layout="ad"
+          />
+        ) : isInactive ? (
+          <div className="rounded-xl border border-ink/10 bg-mist/70 px-4 py-3 text-sm text-ink-600">
+            {t("seller.contactUnavailable")}
+          </div>
+        ) : null)}
 
       <button
         type="button"

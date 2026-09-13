@@ -207,12 +207,12 @@ export default function ListingGuidedForm({
                     <button
                       type="button"
                       onClick={() => setStep(index)}
-                      className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                      className={`chip h-8 px-3 text-xs ${
                         active
-                          ? "bg-sun text-white"
+                          ? "chip-active"
                           : item.ok
-                            ? "bg-mist text-ink-600"
-                            : "bg-white border border-ink/10 text-ink-400"
+                            ? "border-lagoon/25 bg-lagoon-50 text-lagoon-800"
+                            : ""
                       }`}
                     >
                       <span>{index + 1}</span>

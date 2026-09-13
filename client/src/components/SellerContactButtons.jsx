@@ -80,7 +80,7 @@ export default function SellerContactButtons({
 
         <button
           type="button"
-          className="btn w-full rounded-2xl border border-mist-200 bg-white py-3 font-semibold hover:bg-mist-50"
+          className="btn btn-secondary w-full rounded-2xl py-3 font-semibold"
           onClick={onChat}
         >
           <MessageCircle className="h-5 w-5" />

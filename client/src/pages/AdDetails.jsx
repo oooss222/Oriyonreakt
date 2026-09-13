@@ -9,8 +9,8 @@ import {
   X,
   ZoomIn,
   Pencil,
-  Check,
   PackageSearch,
+  Phone,
 } from "lucide-react";
 import { api } from "../lib/api";
 import { goToAuth } from "../lib/auth";
@@ -30,6 +30,7 @@ import PriceAdequacyBadge from "../components/PriceAdequacyBadge";
 import Breadcrumbs from "../components/Breadcrumbs";
 import EmptyState from "../components/EmptyState";
 import AdSlot from "../components/AdSlot";
+import Toast from "../components/ui/Toast";
 import { PromotionBadgeGroup } from "../components/PromotionBadge";
 import { CAT_LABELS } from "../data/listingCategories";
 import { enrichRealEstateListing, getSpecValue, isRealEstateListing } from "../lib/realEstate";
@@ -73,58 +74,33 @@ function getSellerName(ad) {
 
 function PageSkeleton() {
   return (
-    <div className="container-x py-6 space-y-6 animate-pulse">
-      <div className="h-4 bg-mist-200 rounded w-64" />
+    <div className="container-x space-y-6 py-6 animate-pulse">
+      <div className="h-4 w-64 rounded bg-mist-200" />
 
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
-        <div className="xl:col-span-7 space-y-5">
-          <div className="rounded-3xl bg-mist-200 aspect-[4/3]" />
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-12">
+        <div className="space-y-5 xl:col-span-7">
+          <div className="panel aspect-[4/3] bg-mist-200" />
           <div className="flex gap-2">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="w-20 h-16 rounded-xl bg-mist-200" />
+              <div key={i} className="h-16 w-20 rounded-xl bg-mist-200" />
             ))}
           </div>
-          <div className="card p-6 space-y-3">
-            <div className="h-8 bg-mist-200 rounded w-3/4" />
-            <div className="h-4 bg-mist-200 rounded w-1/2" />
-            <div className="h-24 bg-mist-200 rounded" />
+          <div className="panel space-y-3 p-6">
+            <div className="h-8 w-3/4 rounded bg-mist-200" />
+            <div className="h-4 w-1/2 rounded bg-mist-200" />
+            <div className="h-24 rounded bg-mist-200" />
           </div>
         </div>
 
         <div className="xl:col-span-5">
-          <div className="card p-6 space-y-4 rounded-3xl">
-            <div className="h-10 bg-mist-200 rounded w-1/2" />
-            <div className="h-12 bg-mist-200 rounded" />
-            <div className="h-16 bg-mist-200 rounded-xl" />
-            <div className="h-11 bg-mist-200 rounded-xl" />
-            <div className="h-11 bg-mist-200 rounded-xl" />
+          <div className="panel space-y-4 p-6">
+            <div className="h-10 w-1/2 rounded bg-mist-200" />
+            <div className="h-12 rounded bg-mist-200" />
+            <div className="h-16 rounded-xl bg-mist-200" />
+            <div className="h-11 rounded-xl bg-mist-200" />
+            <div className="h-11 rounded-xl bg-mist-200" />
           </div>
         </div>
-      </div>
-    </div>
-  );
-}
-
-function Toast({ message, onClose }) {
-  React.useEffect(() => {
-    if (!message) return;
-
-    const t = setTimeout(onClose, 2800);
-
-    return () => clearTimeout(t);
-  }, [message, onClose]);
-
-  if (!message) return null;
-
-  return (
-    <div
-      role="status"
-      aria-live="polite"
-      className="fixed bottom-24 xl:bottom-8 left-1/2 -translate-x-1/2 z-[110] animate-fade-in-up"
-    >
-      <div className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-ink-900 text-white text-sm shadow-lg">
-        <Check className="w-4 h-4 text-emerald-400 shrink-0" />
-        {message}
       </div>
     </div>
   );
@@ -668,8 +644,19 @@ export default function AdDetails() {
   ];
 
   return (
-    <div className="min-h-screen bg-mist pb-10">
-      <Toast message={toast} onClose={() => setToast("")} />
+    <div
+      className={`min-h-screen bg-mist ${
+        !isOwner && canContact
+          ? "pb-[calc(5.5rem+env(safe-area-inset-bottom))] xl:pb-10"
+          : "pb-10"
+      }`}
+    >
+      <Toast
+        open={Boolean(toast)}
+        message={toast}
+        tone="success"
+        onClose={() => setToast("")}
+      />
 
       <div className="container-x py-4">
         <Breadcrumbs items={breadcrumbItems} />
@@ -678,7 +665,7 @@ export default function AdDetails() {
       <div className="container-x pb-6">
         {(moderationStatus === "pending" || moderationStatus === "rejected") && (
           <div
-            className={`mb-6 rounded-2xl border p-4 ${
+            className={`panel mb-6 p-4 ${
               moderationStatus === "rejected"
                 ? "border-red-200 bg-red-50 text-red-800"
                 : "border-amber-200 bg-amber-50 text-amber-900"
@@ -701,7 +688,7 @@ export default function AdDetails() {
         )}
 
         {(isSold || isArchived) && (
-          <div className="mb-6 rounded-2xl border border-mist-200 bg-mist-50 p-4 text-ink-700">
+          <div className="panel mb-6 bg-mist/70 p-4 text-ink-700">
             {isSold
               ? isOwner
                 ? t("listing.soldOwner")
@@ -710,16 +697,16 @@ export default function AdDetails() {
           </div>
         )}
 
-        <div className="flex flex-col xl:flex-row xl:items-stretch gap-6 xl:gap-8">
+        <div className="flex flex-col gap-6 xl:flex-row xl:items-stretch xl:gap-8">
           {/* Left column */}
-          <div className="xl:flex-[7] min-w-0 space-y-5">
+          <div className="min-w-0 space-y-5 xl:flex-[7]">
             {/* Gallery */}
-            <section className="overflow-hidden rounded-3xl border border-mist-200 bg-white shadow-sm">
+            <section className="ad-gallery">
               <div className="flex flex-col md:flex-row">
                 {images.length > 1 && (
                   <div
                     ref={desktopThumbsRef}
-                    className="hidden md:flex max-h-[520px] w-[88px] shrink-0 flex-col gap-2 overflow-y-auto border-r border-mist-100 p-3 scrollbar-hide"
+                    className="hidden max-h-[520px] w-[88px] shrink-0 flex-col gap-2 overflow-y-auto border-r border-ink/10 p-3 scrollbar-hide md:flex"
                   >
                     {thumbImages.map((src, index) => (
                       <button
@@ -727,7 +714,7 @@ export default function AdDetails() {
                         type="button"
                         data-active={activeImageIndex === index ? "true" : "false"}
                         onClick={() => setActiveImageIndex(index)}
-                        className={`rounded-xl overflow-hidden border-2 transition-all ${
+                        className={`overflow-hidden rounded-xl border-2 transition-all ${
                           activeImageIndex === index
                             ? "border-sun ring-2 ring-sun/20"
                             : "border-transparent opacity-70 hover:opacity-100"
@@ -738,7 +725,7 @@ export default function AdDetails() {
                           alt=""
                           loading="lazy"
                           decoding="async"
-                          className="w-full h-16 object-cover bg-mist-50"
+                          className="h-16 w-full bg-mist-50 object-cover"
                           onError={(e) => {
                             e.currentTarget.src =
                               "https://placehold.co/120x80?text=—";
@@ -750,13 +737,13 @@ export default function AdDetails() {
                 )}
 
                 <div
-                  className="relative flex-1 group"
+                  className="group relative flex-1"
                   onTouchStart={onGalleryTouchStart}
                   onTouchEnd={onGalleryTouchEnd}
                 >
                   <button
                     type="button"
-                    className="w-full block cursor-zoom-in"
+                    className="block w-full cursor-zoom-in"
                     onClick={() => setLightboxOpen(true)}
                     aria-label={t("a11y.photoFullscreen")}
                   >
@@ -765,7 +752,7 @@ export default function AdDetails() {
                       alt={ad.title || t("listing.photoAlt")}
                       fetchpriority="high"
                       decoding="async"
-                      className="w-full aspect-[4/3] object-contain bg-mist-50"
+                      className="aspect-[4/3] w-full bg-mist-50 object-contain"
                       onError={(e) => {
                         e.currentTarget.src =
                           "https://placehold.co/900x600?text=No+Image";
@@ -777,11 +764,11 @@ export default function AdDetails() {
                     vip={ad.vip}
                     top={ad.top}
                     size="lg"
-                    className="absolute top-3 left-3 z-10"
+                    className="absolute left-3 top-3 z-10"
                   />
 
                   {images.length > 1 && (
-                    <span className="absolute bottom-3 right-3 z-10 rounded-full bg-black/60 px-2.5 py-1 text-xs font-semibold text-white">
+                    <span className="ad-gallery__chip bottom-3 right-3">
                       {activeImageIndex + 1} / {images.length}
                     </span>
                   )}
@@ -789,7 +776,7 @@ export default function AdDetails() {
                   <button
                     type="button"
                     onClick={() => setLightboxOpen(true)}
-                    className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-black/60 px-2.5 py-1 text-xs text-white transition hover:bg-black/70"
+                    className="ad-gallery__chip right-3 top-3"
                   >
                     <ZoomIn className="h-3.5 w-3.5" />
                     {t("listing.zoomPhoto")}
@@ -800,7 +787,7 @@ export default function AdDetails() {
                       <button
                         type="button"
                         onClick={goPrev}
-                        className="absolute left-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/95 shadow-md transition hover:bg-white"
+                        className="ad-gallery__nav left-3"
                         aria-label={t("a11y.photoPrev")}
                       >
                         <ChevronLeft className="h-5 w-5" />
@@ -808,7 +795,7 @@ export default function AdDetails() {
                       <button
                         type="button"
                         onClick={goNext}
-                        className="absolute right-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/95 shadow-md transition hover:bg-white"
+                        className="ad-gallery__nav right-3"
                         aria-label={t("a11y.photoNext")}
                       >
                         <ChevronRight className="h-5 w-5" />
@@ -821,7 +808,7 @@ export default function AdDetails() {
               {images.length > 1 && (
                 <div
                   ref={mobileThumbsRef}
-                  className="flex md:hidden gap-2 p-3 overflow-x-auto scrollbar-hide snap-x snap-mandatory border-t border-mist-100"
+                  className="flex snap-x snap-mandatory gap-2 overflow-x-auto border-t border-ink/10 p-3 scrollbar-hide md:hidden"
                 >
                   {thumbImages.map((src, index) => (
                     <button
@@ -829,7 +816,7 @@ export default function AdDetails() {
                       type="button"
                       data-active={activeImageIndex === index ? "true" : "false"}
                       onClick={() => setActiveImageIndex(index)}
-                      className={`snap-start shrink-0 rounded-xl overflow-hidden border-2 transition ${
+                      className={`snap-start shrink-0 overflow-hidden rounded-xl border-2 transition ${
                         activeImageIndex === index
                           ? "border-sun ring-2 ring-sun/20"
                           : "border-transparent opacity-80"
@@ -840,7 +827,7 @@ export default function AdDetails() {
                         alt=""
                         loading="lazy"
                         decoding="async"
-                        className="w-20 h-16 object-cover bg-mist-50"
+                        className="h-16 w-20 bg-mist-50 object-cover"
                         onError={(e) => {
                           e.currentTarget.src =
                             "https://placehold.co/120x80?text=—";
@@ -852,7 +839,7 @@ export default function AdDetails() {
               )}
             </section>
 
-            <section className="rounded-3xl border border-mist-200 bg-white p-5 shadow-sm xl:hidden">
+            <section className="panel p-5 xl:hidden">
               <AdListingHeader
                 title={ad.title}
                 publicId={publicId}
@@ -863,7 +850,7 @@ export default function AdDetails() {
             </section>
 
             {!isOwner && (
-              <section className="rounded-3xl border border-mist-200 bg-white p-5 shadow-sm xl:hidden">
+              <section className="panel p-5 xl:hidden">
                 <AdPurchasePanel
                   price={price}
                   realEstatePricePerSqm={realEstatePricePerSqm}
@@ -890,10 +877,10 @@ export default function AdDetails() {
             {isRealEstateListing(ad) && <PriceAdequacyBadge item={ad} />}
 
             {isRealEstateListing(ad) && (
-              <section className="rounded-3xl border border-mist-200 bg-white p-5 md:p-6 shadow-sm space-y-2">
-                <h2 className="text-lg font-bold text-ink-900">{t("listing.locationTitle")}</h2>
-                <p className="text-ink-700 flex items-start gap-2">
-                  <MapPin className="w-4 h-4 text-sun shrink-0 mt-1" />
+              <section className="panel space-y-2 p-5 md:p-6">
+                <h2 className="section-title text-lg sm:text-lg">{t("listing.locationTitle")}</h2>
+                <p className="flex items-start gap-2 text-ink-700">
+                  <MapPin className="mt-1 h-4 w-4 shrink-0 text-sun" />
                   <span>
                     {[ad.location || t("location.dushanbe"), getSpecValue(ad.specs, "Район"), getSpecValue(ad.specs, "Адрес")]
                       .filter(Boolean)
@@ -911,18 +898,18 @@ export default function AdDetails() {
 
             {/* Specs */}
             {filteredSpecs.length > 0 && (
-              <section className="rounded-3xl border border-mist-200 bg-white p-5 md:p-6 shadow-sm">
-                <h2 className="mb-4 text-lg font-bold text-ink-900">
+              <section className="panel p-5 md:p-6">
+                <h2 className="section-title mb-4 text-lg sm:text-lg">
                   {t("form.specs")}
                 </h2>
-                <div className="divide-y divide-mist-100">
+                <div className="divide-y divide-ink/10">
                   {filteredSpecs.map((spec, index) => (
                     <div
                       key={`${spec.name}-${index}`}
                       className="grid grid-cols-1 gap-1 py-3 text-sm sm:grid-cols-2 sm:gap-4"
                     >
                       <span className="text-ink-500">{spec.name}</span>
-                      <span className="font-semibold text-ink-900 sm:text-right">
+                      <span className="font-semibold text-ink sm:text-right">
                         {String(spec.value)}
                       </span>
                     </div>
@@ -938,9 +925,9 @@ export default function AdDetails() {
             />
 
             {/* Description */}
-            <section className="rounded-3xl border border-mist-200 bg-white p-5 md:p-6 shadow-sm">
-              <h2 className="mb-4 text-lg font-bold text-ink-900">{t("form.description")}</h2>
-              <p className="text-ink-700 whitespace-pre-wrap leading-7 text-[15px]">
+            <section className="panel p-5 md:p-6">
+              <h2 className="section-title mb-4 text-lg sm:text-lg">{t("form.description")}</h2>
+              <p className="whitespace-pre-wrap text-[15px] leading-7 text-ink-700">
                 {ad.description || t("listing.noDescription")}
               </p>
             </section>
@@ -958,8 +945,8 @@ export default function AdDetails() {
               isOwner ? "" : "hidden xl:block"
             }`}
           >
-              <section className="rounded-3xl border border-mist-200 bg-white p-6 shadow-sm">
-                <div className="hidden xl:block space-y-5">
+              <section className="panel p-6">
+                <div className="hidden space-y-5 xl:block">
                   <AdListingHeader
                     title={ad.title}
                     publicId={publicId}
@@ -991,7 +978,7 @@ export default function AdDetails() {
                 </div>
 
                 {isOwner && ad.expiresAt && (
-                  <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+                  <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
                     {t("listing.expiresPrefix", {
                       date: new Date(ad.expiresAt).toLocaleDateString(numberLocale),
                     })}{" "}
@@ -1007,7 +994,7 @@ export default function AdDetails() {
                       {moderationStatus === "approved" && (
                         <Link
                           to={`/profile?tab=promote&listing=${listingId}`}
-                          className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-amber-200 bg-gradient-to-r from-amber-50 to-teal-50 px-4 py-3 text-sm font-semibold text-ink hover:brightness-[0.98] transition"
+                          className="btn btn-accent w-full rounded-2xl"
                         >
                           {t("listing.promoteCta")}
                         </Link>
@@ -1017,7 +1004,7 @@ export default function AdDetails() {
                         <div className="grid grid-cols-1 gap-2">
                           <button
                             type="button"
-                            className="btn w-full py-3 rounded-2xl"
+                            className="btn btn-secondary w-full rounded-2xl"
                             onClick={() => requestStatusChange("sold")}
                           >
                             {t("listing.actionMarkSold")}
@@ -1025,7 +1012,7 @@ export default function AdDetails() {
 
                           <button
                             type="button"
-                            className="btn w-full py-3 rounded-2xl"
+                            className="btn btn-secondary w-full rounded-2xl"
                             onClick={() => requestStatusChange("archive")}
                           >
                             {t("listing.actionUnpublish")}
@@ -1036,7 +1023,7 @@ export default function AdDetails() {
                       {(isSold || isArchived) && (
                         <button
                           type="button"
-                          className="btn w-full py-3 rounded-2xl border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+                          className="btn btn-lagoon w-full rounded-2xl"
                           onClick={() => requestStatusChange("republish")}
                         >
                           {t("profile.republish")}
@@ -1045,9 +1032,9 @@ export default function AdDetails() {
 
                       <Link
                         to="/messages"
-                        className="btn w-full py-3 rounded-2xl"
+                        className="btn btn-secondary w-full rounded-2xl"
                       >
-                        <MessageCircle className="w-5 h-5" />
+                        <MessageCircle className="h-5 w-5" />
                         {t("listing.buyerMessages")}
                       </Link>
                     </>
@@ -1056,9 +1043,9 @@ export default function AdDetails() {
                   {isOwner && (
                     <Link
                       to={`/edit/${ad._id || ad.id}`}
-                      className="btn w-full py-3 rounded-2xl border-sun-200 bg-sun-50 text-sun-700 hover:bg-sun-100"
+                      className="btn w-full rounded-2xl border-sun-200 bg-sun-50 text-sun-700 hover:bg-sun-100"
                     >
-                      <Pencil className="w-5 h-5" />
+                      <Pencil className="h-5 w-5" />
                       {t("listing.editForm")}
                     </Link>
                   )}
@@ -1068,43 +1055,93 @@ export default function AdDetails() {
         </div>
       </div>
 
+      {!isOwner && canContact && (
+        <div className="ad-mobile-bar">
+          <div className="ad-mobile-bar__inner">
+            <div className="min-w-0">
+              <p className="ad-mobile-bar__price">{price}</p>
+              {realEstatePricePerSqm ? (
+                <p className="truncate text-xs font-semibold text-sun-700">
+                  {realEstatePricePerSqm}
+                </p>
+              ) : null}
+            </div>
+
+            {ad.phone ? (
+              phoneVisible ? (
+                <a
+                  href={`tel:${ad.phone}`}
+                  className="btn btn-primary shrink-0 rounded-xl px-4 py-2.5"
+                >
+                  <Phone className="h-4 w-4" />
+                  {t("seller.call")}
+                </a>
+              ) : (
+                <button
+                  type="button"
+                  className="btn btn-primary shrink-0 rounded-xl px-4 py-2.5"
+                  onClick={revealPhone}
+                >
+                  <Phone className="h-4 w-4" />
+                  {t("seller.showPhone")}
+                </button>
+              )
+            ) : (
+              <button
+                type="button"
+                className="btn btn-primary shrink-0 rounded-xl px-4 py-2.5"
+                onClick={openSellerChat}
+              >
+                <MessageCircle className="h-4 w-4" />
+                {t("seller.write")}
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
       {reportOpen &&
         createPortal(
-          <div className="fixed inset-0 z-[120] flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <>
             <button
               type="button"
               aria-label={t("common.close")}
-              className="absolute inset-0 bg-black/40"
+              className="sheet-backdrop sheet-backdrop--top"
               onClick={() => setReportOpen(false)}
             />
 
-            <div className="relative w-full sm:max-w-lg rounded-t-3xl sm:rounded-2xl bg-white shadow-xl border p-5 space-y-4">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <h3 className="text-lg font-bold">{t("report.title")}</h3>
-                  <p className="text-sm text-ink-500 mt-1">
-                    {t("report.subtitle")}
-                  </p>
+            <div
+              className="sheet sheet--top sheet--dialog"
+              role="dialog"
+              aria-modal="true"
+              aria-label={t("report.title")}
+            >
+              <div className="sheet__handle sm:hidden" aria-hidden="true" />
+
+              <div className="sheet__header">
+                <div className="min-w-0">
+                  <h3 className="text-lg font-bold text-ink">{t("report.title")}</h3>
+                  <p className="mt-1 text-sm text-ink-500">{t("report.subtitle")}</p>
                 </div>
 
                 <button
                   type="button"
                   onClick={() => setReportOpen(false)}
-                  className="p-2 rounded-xl border hover:bg-mist-50"
+                  className="btn-ghost p-2"
                   aria-label={t("common.close")}
                 >
-                  <X className="w-4 h-4" />
+                  <X className="h-4 w-4" />
                 </button>
               </div>
 
-              <div className="space-y-2">
+              <div className="sheet__body space-y-2 pb-3">
                 {REPORT_REASONS.map((item) => (
                   <label
                     key={item.id}
-                    className={`flex items-center gap-3 rounded-xl border px-3 py-2.5 cursor-pointer transition ${
+                    className={`flex cursor-pointer items-center gap-3 rounded-xl border px-3 py-2.5 transition ${
                       reportReason === item.id
                         ? "border-sun bg-sun-50"
-                        : "border-mist-200 hover:border-ink-300"
+                        : "border-ink/10 hover:border-ink/25"
                     }`}
                   >
                     <input
@@ -1120,23 +1157,23 @@ export default function AdDetails() {
                     </span>
                   </label>
                 ))}
+
+                {reportReason === "other" && (
+                  <textarea
+                    value={reportDetails}
+                    onChange={(e) => setReportDetails(e.target.value)}
+                    rows={4}
+                    placeholder={t("report.placeholder")}
+                    className="input mt-2 w-full resize-y"
+                  />
+                )}
               </div>
 
-              {reportReason === "other" && (
-                <textarea
-                  value={reportDetails}
-                  onChange={(e) => setReportDetails(e.target.value)}
-                  rows={4}
-                  placeholder={t("report.placeholder")}
-                  className="w-full rounded-xl border border-mist-200 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-sun/40 resize-y"
-                />
-              )}
-
-              <div className="flex flex-col-reverse sm:flex-row justify-end gap-2">
+              <div className="sheet__footer sm:justify-end">
                 <button
                   type="button"
                   onClick={() => setReportOpen(false)}
-                  className="btn rounded-xl"
+                  className="btn btn-secondary rounded-xl"
                 >
                   {t("common.cancel")}
                 </button>
@@ -1151,30 +1188,38 @@ export default function AdDetails() {
                 </button>
               </div>
             </div>
-          </div>,
+          </>,
           document.body
         )}
 
       {confirmAction &&
         createPortal(
-          <div className="fixed inset-0 z-[120] flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <>
             <button
               type="button"
               aria-label={t("common.close")}
-              className="absolute inset-0 bg-black/40"
+              className="sheet-backdrop sheet-backdrop--top"
               onClick={() => setConfirmAction(null)}
             />
 
-            <div className="relative w-full sm:max-w-sm rounded-t-3xl sm:rounded-2xl bg-white shadow-xl border p-5 space-y-4">
-              <p className="text-sm text-ink-800">
-                {confirmPrompts[confirmAction] || t("listing.confirmStatus")}
-              </p>
+            <div
+              className="sheet sheet--top sheet--dialog sheet--dialog-sm"
+              role="dialog"
+              aria-modal="true"
+            >
+              <div className="sheet__handle sm:hidden" aria-hidden="true" />
 
-              <div className="flex flex-col-reverse sm:flex-row justify-end gap-2">
+              <div className="sheet__body !flex-none px-5 py-4">
+                <p className="text-sm text-ink-800">
+                  {confirmPrompts[confirmAction] || t("listing.confirmStatus")}
+                </p>
+              </div>
+
+              <div className="sheet__footer sm:justify-end">
                 <button
                   type="button"
                   onClick={() => setConfirmAction(null)}
-                  className="btn rounded-xl"
+                  className="btn btn-secondary rounded-xl"
                 >
                   {t("common.cancel")}
                 </button>
@@ -1192,7 +1237,7 @@ export default function AdDetails() {
                 </button>
               </div>
             </div>
-          </div>,
+          </>,
           document.body
         )}
 

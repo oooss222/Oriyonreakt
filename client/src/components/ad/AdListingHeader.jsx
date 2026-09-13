@@ -15,12 +15,12 @@ export default function AdListingHeader({
   return (
     <div className="space-y-3">
       {publicId && (
-        <span className="inline-flex items-center rounded-full bg-mist-100 px-2.5 py-1 text-xs font-medium text-ink-500">
+        <span className="chip h-7 px-2.5 text-xs text-ink-500">
           № {formatPublicId(publicId)}
         </span>
       )}
 
-      <h1 className="text-2xl font-extrabold text-ink-900 leading-tight">
+      <h1 className="text-2xl font-extrabold leading-tight text-ink">
         {title || t("listing.noTitle")}
       </h1>
 
