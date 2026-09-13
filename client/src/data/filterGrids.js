@@ -20,6 +20,11 @@ import {
   FOOD_READY_STATES,
   resolveFoodSpecTemplate,
 } from "./foodFilters";
+import {
+  KIDS_AGES,
+  KIDS_PRICE_PRESETS,
+  resolveKidsSpecTemplate,
+} from "./kidsFilters";
 
 const TRANSPORT_GRID = {
   rows: [
@@ -164,6 +169,81 @@ const PHONES_GRID = {
     { id: "sort", label: "Сортировка", type: "sort" },
   ],
 };
+
+function buildKidsGrid(subcategory = "") {
+  const specs = resolveKidsSpecTemplate(subcategory);
+  const ageSpec = specs.find((item) => item.name === "Возраст");
+  const sizeSpec = specs.find((item) => item.name === "Размер");
+  const conditionSpec = specs.find((item) => item.name === "Состояние");
+  const typeSpec = specs.find(
+    (item) => item.name === "Тип" || item.name === "Формат"
+  );
+
+  return {
+    rows: [
+      [
+        { id: "subcategory", label: "Раздел", type: "subcategory" },
+        {
+          id: "price",
+          label: "Цена",
+          type: "price",
+          presets: KIDS_PRICE_PRESETS,
+        },
+        { id: "region", label: "Область", type: "region", options: REGIONS },
+        { id: "location", label: "Город", type: "location", options: LOCATIONS },
+      ],
+      [
+        ageSpec
+          ? {
+              id: "Возраст",
+              label: "Возраст",
+              type: "spec",
+              specKey: "Возраст",
+              options: ageSpec.options || KIDS_AGES,
+            }
+          : typeSpec
+            ? {
+                id: typeSpec.name,
+                label: typeSpec.name,
+                type: "spec",
+                specKey: typeSpec.name,
+                options: typeSpec.options,
+              }
+            : null,
+        sizeSpec
+          ? {
+              id: "Размер",
+              label: "Размер",
+              type: "spec",
+              specKey: "Размер",
+              options: sizeSpec.options,
+            }
+          : typeSpec && ageSpec
+            ? {
+                id: typeSpec.name,
+                label: typeSpec.name,
+                type: "spec",
+                specKey: typeSpec.name,
+                options: typeSpec.options,
+              }
+            : null,
+        conditionSpec
+          ? {
+              id: "Состояние",
+              label: "Состояние",
+              type: "spec",
+              specKey: "Состояние",
+              options:
+                conditionSpec.options ||
+                COMMON_SPEC_OPTIONS.clothingCondition,
+            }
+          : null,
+        { id: "sort", label: "Сортировка", type: "sort" },
+      ],
+    ],
+    more: [{ id: "search", label: "Поиск", type: "search" }],
+  };
+}
 
 function buildFoodGrid(subcategory = "") {
   const specs = resolveFoodSpecTemplate(subcategory);
@@ -370,6 +450,10 @@ export function getListingFilterGrid(catKey, subcategory = "") {
 
   if (catKey === "food") {
     return buildFoodGrid(subcategory);
+  }
+
+  if (catKey === "kids") {
+    return buildKidsGrid(subcategory);
   }
 
   if (catKey === "realestate") {

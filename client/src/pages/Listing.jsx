@@ -36,6 +36,7 @@ import { CATS, parseSpecsParam } from "../data/listingCategories";
 import { resolveLegacyCategoryFilters } from "../data/categoryConsolidation";
 import ClothingQuickFilters from "../components/clothing/ClothingQuickFilters";
 import FoodQuickFilters from "../components/food/FoodQuickFilters";
+import KidsQuickFilters from "../components/kids/KidsQuickFilters";
 import { REAL_ESTATE_CAT } from "../data/realEstate";
 import { sanitizeRealEstateDraft } from "../lib/filterConflicts";
 import {
@@ -443,7 +444,9 @@ export default function Listing() {
     if (!config) return [];
     // Lifestyle: Paydo-style group tiles in the filter (server expands to items).
     if (
-      (activeCat === "clothing" || activeCat === "food") &&
+      (activeCat === "clothing" ||
+        activeCat === "food" ||
+        activeCat === "kids") &&
       Array.isArray(config.subGroups)
     ) {
       return config.subGroups.map(({ group }) => group);
@@ -948,6 +951,7 @@ export default function Listing() {
 
         {effectiveListingCat === "clothing" && <ClothingQuickFilters />}
         {effectiveListingCat === "food" && <FoodQuickFilters />}
+        {effectiveListingCat === "kids" && <KidsQuickFilters />}
 
       {loading && <ListingGridSkeleton />}
 

@@ -18,6 +18,10 @@ import {
   FOOD_PRODUCT_SPECS,
   resolveFoodSpecTemplate,
 } from "./foodFilters";
+import {
+  KIDS_GOODS_SPECS,
+  resolveKidsSpecTemplate,
+} from "./kidsFilters";
 
 import { REAL_ESTATE_SUB_SPECS } from "./realEstate";
 import { DEFAULT_REAL_ESTATE_BROWSE_PATH } from "./realEstate";
@@ -552,18 +556,14 @@ export const CATS = {
     desc: "Одежда, игрушки, коляски, мебель и услуги для детей",
     subs: KIDS_GROUPS.subs,
     subGroups: KIDS_GROUPS.subGroups,
-    specTemplate: [
+    crossLinks: [
       {
-        name: "Возраст",
-        type: "select",
-        options: ["0–1 год", "1–3 года", "3–6 лет", "6–12 лет", "12+"],
-      },
-      {
-        name: "Состояние",
-        type: "select",
-        options: COMMON_SPEC_OPTIONS.clothingCondition,
+        label: "Взрослая одежда и обувь",
+        to: "/c/clothing",
       },
     ],
+    specTemplate: KIDS_GOODS_SPECS,
+    resolveSpecTemplate: resolveKidsSpecTemplate,
   },
   travel: {
     title: "Путешествия",
