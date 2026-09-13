@@ -22,6 +22,10 @@ import {
   KIDS_GOODS_SPECS,
   resolveKidsSpecTemplate,
 } from "./kidsFilters";
+import {
+  TRAVEL_TOUR_SPECS,
+  resolveTravelSpecTemplate,
+} from "./travelFilters";
 
 import { REAL_ESTATE_SUB_SPECS } from "./realEstate";
 import { DEFAULT_REAL_ESTATE_BROWSE_PATH } from "./realEstate";
@@ -579,25 +583,8 @@ export const CATS = {
         to: "/realestate/dushanbe/kvartiry/posutochno",
       },
     ],
-    specTemplate: [
-      {
-        name: "Направление",
-        type: "select",
-        options: [
-          "По Таджикистану",
-          "Узбекистан",
-          "Турция",
-          "ОАЭ",
-          "Россия",
-          "Другое",
-        ],
-      },
-      {
-        name: "Тип",
-        type: "select",
-        options: ["Тур", "Экскурсия", "База отдыха", "Транспорт", "Снаряжение"],
-      },
-    ],
+    specTemplate: TRAVEL_TOUR_SPECS,
+    resolveSpecTemplate: resolveTravelSpecTemplate,
   },
   clothing: {
     title: "Одежда",

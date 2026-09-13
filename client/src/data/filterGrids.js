@@ -25,6 +25,11 @@ import {
   KIDS_PRICE_PRESETS,
   resolveKidsSpecTemplate,
 } from "./kidsFilters";
+import {
+  TRAVEL_DURATIONS,
+  TRAVEL_PRICE_PRESETS,
+  resolveTravelSpecTemplate,
+} from "./travelFilters";
 
 const TRANSPORT_GRID = {
   rows: [
@@ -169,6 +174,94 @@ const PHONES_GRID = {
     { id: "sort", label: "Сортировка", type: "sort" },
   ],
 };
+
+function buildTravelGrid(subcategory = "") {
+  const specs = resolveTravelSpecTemplate(subcategory);
+  const directionSpec = specs.find((item) => item.name === "Направление");
+  const durationSpec = specs.find((item) => item.name === "Длительность");
+  const formatSpec = specs.find(
+    (item) =>
+      item.name === "Формат" ||
+      item.name === "Тип размещения" ||
+      item.name === "Тип услуги" ||
+      item.name === "Тип"
+  );
+  const extraSpec = specs.find(
+    (item) =>
+      item.name === "Питание" || item.name === "Состояние"
+  );
+
+  return {
+    rows: [
+      [
+        { id: "subcategory", label: "Раздел", type: "subcategory" },
+        {
+          id: "price",
+          label: "Цена",
+          type: "price",
+          presets: TRAVEL_PRICE_PRESETS,
+        },
+        { id: "region", label: "Область", type: "region", options: REGIONS },
+        { id: "location", label: "Город", type: "location", options: LOCATIONS },
+      ],
+      [
+        directionSpec
+          ? {
+              id: "Направление",
+              label: "Направление",
+              type: "spec",
+              specKey: "Направление",
+              options: directionSpec.options,
+            }
+          : formatSpec
+            ? {
+                id: formatSpec.name,
+                label: formatSpec.name,
+                type: "spec",
+                specKey: formatSpec.name,
+                options: formatSpec.options,
+              }
+            : null,
+        durationSpec
+          ? {
+              id: "Длительность",
+              label: "Длительность",
+              type: "spec",
+              specKey: "Длительность",
+              options: durationSpec.options || TRAVEL_DURATIONS,
+            }
+          : extraSpec
+            ? {
+                id: extraSpec.name,
+                label: extraSpec.name,
+                type: "spec",
+                specKey: extraSpec.name,
+                options: extraSpec.options,
+              }
+            : null,
+        formatSpec && directionSpec
+          ? {
+              id: formatSpec.name,
+              label: formatSpec.name,
+              type: "spec",
+              specKey: formatSpec.name,
+              options: formatSpec.options,
+            }
+          : extraSpec && durationSpec
+            ? {
+                id: extraSpec.name,
+                label: extraSpec.name,
+                type: "spec",
+                specKey: extraSpec.name,
+                options: extraSpec.options,
+              }
+            : null,
+        { id: "sort", label: "Сортировка", type: "sort" },
+      ],
+    ],
+    more: [{ id: "search", label: "Поиск", type: "search" }],
+  };
+}
 
 function buildKidsGrid(subcategory = "") {
   const specs = resolveKidsSpecTemplate(subcategory);
@@ -454,6 +547,10 @@ export function getListingFilterGrid(catKey, subcategory = "") {
 
   if (catKey === "kids") {
     return buildKidsGrid(subcategory);
+  }
+
+  if (catKey === "travel") {
+    return buildTravelGrid(subcategory);
   }
 
   if (catKey === "realestate") {

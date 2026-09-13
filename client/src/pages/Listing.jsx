@@ -37,6 +37,7 @@ import { resolveLegacyCategoryFilters } from "../data/categoryConsolidation";
 import ClothingQuickFilters from "../components/clothing/ClothingQuickFilters";
 import FoodQuickFilters from "../components/food/FoodQuickFilters";
 import KidsQuickFilters from "../components/kids/KidsQuickFilters";
+import TravelQuickFilters from "../components/travel/TravelQuickFilters";
 import { REAL_ESTATE_CAT } from "../data/realEstate";
 import { sanitizeRealEstateDraft } from "../lib/filterConflicts";
 import {
@@ -446,7 +447,8 @@ export default function Listing() {
     if (
       (activeCat === "clothing" ||
         activeCat === "food" ||
-        activeCat === "kids") &&
+        activeCat === "kids" ||
+        activeCat === "travel") &&
       Array.isArray(config.subGroups)
     ) {
       return config.subGroups.map(({ group }) => group);
@@ -952,6 +954,7 @@ export default function Listing() {
         {effectiveListingCat === "clothing" && <ClothingQuickFilters />}
         {effectiveListingCat === "food" && <FoodQuickFilters />}
         {effectiveListingCat === "kids" && <KidsQuickFilters />}
+        {effectiveListingCat === "travel" && <TravelQuickFilters />}
 
       {loading && <ListingGridSkeleton />}
 
