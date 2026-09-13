@@ -3,8 +3,6 @@
  * Tuned for Tajikistan (local routes, abroad tours, guides, gear).
  */
 
-import { COMMON_SPEC_OPTIONS } from "./specOptions";
-
 export const TRAVEL_PRICE_PRESETS = [
   { label: "Любая", from: "", to: "" },
   { label: "до 200 с.", from: "", to: "200" },
@@ -109,11 +107,6 @@ export const TRAVEL_TRANSPORT_SPECS = [
 ];
 
 export const TRAVEL_GEAR_SPECS = [
-  {
-    name: "Состояние",
-    type: "select",
-    options: COMMON_SPEC_OPTIONS.clothingCondition,
-  },
   {
     name: "Тип",
     type: "select",

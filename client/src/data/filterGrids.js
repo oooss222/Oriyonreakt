@@ -194,10 +194,7 @@ function buildTravelGrid(subcategory = "") {
       item.name === "Тип услуги" ||
       item.name === "Тип"
   );
-  const extraSpec = specs.find(
-    (item) =>
-      item.name === "Питание" || item.name === "Состояние"
-  );
+  const extraSpec = specs.find((item) => item.name === "Питание");
 
   return {
     rows: [
@@ -274,11 +271,10 @@ function buildTravelGrid(subcategory = "") {
 function buildBusinessGrid(subcategory = "") {
   const specs = resolveBusinessSpecTemplate(subcategory);
   const dealSpec = specs.find((item) => item.name === "Тип сделки");
-  const conditionSpec = specs.find((item) => item.name === "Состояние");
   const formatSpec = specs.find((item) => item.name === "Формат");
   const unitSpec = specs.find((item) => item.name === "Единица");
 
-  const secondary = formatSpec || unitSpec || conditionSpec || null;
+  const secondary = formatSpec || unitSpec || null;
 
   return {
     rows: [
@@ -312,15 +308,7 @@ function buildBusinessGrid(subcategory = "") {
               options: secondary.options,
             }
           : null,
-        conditionSpec && secondary !== conditionSpec
-          ? {
-              id: "Состояние",
-              label: "Состояние",
-              type: "spec",
-              specKey: "Состояние",
-              options: conditionSpec.options || COMMON_SPEC_OPTIONS.condition,
-            }
-          : null,
+        null,
         { id: "sort", label: "Сортировка", type: "sort" },
       ],
     ],

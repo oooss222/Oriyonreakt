@@ -3,8 +3,6 @@
  * Taxonomy aligned with Somon.tj /vsyo-dlya-biznesa.
  */
 
-import { COMMON_SPEC_OPTIONS } from "./specOptions";
-
 export const BUSINESS_PRICE_PRESETS = [
   { label: "Любая", from: "", to: "" },
   { label: "до 1 000 с.", from: "", to: "1000" },
@@ -19,11 +17,6 @@ export const BUSINESS_GOODS_SPECS = [
     name: "Тип сделки",
     type: "select",
     options: ["Продажа", "Аренда"],
-  },
-  {
-    name: "Состояние",
-    type: "select",
-    options: COMMON_SPEC_OPTIONS.condition,
   },
 ];
 

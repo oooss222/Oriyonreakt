@@ -166,6 +166,9 @@ export default function ListingFiltersSidebar({
       : [];
 
   const conditionValue = draft.specs?.["Состояние"] || "";
+  const showConditionFilter = !["food", "business", "travel"].includes(
+    activeCat
+  );
   const showCount = previewLoading
     ? "…"
     : (previewTotal || categoryTotal || 0).toLocaleString("ru-RU");
@@ -355,39 +358,41 @@ export default function ListingFiltersSidebar({
           />
         </FilterSection>
 
-        <FilterSection title={t("filter.condition")}>
-          <PillGroup
-            value={conditionValue}
-            options={[
-              { value: "", label: t("category.all") },
-              ...COMMON_SPEC_OPTIONS.condition.map((option) => ({
-                value: option,
-                label: option === "Новый" ? t("filter.conditionNew") : option,
-              })),
-            ]}
-            onChange={(value) =>
-              commitDraft(
-                setDraft,
-                onApply,
-                (current) => {
-                  const nextSpecs = { ...current.specs };
+        {showConditionFilter ? (
+          <FilterSection title={t("filter.condition")}>
+            <PillGroup
+              value={conditionValue}
+              options={[
+                { value: "", label: t("category.all") },
+                ...COMMON_SPEC_OPTIONS.condition.map((option) => ({
+                  value: option,
+                  label: option === "Новый" ? t("filter.conditionNew") : option,
+                })),
+              ]}
+              onChange={(value) =>
+                commitDraft(
+                  setDraft,
+                  onApply,
+                  (current) => {
+                    const nextSpecs = { ...current.specs };
 
-                  if (value) {
-                    nextSpecs["Состояние"] = value;
-                  } else {
-                    delete nextSpecs["Состояние"];
-                  }
+                    if (value) {
+                      nextSpecs["Состояние"] = value;
+                    } else {
+                      delete nextSpecs["Состояние"];
+                    }
 
-                  return {
-                    ...current,
-                    specs: nextSpecs,
-                  };
-                },
-                draft
-              )
-            }
-          />
-        </FilterSection>
+                    return {
+                      ...current,
+                      specs: nextSpecs,
+                    };
+                  },
+                  draft
+                )
+              }
+            />
+          </FilterSection>
+        ) : null}
 
         {(extraSpecFields.length > 0 ||
           dependentSpecFields.length > 0 ||
