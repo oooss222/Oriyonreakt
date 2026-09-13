@@ -21,6 +21,27 @@ const CATEGORY_META = {
     description: "Специалисты, ремонт, обучение и сервис",
   },
   repair: { title: "Ремонт", description: "Материалы и инструменты" },
+  food: { title: "Еда", description: "Выпечка, блюда, фастфуд и услуги повара" },
+  kids: {
+    title: "Детский мир",
+    description: "Одежда, игрушки, коляски и услуги для детей",
+  },
+  travel: {
+    title: "Путешествия",
+    description: "Туры, базы отдыха, гиды и снаряжение",
+  },
+  clothing: {
+    title: "Одежда",
+    description: "Женская, мужская, национальная одежда и аксессуары",
+  },
+  construction: {
+    title: "Строительство",
+    description: "Материалы, аренда техники, окна, электрика и услуги мастеров",
+  },
+  business: {
+    title: "Все для бизнеса",
+    description: "Готовый бизнес, оборудование, сырьё и аренда под ключ",
+  },
 };
 
 function getCategoryMeta(slug) {

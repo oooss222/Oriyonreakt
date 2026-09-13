@@ -12,7 +12,8 @@
     "kids": 6,
     "travel": 8,
     "clothing": 6,
-    "construction": 6
+    "construction": 6,
+    "business": 6
   },
   "CATEGORY_MIN_PHOTOS": {
     "transport": 3,
@@ -23,6 +24,7 @@
     "kids": 1,
     "travel": 1,
     "clothing": 1,
-    "construction": 1
+    "construction": 1,
+    "business": 1
   }
 }

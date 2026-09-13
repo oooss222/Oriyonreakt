@@ -30,6 +30,10 @@ import {
   CONSTRUCTION_GOODS_SPECS,
   resolveConstructionSpecTemplate,
 } from "./constructionFilters";
+import {
+  BUSINESS_GOODS_SPECS,
+  resolveBusinessSpecTemplate,
+} from "./businessFilters";
 
 import { REAL_ESTATE_SUB_SPECS } from "./realEstate";
 import { DEFAULT_REAL_ESTATE_BROWSE_PATH } from "./realEstate";
@@ -51,6 +55,7 @@ export const CAT_LABELS = {
   travel: "Путешествия",
   clothing: "Одежда",
   construction: "Строительство",
+  business: "Все для бизнеса",
 };
 
 export const CATEGORY_SELECT_OPTIONS = [
@@ -378,6 +383,64 @@ const CONSTRUCTION_GROUPS = buildGroupedCategory([
 ]);
 CONSTRUCTION_GROUPS.subs.push("Другое");
 
+/** Somon.tj-style business taxonomy (vsyo-dlya-biznesa). */
+const BUSINESS_GROUPS = buildGroupedCategory([
+  [
+    "Бизнес на продажу",
+    [
+      "Торговля, магазины",
+      "Кафе, рестораны, общепит",
+      "Производство, фабрики",
+      "Автосервисы, автомойки, шиномонтаж",
+      "Салоны красоты",
+      "Фермы, сады",
+      "Интернет, сайты, домены",
+      "Развлекательные аттракционы",
+      "Другое",
+    ],
+  ],
+  [
+    "Оборудование",
+    [
+      "Для магазина",
+      "Для кафе и ресторана",
+      "Для салона красоты",
+      "Для автосервиса и автомоек",
+      "Пищевое производство",
+      "Промышленное",
+      "Строительное",
+      "Медицинское",
+      "Электрооборудование",
+      "Бочки, цистерны, ёмкости",
+      "Терминалы / кассовые аппараты",
+      "Полиграфия",
+      "Другое",
+    ],
+  ],
+  [
+    "Сырьё и материалы",
+    [
+      "Пищевое сырьё",
+      "Упаковка",
+      "Для производства",
+      "Химия и расходники",
+      "Другое",
+    ],
+  ],
+  [
+    "Готовый бизнес в аренду",
+    [
+      "Торговля, магазины",
+      "Кафе, рестораны, общепит",
+      "Автосервисы, автомойки",
+      "Салоны красоты",
+      "Производство",
+      "Другое",
+    ],
+  ],
+]);
+BUSINESS_GROUPS.subs.push("Другое");
+
 export const CATS = {
   realestate: {
     title: "Недвижимость",
@@ -616,6 +679,16 @@ export const CATS = {
     subGroups: CONSTRUCTION_GROUPS.subGroups,
     specTemplate: CONSTRUCTION_GOODS_SPECS,
     resolveSpecTemplate: resolveConstructionSpecTemplate,
+  },
+  business: {
+    title: "Все для бизнеса",
+    shortTitle: "Бизнес",
+    img: "/img/business.svg",
+    desc: "Готовый бизнес, оборудование, сырьё и аренда под ключ",
+    subs: BUSINESS_GROUPS.subs,
+    subGroups: BUSINESS_GROUPS.subGroups,
+    specTemplate: BUSINESS_GOODS_SPECS,
+    resolveSpecTemplate: resolveBusinessSpecTemplate,
   },
 };
 

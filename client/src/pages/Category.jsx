@@ -29,6 +29,7 @@ const LIFESTYLE_SLUGS = new Set([
   "travel",
   "clothing",
   "construction",
+  "business",
 ]);
 
 export default function Category() {

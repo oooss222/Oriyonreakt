@@ -21,6 +21,12 @@ const ALLOWED_CATS = new Set([
   "computers",
   "services",
   "repair",
+  "food",
+  "kids",
+  "travel",
+  "clothing",
+  "construction",
+  "business",
 ]);
 
 class ListingValidationError extends Error {

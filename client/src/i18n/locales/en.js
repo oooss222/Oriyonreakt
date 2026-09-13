@@ -214,6 +214,7 @@ export default {
     travel: "Travel",
     clothing: "Clothing",
     construction: "Construction",
+    business: "Business",
     all: "All categories",
   },
   categoriesShort: {
@@ -230,6 +231,7 @@ export default {
     travel: "Travel",
     clothing: "Clothing",
     construction: "Construction",
+    business: "Business",
   },
   cookie: {
     title: "We use cookies",

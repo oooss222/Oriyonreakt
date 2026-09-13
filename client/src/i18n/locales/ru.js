@@ -214,6 +214,7 @@ export default {
     travel: "Путешествия",
     clothing: "Одежда",
     construction: "Строительство",
+    business: "Все для бизнеса",
     all: "Все категории",
   },
   categoriesShort: {
@@ -230,6 +231,7 @@ export default {
     travel: "Путешествия",
     clothing: "Одежда",
     construction: "Строительство",
+    business: "Бизнес",
   },
   cookie: {
     title: "Мы используем cookie",

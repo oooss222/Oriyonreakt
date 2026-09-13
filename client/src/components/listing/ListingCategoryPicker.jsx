@@ -16,6 +16,7 @@ const CAT_ICONS = {
   travel: "🧳",
   clothing: "👕",
   construction: "🏗️",
+  business: "💼",
 };
 
 export default function ListingCategoryPicker({ onSelect, selected = "" }) {

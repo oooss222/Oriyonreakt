@@ -214,6 +214,7 @@ export default {
     travel: "Сайёҳӣ",
     clothing: "Либос",
     construction: "Сохтмон",
+    business: "Барои бизнес",
     all: "Ҳамаи категорияҳо",
   },
   categoriesShort: {
@@ -230,6 +231,7 @@ export default {
     travel: "Сайёҳӣ",
     clothing: "Либос",
     construction: "Сохтмон",
+    business: "Бизнес",
   },
   cookie: {
     title: "Мо cookie истифода мебарем",

@@ -34,6 +34,10 @@ import {
   CONSTRUCTION_PRICE_PRESETS,
   resolveConstructionSpecTemplate,
 } from "./constructionFilters";
+import {
+  BUSINESS_PRICE_PRESETS,
+  resolveBusinessSpecTemplate,
+} from "./businessFilters";
 
 const TRANSPORT_GRID = {
   rows: [
@@ -260,6 +264,63 @@ function buildTravelGrid(subcategory = "") {
                 options: extraSpec.options,
               }
             : null,
+        { id: "sort", label: "Сортировка", type: "sort" },
+      ],
+    ],
+    more: [{ id: "search", label: "Поиск", type: "search" }],
+  };
+}
+
+function buildBusinessGrid(subcategory = "") {
+  const specs = resolveBusinessSpecTemplate(subcategory);
+  const dealSpec = specs.find((item) => item.name === "Тип сделки");
+  const conditionSpec = specs.find((item) => item.name === "Состояние");
+  const formatSpec = specs.find((item) => item.name === "Формат");
+  const unitSpec = specs.find((item) => item.name === "Единица");
+
+  const secondary = formatSpec || unitSpec || conditionSpec || null;
+
+  return {
+    rows: [
+      [
+        { id: "subcategory", label: "Раздел", type: "subcategory" },
+        {
+          id: "price",
+          label: "Цена",
+          type: "price",
+          presets: BUSINESS_PRICE_PRESETS,
+        },
+        { id: "region", label: "Область", type: "region", options: REGIONS },
+        { id: "location", label: "Город", type: "location", options: LOCATIONS },
+      ],
+      [
+        dealSpec
+          ? {
+              id: "Тип сделки",
+              label: "Тип сделки",
+              type: "spec",
+              specKey: "Тип сделки",
+              options: dealSpec.options,
+            }
+          : null,
+        secondary
+          ? {
+              id: secondary.name,
+              label: secondary.name,
+              type: "spec",
+              specKey: secondary.name,
+              options: secondary.options,
+            }
+          : null,
+        conditionSpec && secondary !== conditionSpec
+          ? {
+              id: "Состояние",
+              label: "Состояние",
+              type: "spec",
+              specKey: "Состояние",
+              options: conditionSpec.options || COMMON_SPEC_OPTIONS.condition,
+            }
+          : null,
         { id: "sort", label: "Сортировка", type: "sort" },
       ],
     ],
@@ -616,6 +677,10 @@ export function getListingFilterGrid(catKey, subcategory = "") {
 
   if (catKey === "construction") {
     return buildConstructionGrid(subcategory);
+  }
+
+  if (catKey === "business") {
+    return buildBusinessGrid(subcategory);
   }
 
   if (catKey === "realestate") {
