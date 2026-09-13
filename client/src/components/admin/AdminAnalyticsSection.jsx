@@ -83,7 +83,7 @@ export default function AdminAnalyticsSection({ token }) {
   }, [data]);
 
   if (loading) {
-    return <div className="rounded-2xl border bg-white p-5 animate-pulse h-56" />;
+    return <div className="admin-panel p-5 animate-pulse h-56" />;
   }
 
   if (error) {
@@ -95,7 +95,7 @@ export default function AdminAnalyticsSection({ token }) {
   }
 
   return (
-    <div className="rounded-2xl border bg-white p-4 md:p-5 space-y-6">
+    <div className="admin-panel p-4 md:p-5 space-y-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
         <div>
           <div className="inline-flex items-center gap-2 text-sm text-indigo-700 bg-indigo-50 border border-indigo-100 rounded-full px-3 py-1 mb-2">
@@ -149,7 +149,7 @@ export default function AdminAnalyticsSection({ token }) {
           <div className="text-sm text-ink-500">{t("admin.analytics.noActions")}</div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-sm border-collapse">
+            <table className="admin-table">
               <thead>
                 <tr className="border-b text-left text-ink-500">
                   <th className="py-2 px-2">{t("admin.analytics.col.staff")}</th>

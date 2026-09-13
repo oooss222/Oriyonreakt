@@ -293,7 +293,7 @@ export default function UserDetailModal({
 
           {!loading && user && (
             <>
-              <div className="rounded-2xl border bg-mist-50 p-4 space-y-3">
+              <div className="admin-stat space-y-3">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <div className="text-xl font-bold">{user.name || t("admin.users.noName")}</div>

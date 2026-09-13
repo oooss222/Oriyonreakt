@@ -217,7 +217,7 @@ export default function AdminAdsSection({ token }) {
 
   if (loading) {
     return (
-      <div className="rounded-2xl border bg-white p-6 text-sm text-ink-500">
+      <div className="admin-panel p-6 text-sm text-ink-500">
         {t("admin.ads.loading")}
       </div>
     );
@@ -225,7 +225,7 @@ export default function AdminAdsSection({ token }) {
 
   return (
     <div className="space-y-5">
-      <div className="rounded-2xl border bg-white p-4 md:p-5">
+      <div className="admin-panel p-4 md:p-5">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <h2 className="text-xl font-bold text-ink-900 flex items-center gap-2">
@@ -245,29 +245,29 @@ export default function AdminAdsSection({ token }) {
 
         {stats && (
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-5">
-            <div className="rounded-2xl border bg-mist-50 p-4">
-              <div className="text-xs text-ink-500">{t("admin.ads.stats.total")}</div>
-              <div className="text-2xl font-bold text-ink-900">{stats.total || 0}</div>
+            <div className="admin-stat">
+              <div className="admin-stat__label">{t("admin.ads.stats.total")}</div>
+              <div className="admin-stat__value">{stats.total || 0}</div>
             </div>
-            <div className="rounded-2xl border bg-emerald-50 p-4">
-              <div className="text-xs text-emerald-700">{t("admin.ads.stats.active")}</div>
-              <div className="text-2xl font-bold text-emerald-900">{stats.active || 0}</div>
+            <div className="admin-stat border-emerald-200/80 bg-emerald-50/90">
+              <div className="admin-stat__label text-emerald-700">{t("admin.ads.stats.active")}</div>
+              <div className="admin-stat__value text-emerald-900">{stats.active || 0}</div>
             </div>
-            <div className="rounded-2xl border bg-white p-4">
-              <div className="text-xs text-ink-500 flex items-center gap-1">
+            <div className="admin-stat">
+              <div className="admin-stat__label flex items-center gap-1">
                 <BarChart3 size={14} />
                 {t("admin.ads.stats.impressions")}
               </div>
-              <div className="text-2xl font-bold text-ink-900">
+              <div className="admin-stat__value">
                 {Number(stats.impressions || 0).toLocaleString("ru-RU")}
               </div>
             </div>
-            <div className="rounded-2xl border bg-white p-4">
-              <div className="text-xs text-ink-500">CTR</div>
-              <div className="text-2xl font-bold text-ink-900">
+            <div className="admin-stat">
+              <div className="admin-stat__label">CTR</div>
+              <div className="admin-stat__value">
                 {formatAdCtr(stats.clicks, stats.impressions)}
               </div>
-              <div className="text-xs text-ink-400 mt-1">
+              <div className="text-xs text-ink-400">
                 {t("admin.ads.clicksCount", {
                   count: Number(stats.clicks || 0).toLocaleString("ru-RU"),
                 })}
@@ -283,10 +283,10 @@ export default function AdminAdsSection({ token }) {
         </div>
       )}
 
-      <div className="rounded-2xl border bg-white overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-sm">
-            <thead className="bg-mist-50 text-ink-500">
+      <div className="admin-panel overflow-hidden">
+        <div className="admin-table-wrap border-0 rounded-none">
+          <table className="admin-table">
+            <thead>
               <tr>
                 <th className="text-left px-4 py-3 font-medium">{t("admin.ads.col.campaign")}</th>
                 <th className="text-left px-4 py-3 font-medium">{t("admin.ads.col.zone")}</th>

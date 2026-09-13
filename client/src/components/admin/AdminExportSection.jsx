@@ -86,7 +86,7 @@ export default function AdminExportSection({ token, role = "admin" }) {
   };
 
   return (
-    <div className="rounded-2xl border bg-white p-4 md:p-5 space-y-5">
+    <div className="admin-panel p-4 md:p-5 space-y-5">
       <div>
         <div className="inline-flex items-center gap-2 text-sm text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-full px-3 py-1 mb-2">
           <FileSpreadsheet className="w-4 h-4" />
@@ -100,7 +100,7 @@ export default function AdminExportSection({ token, role = "admin" }) {
         </p>
       </div>
 
-      <div className="rounded-2xl border bg-mist-50 p-4 space-y-3">
+      <div className="admin-stat space-y-3">
         <div className="flex items-center gap-2 text-sm font-medium text-ink-700">
           <CalendarRange size={16} />
           {t("admin.export.periodLabel")}

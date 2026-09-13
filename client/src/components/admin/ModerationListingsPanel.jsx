@@ -220,22 +220,14 @@ export default function ModerationListingsPanel({ token, embedded = false }) {
       <button
         type="button"
         onClick={() => setPanelMode("listings")}
-        className={`px-4 py-2 rounded-xl border text-sm font-medium ${
-          panelMode === "listings"
-            ? "bg-ink-900 text-white border-ink-900"
-            : "bg-white"
-        }`}
+        className={`chip ${panelMode === "listings" ? "chip-active" : ""}`}
       >
         {t("admin.sections.listings")}
       </button>
       <button
         type="button"
         onClick={() => setPanelMode("reports")}
-        className={`px-4 py-2 rounded-xl border text-sm font-medium ${
-          panelMode === "reports"
-            ? "bg-ink-900 text-white border-ink-900"
-            : "bg-white"
-        }`}
+        className={`chip ${panelMode === "reports" ? "chip-active" : ""}`}
       >
         {t("admin.sections.reports")}
       </button>
@@ -250,7 +242,7 @@ export default function ModerationListingsPanel({ token, embedded = false }) {
         {panelMode === "reports" ? (
           <ModerationReports token={token} />
         ) : (
-          <div className="rounded-2xl border bg-white p-4 md:p-5">
+          <div className="admin-panel p-4 md:p-5">
             <ListingGridSkeleton count={6} columns="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3" />
           </div>
         )}
@@ -273,7 +265,7 @@ export default function ModerationListingsPanel({ token, embedded = false }) {
 
       <ModerationStatsPanel token={token} />
 
-      <div className="rounded-2xl border bg-white p-4 md:p-5 space-y-5">
+      <div className="admin-panel p-4 md:p-5 space-y-5">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
           <div>
             <div className="inline-flex items-center gap-2 text-sm text-sun-700 bg-sun-50 border border-sun-100 rounded-full px-3 py-1 mb-2">
@@ -291,7 +283,7 @@ export default function ModerationListingsPanel({ token, embedded = false }) {
           <button
             onClick={load}
             disabled={refreshing}
-            className="px-4 py-2 rounded-xl border hover:bg-mist-50 disabled:opacity-60"
+            className="btn btn-secondary disabled:opacity-60"
           >
             {refreshing ? t("admin.users.refreshing") : t("admin.users.refresh")}
           </button>
@@ -406,7 +398,7 @@ export default function ModerationListingsPanel({ token, embedded = false }) {
               return (
                 <article
                   key={id}
-                  className="rounded-2xl border bg-white p-3 md:p-4 grid grid-cols-1 md:grid-cols-[160px_1fr_auto] gap-4 hover:shadow-md transition"
+                  className="admin-panel p-3 md:p-4 grid grid-cols-1 md:grid-cols-[160px_1fr_auto] gap-4 hover:shadow-md transition"
                 >
                   <Link
                     to={`/ad/${id}`}
@@ -641,7 +633,7 @@ export default function ModerationListingsPanel({ token, embedded = false }) {
                 <button
                   type="button"
                   onClick={closeReject}
-                  className="px-4 py-2 rounded-xl border hover:bg-mist-50"
+                  className="btn btn-secondary"
                 >
                   {t("common.cancel")}
                 </button>

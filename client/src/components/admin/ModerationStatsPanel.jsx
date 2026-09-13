@@ -25,7 +25,7 @@ export default function ModerationStatsPanel({ token }) {
 
   if (loading) {
     return (
-      <div className="rounded-2xl border bg-white p-4 text-sm text-ink-500">
+      <div className="admin-panel p-4 text-sm text-ink-500">
         {t("admin.moderationStats.loading")}
       </div>
     );
@@ -34,7 +34,7 @@ export default function ModerationStatsPanel({ token }) {
   if (!stats) return null;
 
   return (
-    <div className="rounded-2xl border bg-white p-4 md:p-5 space-y-4">
+    <div className="admin-panel p-4 md:p-5 space-y-4">
       <div>
         <h3 className="font-bold text-ink-900">{t("admin.moderationStats.slaTitle")}</h3>
         <p className="text-sm text-ink-500 mt-1">
@@ -88,7 +88,7 @@ export default function ModerationStatsPanel({ token }) {
 
       {stats.byCategory?.length > 0 && (
         <div className="overflow-x-auto">
-          <table className="min-w-full text-sm">
+          <table className="admin-table">
             <thead>
               <tr className="text-left text-ink-500 border-b">
                 <th className="py-2 pr-3">{t("admin.moderationStats.colCategory")}</th>

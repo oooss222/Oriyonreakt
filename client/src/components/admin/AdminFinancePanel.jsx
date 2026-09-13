@@ -185,11 +185,11 @@ function TransactionsTable({ token }) {
   }, [typeFilter, debouncedQuery, from, to]);
 
   if (loading) {
-    return <div className="rounded-2xl border bg-white p-6 animate-pulse h-48" />;
+    return <div className="admin-panel p-6 animate-pulse h-48" />;
   }
 
   return (
-    <div className="rounded-2xl border bg-white p-4 space-y-4">
+    <div className="admin-panel p-4 space-y-4">
       {error && (
         <div className="rounded-xl border border-red-200 bg-red-50 text-red-700 p-3">
           {error}
@@ -266,9 +266,9 @@ function TransactionsTable({ token }) {
           {t("admin.finance.tx.empty")}
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-2xl border">
-          <table className="w-full text-sm border-collapse bg-white">
-            <thead className="bg-mist-50">
+        <div className="admin-table-wrap">
+          <table className="admin-table">
+            <thead>
               <tr className="border-b text-left text-ink-500">
                 <th className="py-3 px-3">{t("admin.finance.col.date")}</th>
                 <th className="py-3 px-3">{t("admin.finance.col.user")}</th>
@@ -357,7 +357,7 @@ export default function AdminFinancePanel({ token, currentUser, isSuperAdmin }) 
 
   return (
     <div className="space-y-4">
-      <div className="rounded-2xl border bg-white p-4 md:p-5">
+      <div className="admin-panel p-4 md:p-5">
         <div className="inline-flex items-center gap-2 text-sm text-sun-700 bg-sun-50 border border-sun-100 rounded-full px-3 py-1 mb-2">
           <Wallet className="w-4 h-4" />
           {t("admin.finance.badge")}
@@ -402,7 +402,7 @@ export default function AdminFinancePanel({ token, currentUser, isSuperAdmin }) 
       {tab === "overview" && (
         <>
           {loading && (
-            <div className="rounded-2xl border bg-white p-6 animate-pulse h-40" />
+            <div className="admin-panel p-6 animate-pulse h-40" />
           )}
           {error && (
             <div className="rounded-2xl border border-red-200 bg-red-50 text-red-700 p-4">

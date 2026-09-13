@@ -380,7 +380,7 @@ export default function ChatThreadPanel({
               <div className="py-8 px-2">
                 {supportThread ? (
                   <div className="max-w-md mx-auto rounded-2xl border border-lagoon/15 bg-white/95 p-6 text-center shadow-soft">
-                    <div className="mx-auto mb-3 grid h-12 w-12 place-items-center rounded-2xl bg-lagoon/10 text-lagoon">
+                    <div className="icon-box mx-auto mb-3 h-12 w-12 bg-lagoon/10 text-lagoon ring-lagoon/15">
                       <Shield size={22} />
                     </div>
                     <div className="font-display font-bold text-ink">

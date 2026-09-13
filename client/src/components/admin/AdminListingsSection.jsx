@@ -100,12 +100,12 @@ export default function AdminListingsSection({ token }) {
 
   if (loading) {
     return (
-      <div className="rounded-2xl border bg-white p-5 animate-pulse h-48" />
+      <div className="admin-panel p-5 animate-pulse h-48" />
     );
   }
 
   return (
-    <div className="rounded-2xl border bg-white p-4 md:p-5 space-y-5">
+    <div className="admin-panel p-4 md:p-5 space-y-5">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
         <div>
           <div className="inline-flex items-center gap-2 text-sm text-sun-700 bg-sun-50 border border-sun-100 rounded-full px-3 py-1 mb-2">
@@ -122,7 +122,7 @@ export default function AdminListingsSection({ token }) {
           type="button"
           onClick={load}
           disabled={refreshing}
-          className="px-4 py-2 rounded-xl border hover:bg-mist-50 disabled:opacity-60"
+          className="btn btn-secondary disabled:opacity-60"
         >
           {refreshing ? t("admin.users.refreshing") : t("admin.users.refresh")}
         </button>

@@ -19,20 +19,20 @@ import { useI18n } from "../../i18n";
 
 function StatCard({ label, value, hint, tone = "slate" }) {
   const tones = {
-    slate: "bg-mist-50",
-    emerald: "bg-emerald-50",
-    red: "bg-red-50",
-    amber: "bg-amber-50",
-    purple: "bg-purple-50",
-    sun: "bg-sun-50",
-    blue: "bg-blue-50",
+    slate: "",
+    emerald: "border-emerald-200/80 bg-emerald-50/90",
+    red: "border-red-200/80 bg-red-50/90",
+    amber: "border-amber-200/80 bg-amber-50/90",
+    purple: "border-purple-200/80 bg-purple-50/90",
+    sun: "border-sun-200/80 bg-sun-50/90",
+    blue: "border-lagoon-200/80 bg-lagoon-50/90",
   };
 
   return (
-    <div className={`rounded-2xl border p-4 ${tones[tone] || tones.slate}`}>
-      <div className="text-xs text-ink-500">{label}</div>
-      <div className="text-2xl font-bold mt-1">{value}</div>
-      {hint && <div className="text-xs text-ink-500 mt-1">{hint}</div>}
+    <div className={`admin-stat ${tones[tone] || ""}`}>
+      <div className="admin-stat__label">{label}</div>
+      <div className="admin-stat__value">{value}</div>
+      {hint && <div className="text-xs text-ink-500">{hint}</div>}
     </div>
   );
 }
@@ -269,7 +269,7 @@ export default function AdminDashboard({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <div className="rounded-2xl border bg-white p-4">
+        <div className="admin-panel p-4">
           <div className="flex items-center gap-2 text-sm font-semibold text-ink-700 mb-3">
             <BadgeCheck size={16} />
             {t("admin.dashboard.businessAccountsHeading")}
@@ -295,7 +295,7 @@ export default function AdminDashboard({
           </div>
         </div>
 
-        <div className="rounded-2xl border bg-white p-4">
+        <div className="admin-panel p-4">
           <div className="flex items-center gap-2 text-sm font-semibold text-ink-700 mb-3">
             <Wallet size={16} />
             {t("admin.dashboard.walletsHeading")}

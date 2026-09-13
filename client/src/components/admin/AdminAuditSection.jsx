@@ -71,12 +71,12 @@ export default function AdminAuditSection({ token }) {
 
   if (loading) {
     return (
-      <div className="rounded-2xl border bg-white p-5 animate-pulse h-48" />
+      <div className="admin-panel p-5 animate-pulse h-48" />
     );
   }
 
   return (
-    <div className="rounded-2xl border bg-white p-4 md:p-5 space-y-5">
+    <div className="admin-panel p-4 md:p-5 space-y-5">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
         <div>
           <div className="inline-flex items-center gap-2 text-sm text-indigo-700 bg-indigo-50 border border-indigo-100 rounded-full px-3 py-1 mb-2">
@@ -93,7 +93,7 @@ export default function AdminAuditSection({ token }) {
           type="button"
           onClick={load}
           disabled={refreshing}
-          className="px-4 py-2 rounded-xl border hover:bg-mist-50 disabled:opacity-60"
+          className="btn btn-secondary disabled:opacity-60"
         >
           {refreshing ? t("admin.common.refreshing") : t("admin.common.refresh")}
         </button>
@@ -146,9 +146,9 @@ export default function AdminAuditSection({ token }) {
           {t("admin.audit.empty")}
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-2xl border">
-          <table className="w-full text-sm border-collapse bg-white">
-            <thead className="bg-mist-50">
+        <div className="admin-table-wrap">
+          <table className="admin-table">
+            <thead>
               <tr className="border-b text-left text-ink-500">
                 <th className="py-3 px-3">{t("admin.finance.col.when")}</th>
                 <th className="py-3 px-3">{t("admin.finance.col.who")}</th>

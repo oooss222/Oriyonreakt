@@ -288,7 +288,7 @@ export default function Admin() {
 
         <main>
           {section === "dashboard" && isAdmin && (
-            <div className="rounded-2xl border bg-white p-4 md:p-5">
+            <div className="admin-panel p-4 md:p-5">
               <AdminDashboard
                 stats={stats}
                 loading={statsLoading}

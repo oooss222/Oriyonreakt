@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Shield, X } from "lucide-react";
+import { Shield } from "lucide-react";
 import { api } from "../lib/api";
 import { connectChatSocket, getChatSocket } from "../lib/chatSocket";
 import {
@@ -21,49 +21,10 @@ import {
 import ChatInboxPanel from "../components/messages/ChatInboxPanel";
 import ChatThreadPanel from "../components/messages/ChatThreadPanel";
 import ChatReportModal from "../components/messages/ChatReportModal";
+import Toast from "../components/ui/Toast";
 
 const TOKEN_KEY = "auth_token";
 const USER_KEY = "auth_user";
-
-function Toast({ message, type = "info", onClose, closeLabel }) {
-  React.useEffect(() => {
-    if (!message) return undefined;
-
-    const timer = setTimeout(onClose, 3200);
-    return () => clearTimeout(timer);
-  }, [message, onClose]);
-
-  if (!message) return null;
-
-  const styles =
-    type === "error"
-      ? "bg-red-600"
-      : type === "success"
-      ? "bg-lagoon"
-      : "bg-ink-800";
-
-  return (
-    <div
-      role={type === "error" ? "alert" : "status"}
-      aria-live={type === "error" ? "assertive" : "polite"}
-      className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[120] animate-fade-in-up"
-    >
-      <div
-        className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-white text-sm shadow-lift backdrop-blur-sm ${styles}`}
-      >
-        <span>{message}</span>
-        <button
-          type="button"
-          onClick={onClose}
-          className="p-0.5 rounded hover:bg-white/15"
-          aria-label={closeLabel}
-        >
-          <X size={16} />
-        </button>
-      </div>
-    </div>
-  );
-}
 
 export default function Messages() {
   const nav = useNavigate();
@@ -1005,10 +966,16 @@ export default function Messages() {
   return (
     <div className="page-shell min-h-screen">
       <Toast
+        open={Boolean(toast.message)}
         message={toast.message}
-        type={toast.type}
+        tone={
+          toast.type === "error"
+            ? "error"
+            : toast.type === "success"
+              ? "success"
+              : "default"
+        }
         onClose={() => setToast({ message: "", type: "info" })}
-        closeLabel={t("common.close")}
       />
 
       <ChatReportModal

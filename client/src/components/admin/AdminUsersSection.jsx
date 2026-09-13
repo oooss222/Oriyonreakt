@@ -155,7 +155,7 @@ export default function AdminUsersSection({
 
   if (loading) {
     return (
-      <div className="rounded-2xl border bg-white p-4 md:p-5 space-y-4 animate-pulse">
+      <div className="admin-panel p-4 md:p-5 space-y-4 animate-pulse">
         <div className="h-7 bg-mist-200 rounded w-48" />
         <div className="h-12 bg-mist-200 rounded-xl" />
         <div className="space-y-2">
@@ -169,7 +169,7 @@ export default function AdminUsersSection({
 
   return (
     <>
-      <div className="rounded-2xl border bg-white p-4 md:p-5 space-y-5">
+      <div className="admin-panel p-4 md:p-5 space-y-5">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
           <div>
             <div className="inline-flex items-center gap-2 text-sm text-sun-700 bg-sun-50 border border-sun-100 rounded-full px-3 py-1 mb-2">
@@ -189,7 +189,7 @@ export default function AdminUsersSection({
             type="button"
             onClick={loadUsers}
             disabled={refreshing}
-            className="px-4 py-2 rounded-xl border hover:bg-mist-50 disabled:opacity-60"
+            className="btn btn-secondary disabled:opacity-60"
           >
             {refreshing ? t("admin.users.refreshing") : t("admin.users.refresh")}
           </button>
@@ -291,9 +291,9 @@ export default function AdminUsersSection({
             {t("admin.users.notFound")}
           </div>
         ) : (
-          <div className="overflow-x-auto rounded-2xl border">
-            <table className="w-full text-sm border-collapse bg-white">
-              <thead className="bg-mist-50">
+          <div className="admin-table-wrap">
+            <table className="admin-table">
+              <thead>
                 <tr className="border-b text-left text-ink-500">
                   <th className="py-3 px-3">{t("admin.users.colUser")}</th>
                   <th className="py-3 px-3">{t("admin.users.colContacts")}</th>

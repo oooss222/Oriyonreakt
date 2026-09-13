@@ -74,7 +74,7 @@ export default function AdminFinanceUsersSection({ token, currentUser }) {
 
   if (loading) {
     return (
-      <div className="rounded-2xl border bg-white p-4 space-y-4 animate-pulse">
+      <div className="admin-panel p-4 space-y-4 animate-pulse">
         <div className="h-7 bg-mist-200 rounded w-48" />
         <div className="h-12 bg-mist-200 rounded-xl" />
         <div className="space-y-2">
@@ -88,7 +88,7 @@ export default function AdminFinanceUsersSection({ token, currentUser }) {
 
   return (
     <>
-      <div className="rounded-2xl border bg-white p-4 space-y-4">
+      <div className="admin-panel p-4 space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <div className="inline-flex items-center gap-2 text-sm text-amber-700 bg-amber-50 border border-amber-100 rounded-full px-3 py-1 mb-2">
@@ -104,7 +104,7 @@ export default function AdminFinanceUsersSection({ token, currentUser }) {
             type="button"
             onClick={loadUsers}
             disabled={refreshing}
-            className="px-4 py-2 rounded-xl border hover:bg-mist-50 disabled:opacity-60"
+            className="btn btn-secondary disabled:opacity-60"
           >
             {refreshing ? t("admin.common.refreshing") : t("admin.common.refresh")}
           </button>
@@ -172,9 +172,9 @@ export default function AdminFinanceUsersSection({ token, currentUser }) {
             {t("admin.finance.users.empty")}
           </div>
         ) : (
-          <div className="overflow-x-auto rounded-2xl border">
-            <table className="w-full text-sm border-collapse bg-white">
-              <thead className="bg-mist-50">
+          <div className="admin-table-wrap">
+            <table className="admin-table">
+              <thead>
                 <tr className="border-b text-left text-ink-500">
                   <th className="py-3 px-3">{t("admin.finance.col.user")}</th>
                   <th className="py-3 px-3">Email</th>

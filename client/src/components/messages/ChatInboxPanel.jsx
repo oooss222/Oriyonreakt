@@ -145,11 +145,7 @@ export default function ChatInboxPanel({
                 key={key}
                 type="button"
                 onClick={() => onFilterChange(key)}
-                className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold transition ${
-                  active
-                    ? "bg-sun text-white shadow-soft"
-                    : "bg-white/80 text-ink-500 border border-ink/8 hover:border-sun/25 hover:text-sun-700"
-                }`}
+                className={`chip h-8 px-3 text-xs ${active ? "chip-active" : ""}`}
               >
                 {label}
               </button>
@@ -160,7 +156,7 @@ export default function ChatInboxPanel({
 
       {filteredItems.length === 0 ? (
         <div className="mx-4 mb-4 rounded-2xl border border-dashed border-ink/10 bg-white/70 p-8 text-center">
-          <div className="mx-auto mb-3 grid h-12 w-12 place-items-center rounded-2xl bg-mist text-ink-300">
+          <div className="icon-box mx-auto mb-3 h-12 w-12 bg-mist text-ink-300 ring-ink/10">
             <Search size={20} />
           </div>
           <p className="text-sm font-medium text-ink-500">{t("chat.empty")}</p>

@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import { useI18n } from "../../i18n";
 
-export const Field = ({ label, hint, icon: Icon, right, children }) => {
+export const Field = ({ label, hint, error, icon: Icon, right, children }) => {
   const generatedId = React.useId();
   const child = React.isValidElement(children)
     ? React.cloneElement(children, { id: children.props.id || generatedId })
@@ -16,9 +16,9 @@ export const Field = ({ label, hint, icon: Icon, right, children }) => {
   const inputId = React.isValidElement(child) ? child.props.id : undefined;
 
   return (
-    <div className="space-y-1.5">
+    <div className={`field ${error ? "field--error" : ""}`}>
       {label && (
-        <label htmlFor={inputId} className="text-sm font-medium text-ink-700">
+        <label htmlFor={inputId} className="field__label">
           {label}
         </label>
       )}
@@ -35,7 +35,8 @@ export const Field = ({ label, hint, icon: Icon, right, children }) => {
           </span>
         )}
       </div>
-      {hint}
+      {error ? <p className="field__error">{error}</p> : null}
+      {hint ? <div className="field__hint">{hint}</div> : null}
     </div>
   );
 };
@@ -70,7 +71,7 @@ export function Alert({ type = "error", children, actionLabel, onAction }) {
   return (
     <div className={styles} role={type === "success" ? "status" : "alert"}>
       <Icon size={18} className="mt-0.5 shrink-0" />
-      <div className="text-sm space-y-2">
+      <div className="space-y-2 text-sm">
         <div>{children}</div>
         {actionLabel && onAction ? (
           <button type="button" className="auth-alert__action" onClick={onAction}>
@@ -89,7 +90,7 @@ export function PasswordToggle({ visible, onToggle, label }) {
     <button
       type="button"
       onClick={onToggle}
-      className="text-ink-400 hover:text-ink-600 transition"
+      className="text-ink-400 transition hover:text-ink-600"
       aria-label={
         visible ? t("auth.hideField", { field: label }) : t("auth.showField", { field: label })
       }
@@ -119,7 +120,7 @@ export function PolicyCheckbox({ checked, onChange, id = "auth-policy" }) {
       </span>
       <span>
         {t("auth.policyPrefix")}{" "}
-        <Link to="/policy" className="text-sun font-medium hover:underline">
+        <Link to="/policy" className="font-medium text-sun hover:underline">
           {t("auth.policyLink")}
         </Link>{" "}
         {t("auth.policySuffix")}

@@ -87,7 +87,7 @@ export function FinanceReportsTab({ token }) {
   }, [load]);
 
   return (
-    <div className="rounded-2xl border bg-white p-4 space-y-4">
+    <div className="admin-panel p-4 space-y-4">
       <div>
         <div className="inline-flex items-center gap-2 text-sm text-blue-700 bg-blue-50 border border-blue-100 rounded-full px-3 py-1 mb-2">
           <FileBarChart className="w-4 h-4" />
@@ -144,9 +144,9 @@ export function FinanceReportsTab({ token }) {
           </div>
 
           {Array.isArray(report.byType) && report.byType.length > 0 && (
-            <div className="overflow-x-auto rounded-2xl border">
-              <table className="w-full text-sm border-collapse bg-white">
-                <thead className="bg-mist-50">
+            <div className="admin-table-wrap">
+              <table className="admin-table">
+                <thead>
                   <tr className="border-b text-left text-ink-500">
                     <th className="py-3 px-3">{t("admin.finance.col.type")}</th>
                     <th className="py-3 px-3">{t("admin.finance.col.count")}</th>
@@ -213,7 +213,7 @@ export function FinanceAuditTab({ token }) {
   }, [from, to]);
 
   return (
-    <div className="rounded-2xl border bg-white p-4 space-y-4">
+    <div className="admin-panel p-4 space-y-4">
       <div>
         <div className="inline-flex items-center gap-2 text-sm text-indigo-700 bg-indigo-50 border border-indigo-100 rounded-full px-3 py-1 mb-2">
           <ScrollText className="w-4 h-4" />
@@ -268,9 +268,9 @@ export function FinanceAuditTab({ token }) {
           {t("admin.finance.auditTab.empty")}
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-2xl border">
-          <table className="w-full text-sm border-collapse bg-white">
-            <thead className="bg-mist-50">
+        <div className="admin-table-wrap">
+          <table className="admin-table">
+            <thead>
               <tr className="border-b text-left text-ink-500">
                 <th className="py-3 px-3">{t("admin.finance.col.when")}</th>
                 <th className="py-3 px-3">{t("admin.finance.col.who")}</th>
@@ -339,11 +339,11 @@ export function FinanceAlifOrdersTab({ token }) {
   };
 
   if (loading) {
-    return <div className="rounded-2xl border bg-white p-6 animate-pulse h-40" />;
+    return <div className="admin-panel p-6 animate-pulse h-40" />;
   }
 
   return (
-    <div className="rounded-2xl border bg-white p-4 space-y-4">
+    <div className="admin-panel p-4 space-y-4">
       <div>
         <div className="inline-flex items-center gap-2 text-sm text-violet-700 bg-violet-50 border border-violet-100 rounded-full px-3 py-1 mb-2">
           <CreditCard className="w-4 h-4" />
@@ -375,8 +375,8 @@ export function FinanceAlifOrdersTab({ token }) {
           </div>
 
           <div className="rounded-xl border overflow-x-auto">
-            <table className="min-w-full text-sm">
-              <thead className="bg-mist-50 text-ink-500">
+            <table className="admin-table">
+              <thead>
                 <tr>
                   <th className="text-left py-3 px-3">Order ID</th>
                   <th className="text-left py-3 px-3">{t("admin.finance.col.user")}</th>
@@ -455,11 +455,11 @@ export function FinancePaymentsTab({ token }) {
   }, [token]);
 
   if (loading) {
-    return <div className="rounded-2xl border bg-white p-6 animate-pulse h-40" />;
+    return <div className="admin-panel p-6 animate-pulse h-40" />;
   }
 
   return (
-    <div className="rounded-2xl border bg-white p-4 space-y-4">
+    <div className="admin-panel p-4 space-y-4">
       <div>
         <div className="inline-flex items-center gap-2 text-sm text-violet-700 bg-violet-50 border border-violet-100 rounded-full px-3 py-1 mb-2">
           <CreditCard className="w-4 h-4" />
@@ -553,7 +553,7 @@ export function FinancePromotionsTab({ token }) {
   }, [load]);
 
   return (
-    <div className="rounded-2xl border bg-white p-4 space-y-4">
+    <div className="admin-panel p-4 space-y-4">
       <div>
         <div className="inline-flex items-center gap-2 text-sm text-sun-700 bg-sun-50 border border-sun-100 rounded-full px-3 py-1 mb-2">
           <Crown className="w-4 h-4" />
@@ -604,9 +604,9 @@ export function FinancePromotionsTab({ token }) {
           </div>
 
           {Array.isArray(data.recent) && data.recent.length > 0 ? (
-            <div className="overflow-x-auto rounded-2xl border">
-              <table className="w-full text-sm border-collapse bg-white">
-                <thead className="bg-mist-50">
+            <div className="admin-table-wrap">
+              <table className="admin-table">
+                <thead>
                   <tr className="border-b text-left text-ink-500">
                     <th className="py-3 px-3">{t("admin.finance.col.date")}</th>
                     <th className="py-3 px-3">{t("admin.finance.col.user")}</th>

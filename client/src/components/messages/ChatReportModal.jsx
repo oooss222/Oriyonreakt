@@ -1,4 +1,5 @@
 import React from "react";
+import { createPortal } from "react-dom";
 import { Flag, X } from "lucide-react";
 import { REPORT_REASONS } from "../../data/reportReasons";
 
@@ -18,7 +19,7 @@ export default function ChatReportModal({
     setDetails("");
   }, [open]);
 
-  if (!open) return null;
+  if (!open || typeof document === "undefined") return null;
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -30,22 +31,31 @@ export default function ChatReportModal({
     onSubmit({ reason, details: details.trim() });
   };
 
-  return (
-    <div className="fixed inset-0 z-[130] grid place-items-center p-4 bg-ink/45 backdrop-blur-[2px]">
+  return createPortal(
+    <>
+      <button
+        type="button"
+        aria-label={t("common.close")}
+        className="sheet-backdrop sheet-backdrop--top"
+        onClick={onClose}
+      />
+
       <div
-        className="w-full max-w-md overflow-hidden rounded-[1.35rem] bg-white shadow-lift border border-ink/8"
+        className="sheet sheet--top sheet--dialog sheet--dialog-sm"
         role="dialog"
         aria-modal="true"
         aria-labelledby="chat-report-title"
       >
-        <div className="flex items-center justify-between gap-3 px-5 py-4 border-b border-ink/8 bg-gradient-to-r from-sun-50/80 to-white">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="grid h-10 w-10 place-items-center rounded-xl bg-sun/10 text-sun shrink-0">
+        <div className="sheet__handle sm:hidden" aria-hidden="true" />
+
+        <div className="sheet__header">
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="icon-box-sun h-10 w-10 shrink-0">
               <Flag size={18} />
             </div>
             <h3
               id="chat-report-title"
-              className="font-display font-bold text-lg text-ink truncate"
+              className="truncate font-display text-lg font-bold text-ink"
             >
               {t("report.title")}
             </h3>
@@ -53,25 +63,25 @@ export default function ChatReportModal({
           <button
             type="button"
             onClick={onClose}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-ink/8 bg-white text-ink-500 hover:bg-mist"
+            className="btn-ghost p-2"
             aria-label={t("common.close")}
           >
             <X size={18} />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-5 space-y-4">
-          <div className="space-y-2">
+        <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+          <div className="sheet__body space-y-2 pb-3">
             {REPORT_REASONS.map((item) => {
               const selected = reason === item.id;
 
               return (
                 <label
                   key={item.id}
-                  className={`flex items-center gap-3 rounded-xl border px-3.5 py-3 cursor-pointer transition ${
+                  className={`flex cursor-pointer items-center gap-3 rounded-xl border px-3.5 py-3 transition ${
                     selected
-                      ? "border-sun/30 bg-sun-50"
-                      : "border-ink/8 hover:bg-mist/70"
+                      ? "border-sun bg-sun-50"
+                      : "border-ink/10 hover:bg-mist/70"
                   }`}
                 >
                   <input
@@ -80,42 +90,39 @@ export default function ChatReportModal({
                     value={item.id}
                     checked={selected}
                     onChange={() => setReason(item.id)}
-                    className="accent-[#ff6a00]"
+                    className="accent-sun"
                   />
                   <span className="text-sm font-medium text-ink">{item.label}</span>
                 </label>
               );
             })}
+
+            {reason === "other" ? (
+              <textarea
+                value={details}
+                onChange={(e) => setDetails(e.target.value)}
+                rows={4}
+                className="input mt-2 w-full resize-none"
+                placeholder={t("report.placeholder")}
+              />
+            ) : null}
           </div>
 
-          {reason === "other" ? (
-            <textarea
-              value={details}
-              onChange={(e) => setDetails(e.target.value)}
-              rows={4}
-              className="input w-full resize-none rounded-2xl"
-              placeholder={t("report.placeholder")}
-            />
-          ) : null}
-
-          <div className="flex justify-end gap-2 pt-1">
-            <button
-              type="button"
-              onClick={onClose}
-              className="btn rounded-xl"
-            >
+          <div className="sheet__footer sm:justify-end">
+            <button type="button" onClick={onClose} className="btn btn-secondary rounded-xl">
               {t("common.close")}
             </button>
             <button
               type="submit"
               disabled={sending}
-              className="btn btn-primary rounded-xl"
+              className="btn btn-primary rounded-xl disabled:opacity-60"
             >
               {sending ? t("report.sending") : t("report.send")}
             </button>
           </div>
         </form>
       </div>
-    </div>
+    </>,
+    document.body
   );
 }
