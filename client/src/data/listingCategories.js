@@ -683,7 +683,7 @@ export const CATS = {
   business: {
     title: "Все для бизнеса",
     shortTitle: "Бизнес",
-    img: "/img/business.svg",
+    img: "/img/business.png",
     desc: "Готовый бизнес, оборудование, сырьё и аренда под ключ",
     subs: BUSINESS_GROUPS.subs,
     subGroups: BUSINESS_GROUPS.subGroups,
