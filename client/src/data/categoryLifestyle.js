@@ -36,10 +36,13 @@ export function expandSubcategoryFilterValues(subcategory = "") {
 
   const set = new Set([value, ...(ALIASES_BY_TARGET[value] || [])]);
 
-  // Keep old «Женская / Мужская» listings matching Paydo-style groups.
+  // Keep old group names matching Paydo-style tiles.
   for (const [modern, legacy] of [
     ["Женщинам", "Женская"],
     ["Мужчинам", "Мужская"],
+    ["Выпечка и десерты", "Выпечка"],
+    ["Блюда", "Готовая еда"],
+    ["Полуфабрикаты / заморозка", "Полуфабрикаты"],
   ]) {
     if (value === modern || value.startsWith(`${modern} — `)) {
       set.add(value.replace(modern, legacy));
@@ -139,8 +142,9 @@ export const LIFESTYLE_QUICK_CHIPS = {
       label: "Манты",
       subcategory: "Полуфабрикаты / заморозка — Манты и пельмени",
     },
-    { label: "Повар", subcategory: "Услуги повара — Домашний повар" },
     { label: "Фастфуд", subcategory: "Фастфуд" },
+    { label: "Повар", subcategory: "Услуги повара" },
+    { label: "Доставка", subcategory: "Блюда" },
   ],
   kids: [
     { label: "Мальчикам", subcategory: "Для мальчиков" },

@@ -14,6 +14,12 @@ import {
   CLOTHING_SIZES,
   resolveClothingSpecTemplate,
 } from "./clothingFilters";
+import {
+  FOOD_FORMATS,
+  FOOD_PRICE_PRESETS,
+  FOOD_READY_STATES,
+  resolveFoodSpecTemplate,
+} from "./foodFilters";
 
 const TRANSPORT_GRID = {
   rows: [
@@ -158,6 +164,59 @@ const PHONES_GRID = {
     { id: "sort", label: "Сортировка", type: "sort" },
   ],
 };
+
+function buildFoodGrid(subcategory = "") {
+  const specs = resolveFoodSpecTemplate(subcategory);
+  const formatSpec = specs.find((item) => item.name === "Формат");
+  const readySpec = specs.find((item) => item.name === "Готовность");
+  const visitSpec = specs.find((item) => item.name === "Выезд");
+  const dietSpec = specs.find((item) => item.name === "Тип питания");
+
+  const secondary =
+    readySpec ||
+    visitSpec ||
+    dietSpec ||
+    null;
+
+  return {
+    rows: [
+      [
+        { id: "subcategory", label: "Раздел", type: "subcategory" },
+        {
+          id: "price",
+          label: "Цена",
+          type: "price",
+          presets: FOOD_PRICE_PRESETS,
+        },
+        { id: "region", label: "Область", type: "region", options: REGIONS },
+        { id: "location", label: "Город", type: "location", options: LOCATIONS },
+      ],
+      [
+        formatSpec
+          ? {
+              id: "Формат",
+              label: "Формат",
+              type: "spec",
+              specKey: "Формат",
+              options: formatSpec.options || FOOD_FORMATS,
+            }
+          : null,
+        secondary
+          ? {
+              id: secondary.name,
+              label: secondary.name,
+              type: "spec",
+              specKey: secondary.name,
+              options: secondary.options || FOOD_READY_STATES,
+            }
+          : null,
+        { id: "sort", label: "Сортировка", type: "sort" },
+        { id: "search", label: "Поиск", type: "search" },
+      ],
+    ],
+    more: [],
+  };
+}
 
 function buildClothingGrid(subcategory = "") {
   const specs = resolveClothingSpecTemplate(subcategory);
@@ -307,6 +366,10 @@ export function getListingFilterGrid(catKey, subcategory = "") {
 
   if (catKey === "clothing") {
     return buildClothingGrid(subcategory);
+  }
+
+  if (catKey === "food") {
+    return buildFoodGrid(subcategory);
   }
 
   if (catKey === "realestate") {

@@ -35,6 +35,7 @@ import { sortListingsByMode } from "../lib/listingSort";
 import { CATS, parseSpecsParam } from "../data/listingCategories";
 import { resolveLegacyCategoryFilters } from "../data/categoryConsolidation";
 import ClothingQuickFilters from "../components/clothing/ClothingQuickFilters";
+import FoodQuickFilters from "../components/food/FoodQuickFilters";
 import { REAL_ESTATE_CAT } from "../data/realEstate";
 import { sanitizeRealEstateDraft } from "../lib/filterConflicts";
 import {
@@ -440,8 +441,11 @@ export default function Listing() {
   const availableSubcategories = React.useMemo(() => {
     const config = activeCat ? CATS[activeCat] : null;
     if (!config) return [];
-    // Clothing: Paydo-style group tiles in the filter (server expands to items).
-    if (activeCat === "clothing" && Array.isArray(config.subGroups)) {
+    // Lifestyle: Paydo-style group tiles in the filter (server expands to items).
+    if (
+      (activeCat === "clothing" || activeCat === "food") &&
+      Array.isArray(config.subGroups)
+    ) {
       return config.subGroups.map(({ group }) => group);
     }
     return config.subs || [];
@@ -943,6 +947,7 @@ export default function Listing() {
         )}
 
         {effectiveListingCat === "clothing" && <ClothingQuickFilters />}
+        {effectiveListingCat === "food" && <FoodQuickFilters />}
 
       {loading && <ListingGridSkeleton />}
 

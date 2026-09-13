@@ -14,6 +14,10 @@ import {
   CLOTHING_APPAREL_SPECS,
   resolveClothingSpecTemplate,
 } from "./clothingFilters";
+import {
+  FOOD_PRODUCT_SPECS,
+  resolveFoodSpecTemplate,
+} from "./foodFilters";
 
 import { REAL_ESTATE_SUB_SPECS } from "./realEstate";
 import { DEFAULT_REAL_ESTATE_BROWSE_PATH } from "./realEstate";
@@ -538,18 +542,8 @@ export const CATS = {
     desc: "Национальная кухня, выпечка, полуфабрикаты и услуги поваров",
     subs: FOOD_GROUPS.subs,
     subGroups: FOOD_GROUPS.subGroups,
-    specTemplate: [
-      {
-        name: "Формат",
-        type: "select",
-        options: ["Готовая еда", "На заказ", "Доставка", "Самовывоз", "Кейтеринг"],
-      },
-      {
-        name: "Состояние",
-        type: "select",
-        options: ["Свежее", "Заморозка", "Полуфабрикат"],
-      },
-    ],
+    specTemplate: FOOD_PRODUCT_SPECS,
+    resolveSpecTemplate: resolveFoodSpecTemplate,
   },
   kids: {
     title: "Детский мир",

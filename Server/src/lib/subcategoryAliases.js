@@ -30,6 +30,9 @@ function expandSubcategoryFilterValues(subcategory = "") {
   for (const [modern, legacy] of [
     ["Женщинам", "Женская"],
     ["Мужчинам", "Мужская"],
+    ["Выпечка и десерты", "Выпечка"],
+    ["Блюда", "Готовая еда"],
+    ["Полуфабрикаты / заморозка", "Полуфабрикаты"],
   ]) {
     if (value === modern || value.startsWith(`${modern} — `)) {
       set.add(value.replace(modern, legacy));
