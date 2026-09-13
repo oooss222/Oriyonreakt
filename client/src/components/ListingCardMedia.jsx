@@ -92,7 +92,7 @@ export default function ListingCardMedia({
 
   return (
     <div
-      className={className}
+      className={`${className} ${getPromotionMediaClass({ vip, top })}`.trim()}
       onMouseMove={hasMultiple ? onMouseMove : undefined}
       onMouseLeave={hasMultiple ? onMouseLeave : undefined}
       onTouchStart={onTouchStart}
@@ -102,9 +102,7 @@ export default function ListingCardMedia({
         src={images[activeIndex] || images[0]}
         alt={item?.title || t("listing.title")}
         loading="lazy"
-        className={`h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03] ${getPromotionMediaClass(
-          { vip }
-        )}`}
+        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
         onError={(e) => {
           e.currentTarget.src = "/img/placeholder.jpg";
         }}

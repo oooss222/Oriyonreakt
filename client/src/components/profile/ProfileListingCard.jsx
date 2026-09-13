@@ -99,9 +99,9 @@ export default React.memo(function ProfileListingCard({
   return (
     <article
       className={[
-        "group relative flex flex-col overflow-hidden rounded-2xl border bg-white shadow-sm transition-all duration-300 hover:shadow-lg",
+        "group relative flex flex-col overflow-hidden rounded-[1.25rem] border bg-white shadow-soft transition-all duration-300 hover:shadow-lift",
         getPromotionCardClass({ vip: ad.vip, top: ad.top }),
-        selected ? "ring-2 ring-sun border-sun" : "border-mist-200",
+        selected ? "ring-2 ring-sun border-sun" : "border-ink/10",
         inactive ? "opacity-75" : "",
       ].join(" ")}
     >
@@ -128,7 +128,7 @@ export default React.memo(function ProfileListingCard({
             className={[
               "w-full bg-mist-100 object-cover transition-transform duration-500 group-hover:scale-[1.03]",
               compact ? "h-36" : "h-40 sm:h-44",
-              getPromotionMediaClass({ vip: ad.vip }),
+              getPromotionMediaClass({ vip: ad.vip, top: ad.top }),
             ].join(" ")}
             loading="lazy"
           />

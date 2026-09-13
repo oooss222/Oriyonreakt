@@ -2,7 +2,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Heart } from "lucide-react";
 import { api } from "../lib/api";
-import { goToAuth } from "../lib/auth";
+import { TOKEN_KEY, goToAuth } from "../lib/auth";
 import { trackFavorite } from "../lib/track";
 import { useI18n } from "../i18n";
 
@@ -16,7 +16,7 @@ export default function FavoriteButton({
 }) {
   const nav = useNavigate();
   const { t } = useI18n();
-  const token = localStorage.getItem("auth_token") || "";
+  const token = localStorage.getItem(TOKEN_KEY) || "";
 
   const [active, setActive] = React.useState(Boolean(defaultActive));
   const [loading, setLoading] = React.useState(false);
@@ -74,7 +74,7 @@ export default function FavoriteButton({
       title={label}
       className={`inline-flex items-center justify-center transition group shrink-0 ${
         overlay
-          ? "h-9 w-9 rounded-full border border-ink/10 bg-white shadow-sm hover:shadow-md"
+          ? "h-11 w-11 rounded-full border border-ink/10 bg-white shadow-sm hover:shadow-md"
           : compact
             ? "p-1"
             : "rounded-full border bg-white/90 backdrop-blur px-2.5 py-2 shadow-sm hover:shadow"

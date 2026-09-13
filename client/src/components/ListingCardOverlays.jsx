@@ -37,7 +37,7 @@ export default function ListingCardOverlays({
         aria-hidden
       />
 
-      <div className="absolute left-2 top-2 z-10 max-w-[calc(100%-3.5rem)]">
+      <div className="absolute left-2 top-2 z-10 max-w-[calc(100%-4.5rem)]">
         <PromotionBadgeGroup vip={vip} top={top} size="sm" />
       </div>
 

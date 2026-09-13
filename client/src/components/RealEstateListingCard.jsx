@@ -58,13 +58,13 @@ function RealEstateListingCard({
     return (
       <Link
         {...linkProps}
-        className={`group relative flex overflow-hidden rounded-2xl border bg-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-sun/40 ${getPromotionCardClass(
+        className={`listing-card listing-card--horizontal group focus:outline-none focus:ring-2 focus:ring-sun/40 ${viewed ? "listing-card--viewed" : ""} ${getPromotionCardClass(
           { vip: listing.vip, top: listing.top }
-        )} flex-row p-2.5 gap-3`}
+        )}`}
       >
         <ListingCardMedia
           item={listing}
-          className="relative h-32 w-40 shrink-0 overflow-hidden rounded-xl sm:w-44"
+          className="listing-card__media"
           views={listing.views}
           vip={listing.vip}
           top={listing.top}
@@ -74,7 +74,7 @@ function RealEstateListingCard({
           photoCount={photoCount}
         />
 
-        <div className="min-w-0 flex-1 flex flex-col py-0.5">
+        <div className="listing-card__body">
           <div className="flex items-start justify-between gap-2">
             <div>
               <div className="listing-card__price text-base">
@@ -92,28 +92,25 @@ function RealEstateListingCard({
               )}
             </div>
             {summary.deal && (
-              <span className="shrink-0 inline-flex px-2 py-0.5 rounded-lg bg-mist-100 text-ink-600 text-[10px] font-bold uppercase">
+              <span className="listing-card__tag shrink-0">
                 {summary.deal}
               </span>
             )}
           </div>
 
           {summary.pricePerSqm && !isDaily && (
-            <div className="text-xs text-ink-500 font-medium">
-              {summary.pricePerSqm}
-            </div>
+            <div className="listing-card__details">{summary.pricePerSqm}</div>
           )}
 
-          <h3 className="mt-1 text-sm font-bold text-ink-800 line-clamp-2 group-hover:text-sun transition">
-            {cardCopy.title}
-          </h3>
+          <h3 className="listing-card__title">{cardCopy.title}</h3>
 
-          <div className="mt-1.5 text-xs text-ink-500 line-clamp-1 flex items-center gap-1">
+          <div className="listing-card__details flex items-center gap-1">
             <MapPin size={12} className="shrink-0" />
             <span className="truncate">{locationLabel}</span>
           </div>
 
-          <div className="mt-auto pt-2 flex items-end justify-end gap-2">
+          <div className="listing-card__footer">
+            <span />
             <div className="listing-card__meta">
               <time className="listing-card__time">
                 {formatListingTimeAgo(listing, t)}
@@ -125,7 +122,7 @@ function RealEstateListingCard({
           </div>
         </div>
 
-        <div className="hidden sm:flex items-center pr-2 text-ink-300 group-hover:text-sun">
+        <div className="hidden sm:flex items-center pr-1 text-ink-300 group-hover:text-sun">
           <Maximize2 size={18} />
         </div>
       </Link>
