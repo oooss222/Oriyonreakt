@@ -290,26 +290,32 @@ export default function Header({ variant = "full" }) {
 
             <Link
               to="/profile?tab=fav"
-              className="p-2.5 rounded-lg hover:bg-white/10 transition"
+              className="icon-btn gap-1.5 px-2.5 xl:min-w-0 xl:px-3"
               title={t("nav.favorites")}
               aria-label={t("nav.favorites")}
             >
               <Heart size={20} />
+              <span className="hidden xl:inline text-xs font-semibold">
+                {t("nav.favorites")}
+              </span>
             </Link>
 
             <Link
               to="/messages"
-              className="relative p-2.5 rounded-lg hover:bg-white/10 transition"
+              className="relative icon-btn gap-1.5 px-2.5 xl:min-w-0 xl:px-3"
               title={t("nav.messages")}
               aria-label={t("nav.messages")}
             >
               <MessageCircle size={20} />
+              <span className="hidden xl:inline text-xs font-semibold">
+                {t("nav.messages")}
+              </span>
               <UnreadBadge count={badgeCount} />
             </Link>
 
             <Link
               to={comparePath}
-              className="relative p-2.5 rounded-lg hover:bg-white/10 transition"
+              className="relative icon-btn"
               title={t("nav.compare")}
               aria-label={t("nav.compare")}
             >
@@ -320,7 +326,7 @@ export default function Header({ variant = "full" }) {
             {canModerate && (
               <Link
                 to="/admin?section=moderation"
-                className="relative p-2.5 rounded-lg hover:bg-white/10 transition"
+                className="relative icon-btn"
                 title={t("nav.moderation")}
                 aria-label={t("nav.moderation")}
               >
@@ -333,7 +339,7 @@ export default function Header({ variant = "full" }) {
               <>
                 <Link
                   to="/profile?tab=wallet"
-                  className="p-2.5 rounded-lg hover:bg-white/10 transition"
+                  className="icon-btn"
                   title={t("nav.wallet")}
                   aria-label={t("nav.wallet")}
                 >
@@ -342,21 +348,25 @@ export default function Header({ variant = "full" }) {
 
                 <Link
                   to="/profile?tab=profile"
-                  className="p-2.5 rounded-lg hover:bg-white/10 transition"
+                  className="icon-btn gap-1.5 px-2.5 xl:min-w-0 xl:px-3"
                   title={user?.name || t("nav.profile")}
                   aria-label={user?.name || t("nav.profile")}
                 >
                   <User size={20} />
+                  <span className="hidden xl:inline text-xs font-semibold max-w-[7rem] truncate">
+                    {user?.name || t("nav.profile")}
+                  </span>
                 </Link>
               </>
             ) : (
               <Link
                 to="/auth"
-                className="p-2.5 rounded-lg hover:bg-white/10 transition"
+                className="inline-flex items-center gap-1.5 min-h-[var(--touch)] px-3 rounded-xl border border-white/20 text-sm font-semibold text-white hover:bg-white/10 transition"
                 title={t("nav.login")}
                 aria-label={t("nav.login")}
               >
-                <LogIn size={20} />
+                <LogIn size={18} />
+                <span className="hidden sm:inline">{t("nav.login")}</span>
               </Link>
             )}
               </>

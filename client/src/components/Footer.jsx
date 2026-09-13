@@ -14,9 +14,38 @@ export default function Footer() {
         <AdSlot placement="footer" className="overflow-hidden rounded-3xl" />
       </div>
 
-      <footer className="mt-12 border-t border-ink/10 bg-ink-800 text-white">
+      <footer className="mt-8 lg:mt-12 border-t border-ink/10 bg-ink-800 text-white">
       <div className="container-x">
-        <div className="py-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+        {/* Compact mobile strip */}
+        <div className="lg:hidden py-6 space-y-4">
+          <div className="brand-wordmark text-xl">
+            Oriyon<span className="text-sun">.</span>
+            <span className="text-white/60 text-base font-semibold">store</span>
+          </div>
+          <p className="text-sm text-white/65 leading-relaxed">
+            {t("footer.tagline")}
+          </p>
+          <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm">
+            <Link to="/listing" className="text-white/80 hover:text-sun transition">
+              {t("footer.allListings")}
+            </Link>
+            <Link to="/add" className="text-white/80 hover:text-sun transition">
+              {t("footer.postListing")}
+            </Link>
+            <Link to="/policy" className="text-white/80 hover:text-sun transition">
+              {t("footer.sitePolicy")}
+            </Link>
+          </div>
+          <a
+            href="mailto:info@oriyon.store"
+            className="inline-flex items-center gap-2 text-sm text-white/65 hover:text-sun transition"
+          >
+            <Mail className="w-4 h-4 text-sun" aria-hidden="true" />
+            info@oriyon.store
+          </a>
+        </div>
+
+        <div className="hidden lg:grid py-10 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           <section aria-labelledby="footer-brand">
             <div className="brand-wordmark text-2xl mb-3">
               Oriyon<span className="text-sun">.</span>
@@ -118,7 +147,7 @@ export default function Footer() {
         </div>
       </div>
 
-      <div className="border-t border-white/10 py-4 text-center text-white/45 text-sm">
+      <div className="border-t border-white/10 py-3 lg:py-4 text-center text-white/45 text-xs sm:text-sm">
         © {year}{" "}
         <span className="font-medium text-white/70">Oriyon.store</span> — {t("footer.copyright")}
       </div>

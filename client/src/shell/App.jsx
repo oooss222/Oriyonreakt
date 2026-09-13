@@ -67,12 +67,8 @@ export default function App() {
         </React.Suspense>
       </main>
 
-      {layout.showFooter && (
-        <div className="hidden lg:block">
-          <Footer />
-        </div>
-      )}
-      {layout.showMobileNav && <MobileNav showPolicyLink={layout.showFooter} />}
+      {layout.showFooter && <Footer />}
+      {layout.showMobileNav && <MobileNav showPolicyLink={false} />}
       {layout.showCompareBar && <CompareFloatingBar />}
       {layout.showCookieConsent && <CookieConsent />}
     </div>

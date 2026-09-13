@@ -80,7 +80,7 @@ export default function MobileNav({ showPolicyLink = false }) {
               key={to}
               to={to}
               aria-current={active ? "page" : undefined}
-              className={`relative flex flex-col items-center justify-end gap-0.5 pb-1.5 text-xs font-semibold transition min-w-0 px-0.5 ${
+              className={`relative flex flex-col items-center justify-end gap-0.5 pb-1.5 text-[11px] sm:text-xs font-semibold transition min-w-0 px-0.5 min-h-16 ${
                 active
                   ? "text-sun"
                   : highlight
@@ -91,8 +91,8 @@ export default function MobileNav({ showPolicyLink = false }) {
               <span
                 className={`relative grid place-items-center rounded-xl transition ${
                   highlight
-                    ? "w-11 h-11 -mt-5 bg-sun text-white shadow-soft"
-                    : "w-8 h-8"
+                    ? "w-12 h-12 -mt-5 bg-sun text-white shadow-soft"
+                    : "w-9 h-9"
                 } ${active && !highlight ? "bg-sun-50" : ""}`}
               >
                 <Icon size={highlight ? 22 : 20} />
