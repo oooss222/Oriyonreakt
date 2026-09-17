@@ -7,6 +7,22 @@ const TRANSPORT_QUICK_FILTERS = [
     to: "/c/transport?subcategory=Легковые%20авто",
   },
   {
+    label: "Седан",
+    to: '/c/transport?subcategory=Легковые%20авто&specs={"Кузов":"Седан"}',
+  },
+  {
+    label: "Внедорожник",
+    to: '/c/transport?subcategory=Легковые%20авто&specs={"Кузов":"Внедорожник"}',
+  },
+  {
+    label: "Хэтчбек",
+    to: '/c/transport?subcategory=Легковые%20авто&specs={"Кузов":"Хэтчбек"}',
+  },
+  {
+    label: "Пикап",
+    to: '/c/transport?subcategory=Легковые%20авто&specs={"Кузов":"Пикап"}',
+  },
+  {
     label: "До 50 000 км",
     to: "/c/transport?subcategory=Легковые%20авто&mileageTo=50000",
   },
@@ -17,6 +33,14 @@ const TRANSPORT_QUICK_FILTERS = [
   {
     label: "Новые",
     to: '/c/transport?subcategory=Легковые%20авто&specs={"Состояние":"Новый"}',
+  },
+  {
+    label: "Электро",
+    to: '/c/transport?subcategory=Легковые%20авто&specs={"Топливо":"Электро"}',
+  },
+  {
+    label: "Гибрид",
+    to: '/c/transport?subcategory=Легковые%20авто&specs={"Топливо":"Гибрид"}',
   },
   {
     label: "Газ/Бензин",

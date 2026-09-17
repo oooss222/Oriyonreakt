@@ -66,6 +66,7 @@ export const CATEGORY_SELECT_OPTIONS = [
 const CAR_SPECS = [
   { name: "Марка", type: "select", options: CAR_BRANDS },
   { name: "Модель", type: "select", dependsOn: "Марка", optionsFrom: CAR_MODELS },
+  { name: "Комплектация", type: "text" },
   { name: "Год", type: "select", options: COMMON_SPEC_OPTIONS.years },
   { name: "Пробег", type: "text" },
   { name: "Кузов", type: "select", options: COMMON_SPEC_OPTIONS.bodyType },
@@ -73,7 +74,10 @@ const CAR_SPECS = [
   { name: "Объем", type: "select", options: COMMON_SPEC_OPTIONS.engineVolume },
   { name: "КПП", type: "select", options: COMMON_SPEC_OPTIONS.kpp },
   { name: "Цвет", type: "select", options: COMMON_SPEC_OPTIONS.color },
+  { name: "Цвет салона", type: "select", options: COMMON_SPEC_OPTIONS.interiorColor },
   { name: "Топливо", type: "select", options: COMMON_SPEC_OPTIONS.fuel },
+  { name: "Мест", type: "select", options: COMMON_SPEC_OPTIONS.seats },
+  { name: "Руль", type: "select", options: COMMON_SPEC_OPTIONS.steeringWheel },
   { name: "Состояние", type: "select", options: COMMON_SPEC_OPTIONS.condition },
 ];
 
@@ -94,6 +98,10 @@ const GENERIC_VEHICLE_SPECS = [
   { name: "Марка", type: "text" },
   { name: "Модель", type: "text" },
   { name: "Год", type: "select", options: COMMON_SPEC_OPTIONS.years },
+  { name: "Кузов", type: "select", options: COMMON_SPEC_OPTIONS.bodyType },
+  { name: "Топливо", type: "select", options: COMMON_SPEC_OPTIONS.fuel },
+  { name: "КПП", type: "select", options: COMMON_SPEC_OPTIONS.kpp },
+  { name: "Привод", type: "select", options: COMMON_SPEC_OPTIONS.drive },
   { name: "Состояние", type: "select", options: COMMON_SPEC_OPTIONS.condition },
 ];
 

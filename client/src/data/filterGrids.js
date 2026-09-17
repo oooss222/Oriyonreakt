@@ -135,7 +135,30 @@ const TRANSPORT_GRID = {
       { id: "location", label: "Город", type: "location", options: LOCATIONS },
     ],
   ],
-  more: [{ id: "search", label: "Поиск", type: "search" }],
+  more: [
+    { id: "search", label: "Ключевое слово", type: "search" },
+    {
+      id: "Мест",
+      label: "Мест",
+      type: "spec",
+      specKey: "Мест",
+      options: COMMON_SPEC_OPTIONS.seats,
+    },
+    {
+      id: "Руль",
+      label: "Руль",
+      type: "spec",
+      specKey: "Руль",
+      options: COMMON_SPEC_OPTIONS.steeringWheel,
+    },
+    {
+      id: "Цвет салона",
+      label: "Цвет салона",
+      type: "spec",
+      specKey: "Цвет салона",
+      options: COMMON_SPEC_OPTIONS.interiorColor,
+    },
+  ],
 };
 
 const PHONES_GRID = {
