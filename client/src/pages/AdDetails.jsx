@@ -706,7 +706,7 @@ export default function AdDetails() {
                 {images.length > 1 && (
                   <div
                     ref={desktopThumbsRef}
-                    className="hidden max-h-[520px] w-[88px] shrink-0 flex-col gap-2 overflow-y-auto border-r border-ink/10 p-3 scrollbar-hide md:flex"
+                    className="hidden max-h-[min(32rem,70dvh)] w-20 shrink-0 flex-col gap-2 overflow-y-auto border-r border-ink/10 p-3 scrollbar-hide md:flex"
                   >
                     {thumbImages.map((src, index) => (
                       <button
@@ -941,7 +941,7 @@ export default function AdDetails() {
 
           {/* Right sidebar — desktop + owner actions on mobile */}
           <AdStickyAside
-            className={`xl:flex-[5] xl:min-w-[320px] ${
+            className={`min-w-0 xl:flex-[5] ${
               isOwner ? "" : "hidden xl:block"
             }`}
           >

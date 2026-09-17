@@ -203,10 +203,7 @@ export default function CookieConsent() {
           aria-label={t("a11y.cookieNotice")}
         >
           <div className="pointer-events-auto mx-auto w-full max-w-5xl animate-fade-in-up">
-            <div className="relative overflow-hidden rounded-[999px] bg-white p-[3px] shadow-[0_20px_60px_rgba(15,23,42,0.16),0_2px_8px_rgba(15,23,42,0.06)]">
-              <div className="absolute inset-0 rounded-[999px] bg-gradient-to-r from-sun via-sun-400 to-sun-300 opacity-90" />
-
-              <div className="relative flex flex-col gap-4 rounded-[999px] bg-white px-4 py-4 sm:flex-row sm:items-center sm:gap-5 sm:px-6 sm:py-3.5">
+            <div className="relative flex flex-col gap-4 rounded-3xl bg-white px-4 py-4 sm:flex-row sm:items-center sm:gap-5 sm:rounded-[999px] sm:px-6 sm:py-3.5">
                 <div className="flex min-w-0 items-center gap-3 sm:flex-1">
                   <div className="relative shrink-0">
                     <div className="flex h-10 w-10 items-center justify-center rounded-full icon-box-sun shadow-sm">
@@ -249,7 +246,6 @@ export default function CookieConsent() {
               </div>
             </div>
           </div>
-        </div>
       )}
 
       <SettingsModal

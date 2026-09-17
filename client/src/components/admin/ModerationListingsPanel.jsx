@@ -243,7 +243,7 @@ export default function ModerationListingsPanel({ token, embedded = false }) {
           <ModerationReports token={token} />
         ) : (
           <div className="admin-panel p-4 md:p-5">
-            <ListingGridSkeleton count={6} columns="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3" />
+            <ListingGridSkeleton count={6} wide />
           </div>
         )}
       </div>

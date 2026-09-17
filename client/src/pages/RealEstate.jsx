@@ -303,7 +303,7 @@ export default function RealEstate() {
             <p className="text-sm text-ink-500">
               {t("realestate.fallbackHint", { city })}
             </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+            <div className="listing-grid listing-grid--wide">
               {fallbackListings.map((item) => (
                 <RealEstateListingCard key={item.id || item._id} item={item} />
               ))}
@@ -312,7 +312,7 @@ export default function RealEstate() {
         )}
 
         {!loading && listings.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+          <div className="listing-grid listing-grid--wide">
             {listings.map((item) => (
               <RealEstateListingCard key={item.id || item._id} item={item} />
             ))}

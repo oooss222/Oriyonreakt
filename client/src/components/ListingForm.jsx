@@ -782,7 +782,7 @@ export default function ListingForm({
 
   if (loading) {
     return (
-      <div className="w-full max-w-7xl mx-auto px-4 py-6">
+      <div className="container-x py-6">
         <div className="rounded-2xl border bg-white p-6 text-center">
           {t("common.loading")}
         </div>
@@ -987,7 +987,7 @@ export default function ListingForm({
       <form
         id={LISTING_FORM_ID}
         onSubmit={submit}
-        className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_20rem] xl:grid-cols-[minmax(0,1fr)_22rem] gap-5"
+        className="grid min-w-0 grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(16rem,20rem)] xl:grid-cols-[minmax(0,1fr)_minmax(18rem,22rem)] gap-5"
       >
         <section className="space-y-5 min-w-0">
           <div className="listing-form-card" data-field="title">

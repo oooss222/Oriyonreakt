@@ -57,7 +57,7 @@ export default function EditListing() {
     const forbidden = err === "forbidden" || /forbidden/i.test(err);
 
     return (
-      <div className="w-full max-w-7xl mx-auto px-4 py-6">
+      <div className="container-x py-6">
         <div className="rounded-2xl border border-red-200 bg-red-50 text-red-700 p-6 text-center space-y-4">
           <p>
             {forbidden ? t("listing.editForbidden") : err}
@@ -76,7 +76,7 @@ export default function EditListing() {
 
   if (!initialData) {
     return (
-      <div className="w-full max-w-7xl mx-auto px-4 py-6">
+      <div className="container-x py-6">
         <div className="rounded-2xl border border-ink/8 bg-white p-6 text-center text-ink-400">
           {t("common.loading")}
         </div>

@@ -217,7 +217,7 @@ export default function MyListingsPanel({
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[280px_minmax(0,1fr)] gap-4 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,16rem)_minmax(0,1fr)] gap-4 items-start">
         <aside className="rounded-2xl border border-mist-200/80 bg-white p-4 shadow-sm lg:sticky lg:top-20">
           <button
             type="button"

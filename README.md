@@ -33,3 +33,18 @@ npm start
 4. Point `oriyon.store` DNS to the Render service URL.
 
 The frontend calls `/api` on the same host (no separate DigitalOcean backend).
+
+## Docker (this PC, phones, other apps)
+
+One container serves the site and API together, so login and chat work from
+other devices on the same Wi-Fi — not only from `localhost`.
+
+```bash
+docker compose up --build -d
+```
+
+- This computer: `http://localhost:8080`
+- Phone / another device: `http://YOUR-LAN-IP:8080` (example: `http://192.168.31.26:8080`)
+
+Postgres stays inside Docker (host port 5432 is not published, so it will not
+clash with a local PostgreSQL install). Stop with `docker compose down`.

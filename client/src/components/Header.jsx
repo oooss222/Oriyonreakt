@@ -186,7 +186,7 @@ export default function Header({ variant = "full" }) {
       }`}
     >
       <div className="flex items-center w-full rounded-xl overflow-hidden bg-ink-600">
-      <Search size={18} className="text-ink-300 shrink-0 ml-3" />
+      <Search size={18} className="text-ink-300 shrink-0 ml-2 xs:ml-3 hidden xs:block" />
 
       <input
         className={`flex-1 outline-none bg-transparent text-sm text-white placeholder:text-ink-300 px-2 min-w-0 ${
@@ -212,10 +212,14 @@ export default function Header({ variant = "full" }) {
         type="button"
         onClick={go}
         className={`bg-sun hover:bg-sun-600 text-white text-sm font-semibold transition shrink-0 ${
-          compact ? "h-10 px-3.5" : "h-10 lg:h-11 px-4 lg:px-5"
+          compact ? "h-10 w-10 xs:w-auto xs:px-3.5" : "h-10 lg:h-11 px-3 sm:px-4 lg:px-5"
         }`}
+        aria-label={t("common.find")}
       >
-        {t("common.find")}
+        <Search size={18} className={compact ? "xs:hidden" : "lg:hidden"} />
+        <span className={compact ? "hidden xs:inline" : "hidden lg:inline"}>
+          {t("common.find")}
+        </span>
       </button>
       </div>
 
@@ -375,8 +379,8 @@ export default function Header({ variant = "full" }) {
         </div>
 
         {!isMinimal ? (
-        <div className="lg:hidden pt-2 pb-2.5 relative">
-          <div className="flex items-center gap-2">
+        <div className="lg:hidden pt-1.5 pb-2 xs:pt-2 xs:pb-2.5 relative">
+          <div className="flex items-center gap-1.5 xs:gap-2">
             <Link to="/" className="shrink-0" aria-label={t("nav.backHome")}>
               <img
                 src="/oriyon.store.png"
@@ -389,7 +393,7 @@ export default function Header({ variant = "full" }) {
 
             <Link
               to={comparePath}
-              className="relative shrink-0 p-2 rounded-lg hover:bg-white/10 transition"
+              className="relative hidden xs:inline-flex shrink-0 p-2 rounded-lg hover:bg-white/10 transition"
               title={t("nav.compare")}
               aria-label={t("nav.compare")}
             >

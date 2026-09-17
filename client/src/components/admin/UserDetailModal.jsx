@@ -13,6 +13,7 @@ import {
   BadgeCheck,
   Building2,
   Smartphone,
+  RefreshCw,
 } from "lucide-react";
 import { api } from "../../lib/api";
 import { useI18n } from "../../i18n";
@@ -203,6 +204,69 @@ export default function UserDetailModal({
     }
   };
 
+  const toggleAutoBump = async () => {
+    if (!isSuperAdmin || !user || user.sellerType !== "company" || readOnly) {
+      return;
+    }
+
+    const nextEnabled = !user.listingAutoBumpEnabled;
+    const companyName = user.companyName || user.name;
+
+    if (nextEnabled) {
+      const rawInterval = window.prompt(
+        t("admin.userDetail.autoBumpIntervalPrompt"),
+        String(user.listingAutoBumpIntervalHours || 24)
+      );
+
+      if (rawInterval === null) return;
+
+      const intervalHours = Number(String(rawInterval).replace(",", "."));
+
+      if (!Number.isFinite(intervalHours) || intervalHours <= 0) {
+        alert(t("admin.userDetail.autoBumpIntervalInvalid"));
+        return;
+      }
+
+      const ok = confirm(
+        t("admin.userDetail.connectAutoBumpConfirm", { company: companyName })
+      );
+      if (!ok) return;
+
+      try {
+        setActionLoading(true);
+        const updated = await api.adminSetAutoBump(token, getId(user), {
+          enabled: true,
+          intervalHours,
+        });
+        setDetail((prev) => ({ ...prev, user: { ...prev.user, ...updated } }));
+        onUserUpdated?.(updated);
+      } catch (e) {
+        alert(e.message || t("admin.userDetail.autoBumpError"));
+      } finally {
+        setActionLoading(false);
+      }
+      return;
+    }
+
+    const ok = confirm(
+      t("admin.userDetail.disconnectAutoBumpConfirm", { company: companyName })
+    );
+    if (!ok) return;
+
+    try {
+      setActionLoading(true);
+      const updated = await api.adminSetAutoBump(token, getId(user), {
+        enabled: false,
+      });
+      setDetail((prev) => ({ ...prev, user: { ...prev.user, ...updated } }));
+      onUserUpdated?.(updated);
+    } catch (e) {
+      alert(e.message || t("admin.userDetail.autoBumpError"));
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const adjustWallet = async (sign) => {
     if (!isSuperAdmin || !user) return;
 
@@ -373,6 +437,10 @@ export default function UserDetailModal({
                         {user.businessVerified
                           ? t("admin.userDetail.verifiedBusiness")
                           : t("admin.userDetail.awaitingVerification")}
+                        {" · "}
+                        {user.listingAutoBumpEnabled
+                          ? t("admin.userDetail.autoBumpOn")
+                          : t("admin.userDetail.autoBumpOff")}
                       </div>
                     </div>
                   )}
@@ -436,6 +504,24 @@ export default function UserDetailModal({
                       {user.sellerType === "company"
                         ? t("admin.userDetail.disableBusiness")
                         : t("admin.userDetail.enableBusiness")}
+                    </button>
+                  )}
+
+                  {isSuperAdmin && !readOnly && user.sellerType === "company" && (
+                    <button
+                      type="button"
+                      disabled={actionLoading}
+                      onClick={toggleAutoBump}
+                      className={`btn btn-sm disabled:opacity-40 ${
+                        user.listingAutoBumpEnabled
+                          ? "border-amber-200 text-amber-700 hover:bg-amber-50"
+                          : "border-sun/30 text-sun-700 hover:bg-sun-50"
+                      }`}
+                    >
+                      <RefreshCw size={16} />
+                      {user.listingAutoBumpEnabled
+                        ? t("admin.userDetail.disconnectAutoBump")
+                        : t("admin.userDetail.connectAutoBump")}
                     </button>
                   )}
                 </div>

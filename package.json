@@ -4,6 +4,9 @@
   "scripts": {
     "build": "npm --prefix client ci --include=dev && npm --prefix client run build && node scripts/copy-client-dist.js && npm --prefix Server ci",
     "start": "node Server/src/index.js",
-    "test": "npm --prefix Server test"
+    "test": "npm --prefix Server test",
+    "docker:up": "docker compose up --build -d",
+    "docker:down": "docker compose down",
+    "docker:logs": "docker compose logs -f app"
   }
 }

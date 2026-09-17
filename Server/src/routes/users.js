@@ -138,24 +138,29 @@ router.put("/me", auth, async (req, res) => {
           body.companyInstagram !== undefined
             ? String(body.companyInstagram).trim()
             : undefined,
-        listingAutoBumpEnabled:
-          body.listingAutoBumpEnabled !== undefined
-            ? Boolean(body.listingAutoBumpEnabled)
-            : undefined,
-        listingAutoBumpIntervalHours:
-          body.listingAutoBumpIntervalHours !== undefined
-            ? Number(body.listingAutoBumpIntervalHours)
-            : undefined,
       });
     }
 
-    if (
-      current.sellerType !== "company" &&
-      (body.listingAutoBumpEnabled !== undefined ||
-        body.listingAutoBumpIntervalHours !== undefined)
-    ) {
+    if (body.listingAutoBumpEnabled !== undefined) {
       return res.status(403).json({
-        error: "Auto bump is available for premium accounts only",
+        error: "Auto bump can only be connected by a super administrator",
+        code: "AUTO_BUMP_SUPER_ADMIN_ONLY",
+      });
+    }
+
+    if (body.listingAutoBumpIntervalHours !== undefined) {
+      if (
+        current.sellerType !== "company" ||
+        !current.listingAutoBumpEnabled
+      ) {
+        return res.status(403).json({
+          error: "Auto bump is not connected",
+          code: "AUTO_BUMP_NOT_CONNECTED",
+        });
+      }
+
+      Object.assign(updateFields, {
+        listingAutoBumpIntervalHours: Number(body.listingAutoBumpIntervalHours),
       });
     }
 
@@ -329,9 +334,10 @@ router.post("/me/business/bump-all", auth, async (req, res) => {
       });
     }
 
-    if (user.sellerType !== "company") {
+    if (user.sellerType !== "company" || !user.listingAutoBumpEnabled) {
       return res.status(403).json({
-        error: "Bulk listing refresh is available for premium accounts only",
+        error: "Auto bump is not connected",
+        code: "AUTO_BUMP_NOT_CONNECTED",
       });
     }
 

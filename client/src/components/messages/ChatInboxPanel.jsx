@@ -1,5 +1,5 @@
 import React from "react";
-import { Archive, CheckCheck, Search } from "lucide-react";
+import { Archive, CheckCheck, MessageCircle, Search } from "lucide-react";
 import ChatAvatar from "./ChatAvatar";
 import {
   getPeerId,
@@ -78,91 +78,96 @@ export default function ChatInboxPanel({
   }, [items, filter, query, me, t]);
 
   const unreadTotal = countByFilter(items, me, "unread");
+  const myId = me?.id || me?._id;
 
   return (
-    <aside className="messages-inbox flex h-full min-h-0 min-w-0 flex-col border-r border-ink/8 overflow-hidden">
-      <div className="flex items-center justify-between gap-2 px-4 pt-5 pb-3">
-        <div>
-          <h2 className="font-display text-[1.35rem] font-bold tracking-tight text-ink">
-            {t("chat.title")}
-          </h2>
-          {unreadTotal > 0 ? (
-            <p className="mt-0.5 text-xs text-ink-400">
-              {t("chat.filter.unread")} · {unreadTotal}
-            </p>
-          ) : null}
+    <aside className="messages-inbox flex h-full min-h-0 min-w-0 flex-col overflow-hidden">
+      <div className="shrink-0 px-4 pt-4 pb-3">
+        <div className="flex items-center justify-between gap-2">
+          <div className="min-w-0">
+            <h1 className="font-display text-[1.4rem] font-bold tracking-tight text-ink">
+              {t("chat.title")}
+            </h1>
+            {unreadTotal > 0 ? (
+              <p className="mt-0.5 text-xs font-medium text-sun-600">
+                {unreadTotal} · {t("chat.filter.unread").toLowerCase()}
+              </p>
+            ) : null}
+          </div>
+
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={onMarkAllRead}
+              disabled={markingAll || unreadTotal === 0}
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full text-ink-400 transition hover:bg-mist hover:text-ink disabled:opacity-30"
+              title={t("chat.markAllRead")}
+            >
+              <CheckCheck size={18} />
+            </button>
+            <button
+              type="button"
+              onClick={onArchiveSelected}
+              disabled={archiving || !selected}
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full text-ink-400 transition hover:bg-mist hover:text-ink disabled:opacity-30"
+              title={t("chat.actionArchive")}
+            >
+              <Archive size={16} />
+            </button>
+          </div>
         </div>
 
-        <div className="flex items-center gap-1">
-          <button
-            type="button"
-            onClick={onMarkAllRead}
-            disabled={markingAll || unreadTotal === 0}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-ink/8 bg-white text-ink-500 transition hover:border-sun/30 hover:bg-sun-50 hover:text-sun-700 disabled:opacity-35"
-            title={t("chat.markAllRead")}
-          >
-            <CheckCheck size={18} />
-          </button>
-          <button
-            type="button"
-            onClick={onArchiveSelected}
-            disabled={archiving || !selected}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-ink/8 bg-white text-ink-500 transition hover:border-ink/15 hover:bg-mist hover:text-ink disabled:opacity-35"
-            title={t("chat.actionArchive")}
-          >
-            <Archive size={17} />
-          </button>
-        </div>
-      </div>
-
-      <div className="px-4 pb-3">
-        <div className="relative">
+        <div className="relative mt-3">
           <Search
-            size={17}
-            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-300 pointer-events-none"
+            size={16}
+            className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-300"
           />
           <input
             value={query}
             onChange={(e) => onQueryChange(e.target.value)}
             placeholder={t("chat.searchPlaceholder")}
-            className="input w-full h-11 pl-10 rounded-2xl bg-white/90 border-ink/8 shadow-soft focus:border-sun/40 focus:ring-sun/15"
+            className="input h-10 w-full rounded-full border-ink/8 bg-mist/80 pl-10 text-sm shadow-none focus:border-sun/35 focus:bg-white focus:ring-sun/10"
           />
         </div>
       </div>
 
-      <div className="px-4 pb-3 min-w-0">
-        <div className="messages-inbox-filters">
-          {FILTERS.map((key) => {
-            const active = filter === key;
-            const count = countByFilter(items, me, key);
-            const label =
-              key === "all" && count > 0
-                ? `${t(`chat.filter.${key}`)} ${count}`
-                : t(`chat.filter.${key}`);
+      <div className="messages-inbox-filters shrink-0 px-4 pb-2">
+        {FILTERS.map((key) => {
+          const active = filter === key;
+          const count = countByFilter(items, me, key);
 
-            return (
-              <button
-                key={key}
-                type="button"
-                onClick={() => onFilterChange(key)}
-                className={`chip h-8 px-3 text-xs ${active ? "chip-active" : ""}`}
-              >
-                {label}
-              </button>
-            );
-          })}
-        </div>
+          return (
+            <button
+              key={key}
+              type="button"
+              onClick={() => onFilterChange(key)}
+              className={`messages-filter-chip ${active ? "is-active" : ""}`}
+            >
+              {t(`chat.filter.${key}`)}
+              {count > 0 && (key === "unread" || (active && key === "all")) ? (
+                <span className="messages-filter-count">{count}</span>
+              ) : null}
+            </button>
+          );
+        })}
       </div>
 
       {filteredItems.length === 0 ? (
-        <div className="mx-4 mb-4 rounded-2xl border border-dashed border-ink/10 bg-white/70 p-8 text-center">
-          <div className="icon-box mx-auto mb-3 h-12 w-12 bg-mist text-ink-300 ring-ink/10">
-            <Search size={20} />
+        <div className="flex flex-1 flex-col items-center justify-center px-6 pb-10 text-center">
+          <div className="mb-3 grid h-14 w-14 place-items-center rounded-2xl bg-mist text-ink-300">
+            <MessageCircle size={24} />
           </div>
-          <p className="text-sm font-medium text-ink-500">{t("chat.empty")}</p>
+          <p className="text-sm font-semibold text-ink">
+            {query ? t("chat.empty") : t("chat.emptyInbox")}
+          </p>
+          {!query ? (
+            <p className="mt-1 max-w-[16rem] text-xs leading-relaxed text-ink-400">
+              {t("chat.emptyInboxHint")}
+            </p>
+          ) : null}
         </div>
       ) : (
-        <div className="flex-1 overflow-y-auto px-2.5 pb-4">
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
           {filteredItems.map((item) => {
             const peerId = getPeerId(item, me);
             const supportItem = isBusinessSupportThread(item);
@@ -177,81 +182,72 @@ export default function ChatInboxPanel({
               ? t("chat.supportOriyon")
               : item.listingTitle || t("chat.listing");
             const unread = Number(item.unreadCount || 0) > 0;
+            const preview = getMessagePreview(item, t);
+            const mineLast = String(item.senderId) === String(myId);
 
             return (
               <button
                 key={`${item.listingId}-${peerId}-${item.id || item.createdAt}`}
                 type="button"
                 onClick={() => onSelect(item)}
-                className={`messages-inbox-item w-full text-left rounded-2xl px-3 py-3 mb-1 ${
-                  active
-                    ? "is-active bg-sun-50 border border-sun/20"
-                    : "border border-transparent hover:bg-white/90 hover:border-ink/6"
+                className={`messages-inbox-item ${active ? "is-active" : ""} ${
+                  unread ? "is-unread" : ""
                 }`}
               >
-                <div className="flex gap-3 items-start">
-                  <ChatAvatar name={peerName} support={supportItem} />
+                <ChatAvatar name={peerName} support={supportItem} />
 
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        <div
-                          className={`truncate ${
-                            unread
-                              ? "font-bold text-ink"
-                              : "font-semibold text-ink"
-                          }`}
-                        >
-                          {peerName}
-                        </div>
-                        {badge ? (
-                          <div
-                            className={`inline-flex mt-1 rounded-md px-1.5 py-0.5 text-[10px] font-bold tracking-wide uppercase ${badge.className}`}
-                          >
-                            {badge.label}
-                          </div>
-                        ) : null}
-                      </div>
-
-                      <div className="shrink-0 text-right">
-                        <div
-                          className={`text-[11px] tabular-nums ${
-                            unread ? "font-semibold text-sun-600" : "text-ink-400"
-                          }`}
-                        >
-                          {formatInboxTime(item.createdAt, t)}
-                        </div>
-                        {unread ? (
-                          <div className="mt-1.5 ml-auto min-w-[1.25rem] h-5 px-1.5 rounded-full bg-sun text-white text-[10px] font-bold inline-flex items-center justify-center shadow-soft">
-                            {Number(item.unreadCount) > 99
-                              ? "99+"
-                              : item.unreadCount}
-                          </div>
-                        ) : null}
-                      </div>
-                    </div>
-
-                    <div className="mt-1.5 text-xs font-medium text-ink-500 truncate">
-                      {listingTitle}
-                    </div>
-
-                    <div
-                      className={`mt-0.5 text-sm line-clamp-1 ${
-                        unread ? "text-ink-600 font-medium" : "text-ink-400"
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-baseline justify-between gap-2">
+                    <span
+                      className={`truncate text-[15px] ${
+                        unread ? "font-bold text-ink" : "font-semibold text-ink"
                       }`}
                     >
-                      {getMessagePreview(item, t)}
-                    </div>
+                      {peerName}
+                    </span>
+                    <span
+                      className={`shrink-0 text-[11px] tabular-nums ${
+                        unread ? "font-semibold text-sun-600" : "text-ink-400"
+                      }`}
+                    >
+                      {formatInboxTime(item.createdAt, t)}
+                    </span>
                   </div>
 
-                  {thumb && !supportItem ? (
-                    <img
-                      src={thumb}
-                      alt=""
-                      className="w-12 h-12 rounded-xl object-cover bg-mist shrink-0 ring-1 ring-ink/5"
-                    />
-                  ) : null}
+                  <div className="mt-0.5 flex items-center gap-2">
+                    <p
+                      className={`min-w-0 flex-1 truncate text-[13px] ${
+                        unread ? "font-medium text-ink-600" : "text-ink-400"
+                      }`}
+                    >
+                      {mineLast && preview ? `${t("chat.you")}: ${preview}` : preview}
+                    </p>
+                    {unread ? (
+                      <span className="messages-unread-badge">
+                        {Number(item.unreadCount) > 99 ? "99+" : item.unreadCount}
+                      </span>
+                    ) : null}
+                  </div>
+
+                  <div className="mt-1 flex min-w-0 items-center gap-1.5">
+                    {badge ? (
+                      <span className={`messages-role-badge ${badge.className}`}>
+                        {badge.label}
+                      </span>
+                    ) : null}
+                    <span className="truncate text-[11px] text-ink-400">
+                      {listingTitle}
+                    </span>
+                  </div>
                 </div>
+
+                {thumb && !supportItem ? (
+                  <img
+                    src={thumb}
+                    alt=""
+                    className="h-11 w-11 shrink-0 rounded-xl object-cover bg-mist ring-1 ring-ink/5"
+                  />
+                ) : null}
               </button>
             );
           })}

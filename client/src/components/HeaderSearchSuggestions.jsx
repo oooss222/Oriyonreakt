@@ -60,7 +60,7 @@ export default function HeaderSearchSuggestions({
       <div
         id={domId}
         role="status"
-        className="absolute left-0 right-0 top-full mt-2 z-50 rounded-2xl border border-ink/10 bg-white shadow-lift overflow-hidden text-ink px-4 py-3 text-sm text-ink-400"
+        className="absolute left-0 right-0 top-full mt-2 z-50 max-w-[calc(100vw-1.5rem)] rounded-2xl border border-ink/10 bg-white shadow-lift overflow-hidden text-ink px-4 py-3 text-sm text-ink-400"
       >
         {t("header.searching")}
       </div>
@@ -76,7 +76,7 @@ export default function HeaderSearchSuggestions({
       id={domId}
       role="listbox"
       aria-label={t("header.searchPlaceholder")}
-      className="absolute left-0 right-0 top-full mt-2 z-50 rounded-2xl border border-ink/10 bg-white shadow-lift overflow-hidden text-ink"
+      className="absolute left-0 right-0 top-full mt-2 z-50 max-w-[calc(100vw-1.5rem)] rounded-2xl border border-ink/10 bg-white shadow-lift overflow-hidden text-ink"
     >
       {items.map((ad) => {
         const id = ad.id || ad._id;

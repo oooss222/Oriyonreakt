@@ -60,6 +60,15 @@ module.exports = {
           700: "#C44700",
         },
       },
+      screens: {
+        xs: "360px",
+        sm: "480px",
+        md: "768px",
+        lg: "1024px",
+        xl: "1280px",
+        "2xl": "1440px",
+        "3xl": "1920px",
+      },
       fontFamily: {
         /* Manrope covers Cyrillic; Outfit is Latin-only in self-hosted subset */
         display: [
@@ -78,11 +87,13 @@ module.exports = {
       container: {
         center: true,
         padding: {
-          DEFAULT: "1rem",
-          sm: "1.5rem",
+          DEFAULT: "0.75rem",
+          xs: "1rem",
+          md: "1.25rem",
+          lg: "1.5rem",
         },
         screens: {
-          "2xl": "80rem",
+          "2xl": "90rem",
         },
       },
       borderRadius: {

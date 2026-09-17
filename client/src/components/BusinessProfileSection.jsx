@@ -49,6 +49,7 @@ export default function BusinessProfileSection({ token, me, onUpdated }) {
   const [success, setSuccess] = React.useState("");
 
   const isCompany = isCompanyAccount(me);
+  const autoBumpConnected = Boolean(me?.listingAutoBumpEnabled);
 
   const [form, setForm] = React.useState({
     companyName: me?.companyName || "",
@@ -129,7 +130,7 @@ export default function BusinessProfileSection({ token, me, onUpdated }) {
   };
 
   const saveAutoBumpSettings = async () => {
-    if (!isCompany) return;
+    if (!isCompany || !autoBumpConnected) return;
 
     setError("");
     setSuccess("");
@@ -141,18 +142,15 @@ export default function BusinessProfileSection({ token, me, onUpdated }) {
       );
 
       const updated = await api.updateMe(token, {
-        listingAutoBumpEnabled: autoBumpForm.enabled,
         listingAutoBumpIntervalHours: intervalHours,
       });
 
       onUpdated?.(updated);
       reloadStats();
       setSuccess(
-        autoBumpForm.enabled
-          ? t("business.autoBumpOn", {
-              interval: formatAutoBumpInterval(autoBumpForm.intervalHours),
-            })
-          : t("business.autoBumpOff")
+        t("business.autoBumpOn", {
+          interval: formatAutoBumpInterval(intervalHours),
+        })
       );
     } catch (e) {
       setError(e.message || t("business.autoBumpSaveFailed"));
@@ -162,7 +160,7 @@ export default function BusinessProfileSection({ token, me, onUpdated }) {
   };
 
   const bumpAllListingsNow = async () => {
-    if (!isCompany) return;
+    if (!isCompany || !autoBumpConnected) return;
 
     setError("");
     setSuccess("");
@@ -432,83 +430,82 @@ export default function BusinessProfileSection({ token, me, onUpdated }) {
                 </p>
               </div>
 
-              <label className="flex items-start gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  className="mt-1"
-                  checked={autoBumpForm.enabled}
-                  onChange={(e) =>
-                    setAutoBumpForm((current) => ({
-                      ...current,
-                      enabled: e.target.checked,
-                    }))
-                  }
-                />
-                <span className="text-sm text-ink-700">
-                  {t("business.autoBumpEnable")}
-                </span>
-              </label>
+              {autoBumpConnected ? (
+                <>
+                  <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
+                    {t("business.autoBumpConnected")}
+                  </div>
 
-              <label className="block">
-                <div className="text-sm font-medium mb-2 inline-flex items-center gap-1">
-                  <Clock3 size={15} />
-                  {t("business.bumpInterval")}
+                  <label className="block">
+                    <div className="text-sm font-medium mb-2 inline-flex items-center gap-1">
+                      <Clock3 size={15} />
+                      {t("business.bumpInterval")}
+                    </div>
+                    <input
+                      type="number"
+                      min={MIN_AUTO_BUMP_INTERVAL_HOURS}
+                      max={MAX_AUTO_BUMP_INTERVAL_HOURS}
+                      step={1}
+                      className="h-12 rounded-2xl border px-4 w-full outline-none focus:ring-2 focus:ring-blue-300 bg-white"
+                      value={autoBumpForm.intervalHours}
+                      onChange={(e) =>
+                        setAutoBumpForm((current) => ({
+                          ...current,
+                          intervalHours: e.target.value,
+                        }))
+                      }
+                    />
+                    <p className="text-xs text-ink-500 mt-1">
+                      {t("business.bumpIntervalHint", {
+                        min: MIN_AUTO_BUMP_INTERVAL_HOURS,
+                        max: MAX_AUTO_BUMP_INTERVAL_HOURS,
+                      })}
+                    </p>
+                  </label>
+
+                  <p className="text-xs text-ink-500">
+                    {t("business.lastBump")}{" "}
+                    {formatDateTime(
+                      stats?.listingAutoBumpLastAt || me?.listingAutoBumpLastAt,
+                      t
+                    )}
+                    {t("business.schedule", {
+                      interval: formatAutoBumpInterval(
+                        autoBumpForm.intervalHours
+                      ),
+                    })}
+                  </p>
+
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={saveAutoBumpSettings}
+                      disabled={savingAutoBump}
+                      className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition disabled:opacity-60"
+                    >
+                      {savingAutoBump
+                        ? t("business.saving")
+                        : t("business.saveSchedule")}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={bumpAllListingsNow}
+                      disabled={bumpingAll}
+                      className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border bg-white text-sm font-semibold text-ink-700 hover:bg-mist-50 transition disabled:opacity-60"
+                    >
+                      <RefreshCw size={16} />
+                      {bumpingAll
+                        ? t("business.bumping")
+                        : t("business.bumpAllNow")}
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-3 text-sm text-amber-900">
+                  {t("business.autoBumpAdminOnly")}
                 </div>
-                <input
-                  type="number"
-                  min={MIN_AUTO_BUMP_INTERVAL_HOURS}
-                  max={MAX_AUTO_BUMP_INTERVAL_HOURS}
-                  step={1}
-                  className="h-12 rounded-2xl border px-4 w-full outline-none focus:ring-2 focus:ring-blue-300 bg-white"
-                  value={autoBumpForm.intervalHours}
-                  disabled={!autoBumpForm.enabled}
-                  onChange={(e) =>
-                    setAutoBumpForm((current) => ({
-                      ...current,
-                      intervalHours: e.target.value,
-                    }))
-                  }
-                />
-                <p className="text-xs text-ink-500 mt-1">
-                  {t("business.bumpIntervalHint", {
-                    min: MIN_AUTO_BUMP_INTERVAL_HOURS,
-                    max: MAX_AUTO_BUMP_INTERVAL_HOURS,
-                  })}
-                </p>
-              </label>
-
-              <p className="text-xs text-ink-500">
-                {t("business.lastBump")}{" "}
-                {formatDateTime(
-                  stats?.listingAutoBumpLastAt || me?.listingAutoBumpLastAt,
-                  t
-                )}
-                {autoBumpForm.enabled &&
-                  t("business.schedule", {
-                    interval: formatAutoBumpInterval(autoBumpForm.intervalHours),
-                  })}
-              </p>
-
-              <div className="flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  onClick={saveAutoBumpSettings}
-                  disabled={savingAutoBump}
-                  className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition disabled:opacity-60"
-                >
-                  {savingAutoBump ? t("business.saving") : t("business.saveSchedule")}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={bumpAllListingsNow}
-                  disabled={bumpingAll}
-                  className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border bg-white text-sm font-semibold text-ink-700 hover:bg-mist-50 transition disabled:opacity-60"
-                >
-                  <RefreshCw size={16} />
-                  {bumpingAll ? t("business.bumping") : t("business.bumpAllNow")}
-                </button>
-              </div>
+              )}
             </div>
 
             {me?.businessVerified ? (

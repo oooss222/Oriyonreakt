@@ -166,6 +166,14 @@ const router = createBrowserRouter([
       {
         path: "messages",
         element: <Messages />,
+        handle: {
+          layout: {
+            showFooter: false,
+            showCompareBar: false,
+            animateMain: false,
+            mobileBottomPadding: false,
+          },
+        },
       },
 
       {

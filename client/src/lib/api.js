@@ -752,6 +752,13 @@ export const api = {
       body: data,
     }),
 
+  adminSetAutoBump: (token, userId, data) =>
+    request(`/admin/users/${userId}/auto-bump`, {
+      method: "PUT",
+      token,
+      body: data,
+    }),
+
   adminListings: (token, params = {}) => {
     const qs = new URLSearchParams();
 

@@ -42,7 +42,7 @@ export default function LanguageSwitcher({ className = "" }) {
         <div
           role="listbox"
           aria-label={t("lang.switch")}
-          className="absolute right-0 top-[calc(100%+0.35rem)] z-[60] min-w-[9rem] overflow-hidden rounded-xl border border-mist-200 bg-white text-ink-900 shadow-lift"
+          className={`absolute right-0 top-[calc(100%+0.35rem)] z-[60] min-w-[9rem] max-w-[calc(100vw-1.5rem)] overflow-hidden rounded-xl border border-mist-200 bg-white text-ink-900 shadow-lift`}
         >
           {SUPPORTED_LANGS.map((code) => {
             const active = code === lang;

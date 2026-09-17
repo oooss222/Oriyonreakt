@@ -1,0 +1,55 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: oriyon
+      POSTGRES_PASSWORD: oriyon
+      POSTGRES_DB: oriyon
+    volumes:
+      - oriyon_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U oriyon -d oriyon"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:4000"
+    environment:
+      NODE_ENV: production
+      PORT: "4000"
+      DATABASE_URL: postgres://oriyon:oriyon@db:5432/oriyon
+      DATABASE_SSL: disable
+      JWT_SECRET: oriyon-docker-dev-secret-change-me-32ch
+      ALLOW_LAN_ORIGINS: "true"
+      CLIENT_URL: http://localhost:8080
+      APP_URL: http://localhost:8080
+      CORS_ORIGIN: http://localhost:8080,http://127.0.0.1:8080
+      VITE_API_BASE: /api
+      RLS_ENABLED: "true"
+    volumes:
+      - oriyon_uploads:/app/Server/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:4000/api/health').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
+volumes:
+  oriyon_pgdata:
+  oriyon_uploads:

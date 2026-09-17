@@ -1120,6 +1120,74 @@ router.post(
 );
 
 router.put(
+  "/users/:id/auto-bump",
+  requireRole("super_admin"),
+  async (req, res) => {
+    try {
+      const target = await User.findById(req.params.id);
+
+      if (!target) {
+        return res.status(404).json({
+          error: "User not found",
+        });
+      }
+
+      if (typeof req.body?.enabled !== "boolean") {
+        return res.status(400).json({
+          error: "enabled must be a boolean",
+        });
+      }
+
+      const enabled = req.body.enabled;
+
+      if (enabled && target.sellerType !== "company") {
+        return res.status(400).json({
+          error: "Auto bump can only be connected to a Premium account",
+        });
+      }
+
+      const intervalSource =
+        req.body.intervalHours !== undefined
+          ? req.body.intervalHours
+          : req.body.listingAutoBumpIntervalHours;
+
+      const updated = await User.updateProfile(req.params.id, {
+        listingAutoBumpEnabled: enabled,
+        ...(intervalSource !== undefined
+          ? { listingAutoBumpIntervalHours: Number(intervalSource) }
+          : {}),
+      });
+
+      if (!updated) {
+        return res.status(404).json({
+          error: "User not found",
+        });
+      }
+
+      await audit(
+        req,
+        enabled ? "user.auto_bump_connect" : "user.auto_bump_disconnect",
+        "user",
+        req.params.id,
+        {
+          email: target.email,
+          companyName: updated.companyName,
+          intervalHours: updated.listingAutoBumpIntervalHours,
+        }
+      );
+
+      return res.json(User.sanitize(updated));
+    } catch (e) {
+      console.error("ADMIN_AUTO_BUMP_ERROR:", e?.message);
+
+      return res.status(500).json({
+        error: "Failed to update auto bump",
+      });
+    }
+  }
+);
+
+router.put(
   "/users/:id/business-account",
   requireRole("admin", "super_admin"),
   async (req, res) => {

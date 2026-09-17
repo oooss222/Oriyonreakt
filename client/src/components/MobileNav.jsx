@@ -57,6 +57,7 @@ export default function MobileNav({ showPolicyLink = false }) {
 
   return (
     <nav
+      data-mobile-nav
       className="fixed bottom-0 inset-x-0 z-40 lg:hidden border-t border-ink/10 bg-white/95 backdrop-blur-md supports-[backdrop-filter]:bg-white/90 pb-[max(env(safe-area-inset-bottom),0px)]"
       aria-label={t("nav.mobileNav")}
     >

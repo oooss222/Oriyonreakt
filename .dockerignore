@@ -1,0 +1,16 @@
+.git
+.github
+**/.env
+**/.env.*
+!**/.env.example
+**/node_modules
+**/dist
+**/build
+**/*.log
+.claude
+.vscode
+docs
+agent-transcripts
+Server/uploads
+Server/public
+client/node_modules

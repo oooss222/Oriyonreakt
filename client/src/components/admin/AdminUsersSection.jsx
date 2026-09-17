@@ -342,7 +342,9 @@ export default function AdminUsersSection({
                       </td>
 
                       <td className="py-3 px-3">
+                        <div className="flex flex-col items-start gap-1">
                         {user.sellerType === "company" ? (
+                          <>
                           <span
                             className={`inline-flex px-2 py-0.5 rounded-full text-xs border ${
                               user.businessVerified
@@ -354,9 +356,16 @@ export default function AdminUsersSection({
                               ? t("admin.users.verified")
                               : t("admin.users.accountBusiness")}
                           </span>
+                          {user.listingAutoBumpEnabled ? (
+                            <span className="inline-flex px-2 py-0.5 rounded-full text-xs border bg-sun-50 text-sun-700 border-sun/20">
+                              {t("admin.users.autoBump")}
+                            </span>
+                          ) : null}
+                          </>
                         ) : (
                           <span className="text-xs text-ink-400">{t("admin.users.private")}</span>
                         )}
+                        </div>
                       </td>
 
                       <td className="py-3 px-3" onClick={(e) => e.stopPropagation()}>

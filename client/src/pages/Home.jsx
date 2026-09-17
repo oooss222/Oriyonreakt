@@ -61,7 +61,7 @@ function RealEstateSection({ items }) {
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+      <div className="listing-grid listing-grid--wide">
         {items.map((ad) => (
           <RealEstateListingCard key={ad.id || ad._id} item={ad} />
         ))}
@@ -100,7 +100,7 @@ function HorizontalSection({ title, icon: Icon, items, linkTo = "/listing" }) {
         </Link>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+      <div className="listing-grid">
         {items.map((ad) => (
           <ListingCard
             key={ad.id || ad._id}
@@ -235,10 +235,7 @@ export default function Home() {
     <div className="page-shell">
       <div className="container-x py-6 space-y-10">
         {loading && (
-          <ListingGridSkeleton
-            count={12}
-            columns="grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
-          />
+          <ListingGridSkeleton count={12} />
         )}
 
         {!loading && error && (

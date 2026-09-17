@@ -246,7 +246,7 @@ export default function Admin() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[250px_1fr] gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,14rem)_minmax(0,1fr)] gap-5">
         <aside className="admin-panel p-3 h-fit lg:sticky lg:top-24">
           <nav className="flex lg:flex-col gap-1 overflow-x-auto pb-1 lg:pb-0">
             {visibleSections.map((item) => {

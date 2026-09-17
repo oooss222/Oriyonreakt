@@ -194,7 +194,7 @@ export default function ListingGuidedForm({
     <form
       id={formId}
       onSubmit={handleSubmit}
-      className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_20rem] xl:grid-cols-[minmax(0,1fr)_22rem] gap-5"
+      className="grid min-w-0 grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(16rem,20rem)] xl:grid-cols-[minmax(0,1fr)_minmax(18rem,22rem)] gap-5"
     >
       <section className="space-y-5 min-w-0">
         <div className="listing-form-card">

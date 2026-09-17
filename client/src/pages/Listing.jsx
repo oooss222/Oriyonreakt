@@ -766,7 +766,7 @@ export default function Listing() {
   );
 
   return (
-    <div className="container-x py-6">
+    <div className="container-x py-4 xs:py-6">
       {isRealEstate && (
         <div className="mb-5 space-y-5 lg:hidden">
           <Breadcrumbs items={breadcrumbItems} />
@@ -810,7 +810,7 @@ export default function Listing() {
 
       <div className="lg:flex lg:items-start lg:gap-6">
         {isRealEstate ? (
-          <aside className="filter-sidebar-anchor hidden lg:block w-[19rem] shrink-0">
+          <aside className="filter-sidebar-anchor hidden lg:block">
             <RealEstateFiltersSidebar
               draft={draft}
               setDraft={setDraft}
@@ -826,7 +826,7 @@ export default function Listing() {
             />
           </aside>
         ) : (
-          <aside className="filter-sidebar-anchor hidden lg:block w-[17.5rem] shrink-0">
+          <aside className="filter-sidebar-anchor hidden lg:block">
             <ListingFiltersSidebar
               draft={draft}
               setDraft={setDraft}
@@ -850,7 +850,7 @@ export default function Listing() {
 
           <div className="flex flex-col gap-4 px-1 lg:flex-row lg:items-end lg:justify-between">
             <div className="min-w-0">
-              <h1 className="text-2xl font-bold text-ink">{pageTitle}</h1>
+              <h1 className="text-xl xs:text-2xl font-bold text-ink">{pageTitle}</h1>
 
               <p className="mt-1 text-sm text-ink-400">
                 {loading
@@ -901,7 +901,7 @@ export default function Listing() {
               )}
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex w-full min-w-0 flex-wrap items-center gap-2">
             {isRealEstate ? (
               <>
                 <button
@@ -996,13 +996,7 @@ export default function Listing() {
             className="overflow-hidden rounded-2xl"
           />
 
-          <div
-            className={
-              isRealEstate
-                ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-3"
-                : "grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3"
-            }
-          >
+          <div className={isRealEstate ? "listing-grid listing-grid--wide" : "listing-grid"}>
           {feedRows.map((row, idx) => {
             if (row.type === "ad") {
               return <AdFeedCard key={`ad-${idx}`} ad={row.item} />;

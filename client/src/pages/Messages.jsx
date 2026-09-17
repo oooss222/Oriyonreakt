@@ -107,6 +107,37 @@ export default function Messages() {
   );
 
   React.useEffect(() => {
+    const open = mobileView === "chat";
+    document.documentElement.classList.toggle("chat-thread-open", open);
+
+    return () => {
+      document.documentElement.classList.remove("chat-thread-open");
+    };
+  }, [mobileView]);
+
+  React.useEffect(() => {
+    const root = document.documentElement;
+    const viewport = window.visualViewport;
+
+    const syncViewportHeight = () => {
+      const height = viewport?.height || window.innerHeight;
+      root.style.setProperty("--vv-height", `${Math.round(height)}px`);
+    };
+
+    syncViewportHeight();
+    viewport?.addEventListener("resize", syncViewportHeight);
+    viewport?.addEventListener("scroll", syncViewportHeight);
+    window.addEventListener("resize", syncViewportHeight);
+
+    return () => {
+      viewport?.removeEventListener("resize", syncViewportHeight);
+      viewport?.removeEventListener("scroll", syncViewportHeight);
+      window.removeEventListener("resize", syncViewportHeight);
+      root.style.removeProperty("--vv-height");
+    };
+  }, []);
+
+  React.useEffect(() => {
     setPeerPresence((prev) => {
       const next = { ...prev };
 
@@ -954,17 +985,17 @@ export default function Messages() {
 
   if (loading) {
     return (
-      <div className="page-shell min-h-screen px-4 py-6">
-        <div className="max-w-[1800px] mx-auto messages-workspace p-6 animate-pulse space-y-3">
-          <div className="h-8 bg-mist-200 rounded-xl w-48" />
-          <div className="h-[70vh] bg-mist-200 rounded-2xl" />
+      <div className="messages-page">
+        <div className="messages-workspace animate-pulse p-6">
+          <div className="mb-3 h-8 w-48 rounded-xl bg-mist-200" />
+          <div className="h-full rounded-2xl bg-mist-100" />
         </div>
       </div>
     );
   }
 
   return (
-    <div className="page-shell min-h-screen">
+    <div className="messages-page">
       <Toast
         open={Boolean(toast.message)}
         message={toast.message}
@@ -986,16 +1017,18 @@ export default function Messages() {
         t={t}
       />
 
-      <div className="max-w-[1800px] mx-auto px-2 md:px-5 py-4">
+      <div className="flex min-h-0 flex-1 flex-col">
         {isAdmin ? (
-          <div className="mb-3 inline-flex items-center gap-2 text-xs font-semibold text-lagoon-700 bg-lagoon/10 border border-lagoon/15 rounded-full px-3 py-1.5">
-            <Shield size={14} />
-            {t("chat.adminSeeAll")}
+          <div className="shrink-0 border-b border-lagoon/15 bg-lagoon/10 px-4 py-2 text-xs font-semibold text-lagoon-700">
+            <span className="inline-flex items-center gap-2">
+              <Shield size={14} />
+              {t("chat.adminSeeAll")}
+            </span>
           </div>
         ) : null}
 
         {socketError ? (
-          <div className="mb-3 text-xs text-amber-800 bg-amber-50/90 border border-amber-200/80 rounded-xl px-3.5 py-2.5">
+          <div className="shrink-0 border-b border-amber-200/80 bg-amber-50 px-4 py-2 text-xs text-amber-800">
             {t("chat.offlinePolling")}
           </div>
         ) : null}
@@ -1004,7 +1037,7 @@ export default function Messages() {
           <div className="messages-layout">
             <div
               className={`h-full min-h-0 ${
-                mobileView === "chat" ? "hidden xl:block" : "block"
+                mobileView === "chat" ? "hidden md:block" : "block"
               }`}
             >
               <ChatInboxPanel
@@ -1026,7 +1059,7 @@ export default function Messages() {
 
             <div
               className={`h-full min-h-0 ${
-                mobileView === "list" ? "hidden xl:block" : "block"
+                mobileView === "list" ? "hidden md:block" : "block"
               }`}
             >
               <ChatThreadPanel

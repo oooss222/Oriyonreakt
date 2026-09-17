@@ -50,13 +50,13 @@ export default function App() {
   }, []);
 
   return (
-    <div className="page-shell min-h-screen flex flex-col overflow-x-clip">
+    <div className="page-shell min-h-screen min-w-0 max-w-full flex flex-col">
       {/* Returns to the previous scroll position on Back instead of jumping. */}
       <ScrollRestoration />
       <Header variant={layout.headerVariant} />
 
       <main
-        className={`flex-1 ${layout.animateMain ? "animate-fade-in-up" : ""} ${
+        className={`flex-1 min-w-0 ${layout.animateMain ? "animate-fade-in-up" : ""} ${
           layout.mobileBottomPadding
             ? "pb-[calc(4rem+env(safe-area-inset-bottom))] lg:pb-0"
             : ""

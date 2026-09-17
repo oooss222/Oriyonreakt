@@ -101,10 +101,10 @@ export default function SimilarListingsSection({
         </Link>
       </div>
 
-      {loading && <ListingGridSkeleton count={4} columns="grid-cols-2 sm:grid-cols-4" />}
+      {loading && <ListingGridSkeleton count={4} />}
 
       {!loading && items.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+        <div className="listing-grid">
           {items.map((item) =>
             isRealEstateListing(item) ? (
               <RealEstateListingCard key={item._id || item.id} item={item} />

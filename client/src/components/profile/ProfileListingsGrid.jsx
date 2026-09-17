@@ -58,13 +58,11 @@ export default React.memo(function ProfileListingsGrid({
 
   return (
     <div
-      className={`grid gap-4 ${
-        compact
-          ? "grid-cols-1 sm:grid-cols-2 xl:grid-cols-3"
-          : canManage
-            ? "grid-cols-1 sm:grid-cols-2 xl:grid-cols-3"
-            : "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
-      }`}
+      className={
+        compact || canManage
+          ? "listing-grid listing-grid--manage"
+          : "listing-grid"
+      }
     >
       {items.map((ad) => {
         const id = getId(ad);

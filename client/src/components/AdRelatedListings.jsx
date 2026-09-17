@@ -66,13 +66,13 @@ export default function AdRelatedListings({ ad, listingUrl, catLabel }) {
       </div>
 
       {loading ? (
-        <ListingGridSkeleton count={4} columns="grid-cols-2 sm:grid-cols-4" />
+        <ListingGridSkeleton count={4} />
       ) : (
         <div className="-mx-1 flex gap-3 overflow-x-auto px-1 pb-1 scrollbar-hide snap-x snap-mandatory">
           {items.map((item) => (
             <div
               key={item._id || item.id}
-              className="w-[168px] shrink-0 snap-start sm:w-[190px]"
+              className="w-[min(11.75rem,72vw)] shrink-0 snap-start sm:w-[12.5rem]"
             >
               {isRealEstateListing(item) ? (
                 <RealEstateListingCard item={item} />

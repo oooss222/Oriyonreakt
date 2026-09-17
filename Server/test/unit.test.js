@@ -163,3 +163,41 @@ test("promotion plans are shared with the client", () => {
   assert.equal(getPromotionPlan("top", 30)?.price, 40);
   assert.equal(getPromotionPlan("vip", 99), null);
 });
+
+const {
+  isOriginAllowed,
+  isLanOrigin,
+} = require("../src/corsOrigins");
+
+test("LAN origins are allowed for phones on the same Wi-Fi", () => {
+  const previous = {
+    NODE_ENV: process.env.NODE_ENV,
+    ALLOW_LAN_ORIGINS: process.env.ALLOW_LAN_ORIGINS,
+    CORS_ORIGIN: process.env.CORS_ORIGIN,
+    CLIENT_URL: process.env.CLIENT_URL,
+    APP_URL: process.env.APP_URL,
+  };
+
+  process.env.NODE_ENV = "production";
+  process.env.ALLOW_LAN_ORIGINS = "true";
+  process.env.CORS_ORIGIN = "http://localhost:8080";
+  process.env.CLIENT_URL = "http://localhost:8080";
+  delete process.env.APP_URL;
+
+  try {
+    assert.equal(isLanOrigin("http://192.168.31.26:8080"), true);
+    assert.equal(isOriginAllowed("http://192.168.31.26:8080"), true);
+    assert.equal(isOriginAllowed("http://10.0.0.4:8080"), true);
+    assert.equal(isOriginAllowed("http://evil.example.com"), false);
+
+    process.env.ALLOW_LAN_ORIGINS = "false";
+    assert.equal(isOriginAllowed("http://192.168.31.26:8080"), false);
+    assert.equal(isOriginAllowed("http://localhost:8080"), true);
+  } finally {
+    for (const [key, value] of Object.entries(previous)) {
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+    }
+  }
+});
+
