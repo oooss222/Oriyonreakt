@@ -873,10 +873,6 @@
     @apply block truncate text-xs text-ink-400;
   }
 
-  .category-strip__media--all {
-    @apply grid place-items-center bg-sun/15 text-sun ring-sun/25;
-  }
-
   @keyframes section-subs-in {
     from {
       opacity: 0;

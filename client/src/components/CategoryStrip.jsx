@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { ChevronLeft, ChevronRight, LayoutGrid } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { HOME_CATEGORIES } from "../data/categories";
 import { useI18n } from "../i18n";
 
@@ -82,22 +82,6 @@ export default function CategoryStrip({ compact = false }) {
           aria-label={t("a11y.categories")}
           className="category-strip__track"
         >
-          <Link
-            to="/sections"
-            title={t("nav.sections")}
-            className={`category-strip__item group ${
-              pathname === "/sections" ? "category-strip__item--active" : ""
-            }`}
-          >
-            <div className="category-strip__media category-strip__media--all">
-              <LayoutGrid size={22} aria-hidden="true" />
-              {pathname === "/sections" && (
-                <span className="category-strip__dot" />
-              )}
-            </div>
-            <span className="category-strip__label">{t("nav.sections")}</span>
-          </Link>
-
           {HOME_CATEGORIES.map((cat) => {
             const active =
               pathname === cat.landingPath ||
