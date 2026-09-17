@@ -96,6 +96,7 @@ export default function Header({ variant = "full" }) {
     !isMinimal &&
     (pathname === "/" ||
     pathname === "/listing" ||
+    pathname === "/sections" ||
     pathname === "/realestate" ||
     pathname.startsWith("/realestate/") ||
     pathname.startsWith("/c/"));

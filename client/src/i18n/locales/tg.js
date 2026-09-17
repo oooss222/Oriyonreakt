@@ -35,6 +35,7 @@ export default {
     mobileNav: "Навигатсияи мобилӣ",
     backHome: "Ба асосӣ",
     policy: "Сиёсати сайт",
+    sections: "Қисмҳо",
   },
   header: {
     addListing: "Илова кардани эълон",

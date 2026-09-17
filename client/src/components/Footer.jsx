@@ -26,6 +26,9 @@ export default function Footer() {
             {t("footer.tagline")}
           </p>
           <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm">
+            <Link to="/sections" className="text-white/80 hover:text-sun transition">
+              {t("nav.sections")}
+            </Link>
             <Link to="/listing" className="text-white/80 hover:text-sun transition">
               {t("footer.allListings")}
             </Link>
@@ -76,6 +79,11 @@ export default function Footer() {
               {t("footer.sections")}
             </h2>
             <ul className="space-y-1.5 text-white/65 text-sm">
+              <li>
+                <Link to="/sections" className="hover:text-sun transition-colors">
+                  {t("nav.sections")}
+                </Link>
+              </li>
               <li>
                 <Link to="/listing" className="hover:text-sun transition-colors">
                   {t("footer.allListings")}

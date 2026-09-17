@@ -35,6 +35,7 @@ export default {
     mobileNav: "Мобильная навигация",
     backHome: "На главную",
     policy: "Политика сайта",
+    sections: "Разделы",
   },
   header: {
     addListing: "Добавить объявление",

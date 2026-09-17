@@ -35,6 +35,7 @@ export default {
     mobileNav: "Mobile navigation",
     backHome: "Home",
     policy: "Site policy",
+    sections: "Sections",
   },
   header: {
     addListing: "Post a listing",

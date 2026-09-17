@@ -27,6 +27,7 @@ const RealEstateCompare = React.lazy(
 const RealEstateDevelopment = React.lazy(
   () => import("./pages/RealEstateDevelopment.jsx")
 );
+const Sections = React.lazy(() => import("./pages/Sections.jsx"));
 
 import "./styles/index.css";
 import { I18nProvider } from "./i18n/index.jsx";
@@ -149,6 +150,10 @@ const router = createBrowserRouter([
       {
         path: "realestate/:citySlug/:subSlug/:dealSlug/:roomsSlug",
         element: <Listing />,
+      },
+      {
+        path: "sections",
+        element: <Sections />,
       },
       {
         path: "policy",
