@@ -162,33 +162,9 @@ export function formatGuestLabel(count = "") {
   return `${n}${String(count).includes("+") ? "+" : ""} ${word}`;
 }
 
-export const REAL_ESTATE_CITIES = [
-  "Душанбе",
-  "Худжанд",
-  "Бохтар",
-  "Куляб",
-  "Турсунзаде",
-  "Вахдат",
-  "Истаравшан",
-  "Исфара",
-  "Канибадам",
-  "Пенджикент",
-  "Хорог",
-  "Бустон",
-  "Гулистон",
-  "Норэк",
-  "Яван",
-  "Дангара",
-];
+export const REAL_ESTATE_CITIES = ["Душанбе", "Худжанд"];
 
-export const REAL_ESTATE_PRIMARY_CITIES = [
-  "Душанбе",
-  "Худжанд",
-  "Бохтар",
-  "Куляб",
-  "Турсунзаде",
-  "Вахдат",
-];
+export const REAL_ESTATE_PRIMARY_CITIES = ["Душанбе", "Худжанд"];
 
 export const DUSHANBE_DISTRICTS = [
   "Центр",
