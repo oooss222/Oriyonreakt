@@ -4,7 +4,6 @@ import {
   COMMON_SPEC_OPTIONS,
   LOCATIONS,
   PHONE_BRANDS,
-  REGIONS,
 } from "./specOptions";
 import { CATS, getListSpecFilters } from "./listingCategories";
 import { getRealEstateFilterGrid } from "./realEstateFilters";
@@ -42,7 +41,6 @@ import {
 const TRANSPORT_GRID = {
   rows: [
     [
-      { id: "subcategory", label: "Легковые авто", type: "subcategory" },
       { id: "Марка", label: "Марка", type: "spec", specKey: "Марка", options: CAR_BRANDS },
       {
         id: "Модель",
@@ -52,6 +50,7 @@ const TRANSPORT_GRID = {
         dependsOn: "Марка",
         optionsFrom: CAR_MODELS,
       },
+      { id: "subcategory", label: "Легковые авто", type: "subcategory" },
       { id: "price", label: "Цена", type: "price" },
     ],
     [
@@ -108,7 +107,7 @@ const TRANSPORT_GRID = {
         specKey: "КПП",
         options: COMMON_SPEC_OPTIONS.kpp,
       },
-      { id: "region", label: "Область", type: "region", options: REGIONS },
+      { id: "location", label: "Город", type: "location", options: LOCATIONS },
     ],
     [
       {
@@ -132,7 +131,6 @@ const TRANSPORT_GRID = {
         specKey: "Объем",
         options: COMMON_SPEC_OPTIONS.engineVolume,
       },
-      { id: "location", label: "Город", type: "location", options: LOCATIONS },
     ],
   ],
   more: [
@@ -196,7 +194,6 @@ const PHONES_GRID = {
         specKey: "Гарантия",
         options: COMMON_SPEC_OPTIONS.warranty,
       },
-      { id: "region", label: "Область", type: "region", options: REGIONS },
       { id: "location", label: "Город", type: "location", options: LOCATIONS },
     ],
   ],
@@ -229,7 +226,6 @@ function buildTravelGrid(subcategory = "") {
           type: "price",
           presets: TRAVEL_PRICE_PRESETS,
         },
-        { id: "region", label: "Область", type: "region", options: REGIONS },
         { id: "location", label: "Город", type: "location", options: LOCATIONS },
       ],
       [
@@ -309,7 +305,6 @@ function buildBusinessGrid(subcategory = "") {
           type: "price",
           presets: BUSINESS_PRICE_PRESETS,
         },
-        { id: "region", label: "Область", type: "region", options: REGIONS },
         { id: "location", label: "Город", type: "location", options: LOCATIONS },
       ],
       [
@@ -358,7 +353,6 @@ function buildConstructionGrid(subcategory = "") {
           type: "price",
           presets: CONSTRUCTION_PRICE_PRESETS,
         },
-        { id: "region", label: "Область", type: "region", options: REGIONS },
         { id: "location", label: "Город", type: "location", options: LOCATIONS },
       ],
       [
@@ -415,7 +409,6 @@ function buildKidsGrid(subcategory = "") {
           type: "price",
           presets: KIDS_PRICE_PRESETS,
         },
-        { id: "region", label: "Область", type: "region", options: REGIONS },
         { id: "location", label: "Город", type: "location", options: LOCATIONS },
       ],
       [
@@ -494,7 +487,6 @@ function buildFoodGrid(subcategory = "") {
           type: "price",
           presets: FOOD_PRICE_PRESETS,
         },
-        { id: "region", label: "Область", type: "region", options: REGIONS },
         { id: "location", label: "Город", type: "location", options: LOCATIONS },
       ],
       [
@@ -594,7 +586,6 @@ function buildClothingGrid(subcategory = "") {
           type: "price",
           presets: CLOTHING_PRICE_PRESETS,
         },
-        { id: "region", label: "Область", type: "region", options: REGIONS },
         colorSpec && seasonSpec
           ? {
               id: "Цвет",
@@ -617,17 +608,76 @@ function buildClothingGrid(subcategory = "") {
 }
 
 
+function toSpecField(filter) {
+  return {
+    id: filter.name,
+    label: filter.name,
+    type: "spec",
+    specKey: filter.name,
+    options: filter.options,
+  };
+}
+
+function isBrandSpecName(name) {
+  return name === "Марка" || name === "Марка авто";
+}
+
 function buildGenericGrid(catKey, subcategory = "") {
-  const specFilters = getListSpecFilters(catKey, subcategory).slice(0, 4);
+  const specFilters = getListSpecFilters(catKey, subcategory);
+  const brandFilter = specFilters.find((filter) => isBrandSpecName(filter.name));
+  const orderedFilters = brandFilter
+    ? [brandFilter, ...specFilters.filter((filter) => filter !== brandFilter)]
+    : specFilters;
 
-  const row1 = [
-    { id: "subcategory", label: "Подкатегория", type: "subcategory" },
-    { id: "price", label: "Цена", type: "price" },
-    { id: "region", label: "Область", type: "region", options: REGIONS },
-    { id: "location", label: "Город", type: "location", options: LOCATIONS },
-  ];
+  const locationField = {
+    id: "location",
+    label: "Город",
+    type: "location",
+    options: LOCATIONS,
+  };
+  const subcategoryField = {
+    id: "subcategory",
+    label: "Подкатегория",
+    type: "subcategory",
+  };
+  const priceField = { id: "price", label: "Цена", type: "price" };
 
-  if (!specFilters.length) {
+  if (catKey === "transport" && brandFilter) {
+    const restFilters = orderedFilters.filter((filter) => filter !== brandFilter);
+    const row1 = [toSpecField(brandFilter)];
+
+    if (brandFilter.name === "Марка") {
+      row1.push({
+        id: "Модель",
+        label: "Модель",
+        type: "spec-dependent",
+        specKey: "Модель",
+        dependsOn: "Марка",
+        optionsFrom: CAR_MODELS,
+      });
+    }
+
+    row1.push(subcategoryField, priceField);
+    while (row1.length < 4) row1.push(null);
+    row1.length = 4;
+
+    const specRow = restFilters.slice(0, 3).map(toSpecField);
+    specRow.push(locationField);
+    while (specRow.length < 4) specRow.push(null);
+
+    return {
+      rows: [row1, specRow],
+      more: [
+        { id: "search", label: "Поиск", type: "search" },
+        { id: "sort", label: "Сортировка", type: "sort" },
+      ],
+    };
+  }
+
+  const row1 = [subcategoryField, priceField, locationField];
+  const visibleFilters = orderedFilters.slice(0, 4);
+
+  if (!visibleFilters.length) {
     return {
       rows: [row1],
       more: [
@@ -637,17 +687,8 @@ function buildGenericGrid(catKey, subcategory = "") {
     };
   }
 
-  const specRow = specFilters.map((filter) => ({
-    id: filter.name,
-    label: filter.name,
-    type: "spec",
-    specKey: filter.name,
-    options: filter.options,
-  }));
-
-  while (specRow.length < 4) {
-    specRow.push(null);
-  }
+  const specRow = visibleFilters.map(toSpecField);
+  while (specRow.length < 4) specRow.push(null);
 
   return {
     rows: [row1, specRow],
@@ -707,7 +748,6 @@ export function getListingFilterGrid(catKey, subcategory = "") {
       [
         { id: "cat", label: "Категория", type: "category" },
         { id: "price", label: "Цена", type: "price" },
-        { id: "region", label: "Область", type: "region", options: REGIONS },
         { id: "location", label: "Город", type: "location", options: LOCATIONS },
       ],
     ],

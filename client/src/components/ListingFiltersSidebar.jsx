@@ -61,15 +61,16 @@ function PillGroup({ value, options, onChange }) {
   );
 }
 
-function SidebarSelect({ value, placeholder, options, onChange }) {
+function SidebarSelect({ value, placeholder, options, onChange, disabled = false }) {
   return (
     <div className="relative">
       <select
         value={value || ""}
+        disabled={disabled}
         onChange={(event) => onChange(event.target.value)}
         className={`filter-sidebar__select ${
           value ? "text-ink font-medium" : "text-ink-400"
-        }`}
+        } ${disabled ? "opacity-60" : ""}`}
       >
         <option value="">{placeholder}</option>
         {options.map((option) => (
@@ -83,6 +84,74 @@ function SidebarSelect({ value, placeholder, options, onChange }) {
         className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-ink-300"
       />
     </div>
+  );
+}
+
+function SpecSidebarSelect({ field, draft, setDraft, onApply }) {
+  if (field.type === "spec-dependent") {
+    const parentValue = draft.specs?.[field.dependsOn] || "";
+    const options = field.optionsFrom?.[parentValue] || [];
+
+    return (
+      <SidebarSelect
+        value={draft.specs?.[field.specKey] || ""}
+        placeholder={field.label}
+        options={options}
+        disabled={!parentValue}
+        onChange={(value) =>
+          commitDraft(
+            setDraft,
+            onApply,
+            (current) => {
+              const nextSpecs = { ...current.specs };
+
+              if (value) {
+                nextSpecs[field.specKey] = value;
+              } else {
+                delete nextSpecs[field.specKey];
+              }
+
+              return {
+                ...current,
+                specs: nextSpecs,
+              };
+            },
+            draft
+          )
+        }
+      />
+    );
+  }
+
+  return (
+    <SidebarSelect
+      value={draft.specs?.[field.specKey] || ""}
+      placeholder={field.label}
+      options={field.options || []}
+      onChange={(value) =>
+        commitDraft(
+          setDraft,
+          onApply,
+          (current) => {
+            const nextSpecs = { ...current.specs };
+
+            if (value) {
+              nextSpecs[field.specKey] = value;
+            } else {
+              delete nextSpecs[field.specKey];
+            }
+
+            clearDependentModelSpec(nextSpecs, field.specKey);
+
+            return {
+              ...current,
+              specs: nextSpecs,
+            };
+          },
+          draft
+        )
+      }
+    />
   );
 }
 
@@ -133,9 +202,8 @@ export default function ListingFiltersSidebar({
     (field) =>
       field.type === "spec" &&
       field.specKey !== "Состояние" &&
-      !["subcategory", "price", "location", "region", "sort", "search"].includes(
-        field.type
-      )
+      field.specKey !== "Марка" &&
+      field.specKey !== "Марка авто"
   );
 
   const rangeFields = flatFields.filter(
@@ -145,12 +213,19 @@ export default function ListingFiltersSidebar({
       field.type === "mileage-range"
   );
 
+  const brandField = flatFields.find(
+    (field) =>
+      field.type === "spec" &&
+      (field.specKey === "Марка" || field.specKey === "Марка авто")
+  );
+  const modelField = flatFields.find(
+    (field) => field.type === "spec-dependent" && field.specKey === "Модель"
+  );
   const dependentSpecFields = flatFields.filter(
-    (field) => field.type === "spec-dependent"
+    (field) => field.type === "spec-dependent" && field !== modelField
   );
 
   const toggleFields = flatFields.filter((field) => field.type === "toggle");
-  const regionField = flatFields.find((field) => field.type === "region");
   const districtField = flatFields.find((field) => field.type === "city-district");
 
   const sellerOptions =
@@ -177,6 +252,28 @@ export default function ListingFiltersSidebar({
       </div>
 
       <div className="filter-sidebar__body">
+        {brandField ? (
+          <FilterSection title={brandField.label}>
+            <SpecSidebarSelect
+              field={brandField}
+              draft={draft}
+              setDraft={setDraft}
+              onApply={onApply}
+            />
+          </FilterSection>
+        ) : null}
+
+        {modelField ? (
+          <FilterSection title={modelField.label}>
+            <SpecSidebarSelect
+              field={modelField}
+              draft={draft}
+              setDraft={setDraft}
+              onApply={onApply}
+            />
+          </FilterSection>
+        ) : null}
+
         <FilterSection title={t("filter.keywords")}>
           <label className="relative block">
             <Search
@@ -393,31 +490,10 @@ export default function ListingFiltersSidebar({
         {(extraSpecFields.length > 0 ||
           dependentSpecFields.length > 0 ||
           rangeFields.length > 0 ||
-          regionField ||
           districtField ||
           sellerOptions.length > 0 ||
           toggleFields.length > 0) && (
           <FilterSection title={t("filter.additional")} defaultOpen={false}>
-            {regionField ? (
-              <SidebarSelect
-                value={draft.region}
-                placeholder={regionField.label}
-                options={regionField.options || []}
-                onChange={(value) =>
-                  commitDraft(
-                    setDraft,
-                    onApply,
-                    (current) => ({
-                      ...current,
-                      region: value,
-                      location: value ? "" : current.location,
-                    }),
-                    draft
-                  )
-                }
-              />
-            ) : null}
-
             {districtField ? (
               <SidebarSelect
                 value={draft.specs?.[districtField.specKey] || ""}
@@ -448,71 +524,24 @@ export default function ListingFiltersSidebar({
             ) : null}
 
             {extraSpecFields.map((field) => (
-              <SidebarSelect
+              <SpecSidebarSelect
                 key={field.id}
-                value={draft.specs?.[field.specKey] || ""}
-                placeholder={field.label}
-                options={field.options || []}
-                onChange={(value) =>
-                  commitDraft(
-                    setDraft,
-                    onApply,
-                    (current) => {
-                      const nextSpecs = { ...current.specs };
-
-                      if (value) {
-                        nextSpecs[field.specKey] = value;
-                      } else {
-                        delete nextSpecs[field.specKey];
-                      }
-
-                      clearDependentModelSpec(nextSpecs, field.specKey);
-
-                      return {
-                        ...current,
-                        specs: nextSpecs,
-                      };
-                    },
-                    draft
-                  )
-                }
+                field={field}
+                draft={draft}
+                setDraft={setDraft}
+                onApply={onApply}
               />
             ))}
 
-            {dependentSpecFields.map((field) => {
-              const parentValue = draft.specs?.[field.dependsOn] || "";
-              const options = field.optionsFrom?.[parentValue] || [];
-
-              return (
-                <SidebarSelect
-                  key={field.id}
-                  value={draft.specs?.[field.specKey] || ""}
-                  placeholder={field.label}
-                  options={options}
-                  onChange={(value) =>
-                    commitDraft(
-                      setDraft,
-                      onApply,
-                      (current) => {
-                        const nextSpecs = { ...current.specs };
-
-                        if (value) {
-                          nextSpecs[field.specKey] = value;
-                        } else {
-                          delete nextSpecs[field.specKey];
-                        }
-
-                        return {
-                          ...current,
-                          specs: nextSpecs,
-                        };
-                      },
-                      draft
-                    )
-                  }
-                />
-              );
-            })}
+            {dependentSpecFields.map((field) => (
+              <SpecSidebarSelect
+                key={field.id}
+                field={field}
+                draft={draft}
+                setDraft={setDraft}
+                onApply={onApply}
+              />
+            ))}
 
             {rangeFields.map((field) => (
               <div key={field.id}>

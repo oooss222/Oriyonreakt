@@ -5,8 +5,6 @@ import {
   SUBCATEGORY_META,
   ALL_RE_SUBCATEGORIES,
 } from "./realEstate";
-import { REGIONS } from "./specOptions";
-
 const REAL_ESTATE_SORT = {
   new: "Сначала новые",
   views_desc: "Сначала популярные",
@@ -157,7 +155,6 @@ const APARTMENT_GRID = {
     spec("Санузел", "Санузел", ["Раздельный", "Совмещённый", "2 санузла"]),
     spec("Парковка", "Парковка", ["Есть", "Нет", "Гараж", "Подземная"]),
     spec("Год постройки", "Год постройки", BUILD_YEARS),
-    { id: "region", label: "Область", type: "region", options: REGIONS },
     ...searchAndSort(),
   ],
 };
@@ -179,7 +176,6 @@ const NEW_BUILD_GRID = {
     spec("Состояние", "Состояние", ["Новостройка", "Вторичка"]),
     spec("Парковка", "Парковка", ["Есть", "Нет", "Гараж", "Подземная"]),
     spec("Год постройки", "Год постройки", BUILD_YEARS),
-    { id: "region", label: "Область", type: "region", options: REGIONS },
     ...searchAndSort(),
   ],
 };
@@ -197,7 +193,6 @@ const ROOM_GRID = {
     [cityField(), districtField(), null, null],
   ],
   more: [
-    { id: "region", label: "Область", type: "region", options: REGIONS },
     ...searchAndSort(),
   ],
 };
@@ -220,7 +215,6 @@ const HOUSE_GRID = {
     ],
   ],
   more: [
-    { id: "region", label: "Область", type: "region", options: REGIONS },
     ...searchAndSort(),
   ],
 };
@@ -238,7 +232,6 @@ const LAND_GRID = {
     [cityField(), districtField(), null, null],
   ],
   more: [
-    { id: "region", label: "Область", type: "region", options: REGIONS },
     ...searchAndSort(),
   ],
 };
@@ -256,7 +249,6 @@ const GARAGE_GRID = {
     [cityField(), districtField(), null, null],
   ],
   more: [
-    { id: "region", label: "Область", type: "region", options: REGIONS },
     ...searchAndSort(),
   ],
 };
@@ -285,7 +277,6 @@ const COMMERCIAL_GRID = {
     [cityField(), districtField(), null, null],
   ],
   more: [
-    { id: "region", label: "Область", type: "region", options: REGIONS },
     ...searchAndSort(),
   ],
 };
@@ -300,7 +291,6 @@ const DEFAULT_GRID = {
     spec("Тип дома", "Тип дома", ["Кирпич", "Панель", "Монолит", "Блок", "Другое"]),
     spec("Ремонт", "Ремонт", ["Без ремонта", "Косметический", "Евро", "Дизайнерский"]),
     spec("Состояние", "Состояние", ["Новостройка", "Вторичка"]),
-    { id: "region", label: "Область", type: "region", options: REGIONS },
     ...searchAndSort(),
   ],
 };

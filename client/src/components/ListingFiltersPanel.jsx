@@ -425,23 +425,6 @@ function renderField(
     );
   }
 
-  if (field.type === "region") {
-    return (
-      <FilterSelect
-        label={field.label}
-        placeholder={field.label}
-        value={draft.region || ""}
-        options={field.options || []}
-        onChange={(value) =>
-          commitDraft(setDraft, onApply, (current) => ({
-            ...current,
-            region: value,
-          }), draft)
-        }
-      />
-    );
-  }
-
   if (field.type === "location") {
     return (
       <FilterSelect
