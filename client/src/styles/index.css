@@ -577,7 +577,26 @@
   }
 
   .category-strip__arrow {
-    @apply absolute top-1/2 z-10 hidden sm:grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full border border-white/15 bg-ink-700/95 text-white shadow-lift backdrop-blur-sm transition hover:bg-ink-600 hover:border-sun/50;
+    @apply absolute z-10 hidden sm:grid h-10 w-10 place-items-center rounded-full border border-white/15 bg-ink-700/95 text-white shadow-lift backdrop-blur-sm transition hover:bg-ink-600 hover:border-sun/50;
+    /* Center on the image tiles, not the labels underneath. */
+    top: calc(0.75rem + 36px);
+    transform: translateY(-50%);
+  }
+
+  @media (min-width: 1024px) {
+    .category-strip__arrow {
+      top: calc(1rem + 40px);
+    }
+  }
+
+  .category-strip--compact .category-strip__arrow {
+    top: calc(0.5rem + 36px);
+  }
+
+  @media (min-width: 1024px) {
+    .category-strip--compact .category-strip__arrow {
+      top: calc(0.625rem + 40px);
+    }
   }
 
   .category-strip__arrow--prev {
