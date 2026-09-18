@@ -1065,6 +1065,14 @@
     @apply relative aspect-[4/3] overflow-hidden bg-mist;
   }
 
+  .listing-form-preview-empty {
+    @apply flex flex-col items-center justify-center gap-2 text-ink-300;
+  }
+
+  .listing-form-preview-empty span {
+    @apply px-3 text-center text-xs font-medium text-ink-400;
+  }
+
   .listing-card__body {
     @apply flex min-w-0 flex-1 flex-col gap-1 p-2.5 pt-2 xs:p-3 xs:pt-2.5;
   }

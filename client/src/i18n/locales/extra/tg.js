@@ -87,6 +87,7 @@ export default {
     previewTitle: "Чӣ гуна менамояд",
     previewNoTitle: "Сарлавҳаи эълон",
     previewBadge: "Пешнамоиш",
+    previewAddPhotos: "Аксҳоро илова кунед",
     wizardStepType: "Навъ ва параметрҳо",
     wizardStepPhotos: "Аксҳо",
     wizardStepDetails: "Матн ва нарх",

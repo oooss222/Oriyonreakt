@@ -87,6 +87,7 @@ export default {
     previewTitle: "How it will look",
     previewNoTitle: "Listing title",
     previewBadge: "Preview",
+    previewAddPhotos: "Add photos",
     wizardStepType: "Type & specs",
     wizardStepPhotos: "Photos",
     wizardStepDetails: "Text & price",

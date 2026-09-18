@@ -87,6 +87,7 @@ export default {
     previewTitle: "Как будет выглядеть",
     previewNoTitle: "Заголовок объявления",
     previewBadge: "Превью",
+    previewAddPhotos: "Добавьте фото",
     wizardStepType: "Тип и параметры",
     wizardStepPhotos: "Фото",
     wizardStepDetails: "Текст и цена",
