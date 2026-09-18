@@ -6,6 +6,7 @@ import {
   phoneDigitsToApi,
 } from "../../lib/phoneUtils";
 import { useI18n } from "../../i18n";
+import { isBlockedDisplayName } from "../../lib/blockedDisplayNames";
 import OtpInput from "./OtpInput";
 import {
   Field,
@@ -133,6 +134,11 @@ export default function PhoneAuthFlow({
               autoComplete="name"
               withIcon
             />
+            {phoneName.trim() && isBlockedDisplayName(phoneName) ? (
+              <p className="text-xs text-red-600 mt-1">
+                {t("errors.BLOCKED_DISPLAY_NAME")}
+              </p>
+            ) : null}
           </Field>
 
           <PolicyCheckbox
@@ -151,7 +157,11 @@ export default function PhoneAuthFlow({
             {isRegister ? t("auth.phoneCreating") : t("auth.phoneVerifying")}
           </span>
         }
-        disabled={phoneCode.length !== 6 || (isRegister && !phoneName.trim())}
+        disabled={
+          phoneCode.length !== 6 ||
+          (isRegister &&
+            (!phoneName.trim() || isBlockedDisplayName(phoneName)))
+        }
       >
         {isRegister ? t("auth.phoneCreateAccount") : t("auth.phoneSignIn")}
       </SubmitButton>

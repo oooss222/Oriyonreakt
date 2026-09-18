@@ -1,6 +1,7 @@
 import React from "react";
 import { Keyboard, Loader2, Lock, Mail, User as UserIcon } from "lucide-react";
 import { useI18n } from "../../i18n";
+import { isBlockedDisplayName } from "../../lib/blockedDisplayNames";
 import {
   Field,
   Input,
@@ -73,6 +74,11 @@ export default function EmailRegisterForm({
           autoComplete="name"
           withIcon
         />
+        {reg.name.trim() && isBlockedDisplayName(reg.name) ? (
+          <p className="text-xs text-red-600 mt-1">
+            {t("errors.BLOCKED_DISPLAY_NAME")}
+          </p>
+        ) : null}
       </Field>
 
       <Field label="Email" icon={Mail}>
@@ -164,6 +170,7 @@ export default function EmailRegisterForm({
 
       <SubmitButton
         loading={loading}
+        disabled={Boolean(reg.name.trim() && isBlockedDisplayName(reg.name))}
         loadingLabel={
           <span className="flex items-center justify-center gap-2">
             <Loader2 className="animate-spin" size={18} />

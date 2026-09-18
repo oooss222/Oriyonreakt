@@ -1,6 +1,7 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 
+const { isBlockedDisplayName } = require("../src/lib/blockedDisplayNames");
 const { parsePriceValue } = require("../src/lib/priceValue");
 const { toPublicListing, PRIVATE_FIELDS } = require("../src/lib/publicListing");
 const { isAllowedMediaUrl, isAllowedLinkUrl } = require("../src/lib/mediaUrl");
@@ -198,6 +199,38 @@ test("LAN origins are allowed for phones on the same Wi-Fi", () => {
       if (value === undefined) delete process.env[key];
       else process.env[key] = value;
     }
+  }
+});
+
+test("blocked display names reject fake, generic, and brand names", () => {
+  for (const name of [
+    "A",
+    "И",
+    "A1",
+    "12345",
+    "!!!",
+    "@#$",
+    "продавец",
+    "Админ",
+    "имя",
+    "хозяин",
+    "владелец",
+    "пользователь",
+    "user",
+    "User 1",
+    "apple",
+    "samsung",
+    "iPhone 15",
+    "galaxy",
+    "lexus",
+    "Toyota",
+    "Mercedes Benz",
+  ]) {
+    assert.equal(isBlockedDisplayName(name), true, name);
+  }
+
+  for (const name of ["Али", "Ali Rahimov", "Зарина", "Johny"]) {
+    assert.equal(isBlockedDisplayName(name), false, name);
   }
 });
 

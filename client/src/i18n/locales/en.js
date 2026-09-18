@@ -191,7 +191,7 @@ export default {
     WRONG_CODE: "Incorrect code",
     NAME_REQUIRED: "Please enter your name",
     BLOCKED_DISPLAY_NAME:
-      "Please use your real name. Names like Barodar, Khoji, Aka, Apa, or Sohibkhona are not allowed.",
+      "Please use your real name. A single letter, numbers-only or symbols-only names are not allowed, nor words like Seller, Admin, User, Apple, or Toyota.",
     INVALID_EMAIL: "Invalid email",
     IDENTITY_REQUIRED: "Enter email or phone number",
     INVALID_CREDENTIALS: "Incorrect email or password.",
