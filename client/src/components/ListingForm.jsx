@@ -47,7 +47,10 @@ import {
   saveListingDraft,
   saveRemoteListingDraft,
 } from "../lib/listingFormDraft";
-import { buildTransportSuggestedTitle } from "../lib/listingFormTitles";
+import {
+  buildListingSuggestedTitle,
+  canSuggestListingTitle,
+} from "../lib/listingFormTitles";
 import {
   mergeUserIntoStorage,
   readStoredUser,
@@ -144,10 +147,10 @@ export default function ListingForm({
     setForm((state) => ({
       ...state,
       cat: initialCat,
-      subcategory: CATS[initialCat]?.subs?.[0] || "",
+      subcategory: "",
       location: initialCat === REAL_ESTATE_CAT ? "Душанбе" : state.location,
     }));
-    applyCategorySpecs(initialCat, CATS[initialCat]?.subs?.[0] || "");
+    applyCategorySpecs(initialCat, "");
   }, [initialCat, isEdit, applyCategorySpecs]);
 
   React.useEffect(() => {
@@ -320,14 +323,13 @@ export default function ListingForm({
   };
 
   const handleCatChange = (catKey) => {
-    const firstSub = CATS[catKey]?.subs?.[0] || "";
     const photoLimit = getListingPhotoLimit(catKey);
     const trimmedExistingCount = Math.min(existingImages.length, photoLimit);
 
     setForm((state) => ({
       ...state,
       cat: catKey,
-      subcategory: firstSub,
+      subcategory: "",
     }));
 
     setExistingImages((current) => current.slice(0, photoLimit));
@@ -335,7 +337,7 @@ export default function ListingForm({
       current.slice(0, Math.max(0, photoLimit - trimmedExistingCount))
     );
 
-    applyCategorySpecs(catKey, firstSub, []);
+    applyCategorySpecs(catKey, "", []);
   };
 
   const handleSubcategoryChange = (subcategory) => {
@@ -776,8 +778,8 @@ export default function ListingForm({
     ? `${t("form.fillPrefix")} ${publishHintParts.join(", ")}`
     : "";
 
-  const suggestTransportTitle = () => {
-    setField("title", buildTransportSuggestedTitle(specs));
+  const suggestListingTitle = () => {
+    setField("title", buildListingSuggestedTitle(form.cat, specs));
   };
 
   if (loading) {
@@ -824,9 +826,37 @@ export default function ListingForm({
           {isEdit ? t("listing.editForm") : t("listing.createForm")}
         </h1>
 
-        <p className="text-ink-400 text-sm md:text-base">
-          {isEdit ? t("listing.editHint") : t("listing.createHint")}
+        <p className="text-ink-400 text-sm md:text-base max-w-2xl">
+          {isEdit
+            ? t("listing.editHint")
+            : categoryPicked
+              ? t("listing.createHintSteps")
+              : t("listing.createHint")}
         </p>
+
+        {categoryPicked && !isEdit ? (
+          <div className="flex flex-wrap items-center gap-2 pt-1">
+            <span className="listing-form-cat-chip">
+              {cat?.img ? (
+                <img
+                  src={cat.img}
+                  alt=""
+                  className="h-7 w-7 rounded-lg object-cover"
+                />
+              ) : null}
+              <span className="font-semibold text-ink">
+                {cat?.shortTitle || cat?.title || form.cat}
+              </span>
+            </span>
+            <button
+              type="button"
+              onClick={() => setCategoryPicked(false)}
+              className="text-sm font-medium text-sun hover:text-sun-700"
+            >
+              {t("listing.changeCategory")}
+            </button>
+          </div>
+        ) : null}
 
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
           <Link
@@ -903,7 +933,7 @@ export default function ListingForm({
         <ListingCategoryPicker
           selected={form.cat}
           onSelect={(catKey) => {
-            handleCatChange(catKey);
+            if (catKey !== form.cat) handleCatChange(catKey);
             setCategoryPicked(true);
           }}
         />
@@ -1004,10 +1034,10 @@ export default function ListingForm({
                   <label className="listing-form-label listing-form-label-required">
                     {t("form.title")}
                   </label>
-                  {form.cat === "transport" ? (
+                  {canSuggestListingTitle(form.cat) ? (
                     <button
                       type="button"
-                      onClick={suggestTransportTitle}
+                      onClick={suggestListingTitle}
                       className="inline-flex items-center gap-1 text-xs font-medium text-sun hover:text-sun-700"
                     >
                       <PencilLine className="w-3.5 h-3.5" />

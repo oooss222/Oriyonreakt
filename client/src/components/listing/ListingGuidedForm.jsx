@@ -27,11 +27,16 @@ import ListingFormPhotosSection from "./ListingFormPhotosSection";
 import ListingFormPublicationSidebar from "./ListingFormPublicationSidebar";
 import ListingFormPreview from "./ListingFormPreview";
 import { buildPublishHintParts } from "../../lib/listingFormValidation";
-import { buildTransportSuggestedTitle } from "../../lib/listingFormTitles";
+import {
+  buildListingSuggestedTitle,
+  canSuggestListingTitle,
+} from "../../lib/listingFormTitles";
+import ListingFormStepper from "./ListingFormStepper";
+import ListingFormSubcategoryPicker from "./ListingFormSubcategoryPicker";
 import { useI18n } from "../../i18n";
 
 export function isGuidedWizardCategory(cat) {
-  return cat === "transport" || cat === "phones";
+  return Boolean(cat) && cat !== "realestate";
 }
 
 const STEP_IDS = ["type", "photos", "details", "review"];
@@ -72,7 +77,7 @@ export default function ListingGuidedForm({
   previewItem,
 }) {
   const { t } = useI18n();
-  const [step, setStep] = React.useState(0);
+  const [step, setStep] = React.useState(isEdit ? STEP_IDS.length - 1 : 0);
 
   const cat = CATS[form.cat];
   const photosCount = existingImages.length + previews.length;
@@ -143,8 +148,8 @@ export default function ListingGuidedForm({
   };
 
   const handleSuggestTitle = () => {
-    if (form.cat !== "transport") return;
-    setField("title", buildTransportSuggestedTitle(specs));
+    if (!canSuggestListingTitle(form.cat)) return;
+    setField("title", buildListingSuggestedTitle(form.cat, specs));
   };
 
   const handleSubmit = (event) => {
@@ -152,7 +157,11 @@ export default function ListingGuidedForm({
     onSubmit?.(event);
   };
 
-  const goNext = () => setStep((s) => Math.min(STEP_IDS.length - 1, s + 1));
+  const canAdvance = Boolean(stepMeta[step]?.ok) || step === STEP_IDS.length - 1;
+  const goNext = () => {
+    if (!canAdvance) return;
+    setStep((s) => Math.min(STEP_IDS.length - 1, s + 1));
+  };
   const goBack = () => setStep((s) => Math.max(0, s - 1));
 
   const sidebarChecks = [
@@ -198,30 +207,12 @@ export default function ListingGuidedForm({
     >
       <section className="space-y-5 min-w-0">
         <div className="listing-form-card">
-          <div className="listing-form-card__body py-3">
-            <ol className="flex flex-wrap gap-2">
-              {stepMeta.map((item, index) => {
-                const active = index === step;
-                return (
-                  <li key={item.id}>
-                    <button
-                      type="button"
-                      onClick={() => setStep(index)}
-                      className={`chip h-8 px-3 text-xs ${
-                        active
-                          ? "chip-active"
-                          : item.ok
-                            ? "border-lagoon/25 bg-lagoon-50 text-lagoon-800"
-                            : ""
-                      }`}
-                    >
-                      <span>{index + 1}</span>
-                      {item.label}
-                    </button>
-                  </li>
-                );
-              })}
-            </ol>
+          <div className="listing-form-card__body py-3 sm:py-4">
+            <ListingFormStepper
+              steps={stepMeta}
+              current={step}
+              onSelect={setStep}
+            />
           </div>
         </div>
 
@@ -238,22 +229,11 @@ export default function ListingGuidedForm({
                 <label className="listing-form-label listing-form-label-required">
                   {t("form.subcategory")}
                 </label>
-                <div className="flex flex-wrap gap-2">
-                  {(cat?.subs || []).map((sub) => (
-                    <button
-                      key={sub}
-                      type="button"
-                      onClick={() => onSubcategoryChange(sub)}
-                      className={`listing-form-chip ${
-                        form.subcategory === sub
-                          ? "listing-form-chip--active"
-                          : ""
-                      }`}
-                    >
-                      {sub}
-                    </button>
-                  ))}
-                </div>
+                <ListingFormSubcategoryPicker
+                  cat={cat}
+                  value={form.subcategory}
+                  onChange={onSubcategoryChange}
+                />
               </div>
 
               <ListingFormSpecFields
@@ -303,7 +283,7 @@ export default function ListingGuidedForm({
                   <label className="listing-form-label listing-form-label-required">
                     {t("form.title")}
                   </label>
-                  {form.cat === "transport" ? (
+                  {canSuggestListingTitle(form.cat) ? (
                     <button
                       type="button"
                       onClick={handleSuggestTitle}
@@ -353,7 +333,7 @@ export default function ListingGuidedForm({
               </div>
 
               <div>
-                <label className="listing-form-label">{t("form.location")}</label>
+                <label className="listing-form-label listing-form-label-required">{t("form.location")}</label>
                 <div className="listing-form-location-segment">
                   {LOCATIONS.map((city) => {
                     const active = form.location === city;
@@ -408,37 +388,54 @@ export default function ListingGuidedForm({
               <div className="rounded-xl border border-sun/25 bg-sun-50 px-4 py-3 text-sm text-sun-900">
                 {t("listing.moderationLikelyHint")}
               </div>
-              <div className="max-w-xs">
-                <ListingFormPreview item={previewItem} />
+              <div className="grid gap-4 sm:grid-cols-[minmax(0,16rem)_minmax(0,1fr)]">
+                <div className="max-w-xs">
+                  <ListingFormPreview item={previewItem} />
+                </div>
+                <dl className="grid sm:grid-cols-2 gap-3 text-sm content-start">
+                  <div className="rounded-xl bg-mist/60 px-3 py-2">
+                    <dt className="text-ink-400">{t("form.titleLabel")}</dt>
+                    <dd className="font-semibold text-ink break-words">
+                      {form.title.trim() || "—"}
+                    </dd>
+                  </div>
+                  <div className="rounded-xl bg-mist/60 px-3 py-2">
+                    <dt className="text-ink-400">{t("form.category")}</dt>
+                    <dd className="font-semibold text-ink">
+                      {cat?.title || form.cat}
+                    </dd>
+                  </div>
+                  <div className="rounded-xl bg-mist/60 px-3 py-2">
+                    <dt className="text-ink-400">{t("form.subcategory")}</dt>
+                    <dd className="font-semibold text-ink">
+                      {form.subcategory || "—"}
+                    </dd>
+                  </div>
+                  <div className="rounded-xl bg-mist/60 px-3 py-2">
+                    <dt className="text-ink-400">{t("form.location")}</dt>
+                    <dd className="font-semibold text-ink">
+                      {form.location || "—"}
+                    </dd>
+                  </div>
+                  <div className="rounded-xl bg-mist/60 px-3 py-2">
+                    <dt className="text-ink-400">{t("form.photos")}</dt>
+                    <dd className="font-semibold text-ink">
+                      {photosCount}/{photoLimit}
+                    </dd>
+                  </div>
+                  <div className="rounded-xl bg-mist/60 px-3 py-2">
+                    <dt className="text-ink-400">{t("form.price")}</dt>
+                    <dd className="font-semibold text-ink">
+                      {hasPrice
+                        ? `${formatPriceInput(form.price)} ${t("price.currency")}`
+                        : "—"}
+                    </dd>
+                  </div>
+                </dl>
               </div>
-              <dl className="grid sm:grid-cols-2 gap-3 text-sm">
-                <div className="rounded-xl bg-mist/60 px-3 py-2">
-                  <dt className="text-ink-400">{t("form.category")}</dt>
-                  <dd className="font-semibold text-ink">
-                    {cat?.title || form.cat}
-                  </dd>
-                </div>
-                <div className="rounded-xl bg-mist/60 px-3 py-2">
-                  <dt className="text-ink-400">{t("form.subcategory")}</dt>
-                  <dd className="font-semibold text-ink">
-                    {form.subcategory || "—"}
-                  </dd>
-                </div>
-                <div className="rounded-xl bg-mist/60 px-3 py-2">
-                  <dt className="text-ink-400">{t("form.photos")}</dt>
-                  <dd className="font-semibold text-ink">
-                    {photosCount}/{photoLimit}
-                  </dd>
-                </div>
-                <div className="rounded-xl bg-mist/60 px-3 py-2">
-                  <dt className="text-ink-400">{t("form.price")}</dt>
-                  <dd className="font-semibold text-ink">
-                    {hasPrice
-                      ? `${formatPriceInput(form.price)} ${t("price.currency")}`
-                      : "—"}
-                  </dd>
-                </div>
-              </dl>
+              {!canPublish && publishHint ? (
+                <p className="text-sm text-red-600">{publishHint}</p>
+              ) : null}
             </div>
           </div>
         ) : null}
@@ -455,14 +452,22 @@ export default function ListingGuidedForm({
           </button>
 
           {step < STEP_IDS.length - 1 ? (
-            <button
-              type="button"
-              onClick={goNext}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-ink text-white px-4 py-2.5 text-sm font-semibold hover:bg-ink/90"
-            >
-              {t("listing.wizardNext")}
-              <ChevronRight className="w-4 h-4" />
-            </button>
+            <div className="text-right">
+              <button
+                type="button"
+                onClick={goNext}
+                disabled={!canAdvance}
+                className="inline-flex items-center gap-1.5 rounded-xl bg-ink text-white px-4 py-2.5 text-sm font-semibold hover:bg-ink/90 disabled:cursor-not-allowed disabled:bg-mist disabled:text-ink-400"
+              >
+                {t("listing.wizardNext")}
+                <ChevronRight className="w-4 h-4" />
+              </button>
+              {!canAdvance ? (
+                <p className="mt-1.5 text-xs text-ink-400">
+                  {t("listing.wizardStepHint")}
+                </p>
+              ) : null}
+            </div>
           ) : (
             <button
               type="submit"

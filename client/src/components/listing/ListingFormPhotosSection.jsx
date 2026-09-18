@@ -25,11 +25,17 @@ function PhotoTile({
   const { t } = useI18n();
 
   return (
-    <div className="relative group">
+    <div
+      className={`relative group ${
+        isCover ? "col-span-2 sm:col-span-2 sm:row-span-2" : ""
+      }`}
+    >
       <img
         src={src}
         alt={alt}
-        className="w-full h-28 object-cover rounded-xl border border-ink/8 bg-mist"
+        className={`w-full object-cover rounded-xl border border-ink/8 bg-mist ${
+          isCover ? "h-40 sm:h-full sm:min-h-[12.5rem]" : "h-28"
+        }`}
       />
       {isCover ? (
         <span className="absolute left-2 bottom-2 rounded-md bg-ink/80 px-2 py-0.5 text-[10px] font-semibold text-white">
@@ -139,7 +145,7 @@ export default function ListingFormPhotosSection({
           <div className="text-sm text-ink-400 mt-1">
             {t("listing.photosFormats")}
           </div>
-          <label className="inline-flex items-center justify-center gap-2 mt-4 rounded-xl border border-ink/10 bg-white px-4 py-2 hover:bg-mist cursor-pointer text-sm font-medium text-ink-600">
+          <label className="inline-flex min-h-[var(--touch)] items-center justify-center gap-2 mt-4 rounded-xl border border-ink/10 bg-white px-4 py-2.5 hover:bg-mist cursor-pointer text-sm font-medium text-ink-600">
             <Plus className="w-4 h-4" />
             {t("listing.photosPick")}
             <input
@@ -173,7 +179,7 @@ export default function ListingFormPhotosSection({
               ) : null}
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:auto-rows-fr">
               {existingImages.map((img, index) => (
                 <PhotoTile
                   key={`existing-${index}-${img.url}`}

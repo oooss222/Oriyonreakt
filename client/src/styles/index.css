@@ -1272,6 +1272,125 @@
     @apply space-y-1;
   }
 
+  .listing-form-cat-chip {
+    @apply inline-flex items-center gap-2 rounded-2xl border border-ink/10 bg-white px-2 py-1.5 pr-3 shadow-sm;
+  }
+
+  .listing-form-search {
+    @apply relative block;
+  }
+
+  .listing-form-search__icon {
+    @apply pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-300;
+  }
+
+  .listing-form-search__input {
+    @apply w-full rounded-xl border border-ink/15 bg-white h-11 min-h-[var(--touch)] pl-9 pr-3 text-sm text-ink outline-none transition
+           placeholder:text-ink-300 focus:border-sun focus:ring-2 focus:ring-sun/40;
+  }
+
+  .listing-form-cat-grid {
+    @apply grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3;
+  }
+
+  .listing-form-cat-tile {
+    @apply flex flex-col overflow-hidden rounded-2xl border border-ink/10 bg-white text-left transition
+           hover:border-sun/30 hover:shadow-soft;
+  }
+
+  .listing-form-cat-tile--active {
+    @apply border-sun/50 bg-sun-50 shadow-soft;
+  }
+
+  .listing-form-cat-tile__media {
+    @apply block aspect-[16/10] overflow-hidden bg-mist;
+  }
+
+  .listing-form-cat-tile__media img {
+    @apply h-full w-full object-cover;
+  }
+
+  .listing-form-cat-tile__copy {
+    @apply flex min-h-[4.5rem] flex-col gap-1 px-3 py-2.5;
+  }
+
+  .listing-form-cat-tile__title {
+    @apply font-semibold text-ink text-sm leading-snug;
+  }
+
+  .listing-form-cat-tile__desc {
+    @apply text-xs text-ink-400 line-clamp-2;
+  }
+
+  .listing-form-stepper {
+    @apply space-y-3;
+  }
+
+  .listing-form-stepper__mobile {
+    @apply sm:hidden space-y-2;
+  }
+
+  .listing-form-stepper__mobile-row {
+    @apply flex items-center justify-between gap-3;
+  }
+
+  .listing-form-stepper__mobile-label {
+    @apply text-sm font-semibold text-ink;
+  }
+
+  .listing-form-stepper__mobile-count {
+    @apply text-xs font-medium text-ink-400;
+  }
+
+  .listing-form-stepper__bar {
+    @apply h-1.5 overflow-hidden rounded-full bg-mist-200;
+  }
+
+  .listing-form-stepper__bar span {
+    @apply block h-full rounded-full bg-sun transition-[width] duration-300;
+  }
+
+  .listing-form-stepper__list {
+    @apply hidden sm:flex items-center w-full;
+  }
+
+  .listing-form-stepper__line {
+    @apply mx-1 h-px min-w-3 flex-1 bg-ink/10;
+  }
+
+  .listing-form-stepper__line--on {
+    @apply bg-sun;
+  }
+
+  .listing-form-step {
+    @apply inline-flex min-w-0 items-center gap-2 rounded-full px-1 py-1 text-left text-xs font-medium text-ink-400
+           transition disabled:opacity-40;
+  }
+
+  .listing-form-step--active {
+    @apply text-ink;
+  }
+
+  .listing-form-step--done {
+    @apply text-lagoon-700;
+  }
+
+  .listing-form-step__index {
+    @apply grid h-7 w-7 shrink-0 place-items-center rounded-full border border-ink/15 bg-white text-[11px] font-bold;
+  }
+
+  .listing-form-step--active .listing-form-step__index {
+    @apply border-sun bg-sun text-white;
+  }
+
+  .listing-form-step--done .listing-form-step__index {
+    @apply border-lagoon/30 bg-lagoon-50 text-lagoon-700;
+  }
+
+  .listing-form-step__label {
+    @apply hidden truncate md:inline;
+  }
+
   .listing-form-badge {
     @apply inline-flex items-center gap-2 text-sm text-sun-700 bg-sun-50 border border-sun-100 rounded-full px-3 py-1;
   }

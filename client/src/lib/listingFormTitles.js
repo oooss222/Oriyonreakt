@@ -36,3 +36,29 @@ export function buildTransportSuggestedTitle(specs) {
 
   return parts.join(", ").slice(0, TITLE_MAX);
 }
+
+export function canSuggestListingTitle(cat) {
+  return ["transport", "phones", "electronics", "computers"].includes(cat);
+}
+
+export function buildListingSuggestedTitle(cat, specs) {
+  if (cat === "transport") return buildTransportSuggestedTitle(specs);
+
+  const brand =
+    getSpecValue(specs, "Производитель") ||
+    getSpecValue(specs, "Бренд") ||
+    getSpecValue(specs, "Марка");
+  const model = getSpecValue(specs, "Модель");
+  const extra =
+    getSpecValue(specs, "Память") ||
+    getSpecValue(specs, "Год") ||
+    getSpecValue(specs, "Состояние");
+  const parts = [];
+
+  if (brand && model) parts.push(`${brand} ${model}`);
+  else if (brand) parts.push(brand);
+  else if (model) parts.push(model);
+  if (extra) parts.push(extra);
+
+  return parts.join(", ").slice(0, TITLE_MAX);
+}
