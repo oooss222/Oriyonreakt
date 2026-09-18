@@ -798,6 +798,47 @@ export default function ListingForm({
     ? `${t("form.fillPrefix")} ${publishHintParts.join(", ")}`
     : "";
 
+  const progressItems = [
+    {
+      key: "title",
+      label: t("form.title"),
+      ok: hasTitle,
+      detail: hasTitle ? t("form.specsFilled") : t("form.hintTitle"),
+    },
+    {
+      key: "photos",
+      label: t("form.photos"),
+      ok: hasPhotos,
+      detail: `${photosCount}/${photoLimit}`,
+    },
+    {
+      key: "specs",
+      label: t("form.specs"),
+      ok: specsComplete,
+      detail: specsComplete ? t("form.specsFilled") : t("form.specsEmpty"),
+    },
+    {
+      key: "price",
+      label: t("form.price"),
+      ok: hasPrice,
+      detail: hasPrice
+        ? `${formatPriceInput(form.price)} ${t("price.currency")}`
+        : t("form.priceEmpty"),
+    },
+    {
+      key: "location",
+      label: t("form.location"),
+      ok: hasLocation,
+      detail: form.location || t("listing.noLocation"),
+    },
+  ];
+  const progressDone = progressItems.filter((item) => item.ok).length;
+  const progressTotal = progressItems.length;
+  const progressLabel = t("listing.filledProgress", {
+    done: progressDone,
+    total: progressTotal,
+  });
+
   const suggestListingTitle = () => {
     setField("title", buildListingSuggestedTitle(form.cat, specs));
   };
@@ -828,12 +869,13 @@ export default function ListingForm({
   const subcategoryLabel = form.subcategory.includes(" — ")
     ? form.subcategory.split(" — ").slice(1).join(" — ")
     : form.subcategory;
-  const showNarrowLayout = !(useRealEstateWizard && (isEdit || categoryPicked));
+  const showNarrowLayout = !isEdit && !categoryPicked;
+  const showPageError = Boolean(err) && (!invalidField || invalidField === "phone");
 
   return (
     <div
-      className={`listing-form-page bg-mist/40 min-h-[calc(100vh-4rem)] ${
-        showNarrowLayout ? "listing-form-page--narrow" : ""
+      className={`listing-form-page min-h-[calc(100vh-4rem)] ${
+        showNarrowLayout ? "listing-form-page--narrow" : "listing-form-page--wide"
       }`}
     >
       <div className="listing-form-header">
@@ -863,7 +905,27 @@ export default function ListingForm({
               : t("listing.createHint")}
         </p>
 
-        {categoryPicked && !isEdit ? (
+        {isEdit || categoryPicked ? (
+          <div className="listing-form-progress">
+            <div
+              className="listing-form-progress__bar"
+              role="progressbar"
+              aria-valuemin={0}
+              aria-valuemax={progressTotal}
+              aria-valuenow={progressDone}
+              aria-label={progressLabel}
+            >
+              <span
+                style={{
+                  width: `${Math.round((progressDone / progressTotal) * 100)}%`,
+                }}
+              />
+            </div>
+            <span>{progressLabel}</span>
+          </div>
+        ) : null}
+
+        {categoryPicked && !isEdit && useRealEstateWizard ? (
           <div className="flex flex-wrap items-center gap-2 pt-1">
             <span className="listing-form-cat-chip">
               {cat?.img ? (
@@ -946,7 +1008,7 @@ export default function ListingForm({
         </div>
       ) : null}
 
-      {err && (
+      {showPageError ? (
         <div
           role="alert"
           aria-live="assertive"
@@ -962,7 +1024,7 @@ export default function ListingForm({
             </Link>
           ) : null}
         </div>
-      )}
+      ) : null}
 
       {!isEdit && !categoryPicked ? (
         <ListingCategoryPicker
@@ -1011,11 +1073,8 @@ export default function ListingForm({
           specs={specs}
           onUpdateSpec={updateSpec}
           onRemoveSpec={removeSpecRow}
-          onSubcategoryChange={handleSubcategoryChange}
-          files={files}
           previews={previews}
           existingImages={existingImages}
-          onFiles={onFiles}
           onInputFiles={onInputFiles}
           removeFile={removeFile}
           removeExistingImage={removeExistingImage}
@@ -1038,14 +1097,38 @@ export default function ListingForm({
           }}
           photoLimit={photoLimit}
           onSubmit={submit}
-          saving={saving}
-          isEdit={isEdit}
-          onReset={resetForm}
           formId={LISTING_FORM_ID}
-          requirePhone={!isEdit}
-          hasPhone={hasPhone}
           invalidField={invalidField}
           previewItem={previewItem}
+          isEdit={isEdit}
+          requirePhone={!isEdit}
+          hasPhone={hasPhone}
+          categoryTitle={cat?.shortTitle || cat?.title || form.cat}
+          subcategoryLabel={subcategoryLabel}
+          categoryImage={cat?.img || ""}
+          onChangeCategory={() => setCategoryPicked(false)}
+          sidebar={
+            <ListingFormPublicationSidebar
+              categoryTitle={cat?.shortTitle || cat?.title}
+              subcategory={subcategoryLabel}
+              checks={progressItems}
+              progressLabel={progressLabel}
+              canPublish={canPublish}
+              publishHint={publishHint}
+              saving={saving}
+              isEdit={isEdit}
+              onReset={resetForm}
+              requirePhone={!isEdit}
+              hasPhone={hasPhone}
+              previewItem={previewItem}
+              moderationHint={!isEdit ? t("listing.moderationLikelyHint") : null}
+              footerNote={
+                isEdit
+                  ? t("listing.editModerationHint")
+                  : t("listing.publishHint")
+              }
+            />
+          }
         />
       ) : (
       <form
@@ -1256,28 +1339,8 @@ export default function ListingForm({
         <ListingFormPublicationSidebar
           categoryTitle={cat?.title}
           subcategory={form.subcategory}
-          checks={[
-            {
-              key: "photos",
-              label: t("form.photos"),
-              ok: hasPhotos,
-              detail: `${photosCount}/${photoLimit}`,
-            },
-            {
-              key: "specs",
-              label: t("form.specs"),
-              ok: specsComplete,
-              detail: specsComplete ? t("form.specsFilled") : t("form.specsEmpty"),
-            },
-            {
-              key: "price",
-              label: t("form.price"),
-              ok: hasPrice,
-              detail: hasPrice
-                ? `${formatPriceInput(form.price)} ${t("price.currency")}`
-                : t("form.priceEmpty"),
-            },
-          ]}
+          checks={progressItems}
+          progressLabel={progressLabel}
           canPublish={canPublish}
           publishHint={publishHint}
           saving={saving}

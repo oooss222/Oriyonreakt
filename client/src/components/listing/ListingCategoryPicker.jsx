@@ -19,9 +19,11 @@ function ListRow({ image, label, onClick }) {
             }}
           />
         </span>
-      ) : null}
+      ) : (
+        <span className="listing-form-list-row__media listing-form-list-row__media--empty" />
+      )}
       <span className="listing-form-list-row__label">{label}</span>
-      <ChevronRight className="listing-form-list-row__chevron" size={18} />
+      <ChevronRight className="listing-form-list-row__chevron" size={18} aria-hidden />
     </button>
   );
 }
@@ -64,6 +66,7 @@ export default function ListingCategoryPicker({ onSelect, initialCat = "" }) {
   };
 
   let title = t("listing.pickCategoryTitle");
+  let hint = t("listing.pickCategoryHint");
   let onBack = null;
   let rows = categories.map(([key, item]) => ({
     key,
@@ -84,6 +87,7 @@ export default function ListingCategoryPicker({ onSelect, initialCat = "" }) {
 
   if (cat && groups.length && !group) {
     title = cat.shortTitle || cat.title;
+    hint = "";
     onBack = goRoot;
     rows = groups.map((row) => ({
       key: row.group,
@@ -104,6 +108,7 @@ export default function ListingCategoryPicker({ onSelect, initialCat = "" }) {
   } else if (cat && group) {
     const current = groups.find((row) => row.group === group);
     title = group;
+    hint = "";
     onBack = () => setGroup("");
     rows = (current?.items || []).map((item) => ({
       key: `${group} — ${item}`,
@@ -112,6 +117,7 @@ export default function ListingCategoryPicker({ onSelect, initialCat = "" }) {
     }));
   } else if (cat) {
     title = cat.shortTitle || cat.title;
+    hint = "";
     onBack = goRoot;
     rows = (cat.subs || []).map((sub) => ({
       key: sub,
@@ -135,7 +141,10 @@ export default function ListingCategoryPicker({ onSelect, initialCat = "" }) {
         ) : (
           <span className="listing-form-list__back listing-form-list__back--spacer" />
         )}
-        <h2 className="listing-form-list__title">{title}</h2>
+        <div className="listing-form-list__copy">
+          <h2 className="listing-form-list__title">{title}</h2>
+          {hint ? <p className="listing-form-list__hint">{hint}</p> : null}
+        </div>
       </div>
       <div className="listing-form-list__body">
         {rows.map((row) => (

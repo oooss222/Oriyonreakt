@@ -47,6 +47,7 @@ function ColorSwatches({ value, options, onChange, disabled = false, t }) {
             type="button"
             disabled={disabled}
             title={option}
+            aria-label={option}
             onClick={() => onChange(active ? "" : option)}
             className={`listing-form-color-swatch ${
               active ? "listing-form-color-swatch--active" : ""
@@ -101,7 +102,7 @@ export default function ListingFormSpecFields({
           spec.type === "select" &&
           spec.name !== "Цвет" &&
           selectOptions.length > 0 &&
-          selectOptions.length <= 5;
+          selectOptions.length <= 8;
         const emptyRequired = spec.locked && !String(spec.value || "").trim();
 
         return (

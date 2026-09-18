@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { Tag, CheckCircle2, RotateCcw, Phone, ShieldAlert } from "lucide-react";
+import { CheckCircle2, Circle, RotateCcw, Phone, ShieldAlert } from "lucide-react";
 import ListingFormPreview from "./ListingFormPreview";
 import { useI18n } from "../../i18n";
 
@@ -18,64 +18,62 @@ export default function ListingFormPublicationSidebar({
   requirePhone = false,
   previewItem = null,
   moderationHint = null,
+  progressLabel = "",
 }) {
   const { t } = useI18n();
 
   return (
-    <aside className="hidden lg:block">
+    <aside className="hidden lg:block min-w-0">
       <div className="listing-form-sidebar">
-        <div className="flex items-center gap-2">
-          <Tag className="w-5 h-5 text-sun" />
-          <h2 className="font-display text-lg font-semibold text-ink tracking-tight">
-            {t("listing.publication")}
-          </h2>
-        </div>
-
-        <div className="rounded-xl border border-ink/8 bg-mist/50 p-3 space-y-2 text-sm">
-          <div className="flex items-center justify-between gap-3">
-            <span className="text-ink-400">{t("listing.category")}</span>
-            <span className="font-semibold text-ink text-right">
-              {categoryTitle || "—"}
-            </span>
-          </div>
-          <div className="flex items-center justify-between gap-3">
-            <span className="text-ink-400">{t("listing.subcategory")}</span>
-            <span className="font-semibold text-ink text-right">
-              {subcategory || "—"}
-            </span>
-          </div>
-        </div>
-
         {previewItem ? <ListingFormPreview item={previewItem} /> : null}
 
-        <div className="space-y-2">
-          {checks.map((check) => (
-            <div
-              key={check.key || check.label}
-              className={`listing-form-check ${
-                check.ok ? "listing-form-check--ok" : "listing-form-check--warn"
-              }`}
-            >
-              <span>{check.label}</span>
-              <span className="font-medium">{check.detail}</span>
-            </div>
-          ))}
+        {categoryTitle || subcategory ? (
+          <div className="listing-form-sidebar__cat">
+            <span>{categoryTitle || "—"}</span>
+            {subcategory ? <span>{subcategory}</span> : null}
+          </div>
+        ) : null}
 
-          {requirePhone ? (
-            <div
-              className={`listing-form-check ${
-                hasPhone ? "listing-form-check--ok" : "listing-form-check--warn"
-              }`}
-            >
-              <span className="inline-flex items-center gap-1.5">
-                <Phone size={14} />
-                {t("listing.phone")}
-              </span>
-              <span className="font-medium">
-                {hasPhone ? t("listing.phoneSet") : t("listing.phoneNeeded")}
-              </span>
-            </div>
+        <div className="listing-form-progress-aside">
+          {progressLabel ? (
+            <p className="listing-form-progress-aside__label">{progressLabel}</p>
           ) : null}
+          <div className="space-y-1.5">
+            {checks.map((check) => (
+              <div
+                key={check.key || check.label}
+                className={`listing-form-check ${
+                  check.ok ? "listing-form-check--ok" : "listing-form-check--warn"
+                }`}
+              >
+                {check.ok ? (
+                  <CheckCircle2 className="w-4 h-4 shrink-0 text-lagoon-700" />
+                ) : (
+                  <Circle className="w-4 h-4 shrink-0" />
+                )}
+                <span className="min-w-0 flex-1">{check.label}</span>
+                <span className="font-medium text-right">{check.detail}</span>
+              </div>
+            ))}
+
+            {requirePhone ? (
+              <div
+                className={`listing-form-check ${
+                  hasPhone ? "listing-form-check--ok" : "listing-form-check--warn"
+                }`}
+              >
+                {hasPhone ? (
+                  <CheckCircle2 className="w-4 h-4 shrink-0 text-lagoon-700" />
+                ) : (
+                  <Phone className="w-4 h-4 shrink-0" />
+                )}
+                <span className="min-w-0 flex-1">{t("listing.phone")}</span>
+                <span className="font-medium">
+                  {hasPhone ? t("listing.phoneSet") : t("listing.phoneNeeded")}
+                </span>
+              </div>
+            ) : null}
+          </div>
         </div>
 
         {requirePhone && !hasPhone ? (
@@ -96,9 +94,10 @@ export default function ListingFormPublicationSidebar({
 
         <button
           type="submit"
-          disabled={!canPublish}
+          disabled={!canPublish || saving}
+          aria-busy={saving}
           className={`listing-form-publish-btn ${
-            canPublish
+            canPublish && !saving
               ? "listing-form-publish-btn--ready"
               : "listing-form-publish-btn--disabled"
           }`}
@@ -114,7 +113,7 @@ export default function ListingFormPublicationSidebar({
         </button>
 
         {!canPublish && publishHint ? (
-          <p className="text-xs text-red-600">{publishHint}</p>
+          <p className="text-xs text-ink-400">{publishHint}</p>
         ) : null}
 
         <button
