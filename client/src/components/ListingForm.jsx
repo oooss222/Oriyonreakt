@@ -40,12 +40,6 @@ import {
 import {
   clearListingDraft,
   clearRemoteListingDraft,
-  formatDraftSavedAt,
-  loadListingDraft,
-  loadRemoteListingDraft,
-  pickNewerDraft,
-  saveListingDraft,
-  saveRemoteListingDraft,
 } from "../lib/listingFormDraft";
 import {
   buildListingSuggestedTitle,
@@ -69,7 +63,6 @@ import {
   ListChecks,
   MapPin,
   Pencil,
-  FileText,
 } from "lucide-react";
 
 const LISTING_FORM_ID = "listing-form";
@@ -118,8 +111,6 @@ export default function ListingForm({
   const [saving, setSaving] = React.useState(false);
   const [isDragOver, setIsDragOver] = React.useState(false);
   const [geo, setGeo] = React.useState(null);
-  const [draftPrompt, setDraftPrompt] = React.useState(null);
-  const [draftSavedAt, setDraftSavedAt] = React.useState(null);
   const [hasPhone, setHasPhone] = React.useState(() =>
     userHasSellerPhone(readStoredUser())
   );
@@ -131,7 +122,6 @@ export default function ListingForm({
   );
   const [editBaseline, setEditBaseline] = React.useState(null);
   const skipLeaveRef = React.useRef(false);
-  const draftSaveTimerRef = React.useRef(null);
 
   const applyCategorySpecs = React.useCallback(
     (catKey, subcategory, existingSpecs = []) => {
@@ -210,21 +200,10 @@ export default function ListingForm({
   React.useEffect(() => {
     if (isEdit) return undefined;
 
-    let alive = true;
+    clearListingDraft();
+    if (token) clearRemoteListingDraft(token);
 
-    (async () => {
-      const local = loadListingDraft();
-      const remote = token ? await loadRemoteListingDraft(token) : null;
-      const draft = pickNewerDraft(local, remote);
-      if (alive && draft) {
-        setDraftPrompt(draft);
-        if (draft.savedAt) setDraftSavedAt(draft.savedAt);
-      }
-    })();
-
-    return () => {
-      alive = false;
-    };
+    return undefined;
   }, [isEdit, token]);
 
   React.useEffect(() => {
@@ -247,41 +226,6 @@ export default function ListingForm({
       alive = false;
     };
   }, [token]);
-
-  React.useEffect(() => {
-    if (isEdit || draftPrompt) return;
-
-    if (draftSaveTimerRef.current) {
-      clearTimeout(draftSaveTimerRef.current);
-    }
-
-    draftSaveTimerRef.current = setTimeout(() => {
-      const payload = {
-        form,
-        specs: filterSpecsToTemplate(form.cat, form.subcategory, specs),
-        geo,
-        existingImages: existingImages.map((img) => ({
-          url: img.url,
-          alt: img.alt || "",
-        })),
-      };
-
-      const savedAt = saveListingDraft(payload);
-      if (savedAt) setDraftSavedAt(savedAt);
-
-      if (token) {
-        saveRemoteListingDraft(token, payload).then((remoteAt) => {
-          if (remoteAt) setDraftSavedAt(remoteAt);
-        });
-      }
-    }, 1500);
-
-    return () => {
-      if (draftSaveTimerRef.current) {
-        clearTimeout(draftSaveTimerRef.current);
-      }
-    };
-  }, [form, specs, geo, existingImages, isEdit, draftPrompt, token]);
 
   React.useEffect(() => {
     if (!files.length) {
@@ -393,7 +337,7 @@ export default function ListingForm({
         ? t("listing.photosHeicUnsupported")
         : "";
 
-      // Create mode + auth: upload early so drafts sync photos across devices
+      // Create mode + auth: upload early so photos persist if the user retries submit
       if (!isEdit && token && compressed.length) {
         try {
           const formData = new FormData();
@@ -513,55 +457,6 @@ export default function ListingForm({
 
       return next;
     });
-  };
-
-  const restoreDraft = () => {
-    if (!draftPrompt) return;
-
-    const draftCat =
-      draftPrompt.form?.cat && CATS[draftPrompt.form.cat]
-        ? draftPrompt.form.cat
-        : startCat;
-
-    setForm({
-      title: draftPrompt.form?.title || "",
-      price: draftPrompt.form?.price || "",
-      location: draftPrompt.form?.location || "Душанбе",
-      cat: draftCat,
-      subcategory:
-        draftPrompt.form?.subcategory || CATS[draftCat]?.subs?.[0] || "",
-      description: draftPrompt.form?.description || "",
-    });
-
-    const draftSub =
-      draftPrompt.form?.subcategory || CATS[draftCat]?.subs?.[0] || "";
-
-    applyCategorySpecs(
-      draftCat,
-      draftSub,
-      compactSpecsForSubmit(
-        filterSpecsToTemplate(
-          draftCat,
-          draftSub,
-          Array.isArray(draftPrompt.specs) ? draftPrompt.specs : []
-        )
-      )
-    );
-
-    setExistingImages(
-      Array.isArray(draftPrompt.existingImages)
-        ? draftPrompt.existingImages
-        : []
-    );
-    setGeo(draftPrompt.geo || null);
-    setDraftPrompt(null);
-    setCategoryPicked(true);
-  };
-
-  const discardDraft = () => {
-    clearListingDraft();
-    clearRemoteListingDraft(token);
-    setDraftPrompt(null);
   };
 
   const resetForm = () => {
@@ -700,7 +595,6 @@ export default function ListingForm({
       if (!isEdit) {
         clearListingDraft();
         clearRemoteListingDraft(token);
-        setDraftSavedAt(null);
         setSubmitResult(result);
         return;
       }
@@ -951,62 +845,17 @@ export default function ListingForm({
           </div>
         ) : null}
 
-        {isEdit || draftSavedAt ? (
+        {isEdit ? (
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-            {isEdit ? (
-              <Link
-                to={backTo}
-                className="inline-flex text-sm text-ink-400 hover:text-ink transition"
-              >
-                {t("form.back")}
-              </Link>
-            ) : null}
-            {!isEdit && draftSavedAt ? (
-              <span className="text-xs text-lagoon-700 font-medium">
-                {t("listing.draftAutosaved", {
-                  time: formatDraftSavedAt(draftSavedAt),
-                })}
-              </span>
-            ) : null}
+            <Link
+              to={backTo}
+              className="inline-flex text-sm text-ink-400 hover:text-ink transition"
+            >
+              {t("form.back")}
+            </Link>
           </div>
         ) : null}
       </div>
-
-      {draftPrompt ? (
-        <div className="rounded-2xl border border-sun/20 bg-sun-50 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div className="flex items-start gap-3">
-            <FileText className="w-5 h-5 text-sun-700 mt-0.5 shrink-0" />
-            <div>
-              <div className="font-semibold text-sun-800">
-                {t("listing.draftContinue")}
-              </div>
-              <div className="text-sm text-sun-700 mt-1">
-                {t("listing.draftContinueDesc", {
-                  time:
-                    formatDraftSavedAt(draftPrompt.savedAt) ||
-                    t("listing.draftRecently"),
-                })}
-              </div>
-            </div>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={restoreDraft}
-              className="btn btn-primary btn-sm"
-            >
-              {t("listing.continue")}
-            </button>
-            <button
-              type="button"
-              onClick={discardDraft}
-              className="btn btn-secondary btn-sm"
-            >
-              {t("listing.startOver")}
-            </button>
-          </div>
-        </div>
-      ) : null}
 
       {showPageError ? (
         <div
