@@ -158,6 +158,7 @@ export function buildPublishHintParts({
 
   if (!form.title?.trim()) parts.push(tr("form.hintTitle"));
   if (!getPriceDigits(form.price)) parts.push(tr("form.hintPrice"));
+  if (!form.location?.trim()) parts.push(tr("form.hintLocation"));
 
   if (photosCount < minPhotos) {
     parts.push(

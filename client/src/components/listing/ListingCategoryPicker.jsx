@@ -1,92 +1,151 @@
 import React from "react";
-import { Search } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { CATS } from "../../data/listingCategories";
+import { REAL_ESTATE_CAT } from "../../data/realEstate";
 import { useI18n } from "../../i18n";
 
-export default function ListingCategoryPicker({ onSelect, selected = "" }) {
-  const { t } = useI18n();
-  const [query, setQuery] = React.useState("");
-  const needle = query.trim().toLowerCase();
+function ListRow({ image, label, onClick }) {
+  return (
+    <button type="button" onClick={onClick} className="listing-form-list-row">
+      {image ? (
+        <span className="listing-form-list-row__media" aria-hidden>
+          <img
+            src={image}
+            alt=""
+            loading="lazy"
+            draggable={false}
+            onError={(event) => {
+              event.currentTarget.src = "/img/placeholder.jpg";
+            }}
+          />
+        </span>
+      ) : null}
+      <span className="listing-form-list-row__label">{label}</span>
+      <ChevronRight className="listing-form-list-row__chevron" size={18} />
+    </button>
+  );
+}
 
-  const categories = React.useMemo(() => {
-    const rows = Object.entries(CATS).filter(([, cat]) => !cat.hiddenFromHome);
-    rows.sort((a, b) => {
-      const featured = Number(Boolean(b[1].featured)) - Number(Boolean(a[1].featured));
-      if (featured) return featured;
-      return (a[1].shortTitle || a[1].title).localeCompare(
-        b[1].shortTitle || b[1].title,
-        "ru"
-      );
-    });
-    if (!needle) return rows;
-    return rows.filter(([, cat]) => {
-      const hay = `${cat.shortTitle || ""} ${cat.title || ""} ${cat.desc || ""}`.toLowerCase();
-      return hay.includes(needle);
-    });
-  }, [needle]);
+export default function ListingCategoryPicker({ onSelect, initialCat = "" }) {
+  const { t } = useI18n();
+  const [catKey, setCatKey] = React.useState(
+    initialCat && initialCat !== REAL_ESTATE_CAT && CATS[initialCat]
+      ? initialCat
+      : ""
+  );
+  const [group, setGroup] = React.useState("");
+
+  const categories = React.useMemo(
+    () =>
+      Object.entries(CATS)
+        .filter(([, cat]) => !cat.hiddenFromHome)
+        .sort((a, b) => {
+          const featured =
+            Number(Boolean(b[1].featured)) - Number(Boolean(a[1].featured));
+          if (featured) return featured;
+          return (a[1].shortTitle || a[1].title).localeCompare(
+            b[1].shortTitle || b[1].title,
+            "ru"
+          );
+        }),
+    []
+  );
+
+  const cat = catKey ? CATS[catKey] : null;
+  const groups = cat?.subGroups || [];
+
+  const goRoot = () => {
+    setCatKey("");
+    setGroup("");
+  };
+
+  const pickLeaf = (subcategory) => {
+    onSelect?.(catKey, subcategory);
+  };
+
+  let title = t("listing.pickCategoryTitle");
+  let onBack = null;
+  let rows = categories.map(([key, item]) => ({
+    key,
+    label: item.shortTitle || item.title,
+    image: item.img,
+    onClick: () => {
+      if (
+        key === REAL_ESTATE_CAT ||
+        (!item.subs?.length && !item.subGroups?.length)
+      ) {
+        onSelect?.(key, "");
+        return;
+      }
+      setCatKey(key);
+      setGroup("");
+    },
+  }));
+
+  if (cat && groups.length && !group) {
+    title = cat.shortTitle || cat.title;
+    onBack = goRoot;
+    rows = groups.map((row) => ({
+      key: row.group,
+      label: row.group,
+      onClick: () => setGroup(row.group),
+    }));
+    if (cat.subs?.some((sub) => !String(sub).includes(" — "))) {
+      cat.subs
+        .filter((sub) => !String(sub).includes(" — "))
+        .forEach((sub) => {
+          rows.push({
+            key: sub,
+            label: sub,
+            onClick: () => pickLeaf(sub),
+          });
+        });
+    }
+  } else if (cat && group) {
+    const current = groups.find((row) => row.group === group);
+    title = group;
+    onBack = () => setGroup("");
+    rows = (current?.items || []).map((item) => ({
+      key: `${group} — ${item}`,
+      label: item,
+      onClick: () => pickLeaf(`${group} — ${item}`),
+    }));
+  } else if (cat) {
+    title = cat.shortTitle || cat.title;
+    onBack = goRoot;
+    rows = (cat.subs || []).map((sub) => ({
+      key: sub,
+      label: sub.includes(" — ") ? sub.split(" — ").slice(1).join(" — ") : sub,
+      onClick: () => pickLeaf(sub),
+    }));
+  }
 
   return (
-    <section className="listing-form-card overflow-hidden">
-      <div className="listing-form-card__head">
-        <div className="listing-form-card__title">
-          {t("listing.pickCategoryTitle")}
-        </div>
+    <section className="listing-form-list">
+      <div className="listing-form-list__head">
+        {onBack ? (
+          <button
+            type="button"
+            onClick={onBack}
+            className="listing-form-list__back"
+            aria-label={t("listing.wizardBack")}
+          >
+            <ChevronLeft size={22} />
+          </button>
+        ) : (
+          <span className="listing-form-list__back listing-form-list__back--spacer" />
+        )}
+        <h2 className="listing-form-list__title">{title}</h2>
       </div>
-      <div className="listing-form-card__body">
-        <p className="text-sm text-ink-400 mb-4">
-          {t("listing.pickCategoryHint")}
-        </p>
-
-        <label className="listing-form-search mb-4">
-          <Search className="listing-form-search__icon" size={16} />
-          <input
-            type="search"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder={t("listing.categorySearch")}
-            className="listing-form-search__input"
+      <div className="listing-form-list__body">
+        {rows.map((row) => (
+          <ListRow
+            key={row.key}
+            image={row.image}
+            label={row.label}
+            onClick={row.onClick}
           />
-        </label>
-
-        <div className="listing-form-cat-grid">
-          {categories.map(([key, cat]) => {
-            const active = selected === key;
-            const title = cat.shortTitle || cat.title;
-
-            return (
-              <button
-                key={key}
-                type="button"
-                onClick={() => onSelect(key)}
-                className={`listing-form-cat-tile ${
-                  active ? "listing-form-cat-tile--active" : ""
-                }`}
-              >
-                <span className="listing-form-cat-tile__media" aria-hidden>
-                  <img
-                    src={cat.img}
-                    alt=""
-                    loading="lazy"
-                    draggable={false}
-                    onError={(event) => {
-                      event.currentTarget.src = "/img/placeholder.jpg";
-                    }}
-                  />
-                </span>
-                <span className="listing-form-cat-tile__copy">
-                  <span className="listing-form-cat-tile__title">{title}</span>
-                  {cat.desc ? (
-                    <span className="listing-form-cat-tile__desc">{cat.desc}</span>
-                  ) : null}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-
-        {categories.length === 0 ? (
-          <p className="mt-4 text-sm text-ink-400">{t("listing.categorySearchEmpty")}</p>
-        ) : null}
+        ))}
       </div>
     </section>
   );

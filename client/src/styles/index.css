@@ -1265,7 +1265,11 @@
   }
 
   .listing-form-page {
-    @apply container-x space-y-5 py-4 text-ink xs:py-6 pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] lg:pb-6;
+    @apply container-x space-y-5 py-4 text-ink xs:py-6 pb-[calc(6.5rem+env(safe-area-inset-bottom,0px))];
+  }
+
+  .listing-form-page--narrow {
+    max-width: 40rem;
   }
 
   .listing-form-header {
@@ -1477,6 +1481,112 @@
     @apply border-ink/10 bg-mist/70;
   }
 
+  .listing-form-paydo {
+    @apply space-y-4;
+  }
+
+  .listing-form-list {
+    @apply overflow-hidden rounded-2xl border border-ink/10 bg-white shadow-sm;
+  }
+
+  .listing-form-list__head {
+    @apply relative flex min-h-[3.25rem] items-center justify-center border-b border-ink/10 px-12;
+  }
+
+  .listing-form-list__back {
+    @apply absolute left-2 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full text-ink transition hover:bg-mist;
+  }
+
+  .listing-form-list__back--spacer {
+    @apply pointer-events-none opacity-0;
+  }
+
+  .listing-form-list__title {
+    @apply text-center text-base font-semibold text-ink;
+  }
+
+  .listing-form-list__body {
+    @apply divide-y divide-ink/10;
+  }
+
+  .listing-form-list-row {
+    @apply flex w-full items-center gap-3 px-4 py-3 text-left transition hover:bg-mist/70;
+  }
+
+  .listing-form-list-row__media {
+    @apply h-11 w-11 shrink-0 overflow-hidden rounded-xl bg-mist;
+  }
+
+  .listing-form-list-row__media img {
+    @apply h-full w-full object-cover;
+  }
+
+  .listing-form-list-row__label {
+    @apply min-w-0 flex-1 text-sm font-medium text-ink;
+  }
+
+  .listing-form-list-row__chevron {
+    @apply shrink-0 text-ink-300;
+  }
+
+  .listing-form-slots {
+    @apply grid grid-cols-3 gap-2 sm:grid-cols-4;
+  }
+
+  .listing-form-slots--active .listing-form-slot--add,
+  .listing-form-slots--active .listing-form-slot--empty {
+    @apply border-sun bg-sun-50 text-sun;
+  }
+
+  .listing-form-slot {
+    @apply relative aspect-square overflow-hidden rounded-xl bg-mist;
+  }
+
+  .listing-form-slot img {
+    @apply h-full w-full object-cover;
+  }
+
+  .listing-form-slot--add,
+  .listing-form-slot--empty {
+    @apply flex cursor-pointer flex-col items-center justify-center gap-1 border-2 border-dashed border-ink/15 bg-mist/70 text-[11px] font-medium text-ink-400 transition hover:border-sun/40 hover:bg-sun-50 hover:text-sun;
+  }
+
+  .listing-form-slot--add span {
+    @apply px-1 text-center leading-tight;
+  }
+
+  .listing-form-slot__cover {
+    @apply absolute left-1.5 top-1.5 rounded-full bg-white/95 px-1.5 py-0.5 text-[10px] font-semibold text-ink shadow-sm;
+  }
+
+  .listing-form-slot__actions {
+    @apply absolute inset-x-0 bottom-0 flex items-center justify-center gap-0.5 bg-gradient-to-t from-black/60 to-transparent px-1 pb-1.5 pt-5;
+  }
+
+  .listing-form-slot__actions button {
+    @apply grid h-7 w-7 place-items-center rounded-full text-white transition hover:bg-white/20 disabled:opacity-30;
+  }
+
+  .listing-form-paydo .listing-form-spec-list {
+    @apply divide-y divide-ink/10;
+  }
+
+  .listing-form-paydo .listing-form-spec-row {
+    @apply grid grid-cols-1 gap-2 px-5 py-4;
+  }
+
+  .listing-form-paydo .listing-form-spec-label {
+    @apply border-0 bg-transparent px-0 py-0;
+  }
+
+  .listing-form-paydo .listing-form-spec-control {
+    @apply px-0 py-0;
+  }
+
+  .listing-form-paydo .listing-form-spec-remove--spacer {
+    @apply hidden;
+  }
+
   .listing-form-spec-list {
     @apply divide-y divide-mist-200;
   }
@@ -1554,8 +1664,18 @@
     bottom: calc(4rem + env(safe-area-inset-bottom, 0px));
   }
 
+  @media (min-width: 1024px) {
+    .listing-form-mobile-bar {
+      bottom: 0;
+    }
+  }
+
   .listing-form-mobile-bar__inner {
     @apply mx-auto flex w-full max-w-[90rem] items-center gap-2 xs:gap-3 px-3 xs:px-4 py-2.5;
+  }
+
+  .listing-form-page--narrow .listing-form-mobile-bar__inner {
+    max-width: 40rem;
   }
 
   .listing-form-mobile-bar__hint {

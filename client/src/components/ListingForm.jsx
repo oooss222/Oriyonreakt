@@ -127,7 +127,7 @@ export default function ListingForm({
   const [compressing, setCompressing] = React.useState(false);
   const [invalidField, setInvalidField] = React.useState("");
   const [categoryPicked, setCategoryPicked] = React.useState(
-    () => Boolean(initialCat && CATS[initialCat]) || isEdit
+    () => Boolean(isEdit || (initialCat === REAL_ESTATE_CAT && CATS[initialCat]))
   );
   const [editBaseline, setEditBaseline] = React.useState(null);
   const skipLeaveRef = React.useRef(false);
@@ -322,21 +322,37 @@ export default function ListingForm({
     setField("price", formatPriceInput(rawValue));
   };
 
+  const applyPickedCategory = (catKey, subcategory) => {
+    const nextLimit = getListingPhotoLimit(catKey);
+    const trimmedExistingCount = Math.min(existingImages.length, nextLimit);
+
+    setForm((state) => ({
+      ...state,
+      cat: catKey,
+      subcategory: subcategory || "",
+      location: catKey === REAL_ESTATE_CAT ? "Душанбе" : state.location,
+    }));
+    setExistingImages((current) => current.slice(0, nextLimit));
+    setFiles((current) =>
+      current.slice(0, Math.max(0, nextLimit - trimmedExistingCount))
+    );
+    applyCategorySpecs(catKey, subcategory || "", []);
+    setCategoryPicked(true);
+  };
+
   const handleCatChange = (catKey) => {
-    const photoLimit = getListingPhotoLimit(catKey);
-    const trimmedExistingCount = Math.min(existingImages.length, photoLimit);
+    const nextLimit = getListingPhotoLimit(catKey);
+    const trimmedExistingCount = Math.min(existingImages.length, nextLimit);
 
     setForm((state) => ({
       ...state,
       cat: catKey,
       subcategory: "",
     }));
-
-    setExistingImages((current) => current.slice(0, photoLimit));
+    setExistingImages((current) => current.slice(0, nextLimit));
     setFiles((current) =>
-      current.slice(0, Math.max(0, photoLimit - trimmedExistingCount))
+      current.slice(0, Math.max(0, nextLimit - trimmedExistingCount))
     );
-
     applyCategorySpecs(catKey, "", []);
   };
 
@@ -741,6 +757,8 @@ export default function ListingForm({
   const hasTitle = Boolean(form.title.trim());
   const hasPrice = Boolean(priceDigits.length);
   const hasPhotos = photosCount >= minPhotos;
+  const hasLocation = Boolean(form.location?.trim());
+  const hasSubcategory = Boolean(form.subcategory?.trim());
   const phoneOk = isEdit || hasPhone;
   const editSnapshot = JSON.stringify({
     form,
@@ -761,6 +779,8 @@ export default function ListingForm({
     hasTitle &&
     hasPrice &&
     hasPhotos &&
+    hasLocation &&
+    hasSubcategory &&
     specsComplete &&
     phoneOk &&
     !saving;
@@ -805,8 +825,17 @@ export default function ListingForm({
     );
   }
 
+  const subcategoryLabel = form.subcategory.includes(" — ")
+    ? form.subcategory.split(" — ").slice(1).join(" — ")
+    : form.subcategory;
+  const showNarrowLayout = !(useRealEstateWizard && (isEdit || categoryPicked));
+
   return (
-    <div className="listing-form-page bg-mist/40 min-h-[calc(100vh-4rem)]">
+    <div
+      className={`listing-form-page bg-mist/40 min-h-[calc(100vh-4rem)] ${
+        showNarrowLayout ? "listing-form-page--narrow" : ""
+      }`}
+    >
       <div className="listing-form-header">
         <div className="listing-form-badge">
           {isEdit ? (
@@ -830,7 +859,7 @@ export default function ListingForm({
           {isEdit
             ? t("listing.editHint")
             : categoryPicked
-              ? t("listing.createHintSteps")
+              ? t("listing.createHintForm")
               : t("listing.createHint")}
         </p>
 
@@ -845,7 +874,9 @@ export default function ListingForm({
                 />
               ) : null}
               <span className="font-semibold text-ink">
-                {cat?.shortTitle || cat?.title || form.cat}
+                {[cat?.shortTitle || cat?.title || form.cat, subcategoryLabel]
+                  .filter(Boolean)
+                  .join(" · ")}
               </span>
             </span>
             <button
@@ -858,21 +889,25 @@ export default function ListingForm({
           </div>
         ) : null}
 
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-          <Link
-            to={backTo}
-            className="inline-flex text-sm text-ink-400 hover:text-ink transition"
-          >
-            {t("form.back")}
-          </Link>
-          {!isEdit && draftSavedAt ? (
-            <span className="text-xs text-lagoon-700 font-medium">
-              {t("listing.draftAutosaved", {
-                time: formatDraftSavedAt(draftSavedAt),
-              })}
-            </span>
-          ) : null}
-        </div>
+        {isEdit || draftSavedAt ? (
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+            {isEdit ? (
+              <Link
+                to={backTo}
+                className="inline-flex text-sm text-ink-400 hover:text-ink transition"
+              >
+                {t("form.back")}
+              </Link>
+            ) : null}
+            {!isEdit && draftSavedAt ? (
+              <span className="text-xs text-lagoon-700 font-medium">
+                {t("listing.draftAutosaved", {
+                  time: formatDraftSavedAt(draftSavedAt),
+                })}
+              </span>
+            ) : null}
+          </div>
+        ) : null}
       </div>
 
       {draftPrompt ? (
@@ -931,11 +966,10 @@ export default function ListingForm({
 
       {!isEdit && !categoryPicked ? (
         <ListingCategoryPicker
-          selected={form.cat}
-          onSelect={(catKey) => {
-            if (catKey !== form.cat) handleCatChange(catKey);
-            setCategoryPicked(true);
-          }}
+          initialCat={initialCat}
+          onSelect={(catKey, subcategory) =>
+            applyPickedCategory(catKey, subcategory)
+          }
         />
       ) : null}
 

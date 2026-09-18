@@ -15,7 +15,7 @@ export default function ListingFormMobilePublishBar({
   if (!visible) return null;
 
   return (
-    <div className="listing-form-mobile-bar lg:hidden">
+    <div className="listing-form-mobile-bar">
       <div className="listing-form-mobile-bar__inner">
         {!canPublish && publishHint ? (
           <p className="listing-form-mobile-bar__hint">{publishHint}</p>
