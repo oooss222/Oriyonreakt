@@ -29,12 +29,14 @@ export default function Toast({
 
   return createPortal(
     <div
-      className={toneClass}
+      className={`${toneClass}`}
       role="status"
       aria-live="polite"
       onClick={onClose}
+      style={{ "--toast-ms": `${durationMs}ms` }}
     >
       {message}
+      <span className="toast__progress" />
     </div>,
     document.body
   );

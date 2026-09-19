@@ -20,6 +20,7 @@ export default function FavoriteButton({
 
   const [active, setActive] = React.useState(Boolean(defaultActive));
   const [loading, setLoading] = React.useState(false);
+  const [pop, setPop] = React.useState(false);
 
   React.useEffect(() => {
     setActive(Boolean(defaultActive));
@@ -45,6 +46,9 @@ export default function FavoriteButton({
 
     setLoading(true);
     setActive(next);
+    if (next) {
+      setPop(true);
+    }
 
     try {
       if (next) {
@@ -72,7 +76,7 @@ export default function FavoriteButton({
       disabled={loading}
       aria-label={label}
       title={label}
-      className={`inline-flex items-center justify-center transition group shrink-0 ${
+      className={`inline-flex items-center justify-center transition group shrink-0 active:scale-95 ${
         overlay
           ? "h-11 w-11 rounded-full border border-ink/10 bg-white shadow-sm hover:shadow-md"
           : compact
@@ -80,17 +84,22 @@ export default function FavoriteButton({
             : "rounded-full border bg-white/90 backdrop-blur px-2.5 py-2 shadow-sm hover:shadow"
       } ${loading ? "opacity-70 cursor-not-allowed" : ""}`}
     >
-      <Heart
-        size={overlay ? 16 : 18}
-        className={`transition-colors ${
-          active
-            ? "text-red-500"
-            : overlay
-              ? "text-ink-500 group-hover:text-red-500"
-              : "text-ink-700 group-hover:text-red-600"
-        }`}
-        fill={active ? "currentColor" : "none"}
-      />
+      <span
+        className={`fav-heart inline-flex ${pop ? "is-pop" : ""}`}
+        onAnimationEnd={() => setPop(false)}
+      >
+        <Heart
+          size={overlay ? 16 : 18}
+          className={
+            active
+              ? "text-red-500"
+              : overlay
+                ? "text-ink-500 group-hover:text-red-500"
+                : "text-ink-700 group-hover:text-red-600"
+          }
+          fill={active ? "currentColor" : "none"}
+        />
+      </span>
     </button>
   );
 }

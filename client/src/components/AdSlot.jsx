@@ -237,7 +237,7 @@ export default function AdSlot({
   }
 
   return (
-    <div ref={rootRef} className={className}>
+    <div ref={rootRef} className={`animate-fade-in ${className}`.trim()}>
       <AdCreative ad={ad} variant={variant} compact={compact} />
     </div>
   );

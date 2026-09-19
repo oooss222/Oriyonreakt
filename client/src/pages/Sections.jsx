@@ -221,7 +221,7 @@ export default function Sections() {
             <h2 className="section-title text-lg">
               {t("sections.searchResults", { count: searchResults.length })}
             </h2>
-            <ul className="section-results">
+            <ul className="section-results animate-fade-in-up">
               {searchResults.map((item) => (
                 <li key={item.key}>
                   <Link to={item.to} className="section-result">

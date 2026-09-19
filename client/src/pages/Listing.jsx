@@ -784,7 +784,7 @@ export default function Listing() {
   );
 
   return (
-    <div className="container-x py-4 xs:py-6">
+    <div className="container-x py-4 xs:py-6 animate-fade-in">
       {isRealEstate && (
         <div className="mb-5 space-y-5 lg:hidden">
           <Breadcrumbs items={breadcrumbItems} />
@@ -1072,8 +1072,6 @@ export default function Listing() {
                 item={ad}
                 trackSource="listing"
                 layout={catalogView === "list" ? "list" : "grid"}
-                className="animate-fade-in-up"
-                style={{ animationDelay: `${idx * 40}ms` }}
               />
             );
           })}

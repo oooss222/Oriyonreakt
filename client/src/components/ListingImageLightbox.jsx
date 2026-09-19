@@ -79,7 +79,7 @@ export default function ListingImageLightbox({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[120] bg-black/95 flex flex-col"
+      className="fixed inset-0 z-[120] flex flex-col bg-black/95 animate-fade-in"
       role="dialog"
       aria-modal="true"
       aria-label={t("listing.photoViewerAria")}
@@ -139,8 +139,9 @@ export default function ListingImageLightbox({
         <img
           src={currentSrc}
           alt={resolvedTitle}
-          className="max-w-full max-h-full object-contain select-none"
+          className="max-h-full max-w-full select-none object-contain animate-fade-in"
           draggable={false}
+          key={currentSrc}
         />
       </div>
 

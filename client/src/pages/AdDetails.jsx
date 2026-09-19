@@ -31,6 +31,7 @@ import Breadcrumbs from "../components/Breadcrumbs";
 import EmptyState from "../components/EmptyState";
 import AdSlot from "../components/AdSlot";
 import Toast from "../components/ui/Toast";
+import Skeleton from "../components/ui/Skeleton";
 import { PromotionBadgeGroup } from "../components/PromotionBadge";
 import { CAT_LABELS } from "../data/listingCategories";
 import { enrichRealEstateListing, getSpecValue, isRealEstateListing } from "../lib/realEstate";
@@ -74,31 +75,31 @@ function getSellerName(ad) {
 
 function PageSkeleton() {
   return (
-    <div className="container-x space-y-6 py-6 animate-pulse">
-      <div className="h-4 w-64 rounded bg-mist-200" />
+    <div className="container-x space-y-6 py-6" aria-busy="true">
+      <Skeleton className="h-4 w-64" />
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-12">
         <div className="space-y-5 xl:col-span-7">
-          <div className="panel aspect-[4/3] bg-mist-200" />
+          <Skeleton className="panel aspect-[4/3] rounded-2xl" />
           <div className="flex gap-2">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="h-16 w-20 rounded-xl bg-mist-200" />
+              <Skeleton key={i} className="h-16 w-20 rounded-xl" />
             ))}
           </div>
           <div className="panel space-y-3 p-6">
-            <div className="h-8 w-3/4 rounded bg-mist-200" />
-            <div className="h-4 w-1/2 rounded bg-mist-200" />
-            <div className="h-24 rounded bg-mist-200" />
+            <Skeleton className="h-8 w-3/4" />
+            <Skeleton className="h-4 w-1/2" />
+            <Skeleton className="h-24" />
           </div>
         </div>
 
         <div className="xl:col-span-5">
           <div className="panel space-y-4 p-6">
-            <div className="h-10 w-1/2 rounded bg-mist-200" />
-            <div className="h-12 rounded bg-mist-200" />
-            <div className="h-16 rounded-xl bg-mist-200" />
-            <div className="h-11 rounded-xl bg-mist-200" />
-            <div className="h-11 rounded-xl bg-mist-200" />
+            <Skeleton className="h-10 w-1/2" />
+            <Skeleton className="h-12" />
+            <Skeleton className="h-16 rounded-xl" />
+            <Skeleton className="h-11 rounded-xl" />
+            <Skeleton className="h-11 rounded-xl" />
           </div>
         </div>
       </div>
@@ -645,7 +646,7 @@ export default function AdDetails() {
 
   return (
     <div
-      className={`min-h-screen bg-mist ${
+      className={`min-h-screen bg-mist animate-fade-in ${
         !isOwner && canContact
           ? "pb-[calc(5.5rem+env(safe-area-inset-bottom))] xl:pb-10"
           : "pb-10"

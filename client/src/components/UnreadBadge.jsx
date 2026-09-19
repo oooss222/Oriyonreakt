@@ -10,7 +10,7 @@ export default function UnreadBadge({ count, color = "bg-red-500", ringed = fals
 
   return (
     <span
-      className={`absolute rounded-full ${color} text-white font-bold flex items-center justify-center ${
+      className={`unread-badge absolute rounded-full ${color} text-white font-bold flex items-center justify-center ${
         ringed
           ? "-top-1 -right-1 min-w-[16px] h-4 px-1 text-[9px] ring-2 ring-white"
           : "top-1 right-1 min-w-[18px] h-[18px] px-1 text-[10px]"

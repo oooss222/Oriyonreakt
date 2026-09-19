@@ -38,7 +38,7 @@ function RealEstateSection({ items }) {
   }
 
   return (
-    <section className="space-y-4">
+    <section className="space-y-4 animate-fade-in-up">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <div className="w-10 h-10 icon-box-sun shrink-0">
@@ -76,7 +76,7 @@ function HorizontalSection({ title, icon: Icon, items, linkTo = "/listing" }) {
   if (!items?.length) return null;
 
   return (
-    <section className="space-y-4">
+    <section className="space-y-4 animate-fade-in-up">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <div className="w-10 h-10 rounded-2xl bg-sun-50 grid place-items-center ring-1 ring-sun/15">
@@ -324,7 +324,7 @@ export default function Home() {
           </>
         )}
 
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-4 animate-fade-in-up">
           <div className="surface-panel p-5">
             <div className="w-11 h-11 icon-box-sun mb-3">
               <ShieldCheck />

@@ -3,6 +3,7 @@ import { api } from "../lib/api";
 import { getListingThumb } from "../lib/media";
 import { formatPrice } from "../lib/format";
 import { useI18n } from "../i18n";
+import Skeleton from "./ui/Skeleton";
 
 export default function HeaderSearchSuggestions({
   query,
@@ -60,9 +61,11 @@ export default function HeaderSearchSuggestions({
       <div
         id={domId}
         role="status"
-        className="absolute left-0 right-0 top-full mt-2 z-50 max-w-[calc(100vw-1.5rem)] rounded-2xl border border-ink/10 bg-white shadow-lift overflow-hidden text-ink px-4 py-3 text-sm text-ink-400"
+        className="absolute left-0 right-0 top-full z-50 mt-2 max-w-[calc(100vw-1.5rem)] space-y-2 overflow-hidden rounded-2xl border border-ink/10 bg-white px-4 py-3 shadow-lift animate-fade-in-scale"
       >
-        {t("header.searching")}
+        <Skeleton className="h-4 w-2/3" />
+        <Skeleton className="h-4 w-1/2" />
+        <Skeleton className="h-4 w-3/4" />
       </div>
     );
   }
@@ -76,7 +79,7 @@ export default function HeaderSearchSuggestions({
       id={domId}
       role="listbox"
       aria-label={t("header.searchPlaceholder")}
-      className="absolute left-0 right-0 top-full mt-2 z-50 max-w-[calc(100vw-1.5rem)] rounded-2xl border border-ink/10 bg-white shadow-lift overflow-hidden text-ink"
+      className="absolute left-0 right-0 top-full z-50 mt-2 max-w-[calc(100vw-1.5rem)] overflow-hidden rounded-2xl border border-ink/10 bg-white text-ink shadow-lift animate-fade-in-scale"
     >
       {items.map((ad) => {
         const id = ad.id || ad._id;

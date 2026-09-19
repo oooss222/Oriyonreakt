@@ -1,7 +1,6 @@
 import React from "react";
 import {
   ChevronDown,
-  ChevronUp,
   Search,
   SlidersHorizontal,
   X,
@@ -27,14 +26,20 @@ function FilterSection({ title, defaultOpen = true, children }) {
         className="flex w-full items-center justify-between gap-3 text-left"
       >
         <span className="label-caps">{title}</span>
-        {open ? (
-          <ChevronUp size={16} className="shrink-0 text-ink-300" />
-        ) : (
-          <ChevronDown size={16} className="shrink-0 text-ink-300" />
-        )}
+        <ChevronDown
+          size={16}
+          className={`shrink-0 text-ink-300 transition-transform duration-200 ${
+            open ? "rotate-180" : ""
+          }`}
+        />
       </button>
 
-      {open ? <div className="mt-3 space-y-3">{children}</div> : null}
+      <div
+        className={`filter-section__body ${open ? "is-open" : ""}`}
+        aria-hidden={!open}
+      >
+        <div className="mt-3 space-y-3">{children}</div>
+      </div>
     </section>
   );
 }

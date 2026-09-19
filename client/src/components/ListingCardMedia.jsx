@@ -102,7 +102,7 @@ export default function ListingCardMedia({
         src={images[activeIndex] || images[0]}
         alt={item?.title || t("listing.title")}
         loading="lazy"
-        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
         onError={(e) => {
           e.currentTarget.src = "/img/placeholder.jpg";
         }}

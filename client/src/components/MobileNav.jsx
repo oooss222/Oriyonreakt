@@ -81,7 +81,7 @@ export default function MobileNav({ showPolicyLink = false }) {
               key={to}
               to={to}
               aria-current={active ? "page" : undefined}
-              className={`relative flex flex-col items-center justify-end gap-0.5 pb-1.5 text-[11px] sm:text-xs font-semibold transition min-w-0 px-0.5 min-h-16 ${
+              className={`relative flex min-h-16 min-w-0 flex-col items-center justify-end gap-0.5 px-0.5 pb-1.5 text-[11px] font-semibold transition-colors duration-200 sm:text-xs ${
                 active
                   ? "text-sun"
                   : highlight
@@ -90,11 +90,13 @@ export default function MobileNav({ showPolicyLink = false }) {
               }`}
             >
               <span
-                className={`relative grid place-items-center rounded-xl transition ${
+                className={`relative grid place-items-center rounded-xl transition-transform duration-200 ${
                   highlight
                     ? "w-12 h-12 -mt-5 bg-sun text-white shadow-soft"
                     : "w-9 h-9"
-                } ${active && !highlight ? "bg-sun-50" : ""}`}
+                } ${active && !highlight ? "bg-sun-50" : ""} ${
+                  active ? "scale-105" : ""
+                }`}
               >
                 <Icon size={highlight ? 22 : 20} />
                 {showBadge && <UnreadBadge count={unreadCount} ringed />}

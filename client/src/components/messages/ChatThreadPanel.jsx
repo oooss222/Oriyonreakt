@@ -38,6 +38,10 @@ function MessageBubble({ msg, mine, stacked, t }) {
     <div
       className={`messages-bubble ${mine ? "is-mine" : "is-peer"} ${
         stacked ? "is-stacked" : ""
+      } ${
+        Date.now() - new Date(msg.createdAt || 0).getTime() < 2500
+          ? "is-fresh"
+          : ""
       }`}
     >
       {attachment ? (
@@ -420,9 +424,9 @@ export default function ChatThreadPanel({
             <div className="messages-transcript space-y-1">
             {threadLoading ? (
               <div className="space-y-3 px-2 pt-4">
-                <div className="h-11 w-2/3 animate-pulse rounded-2xl bg-white" />
-                <div className="ml-auto h-11 w-1/2 animate-pulse rounded-2xl bg-sun/20" />
-                <div className="h-9 w-1/3 animate-pulse rounded-2xl bg-white" />
+                <div className="skeleton h-11 w-2/3 rounded-2xl" />
+                <div className="skeleton ml-auto h-11 w-1/2 rounded-2xl" />
+                <div className="skeleton h-9 w-1/3 rounded-2xl" />
               </div>
             ) : thread.length === 0 ? (
               <div className="grid h-full place-items-center px-2 py-8">

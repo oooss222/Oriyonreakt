@@ -8,17 +8,15 @@ import CookieConsent from "../components/CookieConsent";
 import { disconnectChatSocket, getChatSocket } from "../lib/chatSocket";
 import { TOKEN_KEY } from "../lib/auth";
 import { useLayoutConfig } from "../lib/useLayoutConfig";
+import Skeleton from "../components/ui/Skeleton";
 
 function RouteFallback() {
   return (
     <div className="page-container py-10" aria-busy="true">
-      <div className="h-8 w-48 rounded-xl bg-mist animate-pulse" />
+      <Skeleton className="h-8 w-48" />
       <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {Array.from({ length: 8 }).map((_, index) => (
-          <div
-            key={index}
-            className="h-48 rounded-2xl bg-mist animate-pulse"
-          />
+          <Skeleton key={index} className="h-48 rounded-2xl" />
         ))}
       </div>
     </div>
@@ -56,7 +54,7 @@ export default function App() {
       <Header variant={layout.headerVariant} />
 
       <main
-        className={`flex-1 min-w-0 ${layout.animateMain ? "animate-fade-in-up" : ""} ${
+        className={`flex-1 min-w-0 ${layout.animateMain ? "animate-fade-in" : ""} ${
           layout.mobileBottomPadding
             ? "pb-[calc(4rem+env(safe-area-inset-bottom))] lg:pb-0"
             : ""
