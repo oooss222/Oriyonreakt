@@ -31,8 +31,8 @@ export default function PromotionBadge({
       className={[
         "inline-flex items-center rounded-full font-bold uppercase tracking-wide shadow-sm",
         isVip
-          ? "bg-gradient-to-r from-sun-200 to-sun-400 text-sun-800 border border-sun/35"
-          : "bg-lagoon-500 text-white border border-white/20",
+          ? "border border-[#e0b34a]/60 bg-[#f6e7c6] text-[#8a6414]"
+          : "border border-white/20 bg-[#2a9d8f] text-white",
         sizeConfig.wrap,
         className,
       ].join(" ")}
@@ -41,7 +41,7 @@ export default function PromotionBadge({
       {isVip ? (
         <Crown
           size={sizeConfig.icon}
-          className="shrink-0 text-sun-800"
+          className="shrink-0 text-[#8a6414]"
           strokeWidth={2.5}
         />
       ) : (

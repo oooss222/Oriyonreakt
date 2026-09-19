@@ -2,7 +2,7 @@ import React from "react";
 import { useSearchParams, useNavigate, useParams, useLocation } from "react-router-dom";
 import { api } from "../lib/api";
 import { getUserFacingErrorMessage } from "../lib/apiError";
-import { useI18n, getCategoryLabel, formatNightsLabel } from "../i18n";
+import { useI18n, getCategoryLabel, formatNightsLabel, formatListingTimeAgo } from "../i18n";
 import ListingGridSkeleton from "../components/ListingGridSkeleton";
 import ListingCard from "../components/ListingCard";
 import EmptyState from "../components/EmptyState";
@@ -46,6 +46,7 @@ import {
   getCategorySlugFromPath,
   isCategoryBrowsePath,
 } from "../lib/categoryRoutes";
+import CatalogToolbar, { persistCatalogView, readCatalogView } from "../components/CatalogToolbar";
 import Pagination from "../components/Pagination";
 import { LISTING_PAGE_SIZE, getPageFromSearchParams, getTotalPages } from "../lib/pagination";
 import {
@@ -196,6 +197,7 @@ export default function Listing() {
   const [error, setError] = React.useState("");
   const [mobileFiltersOpen, setMobileFiltersOpen] = React.useState(false);
   const [reMoreFiltersOpen, setReMoreFiltersOpen] = React.useState(false);
+  const [catalogView, setCatalogView] = React.useState(readCatalogView);
   const [categoryStats, setCategoryStats] = React.useState({
     total: 0,
     bySubcategory: {},
@@ -479,10 +481,6 @@ export default function Listing() {
       return buildRealEstatePageTitle(appliedDraft);
     }
 
-    if (effectiveSubcategory && catConfig) {
-      return `${localizedCatTitle} · ${effectiveSubcategory}`;
-    }
-
     if (catConfig) {
       return localizedCatTitle;
     }
@@ -709,6 +707,26 @@ export default function Listing() {
   const showSubcategoryChips =
     Boolean(effectiveListingCat) && availableSubcategories.length > 0;
 
+  const sortLabels = React.useMemo(
+    () => ({
+      new: t("filter.sortNew"),
+      views_desc: t("filter.sortPopular"),
+      price_asc: t("filter.sortPriceAsc"),
+      price_desc: t("filter.sortPriceDesc"),
+    }),
+    [t]
+  );
+
+  const updatedLabel = React.useMemo(() => {
+    if (!items.length) return "";
+    return formatListingTimeAgo(items[0], t);
+  }, [items, t]);
+
+  const changeCatalogView = (next) => {
+    setCatalogView(next);
+    persistCatalogView(next);
+  };
+
   const selectSubcategory = React.useCallback(
     (value) => {
       const dealType = appliedDraft.specs?.["Тип сделки"] || "";
@@ -839,6 +857,7 @@ export default function Listing() {
               previewTotal={draftIsDirty ? previewTotal : total}
               previewLoading={previewLoading}
               hasActiveFilters={hasActiveFilters}
+              hideSort
             />
           </aside>
         )}
@@ -848,24 +867,29 @@ export default function Listing() {
             <Breadcrumbs items={breadcrumbItems} />
           </div>
 
-          <div className="flex flex-col gap-4 px-1 lg:flex-row lg:items-end lg:justify-between">
+          <div className="catalog-head px-1">
             <div className="min-w-0">
-              <h1 className="text-xl xs:text-2xl font-bold text-ink">{pageTitle}</h1>
+              <h1 className="catalog-title">{pageTitle}</h1>
 
-              <p className="mt-1 text-sm text-ink-400">
+              <p className="catalog-meta">
                 {loading
                   ? "…"
-                  : t("listing.count", {
-                      count: total.toLocaleString("ru-RU"),
-                    })}
-                {!loading && totalPages > 1 && (
-                  <span>
-                    {t("listing.pageOf", {
-                      page: currentPage,
-                      total: totalPages,
-                    })}
-                  </span>
-                )}
+                  : [
+                      t("listing.count", {
+                        count: total.toLocaleString("ru-RU"),
+                      }),
+                      updatedLabel
+                        ? t("listing.updatedAgo", { time: updatedLabel })
+                        : "",
+                      totalPages > 1
+                        ? t("listing.pageOf", {
+                            page: currentPage,
+                            total: totalPages,
+                          }).replace(/^·\s*/, "")
+                        : "",
+                    ]
+                      .filter(Boolean)
+                      .join(" · ")}
               </p>
 
             {isDailyListing &&
@@ -901,13 +925,26 @@ export default function Listing() {
               )}
           </div>
 
-          <div className="flex w-full min-w-0 flex-wrap items-center gap-2">
+          {!isRealEstate && (
+            <CatalogToolbar
+              t={t}
+              sort={appliedDraft.sort || "new"}
+              sortLabels={sortLabels}
+              onSortChange={(value) =>
+                applyFilters({ ...appliedDraft, sort: value })
+              }
+              view={catalogView}
+              onViewChange={changeCatalogView}
+            />
+          )}
+
+          <div className="flex w-full min-w-0 flex-wrap items-center gap-2 lg:hidden">
             {isRealEstate ? (
               <>
                 <button
                   type="button"
                   onClick={() => setReMoreFiltersOpen(true)}
-                  className="mobile-btn border bg-white hover:bg-mist lg:hidden"
+                  className="mobile-btn border bg-white hover:bg-mist"
                 >
                   <SlidersHorizontal size={18} />
                   {t("listing.moreFilters")}
@@ -921,7 +958,6 @@ export default function Listing() {
                   draft={appliedDraft}
                   activeCat={activeCat}
                   compact
-                  className="lg:hidden"
                 />
               </>
             ) : (
@@ -934,7 +970,7 @@ export default function Listing() {
                 <button
                   type="button"
                   onClick={() => setMobileFiltersOpen(true)}
-                  className="mobile-btn border bg-white hover:bg-mist lg:hidden"
+                  className="mobile-btn border bg-white hover:bg-mist"
                 >
                   <SlidersHorizontal size={18} />
                   {t("listing.filters")}
@@ -966,7 +1002,18 @@ export default function Listing() {
         {effectiveListingCat === "construction" && <ConstructionQuickFilters />}
         {effectiveListingCat === "business" && <BusinessQuickFilters />}
 
-      {loading && <ListingGridSkeleton />}
+      {loading && (
+        <ListingGridSkeleton
+          wide={isRealEstate}
+          className={
+            isRealEstate
+              ? ""
+              : catalogView === "list"
+                ? "listing-grid--list"
+                : "listing-grid--catalog"
+          }
+        />
+      )}
 
       {!loading && error && (
         <EmptyState
@@ -996,7 +1043,15 @@ export default function Listing() {
             className="overflow-hidden rounded-2xl"
           />
 
-          <div className={isRealEstate ? "listing-grid listing-grid--wide" : "listing-grid"}>
+          <div
+            className={
+              isRealEstate
+                ? "listing-grid listing-grid--wide"
+                : catalogView === "list"
+                  ? "listing-grid listing-grid--list"
+                  : "listing-grid listing-grid--catalog"
+            }
+          >
           {feedRows.map((row, idx) => {
             if (row.type === "ad") {
               return <AdFeedCard key={`ad-${idx}`} ad={row.item} />;
@@ -1020,6 +1075,7 @@ export default function Listing() {
                 key={id}
                 item={ad}
                 trackSource="listing"
+                layout={catalogView === "list" ? "list" : "grid"}
                 className="animate-fade-in-up"
                 style={{ animationDelay: `${idx * 40}ms` }}
               />

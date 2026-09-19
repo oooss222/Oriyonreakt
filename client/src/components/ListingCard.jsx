@@ -14,6 +14,7 @@ function ListingCard({
   trackSource,
   className = "",
   style,
+  layout = "grid",
 }) {
   const { t } = useI18n();
   const listingId = item?.id || item?._id;
@@ -25,7 +26,9 @@ function ListingCard({
   return (
     <Link
       {...linkProps}
-      className={`listing-card group focus:outline-none focus:ring-2 focus:ring-sun/40 ${viewed ? "listing-card--viewed" : ""} ${getPromotionCardClass(
+      className={`listing-card group focus:outline-none focus:ring-2 focus:ring-sun/40 ${
+        layout === "list" ? "listing-card--horizontal" : ""
+      } ${viewed ? "listing-card--viewed" : ""} ${getPromotionCardClass(
         {
           vip: item?.vip,
           top: item?.top,

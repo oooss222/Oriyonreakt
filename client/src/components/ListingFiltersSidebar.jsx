@@ -7,8 +7,8 @@ import {
   X,
   ArrowUpDown,
 } from "lucide-react";
-import { getListingFilterGrid } from "../data/filterGrids";
-import { LOCATIONS, formatPriceInput, getPriceDigits, COMMON_SPEC_OPTIONS } from "../data/specOptions";
+import { getListingFilterGrid, PRICE_SELECT_VALUES } from "../data/filterGrids";
+import { LOCATIONS, formatPriceInput, COMMON_SPEC_OPTIONS } from "../data/specOptions";
 import RangeFilter from "./filters/RangeFilter";
 import RadioOption from "./filters/RadioOption";
 import { getDistrictsForCity } from "../data/realEstate";
@@ -76,6 +76,37 @@ function SidebarSelect({ value, placeholder, options, onChange, disabled = false
         {options.map((option) => (
           <option key={option} value={option}>
             {option}
+          </option>
+        ))}
+      </select>
+      <ChevronDown
+        size={16}
+        className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-ink-300"
+      />
+    </div>
+  );
+}
+
+function PriceSelect({ value, placeholder, options, onChange }) {
+  const values = React.useMemo(() => {
+    const next = [...options];
+    if (value && !next.includes(value)) next.unshift(value);
+    return next;
+  }, [options, value]);
+
+  return (
+    <div className="relative">
+      <select
+        value={value || ""}
+        onChange={(event) => onChange(event.target.value)}
+        className={`filter-sidebar__select filter-sidebar__select--pill ${
+          value ? "text-ink font-medium" : "text-ink-400"
+        }`}
+      >
+        <option value="">{placeholder}</option>
+        {values.map((option) => (
+          <option key={option} value={option}>
+            {formatPriceInput(option)}
           </option>
         ))}
       </select>
@@ -167,6 +198,7 @@ export default function ListingFiltersSidebar({
   previewTotal = 0,
   previewLoading = false,
   hasActiveFilters = false,
+  hideSort = false,
 }) {
   const { t } = useI18n();
   const grid = React.useMemo(
@@ -252,84 +284,6 @@ export default function ListingFiltersSidebar({
       </div>
 
       <div className="filter-sidebar__body">
-        {brandField ? (
-          <FilterSection title={brandField.label}>
-            <SpecSidebarSelect
-              field={brandField}
-              draft={draft}
-              setDraft={setDraft}
-              onApply={onApply}
-            />
-          </FilterSection>
-        ) : null}
-
-        {modelField ? (
-          <FilterSection title={modelField.label}>
-            <SpecSidebarSelect
-              field={modelField}
-              draft={draft}
-              setDraft={setDraft}
-              onApply={onApply}
-            />
-          </FilterSection>
-        ) : null}
-
-        <FilterSection title={t("filter.keywords")}>
-          <label className="relative block">
-            <Search
-              size={16}
-              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-300"
-            />
-            <input
-              value={draft.search}
-              onChange={(event) =>
-                setDraft((current) => ({
-                  ...current,
-                  search: event.target.value,
-                }))
-              }
-              placeholder={t("filter.keywordsPlaceholder")}
-              className="filter-sidebar__input pl-9"
-            />
-          </label>
-        </FilterSection>
-
-        {sortField ? (
-          <FilterSection title={t("filter.sort")}>
-            <div className="relative">
-              <ArrowUpDown
-                size={16}
-                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-300"
-              />
-              <select
-                value={draft.sort || "new"}
-                onChange={(event) =>
-                  commitDraft(
-                    setDraft,
-                    onApply,
-                    (current) => ({
-                      ...current,
-                      sort: event.target.value,
-                    }),
-                    draft
-                  )
-                }
-                className="filter-sidebar__select pl-9"
-              >
-                {Object.entries(sortLabels).map(([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown
-                size={16}
-                className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-ink-300"
-              />
-            </div>
-          </FilterSection>
-        ) : null}
-
         {availableSubcategories.length > 0 ? (
           <FilterSection title={t("listing.category")}>
             <div className="space-y-0.5" role="radiogroup" aria-label={t("listing.category")}>
@@ -387,38 +341,112 @@ export default function ListingFiltersSidebar({
           </FilterSection>
         ) : null}
 
-        <FilterSection title={t("form.price")}>
+        <FilterSection title={t("filter.priceSom")}>
           <div className="grid grid-cols-2 gap-2">
-            <input
-              type="text"
-              inputMode="numeric"
+            <PriceSelect
+              value={draft.priceFrom || ""}
               placeholder={t("filter.from")}
-              value={draft.priceFrom ? formatPriceInput(draft.priceFrom) : ""}
-              onChange={(event) =>
+              options={PRICE_SELECT_VALUES}
+              onChange={(value) =>
                 setDraft((current) => ({
                   ...current,
-                  priceFrom: getPriceDigits(event.target.value),
+                  priceFrom: value,
                 }))
               }
-              className="filter-sidebar__input"
             />
-            <input
-              type="text"
-              inputMode="numeric"
+            <PriceSelect
+              value={draft.priceTo || ""}
               placeholder={t("filter.to")}
-              value={draft.priceTo ? formatPriceInput(draft.priceTo) : ""}
-              onChange={(event) =>
+              options={PRICE_SELECT_VALUES}
+              onChange={(value) =>
                 setDraft((current) => ({
                   ...current,
-                  priceTo: getPriceDigits(event.target.value),
+                  priceTo: value,
                 }))
               }
-              className="filter-sidebar__input"
             />
           </div>
         </FilterSection>
 
-        <FilterSection title={t("filter.city")}>
+        {brandField ? (
+          <FilterSection title={brandField.label}>
+            <SpecSidebarSelect
+              field={brandField}
+              draft={draft}
+              setDraft={setDraft}
+              onApply={onApply}
+            />
+          </FilterSection>
+        ) : null}
+
+        {modelField ? (
+          <FilterSection title={modelField.label}>
+            <SpecSidebarSelect
+              field={modelField}
+              draft={draft}
+              setDraft={setDraft}
+              onApply={onApply}
+            />
+          </FilterSection>
+        ) : null}
+
+        <FilterSection title={t("filter.keywords")} defaultOpen={false}>
+          <label className="relative block">
+            <Search
+              size={16}
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-300"
+            />
+            <input
+              value={draft.search}
+              onChange={(event) =>
+                setDraft((current) => ({
+                  ...current,
+                  search: event.target.value,
+                }))
+              }
+              placeholder={t("filter.keywordsPlaceholder")}
+              className="filter-sidebar__input pl-9"
+            />
+          </label>
+        </FilterSection>
+
+        {!hideSort && sortField ? (
+          <FilterSection title={t("filter.sort")} defaultOpen={false}>
+            <div className="relative">
+              <ArrowUpDown
+                size={16}
+                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-300"
+              />
+              <select
+                value={draft.sort || "new"}
+                onChange={(event) =>
+                  commitDraft(
+                    setDraft,
+                    onApply,
+                    (current) => ({
+                      ...current,
+                      sort: event.target.value,
+                    }),
+                    draft
+                  )
+                }
+                className="filter-sidebar__select pl-9"
+              >
+                {Object.entries(sortLabels).map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown
+                size={16}
+                className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-ink-300"
+              />
+            </div>
+          </FilterSection>
+        ) : null}
+
+        <FilterSection title={t("filter.city")} defaultOpen={false}>
           <PillGroup
             value={draft.location || ""}
             options={[
@@ -452,7 +480,7 @@ export default function ListingFiltersSidebar({
         </FilterSection>
 
         {showConditionFilter ? (
-          <FilterSection title={t("filter.condition")}>
+          <FilterSection title={t("filter.condition")} defaultOpen={false}>
             <PillGroup
               value={conditionValue}
               options={[
