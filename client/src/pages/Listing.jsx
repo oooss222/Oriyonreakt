@@ -1006,11 +1006,7 @@ export default function Listing() {
         <ListingGridSkeleton
           wide={isRealEstate}
           className={
-            isRealEstate
-              ? ""
-              : catalogView === "list"
-                ? "listing-grid--list"
-                : "listing-grid--catalog"
+            isRealEstate || catalogView !== "list" ? "" : "listing-grid--list"
           }
         />
       )}
@@ -1049,7 +1045,7 @@ export default function Listing() {
                 ? "listing-grid listing-grid--wide"
                 : catalogView === "list"
                   ? "listing-grid listing-grid--list"
-                  : "listing-grid listing-grid--catalog"
+                  : "listing-grid"
             }
           >
           {feedRows.map((row, idx) => {
