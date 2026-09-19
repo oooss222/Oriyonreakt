@@ -83,9 +83,9 @@ function ListingContextBar({ listing, selected, t }) {
   if (!listing && !selected.listingTitle) return null;
 
   const thumb = listingImageUrl(
-    listing.images?.[0]?.url || listing.images?.[0] || selected.listingImage
+    listing?.images?.[0]?.url || listing?.images?.[0] || selected.listingImage
   );
-  const price = formatPrice(listing.price ?? selected.listingPrice, {
+  const price = formatPrice(listing?.price ?? selected.listingPrice, {
     emptyLabel: t("price.negotiable"),
     currency: t("price.currency"),
   });
@@ -101,7 +101,7 @@ function ListingContextBar({ listing, selected, t }) {
       )}
       <div className="min-w-0 flex-1">
         <div className="truncate text-[13px] font-semibold text-ink">
-          {listing.title || selected.listingTitle}
+          {listing?.title || selected.listingTitle}
         </div>
         <div className="truncate text-xs font-bold text-sun">{price}</div>
       </div>

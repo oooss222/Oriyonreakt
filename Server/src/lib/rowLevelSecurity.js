@@ -105,6 +105,15 @@ async function setupRowLevelSecurity(query) {
       OR owner = app.current_user_id()
       OR app.is_staff()
       OR app.is_system()
+      OR cat = 'support'
+      OR EXISTS (
+        SELECT 1 FROM messages m
+        WHERE m.listing_id = listings.id
+          AND (
+            m.sender_id = app.current_user_id()
+            OR m.receiver_id = app.current_user_id()
+          )
+      )
     );
 
     DROP POLICY IF EXISTS listings_insert ON listings;

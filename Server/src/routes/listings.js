@@ -1,6 +1,7 @@
 const router = require("express").Router();
 
 const auth = require("../middleware/auth");
+const optionalAuth = require("../middleware/optionalAuth");
 const Listing = require("../models/Listing");
 const Report = require("../models/Report");
 const { assertImagesWithinLimit } = require("../lib/listingPhotoLimits");
@@ -528,7 +529,7 @@ router.post("/:id/promote", auth, async (req, res) => {
   }
 });
 
-router.get("/:id", async (req, res) => {
+router.get("/:id", optionalAuth, async (req, res) => {
   try {
     const listing = await Listing.findById(req.params.id);
 

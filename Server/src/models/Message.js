@@ -1,4 +1,5 @@
 const { query, mapMessage } = require("../db");
+const { runWithRlsContext, SYSTEM_CONTEXT } = require("../lib/rlsContext");
 const ChatThread = require("./ChatThread");
 
 function isAdminRole(role) {
@@ -14,14 +15,16 @@ class MessageModel {
       throw new Error("MESSAGE_EMPTY");
     }
 
-    const listingResult = await query(
-      `
-      SELECT owner
-      FROM listings
-      WHERE id = $1
-      LIMIT 1
-      `,
-      [listingId]
+    const listingResult = await runWithRlsContext(SYSTEM_CONTEXT, () =>
+      query(
+        `
+        SELECT owner
+        FROM listings
+        WHERE id = $1
+        LIMIT 1
+        `,
+        [listingId]
+      )
     );
 
     const listing = listingResult.rows[0];

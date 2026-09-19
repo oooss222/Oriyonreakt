@@ -266,7 +266,9 @@ export const api = {
     ),
 
   listingById: (id) =>
-    request(`/listings/${id}`),
+    request(`/listings/${encodeURIComponent(id)}`, {
+      token: localStorage.getItem("auth_token") || undefined,
+    }),
 
   compareImport: (body, token) =>
     request("/compare/import", {
@@ -324,7 +326,7 @@ export const api = {
 
   messageThread: (token, listingId, peerId, { autoRead = true } = {}) =>
     request(
-      `/messages/${listingId}?peerId=${encodeURIComponent(peerId)}${
+      `/messages/${encodeURIComponent(listingId)}?peerId=${encodeURIComponent(peerId)}${
         autoRead ? "" : "&autoRead=0"
       }`,
       {
@@ -334,7 +336,7 @@ export const api = {
 
   markMessagesRead: (token, listingId, peerId) =>
     request(
-      `/messages/${listingId}/read?peerId=${encodeURIComponent(peerId)}`,
+      `/messages/${encodeURIComponent(listingId)}/read?peerId=${encodeURIComponent(peerId)}`,
       {
         method: "POST",
         token,
@@ -343,7 +345,7 @@ export const api = {
 
   markMessagesUnread: (token, listingId, peerId) =>
     request(
-      `/messages/${listingId}/unread?peerId=${encodeURIComponent(peerId)}`,
+      `/messages/${encodeURIComponent(listingId)}/unread?peerId=${encodeURIComponent(peerId)}`,
       {
         method: "POST",
         token,
@@ -351,7 +353,7 @@ export const api = {
     ),
 
   updateChatThread: (token, listingId, body) =>
-    request(`/messages/threads/${listingId}`, {
+    request(`/messages/threads/${encodeURIComponent(listingId)}`, {
       method: "PATCH",
       token,
       body,
@@ -370,7 +372,7 @@ export const api = {
     }),
 
   sendMessage: (token, listingId, text, receiverId, attachmentUrl = "") =>
-    request(`/messages/${listingId}`, {
+    request(`/messages/${encodeURIComponent(listingId)}`, {
       method: "POST",
       token,
       body: {
