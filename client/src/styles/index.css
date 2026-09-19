@@ -2200,6 +2200,8 @@
 .messages-page {
   display: flex;
   flex-direction: column;
+  width: 100%;
+  min-width: 0;
   min-height: 0;
   overflow: hidden;
   height: calc(var(--vv-height, 100dvh) - 3.75rem);
@@ -2228,12 +2230,30 @@
 }
 
 .messages-workspace {
-  @apply flex min-h-0 h-full flex-1 overflow-hidden bg-white;
+  @apply flex min-h-0 h-full w-full min-w-0 flex-1 flex-col overflow-hidden bg-white;
   border-top: 1px solid rgb(28 27 26 / 0.08);
 }
 
 .messages-layout {
-  @apply grid min-h-0 h-full grid-cols-1 md:grid-cols-[minmax(15rem,18.5rem)_minmax(0,1fr)] xl:grid-cols-[minmax(18rem,22.5rem)_minmax(0,1fr)];
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  flex: 1;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (min-width: 768px) {
+  .messages-layout {
+    grid-template-columns: 21rem minmax(0, 1fr);
+  }
+}
+
+@media (min-width: 1280px) {
+  .messages-layout {
+    grid-template-columns: 23.5rem minmax(0, 1fr);
+  }
 }
 
 .messages-inbox {
@@ -2310,10 +2330,81 @@
 
 .messages-thread {
   position: relative;
+  display: flex;
   min-width: 0;
+  min-height: 0;
+  height: 100%;
+  flex-direction: column;
+  background: #eef1f4;
+}
+
+.messages-thread-empty {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  text-align: center;
   background:
-    radial-gradient(ellipse 70% 40% at 100% 0%, rgb(255 106 0 / 0.05), transparent 55%),
+    radial-gradient(ellipse 70% 40% at 100% 0%, rgb(255 106 0 / 0.06), transparent 55%),
     #eef1f4;
+}
+
+.messages-thread-frame {
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.messages-conversation {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  flex-direction: column;
+  background:
+    radial-gradient(ellipse 80% 36% at 100% 0%, rgb(255 106 0 / 0.06), transparent 55%),
+    radial-gradient(ellipse 50% 28% at 0% 100%, rgb(14 124 123 / 0.05), transparent 50%),
+    #e8ebef;
+}
+
+.messages-transcript {
+  width: min(100%, 46rem);
+  min-height: 100%;
+  margin-inline: auto;
+}
+
+.messages-listing-pane {
+  display: none;
+  min-width: 0;
+  min-height: 0;
+  flex-direction: column;
+  overflow: auto;
+  border-left: 1px solid rgb(28 27 26 / 0.08);
+  background: #fff;
+  padding: 1rem;
+}
+
+@media (min-width: 1280px) {
+  .messages-thread-frame.has-pane {
+    grid-template-columns: minmax(0, 1fr) 20.5rem;
+  }
+
+  .messages-thread-frame.has-pane .messages-listing-pane {
+    display: flex;
+  }
+
+  .messages-thread-frame.has-pane .messages-listing-bar {
+    display: none;
+  }
+
+  .messages-transcript {
+    width: min(100%, 52rem);
+  }
 }
 
 .messages-thread-header {
@@ -2362,6 +2453,36 @@
   }
 }
 
+.messages-listing-pane-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 1.15rem;
+  border: 1px solid rgb(28 27 26 / 0.08);
+  background: #fff;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 140ms ease, box-shadow 140ms ease;
+}
+
+.messages-listing-pane-card:hover {
+  border-color: rgb(255 106 0 / 0.35);
+  box-shadow: 0 8px 24px rgb(28 27 26 / 0.08);
+}
+
+.messages-listing-pane-photo {
+  aspect-ratio: 4 / 3;
+  width: 100%;
+  background: #f3f5f7;
+  object-fit: cover;
+}
+
+.messages-listing-pane-photo.is-empty {
+  display: grid;
+  place-items: center;
+  color: #9aa3ad;
+}
+
 .messages-support-banner {
   display: flex;
   align-items: flex-start;
@@ -2406,8 +2527,8 @@
 }
 
 .messages-bubble {
-  max-width: min(78%, 34rem);
-  padding: 0.55rem 0.8rem 0.4rem;
+  max-width: min(82%, 38rem);
+  padding: 0.6rem 0.9rem 0.45rem;
   border-radius: 1.15rem;
 }
 
@@ -2481,7 +2602,22 @@
 .messages-composer {
   border-top: 1px solid rgb(28 27 26 / 0.06);
   background: #fff;
-  padding: 0.65rem 0.85rem calc(0.65rem + env(safe-area-inset-bottom, 0px));
+  padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom, 0px));
+}
+
+.messages-composer-inner {
+  width: min(100%, 52rem);
+  margin-inline: auto;
+}
+
+.messages-admin-note {
+  border-top: 1px solid rgb(28 27 26 / 0.06);
+  background: #fff;
+  padding: 0.75rem 1rem;
+  text-align: center;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: #7a756c;
 }
 
 .messages-composer-input {

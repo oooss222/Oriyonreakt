@@ -22,6 +22,8 @@ import {
   formatLastSeen,
   formatMessageTime,
   listingImageUrl,
+  listingStatusClass,
+  listingStatusLabel,
 } from "../../lib/messagesUtils";
 import { isBusinessSupportThread } from "../../lib/openBusinessSupportChat";
 import { formatPrice } from "../../lib/format";
@@ -78,13 +80,17 @@ function MessageBubble({ msg, mine, stacked, t }) {
   );
 }
 
+function getThreadListingThumb(listing, selected) {
+  return listingImageUrl(
+    listing?.images?.[0]?.url || listing?.images?.[0] || selected?.listingImage
+  );
+}
+
 function ListingContextBar({ listing, selected, t }) {
   if (!selected || isBusinessSupportThread(selected)) return null;
   if (!listing && !selected.listingTitle) return null;
 
-  const thumb = listingImageUrl(
-    listing?.images?.[0]?.url || listing?.images?.[0] || selected.listingImage
-  );
+  const thumb = getThreadListingThumb(listing, selected);
   const price = formatPrice(listing?.price ?? selected.listingPrice, {
     emptyLabel: t("price.negotiable"),
     currency: t("price.currency"),
@@ -110,6 +116,51 @@ function ListingContextBar({ listing, selected, t }) {
         <ChevronRight size={14} />
       </span>
     </Link>
+  );
+}
+
+function ListingSidePanel({ listing, selected, t }) {
+  if (!selected || isBusinessSupportThread(selected)) return null;
+  if (!listing && !selected.listingTitle) return null;
+
+  const thumb = getThreadListingThumb(listing, selected);
+  const price = formatPrice(listing?.price ?? selected.listingPrice, {
+    emptyLabel: t("price.negotiable"),
+    currency: t("price.currency"),
+  });
+  const status = listing?.status || selected.listingStatus;
+
+  return (
+    <aside className="messages-listing-pane">
+      <Link to={`/ad/${selected.listingId}`} className="messages-listing-pane-card">
+        {thumb ? (
+          <img src={thumb} alt="" className="messages-listing-pane-photo" />
+        ) : (
+          <div className="messages-listing-pane-photo is-empty">
+            <MessageCircle size={28} />
+          </div>
+        )}
+        <div className="space-y-2 p-3.5">
+          <div className="text-[15px] font-semibold leading-snug text-ink">
+            {listing?.title || selected.listingTitle}
+          </div>
+          <div className="text-lg font-bold tracking-tight text-sun">{price}</div>
+          {status ? (
+            <span
+              className={`inline-flex rounded-full border px-2 py-0.5 text-[11px] font-semibold ${listingStatusClass(
+                status
+              )}`}
+            >
+              {listingStatusLabel(status, t)}
+            </span>
+          ) : null}
+          <span className="inline-flex items-center gap-0.5 pt-1 text-sm font-semibold text-ink-500">
+            {t("chat.toListing")}
+            <ChevronRight size={16} />
+          </span>
+        </div>
+      </Link>
+    </aside>
   );
 }
 
@@ -236,10 +287,15 @@ export default function ChatThreadPanel({
     ? t("chat.onlineStatus")
     : formatLastSeen(selectedPeerLastSeen, t);
 
+  const showListingPane =
+    Boolean(selected) &&
+    !supportThread &&
+    Boolean(listing || selected.listingTitle);
+
   return (
-    <main className="messages-thread flex h-full min-h-0 flex-col">
+    <main className="messages-thread">
       {!selected ? (
-        <div className="flex flex-1 flex-col items-center justify-center px-8 text-center">
+        <div className="messages-thread-empty">
           <div className="mb-4 grid h-16 w-16 place-items-center rounded-2xl bg-sun text-white">
             <MessageCircle size={28} strokeWidth={2} />
           </div>
@@ -251,7 +307,8 @@ export default function ChatThreadPanel({
           </p>
         </div>
       ) : (
-        <>
+        <div className={`messages-thread-frame${showListingPane ? " has-pane" : ""}`}>
+          <div className="messages-conversation">
           <div className="messages-thread-header">
             <button
               type="button"
@@ -359,7 +416,8 @@ export default function ChatThreadPanel({
             <ListingContextBar listing={listing} selected={selected} t={t} />
           )}
 
-          <div className="messages-scroll min-h-0 flex-1 space-y-1 overflow-y-auto overscroll-contain px-3 py-3 md:px-5">
+          <div className="messages-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 py-3 md:px-6">
+            <div className="messages-transcript space-y-1">
             {threadLoading ? (
               <div className="space-y-3 px-2 pt-4">
                 <div className="h-11 w-2/3 animate-pulse rounded-2xl bg-white" />
@@ -449,10 +507,12 @@ export default function ChatThreadPanel({
             ) : null}
 
             <div ref={chatEndRef} />
+            </div>
           </div>
 
           {!isAdmin ? (
             <div className="messages-composer">
+              <div className="messages-composer-inner">
               {showQuickReplies ? (
                 <div className="flex gap-1.5 overflow-x-auto pb-2 scrollbar-none">
                   {quickReplies.map((reply) => (
@@ -548,13 +608,18 @@ export default function ChatThreadPanel({
                 <Shield size={12} className="shrink-0 text-lagoon" />
                 <span className="truncate">{t("chat.securityHint")}</span>
               </p>
+              </div>
             </div>
           ) : (
-            <div className="border-t border-ink/5 bg-white px-4 py-3 text-sm text-ink-400">
+            <div className="messages-admin-note">
               {t("chat.adminReadOnly")}
             </div>
           )}
-        </>
+          </div>
+          {showListingPane ? (
+            <ListingSidePanel listing={listing} selected={selected} t={t} />
+          ) : null}
+        </div>
       )}
     </main>
   );

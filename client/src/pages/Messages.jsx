@@ -1017,7 +1017,7 @@ export default function Messages() {
         t={t}
       />
 
-      <div className="flex min-h-0 flex-1 flex-col">
+        <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col">
         {isAdmin ? (
           <div className="shrink-0 border-b border-lagoon/15 bg-lagoon/10 px-4 py-2 text-xs font-semibold text-lagoon-700">
             <span className="inline-flex items-center gap-2">
@@ -1036,7 +1036,7 @@ export default function Messages() {
         <div className="messages-workspace">
           <div className="messages-layout">
             <div
-              className={`h-full min-h-0 ${
+              className={`h-full min-h-0 min-w-0 ${
                 mobileView === "chat" ? "hidden md:block" : "block"
               }`}
             >
@@ -1058,7 +1058,7 @@ export default function Messages() {
             </div>
 
             <div
-              className={`h-full min-h-0 ${
+              className={`h-full min-h-0 min-w-0 ${
                 mobileView === "list" ? "hidden md:block" : "block"
               }`}
             >
