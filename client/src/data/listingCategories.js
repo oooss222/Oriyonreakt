@@ -1,14 +1,16 @@
 import {
   CAR_BRANDS,
   CAR_MODELS,
-  PHONE_BRANDS,
-  PHONE_MODELS,
   LAPTOP_BRANDS,
   LAPTOP_MODELS,
   APPLIANCE_BRANDS,
   APPLIANCE_MODELS,
   COMMON_SPEC_OPTIONS,
 } from "./specOptions";
+import {
+  PHONE_DEVICE_SPECS,
+  resolvePhoneSpecTemplate,
+} from "./phoneFilters";
 import { REPAIR_MATERIALS_SUBS } from "./categoryConsolidation";
 import {
   CLOTHING_APPAREL_SPECS,
@@ -516,18 +518,8 @@ export const CATS = {
       "Планшеты",
       "Мобильные аксессуары",
     ],
-    specTemplate: [
-      { name: "Производитель", type: "select", options: PHONE_BRANDS },
-      {
-        name: "Модель",
-        type: "select",
-        dependsOn: "Производитель",
-        optionsFrom: PHONE_MODELS,
-      },
-      { name: "Память", type: "select", options: COMMON_SPEC_OPTIONS.memory },
-      { name: "Состояние", type: "select", options: COMMON_SPEC_OPTIONS.condition },
-      { name: "Гарантия", type: "select", options: COMMON_SPEC_OPTIONS.warranty },
-    ],
+    specTemplate: PHONE_DEVICE_SPECS,
+    resolveSpecTemplate: resolvePhoneSpecTemplate,
   },
   electronics: {
     title: "Бытовая техника",

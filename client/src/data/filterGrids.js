@@ -3,8 +3,8 @@ import {
   CAR_MODELS,
   COMMON_SPEC_OPTIONS,
   LOCATIONS,
-  PHONE_BRANDS,
 } from "./specOptions";
+import { resolvePhoneSpecTemplate } from "./phoneFilters";
 import { CATS, getListSpecFilters } from "./listingCategories";
 import { getRealEstateFilterGrid } from "./realEstateFilters";
 import {
@@ -159,49 +159,83 @@ const TRANSPORT_GRID = {
   ],
 };
 
-const PHONES_GRID = {
-  rows: [
-    [
-      { id: "subcategory", label: "Подкатегория", type: "subcategory" },
-      {
-        id: "Производитель",
-        label: "Производитель",
-        type: "spec",
-        specKey: "Производитель",
-        options: PHONE_BRANDS,
-      },
-      { id: "price", label: "Цена", type: "price" },
-      {
-        id: "Память",
-        label: "Память",
-        type: "spec",
-        specKey: "Память",
-        options: COMMON_SPEC_OPTIONS.memory,
-      },
-    ],
-    [
-      {
-        id: "Состояние",
-        label: "Состояние",
-        type: "spec",
-        specKey: "Состояние",
-        options: COMMON_SPEC_OPTIONS.condition,
-      },
-      {
-        id: "Гарантия",
-        label: "Гарантия",
-        type: "spec",
-        specKey: "Гарантия",
-        options: COMMON_SPEC_OPTIONS.warranty,
-      },
-      { id: "location", label: "Город", type: "location", options: LOCATIONS },
-    ],
-  ],
-  more: [
+function specField(spec, { id, label } = {}) {
+  if (!spec) return null;
+  return {
+    id: id || spec.name,
+    label: label || spec.name,
+    type: "spec",
+    specKey: spec.name,
+    options: spec.options,
+  };
+}
+
+function buildPhonesGrid(subcategory = "") {
+  const specs = resolvePhoneSpecTemplate(subcategory);
+  const brandSpec = specs.find((item) => item.name === "Производитель");
+  const modelSpec = specs.find((item) => item.name === "Модель");
+  const typeSpec = specs.find(
+    (item) => item.name === "Тип" || item.name === "Тип аксессуара"
+  );
+  const memorySpec = specs.find((item) => item.name === "Память");
+  const ramSpec = specs.find((item) => item.name === "Оперативная память");
+  const colorSpec = specs.find((item) => item.name === "Цвет");
+  const warrantySpec = specs.find((item) => item.name === "Гарантия");
+
+  const row1 = [
+    { id: "subcategory", label: "Подкатегория", type: "subcategory" },
+    brandSpec
+      ? specField(brandSpec, { label: "Бренд" })
+      : specField(typeSpec),
+    modelSpec
+      ? {
+          id: "Модель",
+          label: "Модель",
+          type: "spec-dependent",
+          specKey: "Модель",
+          dependsOn: "Производитель",
+          optionsFrom: modelSpec.optionsFrom,
+        }
+      : null,
+    { id: "price", label: "Цена", type: "price" },
+  ];
+
+  const row2 = [
+    specField(memorySpec, { label: "Встроенная память" }) ||
+      (brandSpec ? specField(typeSpec) : null),
+    specField(ramSpec),
+    {
+      id: "Состояние",
+      label: "Состояние",
+      type: "spec",
+      specKey: "Состояние",
+      options: COMMON_SPEC_OPTIONS.condition,
+    },
+    { id: "location", label: "Город", type: "location", options: LOCATIONS },
+  ].filter(Boolean);
+
+  while (row2.length < 4) row2.push(null);
+
+  const more = [
     { id: "search", label: "Поиск", type: "search" },
     { id: "sort", label: "Сортировка", type: "sort" },
-  ],
-};
+  ];
+
+  if (typeSpec && brandSpec) {
+    more.push(specField(typeSpec));
+  }
+  if (colorSpec) {
+    more.push(specField(colorSpec));
+  }
+  if (warrantySpec) {
+    more.push(specField(warrantySpec));
+  }
+
+  return {
+    rows: [row1, row2],
+    more,
+  };
+}
 
 function buildTravelGrid(subcategory = "") {
   const specs = resolveTravelSpecTemplate(subcategory);
@@ -619,7 +653,7 @@ function toSpecField(filter) {
 }
 
 function isBrandSpecName(name) {
-  return name === "Марка" || name === "Марка авто";
+  return name === "Марка" || name === "Марка авто" || name === "Производитель";
 }
 
 function buildGenericGrid(catKey, subcategory = "") {
@@ -708,7 +742,7 @@ export function getListingFilterGrid(catKey, subcategory = "") {
   }
 
   if (catKey === "phones") {
-    return PHONES_GRID;
+    return buildPhonesGrid(subcategory);
   }
 
   if (catKey === "clothing") {

@@ -240,7 +240,12 @@ export default function ListingFiltersSidebar({
       field.type === "spec" &&
       field.specKey !== "Состояние" &&
       field.specKey !== "Марка" &&
-      field.specKey !== "Марка авто"
+      field.specKey !== "Марка авто" &&
+      field.specKey !== "Производитель" &&
+      field.specKey !== "Память" &&
+      field.specKey !== "Оперативная память" &&
+      field.specKey !== "Тип" &&
+      field.specKey !== "Тип аксессуара"
   );
 
   const rangeFields = flatFields.filter(
@@ -253,10 +258,23 @@ export default function ListingFiltersSidebar({
   const brandField = flatFields.find(
     (field) =>
       field.type === "spec" &&
-      (field.specKey === "Марка" || field.specKey === "Марка авто")
+      (field.specKey === "Марка" ||
+        field.specKey === "Марка авто" ||
+        field.specKey === "Производитель")
   );
   const modelField = flatFields.find(
     (field) => field.type === "spec-dependent" && field.specKey === "Модель"
+  );
+  const typeField = flatFields.find(
+    (field) =>
+      field.type === "spec" &&
+      (field.specKey === "Тип" || field.specKey === "Тип аксессуара")
+  );
+  const storageField = flatFields.find(
+    (field) => field.type === "spec" && field.specKey === "Память"
+  );
+  const ramField = flatFields.find(
+    (field) => field.type === "spec" && field.specKey === "Оперативная память"
   );
   const dependentSpecFields = flatFields.filter(
     (field) => field.type === "spec-dependent" && field !== modelField
@@ -388,6 +406,39 @@ export default function ListingFiltersSidebar({
           <FilterSection title={modelField.label}>
             <SpecSidebarSelect
               field={modelField}
+              draft={draft}
+              setDraft={setDraft}
+              onApply={onApply}
+            />
+          </FilterSection>
+        ) : null}
+
+        {typeField ? (
+          <FilterSection title={typeField.label}>
+            <SpecSidebarSelect
+              field={typeField}
+              draft={draft}
+              setDraft={setDraft}
+              onApply={onApply}
+            />
+          </FilterSection>
+        ) : null}
+
+        {storageField ? (
+          <FilterSection title={storageField.label}>
+            <SpecSidebarSelect
+              field={storageField}
+              draft={draft}
+              setDraft={setDraft}
+              onApply={onApply}
+            />
+          </FilterSection>
+        ) : null}
+
+        {ramField ? (
+          <FilterSection title={ramField.label}>
+            <SpecSidebarSelect
+              field={ramField}
               draft={draft}
               setDraft={setDraft}
               onApply={onApply}
