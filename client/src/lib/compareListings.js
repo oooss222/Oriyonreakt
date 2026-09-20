@@ -1,3 +1,5 @@
+import { getListingThumb } from "./media";
+
 const LEGACY_RE_KEY = "oriyon_re_compare";
 const STORAGE_KEY = "oriyon_compare";
 const MAX_ITEMS = 4;
@@ -33,16 +35,7 @@ function normalizePreview(preview) {
 }
 
 function firstListingImage(listing) {
-  const first = listing?.images?.[0];
-  if (typeof first === "string") return first;
-  return (
-    first?.url ||
-    first?.src ||
-    first?.path ||
-    first?.secure_url ||
-    listing?.image ||
-    ""
-  );
+  return getListingThumb(listing, { width: 160, allowEmpty: true }) || "";
 }
 
 export function buildComparePreview(listing) {

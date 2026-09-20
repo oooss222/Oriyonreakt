@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Scale, X } from "lucide-react";
+import { ImageOff, Scale, X } from "lucide-react";
 import {
   readCompareEntries,
   COMPARE_MAX,
@@ -13,6 +13,20 @@ import {
 import { getCompareConfig, getComparePath } from "../lib/compareConfig";
 import { resolveMediaUrl } from "../lib/media";
 import { useI18n } from "../i18n";
+
+function isUsableImageSrc(src) {
+  const value = String(src || "").trim();
+  if (!value) return false;
+  return (
+    value.startsWith("http://") ||
+    value.startsWith("https://") ||
+    value.startsWith("data:") ||
+    value.startsWith("/img/") ||
+    value.includes("res.cloudinary.com") ||
+    value.includes("/upload/") ||
+    value.includes("/uploads/")
+  );
+}
 
 function barThumb(entry) {
   if (entry?.source === "external") {
@@ -28,6 +42,48 @@ function barThumb(entry) {
     title: entry?.preview?.title || "",
     image: entry?.preview?.image || "",
   };
+}
+
+function CompareBarThumb({ item, onRemove, removeLabel }) {
+  const resolved = item.image
+    ? resolveMediaUrl(item.image, { width: 80, allowEmpty: true })
+    : "";
+  const initialSrc = isUsableImageSrc(resolved) ? resolved : "";
+  const [src, setSrc] = React.useState(initialSrc);
+
+  React.useEffect(() => {
+    setSrc(initialSrc);
+  }, [initialSrc]);
+
+  return (
+    <div className="relative shrink-0">
+      <div className="relative h-11 w-11 overflow-hidden rounded-xl bg-white/10 ring-1 ring-white/15">
+        {src ? (
+          <img
+            src={src}
+            alt=""
+            className="h-full w-full object-cover"
+            loading="lazy"
+            onError={() => setSrc("")}
+          />
+        ) : (
+          <span className="grid h-full w-full place-items-center text-white/35" aria-hidden>
+            <ImageOff size={16} />
+          </span>
+        )}
+      </div>
+      <button
+        type="button"
+        onClick={() => onRemove(item.key)}
+        className="absolute -right-1 -top-1 z-[1] inline-flex h-5 w-5 items-center justify-center rounded-full bg-white text-ink-500 shadow-sm hover:bg-mist"
+        aria-label={removeLabel}
+        title={removeLabel}
+      >
+        <X size={10} />
+      </button>
+      <span className="sr-only">{item.title}</span>
+    </div>
+  );
 }
 
 export default function CompareFloatingBar() {
@@ -69,37 +125,16 @@ export default function CompareFloatingBar() {
 
   return (
     <div className="compare-bar pointer-events-none fixed bottom-[calc(4.25rem+env(safe-area-inset-bottom))] inset-x-0 z-[45] px-3 lg:bottom-6">
-      <div className="pointer-events-auto mx-auto flex max-w-3xl items-center gap-2 rounded-2xl border border-ink/10 bg-ink px-2.5 py-2 text-white shadow-lift sm:gap-3 sm:px-3">
-        <div className="flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto scrollbar-hide">
-          {thumbs.map((item) => {
-            const src = item.image
-              ? resolveMediaUrl(item.image, { width: 80, allowEmpty: true })
-              : "";
-            return (
-              <div key={item.key} className="relative shrink-0">
-                <div className="h-11 w-11 overflow-hidden rounded-xl bg-white/10 ring-1 ring-white/15">
-                  <img
-                    src={src || "/img/placeholder.jpg"}
-                    alt={item.title || t("compare.title")}
-                    className="h-full w-full object-cover"
-                    loading="lazy"
-                    onError={(e) => {
-                      e.currentTarget.src = "/img/placeholder.jpg";
-                    }}
-                  />
-                </div>
-                <button
-                  type="button"
-                  onClick={() => removeCompareEntry(item.key, activeCat)}
-                  className="absolute -right-2 -top-2 inline-flex h-7 w-7 items-center justify-center rounded-full bg-white text-ink-500 shadow-sm hover:bg-mist"
-                  aria-label={t("compare.removeFromCompare")}
-                  title={t("compare.removeFromCompare")}
-                >
-                  <X size={12} />
-                </button>
-              </div>
-            );
-          })}
+      <div className="pointer-events-auto mx-auto flex max-w-3xl items-center gap-2 overflow-hidden rounded-2xl border border-ink/10 bg-ink px-2.5 py-2 text-white shadow-lift sm:gap-3 sm:px-3">
+        <div className="flex min-w-0 flex-1 items-center gap-2 overflow-x-auto py-0.5 scrollbar-hide">
+          {thumbs.map((item) => (
+            <CompareBarThumb
+              key={item.key}
+              item={item}
+              onRemove={(key) => removeCompareEntry(key, activeCat)}
+              removeLabel={t("compare.removeFromCompare")}
+            />
+          ))}
         </div>
 
         <Link
