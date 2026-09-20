@@ -1300,6 +1300,308 @@
     max-width: 15rem;
   }
 
+  .compare-page {
+    overflow-x: hidden;
+    --compare-label: 8.5rem;
+    --compare-col: 13.5rem;
+  }
+
+  @media (min-width: 768px) {
+    .compare-page {
+      --compare-label: 11rem;
+      --compare-col: minmax(14rem, 1fr);
+    }
+  }
+
+  .compare-head {
+    @apply flex flex-wrap items-start justify-between gap-3;
+  }
+
+  .compare-head h1 {
+    @apply font-display text-xl font-bold tracking-tight text-ink sm:text-[1.35rem];
+  }
+
+  .compare-head__lead {
+    @apply mt-1 text-sm text-ink-400;
+  }
+
+  .compare-head__aside {
+    @apply flex flex-wrap items-center gap-2;
+  }
+
+  .compare-head__count {
+    @apply inline-flex h-11 items-center rounded-xl bg-mist px-3 text-sm font-semibold text-ink-600;
+  }
+
+  .compare-toolbar {
+    @apply flex flex-wrap items-center justify-between gap-3;
+  }
+
+  .compare-switch {
+    @apply inline-flex h-11 items-center gap-2.5 rounded-xl border border-ink/10 bg-white px-3 text-sm font-medium text-ink-600 transition hover:bg-mist/70;
+  }
+
+  .compare-switch[aria-checked="true"] {
+    @apply border-sun/25 bg-sun/5 text-ink;
+  }
+
+  .compare-switch__track {
+    @apply relative inline-flex h-5 w-9 shrink-0 items-center rounded-full bg-ink/15 p-0.5 transition;
+  }
+
+  .compare-switch[aria-checked="true"] .compare-switch__track {
+    @apply bg-sun;
+  }
+
+  .compare-switch__thumb {
+    @apply h-4 w-4 rounded-full bg-white shadow-sm transition;
+  }
+
+  .compare-switch[aria-checked="true"] .compare-switch__thumb {
+    @apply translate-x-4;
+  }
+
+  .compare-stage {
+    @apply overflow-hidden rounded-[1.25rem] border border-ink/10 bg-white shadow-soft;
+  }
+
+  .compare-stage__scroll {
+    overflow-x: auto;
+    max-width: 100%;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+  }
+
+  @media (min-width: 1280px) {
+    .compare-stage__scroll {
+      overflow-x: visible;
+    }
+  }
+
+  @media (max-width: 1279px) {
+    .compare-pin {
+      position: relative;
+      top: auto;
+    }
+
+    .compare-stage__pin-label {
+      position: sticky;
+      left: 0;
+      top: auto;
+    }
+  }
+
+  .compare-stage__grid {
+    display: grid;
+    align-items: stretch;
+    min-width: max-content;
+    width: 100%;
+  }
+
+  .compare-stage__label,
+  .compare-stage__value,
+  .compare-stage__section {
+    padding: 0.85rem 1rem;
+  }
+
+  .compare-stage__label {
+    position: sticky;
+    left: 0;
+    z-index: 3;
+    background: #fff;
+    box-shadow: 1px 0 0 rgb(28 27 26 / 0.06);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: rgb(28 27 26 / 0.55);
+  }
+
+  .compare-stage__label--head {
+    display: flex;
+    align-items: flex-end;
+    padding-bottom: 1.25rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: rgb(28 27 26 / 0.38);
+  }
+
+  .compare-stage__value {
+    font-size: 0.9375rem;
+    line-height: 1.4;
+    color: var(--ink);
+    border-top: 1px solid rgb(28 27 26 / 0.06);
+    overflow-wrap: anywhere;
+  }
+
+  .compare-stage__label:not(.compare-stage__label--head):not(.compare-stage__pin-label) {
+    border-top: 1px solid rgb(28 27 26 / 0.06);
+  }
+
+  .compare-stage__value.is-price {
+    @apply font-display font-extrabold text-sun-600;
+    font-size: 1.05rem;
+  }
+
+  .compare-stage__value.is-diff,
+  .compare-stage__label.is-diff {
+    background: rgb(255 106 0 / 0.05);
+  }
+
+  .compare-stage__value.is-same {
+    color: rgb(28 27 26 / 0.38);
+  }
+
+  .compare-stage__section {
+    grid-column: 1 / -1;
+    padding-top: 1.1rem;
+    padding-bottom: 0.35rem;
+    background: rgb(243 245 247 / 0.7);
+    font-size: 0.6875rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgb(28 27 26 / 0.4);
+  }
+
+  .compare-card {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    padding: 0.85rem 0.85rem 1rem;
+  }
+
+  .compare-card__media {
+    @apply relative aspect-[4/3] overflow-hidden bg-mist;
+    border-radius: 1rem;
+  }
+
+  .compare-card__media img {
+    transition: transform 280ms ease;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .compare-card:hover .compare-card__media img {
+      transform: scale(1.03);
+    }
+  }
+
+  .compare-card__remove {
+    @apply absolute right-2 top-2 inline-flex h-11 w-11 items-center justify-center rounded-full border border-ink/10 bg-white/95 text-ink-400 shadow-soft transition hover:bg-white hover:text-ink;
+  }
+
+  .compare-card__body {
+    display: flex;
+    min-width: 0;
+    flex: 1;
+    flex-direction: column;
+    gap: 0.4rem;
+    padding-top: 0.75rem;
+  }
+
+  .compare-card__title {
+    @apply font-display text-sm font-bold leading-snug text-ink;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+  }
+
+  .compare-card__price {
+    @apply font-display font-extrabold leading-none text-sun-600;
+    font-size: 1.15rem;
+  }
+
+  .compare-card__meta {
+    @apply flex flex-col gap-0.5 text-xs font-medium text-ink-400;
+  }
+
+  .compare-card__actions {
+    @apply mt-auto flex flex-col gap-1.5 pt-1;
+  }
+
+  .compare-card__open {
+    @apply mt-auto inline-flex h-11 items-center justify-center gap-1.5 rounded-xl border border-ink/10 px-3 text-sm font-semibold text-ink transition hover:border-sun/30 hover:text-sun;
+  }
+
+  .compare-card__refresh {
+    @apply inline-flex h-11 items-center justify-center gap-1.5 text-sm font-medium text-ink-400 transition hover:text-ink;
+  }
+
+  .compare-stage__pin-label,
+  .compare-pin {
+    position: sticky;
+    top: 0;
+    z-index: 4;
+    background: #fff;
+    border-top: 1px solid rgb(28 27 26 / 0.06);
+    border-bottom: 1px solid rgb(28 27 26 / 0.06);
+  }
+
+  .compare-stage__pin-label {
+    display: flex;
+    align-items: center;
+    z-index: 5;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: rgb(28 27 26 / 0.38);
+  }
+
+  .compare-pin {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    min-width: 0;
+    padding: 0.55rem 0.85rem;
+  }
+
+  .compare-pin__media {
+    width: 2.75rem;
+    height: 2.75rem;
+    aspect-ratio: 1;
+    flex-shrink: 0;
+    border-radius: 0.7rem;
+  }
+
+  .compare-pin__title {
+    @apply text-xs font-bold text-ink;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .compare-pin__price {
+    @apply font-display text-sm font-extrabold text-sun-600;
+  }
+
+  .compare-extras {
+    @apply space-y-3;
+  }
+
+  @media (max-width: 767px) {
+    .compare-stage__label,
+    .compare-stage__value,
+    .compare-stage__section {
+      padding: 0.75rem 0.75rem;
+    }
+
+    .compare-card {
+      padding: 0.7rem 0.7rem 0.9rem;
+    }
+
+    .compare-pin {
+      padding: 0.45rem 0.7rem;
+    }
+
+    .compare-pin__media {
+      display: none;
+    }
+  }
+
   .unread-badge {
     animation: badge-pop var(--motion-fast) ease-out both;
   }
