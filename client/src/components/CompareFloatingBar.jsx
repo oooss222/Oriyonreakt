@@ -1,14 +1,34 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Scale, ChevronRight } from "lucide-react";
+import { Scale, X } from "lucide-react";
 import {
-  readCompareIds,
+  readCompareEntries,
   COMPARE_MAX,
   getActiveCompareCat,
   findCompareCatWithItems,
+  getEntryKey,
+  clearCompare,
+  removeCompareEntry,
 } from "../lib/compareListings";
 import { getCompareConfig, getComparePath } from "../lib/compareConfig";
+import { resolveMediaUrl } from "../lib/media";
 import { useI18n } from "../i18n";
+
+function barThumb(entry) {
+  if (entry?.source === "external") {
+    return {
+      key: getEntryKey(entry),
+      title: entry.snapshot?.title || "",
+      image: entry.snapshot?.image || "",
+    };
+  }
+
+  return {
+    key: getEntryKey(entry),
+    title: entry?.preview?.title || "",
+    image: entry?.preview?.image || "",
+  };
+}
 
 export default function CompareFloatingBar() {
   const location = useLocation();
@@ -17,10 +37,11 @@ export default function CompareFloatingBar() {
   const [activeCat, setActiveCat] = React.useState(
     () => findCompareCatWithItems(pathCat) || pathCat
   );
-  const [count, setCount] = React.useState(() =>
-    activeCat ? readCompareIds(activeCat).length : 0
+  const [entries, setEntries] = React.useState(() =>
+    activeCat ? readCompareEntries(activeCat) : []
   );
 
+  const count = entries.length;
   const config = activeCat ? getCompareConfig(activeCat) : null;
   const comparePath = activeCat ? getComparePath(activeCat) : "";
 
@@ -34,7 +55,7 @@ export default function CompareFloatingBar() {
     const sync = () => {
       const nextCat = findCompareCatWithItems(getActiveCompareCat(location.pathname));
       setActiveCat(nextCat);
-      setCount(nextCat ? readCompareIds(nextCat).length : 0);
+      setEntries(nextCat ? readCompareEntries(nextCat) : []);
     };
 
     sync();
@@ -44,24 +65,65 @@ export default function CompareFloatingBar() {
 
   if (hidden) return null;
 
+  const thumbs = entries.map(barThumb);
+
   return (
-    <div className="fixed bottom-[calc(4.25rem+env(safe-area-inset-bottom))] inset-x-0 z-[45] px-4 pointer-events-none lg:bottom-6">
-      <Link
-        to={comparePath}
-        className="pointer-events-auto mx-auto flex max-w-md items-center justify-between gap-3 rounded-2xl border border-ink/10 bg-ink px-4 py-3 text-white shadow-lift transition hover:bg-ink-700"
-      >
-        <span className="inline-flex min-w-0 items-center gap-2 text-sm font-semibold">
-          <Scale size={18} className="text-sun shrink-0" />
-          <span className="truncate">
-            {t("compare.open", { count, max: COMPARE_MAX })}
-            <span className="hidden sm:inline text-white/60 font-medium">
-              {" "}
-              · {t(`categories.${activeCat}`)}
-            </span>
+    <div className="compare-bar pointer-events-none fixed bottom-[calc(4.25rem+env(safe-area-inset-bottom))] inset-x-0 z-[45] px-3 lg:bottom-6">
+      <div className="pointer-events-auto mx-auto flex max-w-3xl items-center gap-2 rounded-2xl border border-ink/10 bg-ink px-2.5 py-2 text-white shadow-lift sm:gap-3 sm:px-3">
+        <div className="flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto scrollbar-hide">
+          {thumbs.map((item) => {
+            const src = item.image
+              ? resolveMediaUrl(item.image, { width: 80, allowEmpty: true })
+              : "";
+            return (
+              <div key={item.key} className="relative shrink-0">
+                <div className="h-11 w-11 overflow-hidden rounded-xl bg-white/10 ring-1 ring-white/15">
+                  <img
+                    src={src || "/img/placeholder.jpg"}
+                    alt={item.title || t("compare.title")}
+                    className="h-full w-full object-cover"
+                    loading="lazy"
+                    onError={(e) => {
+                      e.currentTarget.src = "/img/placeholder.jpg";
+                    }}
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => removeCompareEntry(item.key, activeCat)}
+                  className="absolute -right-2 -top-2 inline-flex h-7 w-7 items-center justify-center rounded-full bg-white text-ink-500 shadow-sm hover:bg-mist"
+                  aria-label={t("compare.removeFromCompare")}
+                  title={t("compare.removeFromCompare")}
+                >
+                  <X size={12} />
+                </button>
+              </div>
+            );
+          })}
+        </div>
+
+        <Link
+          to={comparePath}
+          className="inline-flex h-11 min-w-[7.5rem] shrink-0 items-center justify-center gap-1.5 rounded-xl bg-sun px-3 text-sm font-semibold text-white transition hover:bg-sun-600 active:scale-[0.98]"
+        >
+          <Scale size={16} className="hidden sm:block" />
+          <span className="tabular-nums">
+            {t("compare.compareAction")} ({count})
           </span>
-        </span>
-        <ChevronRight size={18} className="text-white/70" />
-      </Link>
+        </Link>
+
+        <button
+          type="button"
+          onClick={() => clearCompare(activeCat)}
+          className="inline-flex h-11 shrink-0 items-center justify-center rounded-xl px-2.5 text-sm font-medium text-white/75 transition hover:bg-white/10 hover:text-white"
+          aria-label={t("compare.clear")}
+        >
+          {t("compare.clear")}
+        </button>
+      </div>
+      <span className="sr-only">
+        {t("compare.open", { count, max: COMPARE_MAX })}
+      </span>
     </div>
   );
 }

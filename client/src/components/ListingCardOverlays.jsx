@@ -19,6 +19,7 @@ export default function ListingCardOverlays({
   showFavorite = true,
   showCompare = true,
   compareCat = "",
+  listing = null,
   compactBottom = false,
 }) {
   const { t } = useI18n();
@@ -58,6 +59,7 @@ export default function ListingCardOverlays({
             <CompareListingButton
               listingId={favoriteId}
               cat={compareCat}
+              listing={listing}
               overlay
               showOpenLink={false}
             />

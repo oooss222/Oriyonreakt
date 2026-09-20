@@ -1242,6 +1242,64 @@
     animation: heart-pop 280ms ease;
   }
 
+  @keyframes compare-pop {
+    0% {
+      transform: scale(1);
+    }
+    40% {
+      transform: scale(1.18);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+
+  @keyframes compare-bar-in {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .compare-pop {
+    animation: compare-pop 280ms ease;
+  }
+
+  .compare-bar {
+    animation: compare-bar-in 220ms ease-out both;
+  }
+
+  .compare-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    max-width: 100%;
+  }
+
+  .compare-table {
+    border-collapse: separate;
+    border-spacing: 0;
+    min-width: max-content;
+  }
+
+  .compare-table .compare-sticky {
+    position: sticky;
+    left: 0;
+    z-index: 2;
+    min-width: 8.25rem;
+    box-shadow: 1px 0 0 rgb(15 23 42 / 0.08);
+  }
+
+  .compare-table th.compare-item,
+  .compare-table td.compare-item {
+    min-width: 11rem;
+    max-width: 15rem;
+  }
+
   .unread-badge {
     animation: badge-pop var(--motion-fast) ease-out both;
   }

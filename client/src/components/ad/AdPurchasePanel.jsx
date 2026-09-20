@@ -109,6 +109,7 @@ export default function AdPurchasePanel({
             <CompareListingButton
               listingId={ad.id || ad._id}
               cat={compareCat}
+              listing={ad}
               compact
               showOpenLink={false}
             />

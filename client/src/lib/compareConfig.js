@@ -1,5 +1,5 @@
 import { CAT_LABELS } from "../data/listingCategories";
-import { formatPrice } from "./format";
+import { formatListingDate, formatPrice } from "./format";
 import { enrichRealEstateListing, getSpecValue } from "./realEstate";
 
 function spec(item, ...names) {
@@ -10,11 +10,49 @@ function spec(item, ...names) {
   return "—";
 }
 
-function baseFields(extra = []) {
+function sellerName(item) {
+  return item?.ownerName || item?.sellerName || item?.userName || "—";
+}
+
+function field(key, label, get, group = "specs", labelKey) {
+  return {
+    key,
+    label,
+    labelKey: labelKey || `compare.field.${key}`,
+    group,
+    get,
+  };
+}
+
+function baseFields(extra = [], { includeCondition = true } = {}) {
   return [
-    { key: "price", label: "Цена", get: (item) => formatPrice(item.price) },
-    { key: "location", label: "Город", get: (item) => item.location || "—" },
-    ...extra,
+    field("price", "Цена", (item) => formatPrice(item.price), "basics", "compare.price"),
+    field(
+      "location",
+      "Город",
+      (item) => item.location || "—",
+      "basics",
+      "compare.location"
+    ),
+    field(
+      "date",
+      "Дата",
+      (item) => formatListingDate(item, { emptyLabel: "—" }),
+      "basics",
+      "compare.date"
+    ),
+    ...(includeCondition
+      ? [
+          field(
+            "condition",
+            "Состояние",
+            (item) => spec(item, "Состояние"),
+            "basics"
+          ),
+        ]
+      : []),
+    field("seller", "Продавец", sellerName, "basics"),
+    ...extra.map((row) => ({ group: "specs", ...row })),
   ];
 }
 
@@ -34,46 +72,55 @@ export const COMPARE_CONFIG = {
       { name: "ЖК", label: "ЖК" },
     ],
     fields: [
-      { key: "price", label: "Цена", get: (item) => formatPrice(item.price) },
-      {
-        key: "pricePerSqm",
-        label: "Цена за м²",
-        get: (item) => item.realEstateSummary?.pricePerSqm || "—",
-      },
-      {
-        key: "rooms",
-        label: "Комнат",
-        get: (item) => item.realEstateSummary?.rooms || "—",
-      },
-      {
-        key: "area",
-        label: "Площадь",
-        get: (item) => item.realEstateSummary?.area || "—",
-      },
-      {
-        key: "floor",
-        label: "Этаж",
-        get: (item) => {
-          const s = item.realEstateSummary || {};
-          if (!s.floor) return "—";
-          return s.floorsTotal ? `${s.floor}/${s.floorsTotal}` : s.floor;
-        },
-      },
-      {
-        key: "district",
-        label: "Район",
-        get: (item) => item.realEstateSummary?.district || "—",
-      },
-      {
-        key: "repair",
-        label: "Ремонт",
-        get: (item) => getSpecValue(item.specs, "Ремонт") || "—",
-      },
-      {
-        key: "development",
-        label: "ЖК",
-        get: (item) => getSpecValue(item.specs, "ЖК") || "—",
-      },
+      field("price", "Цена", (item) => formatPrice(item.price), "basics", "compare.price"),
+      field(
+        "location",
+        "Город",
+        (item) => item.location || "—",
+        "basics",
+        "compare.location"
+      ),
+      field(
+        "date",
+        "Дата",
+        (item) => formatListingDate(item, { emptyLabel: "—" }),
+        "basics",
+        "compare.date"
+      ),
+      field(
+        "condition",
+        "Состояние",
+        (item) => spec(item, "Состояние", "Ремонт"),
+        "basics"
+      ),
+      field("seller", "Продавец", sellerName, "basics"),
+      field(
+        "propertyType",
+        "Тип недвижимости",
+        (item) => item.subcategory || item.realEstateSummary?.deal || "—"
+      ),
+      field(
+        "pricePerSqm",
+        "Цена за м²",
+        (item) => item.realEstateSummary?.pricePerSqm || "—"
+      ),
+      field("rooms", "Комнат", (item) => item.realEstateSummary?.rooms || "—"),
+      field("area", "Площадь", (item) => item.realEstateSummary?.area || "—"),
+      field("floor", "Этаж", (item) => {
+        const s = item.realEstateSummary || {};
+        if (!s.floor) return "—";
+        return s.floorsTotal ? `${s.floor}/${s.floorsTotal}` : s.floor;
+      }),
+      field("floorsTotal", "Этажность", (item) => item.realEstateSummary?.floorsTotal || spec(item, "Этажей в доме")),
+      field(
+        "district",
+        "Район",
+        (item) => item.realEstateSummary?.district || spec(item, "Район")
+      ),
+      field("repair", "Ремонт", (item) => spec(item, "Ремонт")),
+      field("heating", "Отопление", (item) => spec(item, "Отопление")),
+      field("furniture", "Мебель", (item) => spec(item, "Мебель")),
+      field("development", "ЖК", (item) => spec(item, "ЖК")),
     ],
   },
   transport: {
@@ -85,18 +132,25 @@ export const COMPARE_CONFIG = {
       { name: "Модель", label: "Модель" },
       { name: "Год", label: "Год" },
       { name: "Пробег", label: "Пробег" },
+      { name: "Кузов", label: "Кузов" },
+      { name: "Объем", label: "Объём" },
       { name: "КПП", label: "КПП" },
+      { name: "Привод", label: "Привод" },
       { name: "Топливо", label: "Топливо" },
+      { name: "Цвет", label: "Цвет" },
       { name: "Состояние", label: "Состояние" },
     ],
     fields: baseFields([
-      { key: "brand", label: "Марка", get: (item) => spec(item, "Марка", "Марка авто") },
-      { key: "model", label: "Модель", get: (item) => spec(item, "Модель") },
-      { key: "year", label: "Год", get: (item) => spec(item, "Год") },
-      { key: "mileage", label: "Пробег", get: (item) => spec(item, "Пробег") },
-      { key: "kpp", label: "КПП", get: (item) => spec(item, "КПП") },
-      { key: "fuel", label: "Топливо", get: (item) => spec(item, "Топливо") },
-      { key: "condition", label: "Состояние", get: (item) => spec(item, "Состояние") },
+      field("brand", "Марка", (item) => spec(item, "Марка", "Марка авто")),
+      field("model", "Модель", (item) => spec(item, "Модель")),
+      field("year", "Год", (item) => spec(item, "Год")),
+      field("mileage", "Пробег", (item) => spec(item, "Пробег")),
+      field("body", "Кузов", (item) => spec(item, "Кузов", "Тип кузова")),
+      field("engineVolume", "Объём", (item) => spec(item, "Объем", "Объём")),
+      field("kpp", "КПП", (item) => spec(item, "КПП")),
+      field("drive", "Привод", (item) => spec(item, "Привод")),
+      field("fuel", "Топливо", (item) => spec(item, "Топливо")),
+      field("color", "Цвет", (item) => spec(item, "Цвет")),
     ]),
   },
   phones: {
@@ -107,15 +161,23 @@ export const COMPARE_CONFIG = {
       { name: "Производитель", label: "Производитель" },
       { name: "Модель", label: "Модель" },
       { name: "Память", label: "Память" },
+      { name: "Оперативная память", label: "ОЗУ" },
       { name: "Состояние", label: "Состояние" },
       { name: "Гарантия", label: "Гарантия" },
     ],
     fields: baseFields([
-      { key: "brand", label: "Производитель", get: (item) => spec(item, "Производитель") },
-      { key: "model", label: "Модель", get: (item) => spec(item, "Модель") },
-      { key: "memory", label: "Память", get: (item) => spec(item, "Память") },
-      { key: "condition", label: "Состояние", get: (item) => spec(item, "Состояние") },
-      { key: "warranty", label: "Гарантия", get: (item) => spec(item, "Гарантия") },
+      field(
+        "brand",
+        "Производитель",
+        (item) => spec(item, "Производитель"),
+        "specs",
+        "compare.field.manufacturer"
+      ),
+      field("model", "Модель", (item) => spec(item, "Модель")),
+      field("memory", "Память", (item) => spec(item, "Память")),
+      field("ram", "ОЗУ", (item) => spec(item, "Оперативная память", "ОЗУ")),
+      field("color", "Цвет", (item) => spec(item, "Цвет")),
+      field("warranty", "Гарантия", (item) => spec(item, "Гарантия")),
     ]),
   },
   electronics: {
@@ -130,11 +192,10 @@ export const COMPARE_CONFIG = {
       { name: "Гарантия", label: "Гарантия" },
     ],
     fields: baseFields([
-      { key: "type", label: "Тип", get: (item) => spec(item, "Тип") },
-      { key: "brand", label: "Бренд", get: (item) => spec(item, "Бренд") },
-      { key: "model", label: "Модель", get: (item) => spec(item, "Модель") },
-      { key: "condition", label: "Состояние", get: (item) => spec(item, "Состояние") },
-      { key: "warranty", label: "Гарантия", get: (item) => spec(item, "Гарантия") },
+      field("type", "Тип", (item) => spec(item, "Тип")),
+      field("brand", "Бренд", (item) => spec(item, "Бренд"), "specs", "compare.field.maker"),
+      field("model", "Модель", (item) => spec(item, "Модель")),
+      field("warranty", "Гарантия", (item) => spec(item, "Гарантия")),
     ]),
   },
   computers: {
@@ -152,14 +213,13 @@ export const COMPARE_CONFIG = {
       { name: "Состояние", label: "Состояние" },
     ],
     fields: baseFields([
-      { key: "type", label: "Тип", get: (item) => spec(item, "Тип") },
-      { key: "brand", label: "Бренд", get: (item) => spec(item, "Бренд") },
-      { key: "model", label: "Модель", get: (item) => spec(item, "Модель") },
-      { key: "cpu", label: "Процессор", get: (item) => spec(item, "Процессор") },
-      { key: "ram", label: "ОЗУ", get: (item) => spec(item, "ОЗУ") },
-      { key: "storage", label: "Накопитель", get: (item) => spec(item, "Накопитель") },
-      { key: "gpu", label: "Видеокарта", get: (item) => spec(item, "Видеокарта") },
-      { key: "condition", label: "Состояние", get: (item) => spec(item, "Состояние") },
+      field("type", "Тип", (item) => spec(item, "Тип")),
+      field("brand", "Бренд", (item) => spec(item, "Бренд"), "specs", "compare.field.maker"),
+      field("model", "Модель", (item) => spec(item, "Модель")),
+      field("cpu", "Процессор", (item) => spec(item, "Процессор")),
+      field("ram", "ОЗУ", (item) => spec(item, "ОЗУ", "Оперативная память")),
+      field("storage", "Накопитель", (item) => spec(item, "Накопитель")),
+      field("gpu", "Видеокарта", (item) => spec(item, "Видеокарта")),
     ]),
   },
   furniture: {
@@ -174,11 +234,10 @@ export const COMPARE_CONFIG = {
       { name: "Размеры", label: "Размеры" },
     ],
     fields: baseFields([
-      { key: "type", label: "Тип", get: (item) => spec(item, "Тип") },
-      { key: "material", label: "Материал", get: (item) => spec(item, "Материал") },
-      { key: "condition", label: "Состояние", get: (item) => spec(item, "Состояние") },
-      { key: "color", label: "Цвет", get: (item) => spec(item, "Цвет") },
-      { key: "size", label: "Размеры", get: (item) => spec(item, "Размеры") },
+      field("type", "Тип", (item) => spec(item, "Тип")),
+      field("material", "Материал", (item) => spec(item, "Материал")),
+      field("color", "Цвет", (item) => spec(item, "Цвет")),
+      field("size", "Размеры", (item) => spec(item, "Размеры")),
     ]),
   },
 };
@@ -189,4 +248,22 @@ export function getCompareConfig(cat) {
 
 export function getComparePath(cat) {
   return getCompareConfig(cat)?.path || "/realestate/sravnenie";
+}
+
+export function localizeCompareFields(fields = [], t) {
+  return fields.map((row) => {
+    const translated = row.labelKey && t ? t(row.labelKey) : "";
+    return {
+      ...row,
+      label:
+        translated && translated !== row.labelKey ? translated : row.label,
+    };
+  });
+}
+
+export function groupCompareFields(fields = []) {
+  return {
+    basics: fields.filter((row) => row.group === "basics"),
+    specs: fields.filter((row) => row.group !== "basics"),
+  };
 }

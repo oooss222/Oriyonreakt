@@ -11,6 +11,7 @@ import {
   readCompareCount,
   COMPARE_MAX,
   isCompareSupported,
+  buildComparePreview,
 } from "../lib/compareListings";
 import { getCompareItemKey, isExternalCompareItem } from "../lib/compareResolve";
 import { useI18n } from "../i18n";
@@ -68,7 +69,7 @@ export default function CompareSimilarPanel({ cat, items = [], onAdded }) {
   const addItem = (listing) => {
     const id = listing.id || listing._id;
     if (!id || full || isInCompare(id, cat)) return;
-    const result = toggleCompareId(id, cat);
+    const result = toggleCompareId(id, cat, buildComparePreview(listing));
     if (result?.ok) onAdded?.();
   };
 

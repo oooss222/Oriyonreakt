@@ -120,6 +120,7 @@ export default function ListingCardMedia({
         showFavorite={showFavorite}
         showCompare={showCompare}
         compareCat={item?.cat || ""}
+        listing={item}
         compactBottom={hasMultiple}
       />
 

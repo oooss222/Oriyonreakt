@@ -20,6 +20,41 @@ function generateExternalKey() {
   return `ext_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`;
 }
 
+function normalizePreview(preview) {
+  if (!preview || typeof preview !== "object") return null;
+
+  const title = String(preview.title || "").trim().slice(0, 180);
+  const price = String(preview.price || "").trim().slice(0, 48);
+  const image = String(preview.image || preview.thumb || "").trim().slice(0, 500);
+  const location = String(preview.location || "").trim().slice(0, 80);
+
+  if (!title && !image && !price) return null;
+  return { title, price, image, location };
+}
+
+function firstListingImage(listing) {
+  const first = listing?.images?.[0];
+  if (typeof first === "string") return first;
+  return (
+    first?.url ||
+    first?.src ||
+    first?.path ||
+    first?.secure_url ||
+    listing?.image ||
+    ""
+  );
+}
+
+export function buildComparePreview(listing) {
+  if (!listing) return null;
+  return normalizePreview({
+    title: listing.title,
+    price: listing.price,
+    image: firstListingImage(listing),
+    location: listing.location,
+  });
+}
+
 function normalizeEntry(raw, cat) {
   if (!raw) return null;
 
@@ -28,7 +63,10 @@ function normalizeEntry(raw, cat) {
   }
 
   if (raw.source === "oriyon" && raw.id) {
-    return { source: "oriyon", id: String(raw.id), cat: raw.cat || cat };
+    const preview = normalizePreview(raw.preview);
+    return preview
+      ? { source: "oriyon", id: String(raw.id), cat: raw.cat || cat, preview }
+      : { source: "oriyon", id: String(raw.id), cat: raw.cat || cat };
   }
 
   if (raw.source === "external" && raw.key && raw.snapshot) {
@@ -157,7 +195,7 @@ function writeCompareEntries(entries = [], cat = "realestate") {
   return buckets[key];
 }
 
-export function toggleCompareId(id, cat = "realestate") {
+export function toggleCompareId(id, cat = "realestate", preview) {
   if (!id) {
     return { entries: readCompareEntries(cat), ok: false, reason: "missing" };
   }
@@ -178,7 +216,10 @@ export function toggleCompareId(id, cat = "realestate") {
     return { entries: current, ok: false, reason: "full", active: false };
   }
 
-  const nextEntry = { source: "oriyon", id: entryKey, cat: key };
+  const snapshot = normalizePreview(preview);
+  const nextEntry = snapshot
+    ? { source: "oriyon", id: entryKey, cat: key, preview: snapshot }
+    : { source: "oriyon", id: entryKey, cat: key };
   const entries = writeCompareEntries([...current, nextEntry], key);
   return { entries, ok: true, reason: "added", active: true };
 }
