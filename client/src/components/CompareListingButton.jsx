@@ -19,6 +19,7 @@ export default function CompareListingButton({
   className = "",
   compact = false,
   overlay = false,
+  labeled = false,
   showOpenLink = true,
 }) {
   const { t } = useI18n();
@@ -54,7 +55,11 @@ export default function CompareListingButton({
   if (!supported || !listingId) return null;
 
   const comparePath = getComparePath(cat);
-  const label = active ? t("compare.inCompare") : t("compare.compareAction");
+  const label = active
+    ? labeled
+      ? t("compare.removeFromCompare")
+      : t("compare.inCompare")
+    : t("compare.compareAction");
 
   const toggle = (event) => {
     event.preventDefault();
@@ -68,7 +73,9 @@ export default function CompareListingButton({
     setPop(true);
   };
 
-  const buttonClass = overlay
+  const buttonClass = labeled
+    ? `compare-add-btn ${active ? "is-on" : ""}`
+    : overlay
     ? `inline-flex h-11 w-11 items-center justify-center rounded-full border shadow-sm transition backdrop-blur-sm active:scale-95 ${
         active
           ? "border-sun/40 bg-sun text-white"
@@ -81,7 +88,7 @@ export default function CompareListingButton({
       }`;
 
   return (
-    <div className={`relative flex items-center gap-2 ${className}`}>
+    <div className={`relative flex items-center gap-2 ${labeled ? "min-w-0 flex-1" : ""} ${className}`}>
       <button
         type="button"
         onClick={toggle}
@@ -96,9 +103,10 @@ export default function CompareListingButton({
         >
           {active ? <Check className="h-[18px] w-[18px]" /> : <Scale className="h-[18px] w-[18px]" />}
         </span>
+        {labeled && <span className="truncate">{label}</span>}
       </button>
 
-      {count > 0 && !compact && !overlay && showOpenLink && (
+      {count > 0 && !compact && !overlay && !labeled && showOpenLink && (
         <Link
           to={comparePath}
           onClick={(e) => e.stopPropagation()}

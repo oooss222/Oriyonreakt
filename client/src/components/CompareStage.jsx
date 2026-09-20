@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { ExternalLink, Loader2, RefreshCw, X } from "lucide-react";
+import { ExternalLink, ImageOff, Loader2, RefreshCw } from "lucide-react";
 import CompareSourceBadge from "./CompareSourceBadge";
 import { getCompareItemKey, isExternalCompareItem } from "../lib/compareResolve";
 import { getRowDiffHighlights } from "../lib/compareDiff";
@@ -24,20 +24,29 @@ function listingPlace(item) {
 }
 
 function ComparePhoto({ item, className = "" }) {
-  const src = getListingThumb(item, { width: 640 });
+  const raw = getListingThumb(item, { width: 320, allowEmpty: true }) || "";
+  const [src, setSrc] = React.useState(raw);
   const title = item?.title || "";
+
+  React.useEffect(() => {
+    setSrc(raw);
+  }, [raw]);
 
   return (
     <div className={`compare-card__media ${className}`}>
-      <img
-        src={src || "/img/placeholder.jpg"}
-        alt={title}
-        className="h-full w-full object-cover"
-        loading="lazy"
-        onError={(event) => {
-          event.currentTarget.src = "/img/placeholder.jpg";
-        }}
-      />
+      {src ? (
+        <img
+          src={src}
+          alt={title}
+          className="h-full w-full object-cover"
+          loading="lazy"
+          onError={() => setSrc("")}
+        />
+      ) : (
+        <span className="compare-card__fallback" aria-hidden>
+          <ImageOff size={22} />
+        </span>
+      )}
     </div>
   );
 }
@@ -47,28 +56,35 @@ function CompareListingCard({ item, onRemove, onRefresh, refreshing, t }) {
   const external = isExternalCompareItem(item);
   const place = listingPlace(item);
   const condition = listingCondition(item);
+  const href = external ? item._compareUrl : `/ad/${itemKey}`;
+  const photo = <ComparePhoto item={item} />;
 
   return (
     <article className="compare-card">
-      <div className="relative">
-        <ComparePhoto item={item} />
-        <button
-          type="button"
-          onClick={() => onRemove(itemKey)}
-          className="compare-card__remove"
-          aria-label={t("compare.removeFromCompare")}
-          title={t("compare.removeFromCompare")}
-        >
-          <X size={16} />
-        </button>
-      </div>
+      <button
+        type="button"
+        onClick={() => onRemove(itemKey)}
+        className="compare-card__remove"
+      >
+        {t("compare.remove")}
+      </button>
+
+      {external && href ? (
+        <a href={href} target="_blank" rel="noopener noreferrer" className="compare-card__photo">
+          {photo}
+        </a>
+      ) : (
+        <Link to={href} className="compare-card__photo">
+          {photo}
+        </Link>
+      )}
 
       <div className="compare-card__body">
-        <CompareSourceBadge item={item} />
-        <h3 className="compare-card__title">{item.title || t("listing.noTitle")}</h3>
         <div className="compare-card__price">
           {formatPrice(item.price, { emptyLabel: t("compare.notSpecified") })}
         </div>
+        <h3 className="compare-card__title">{item.title || t("listing.noTitle")}</h3>
+        <CompareSourceBadge item={item} />
         <div className="compare-card__meta">
           <span>{place || t("compare.notSpecified")}</span>
           {condition ? <span>{condition}</span> : null}
@@ -174,6 +190,35 @@ function CompareSection({ label }) {
   return <div className="compare-stage__section">{label}</div>;
 }
 
+function CompareBoardControls({ diffsOnly, onToggleDiffs, onReset, catalogPath, t }) {
+  return (
+    <div className="compare-stage__controls">
+      <button
+        type="button"
+        role="switch"
+        aria-checked={diffsOnly}
+        onClick={onToggleDiffs}
+        className="compare-switch"
+      >
+        <span className="compare-switch__track" aria-hidden>
+          <span className="compare-switch__thumb" />
+        </span>
+        {t("compare.diffsOnly")}
+      </button>
+      {onReset && (
+        <button type="button" onClick={onReset} className="compare-reset">
+          {t("compare.reset")}
+        </button>
+      )}
+      {catalogPath && (
+        <Link to={catalogPath} className="compare-stage__more">
+          {t("compare.findMoreOriyon")}
+        </Link>
+      )}
+    </div>
+  );
+}
+
 export function CompareStageSkeleton({ count = 2 }) {
   const columns = Math.max(1, Math.min(4, count));
 
@@ -193,9 +238,8 @@ export function CompareStageSkeleton({ count = 2 }) {
             <div key={index} className="compare-card">
               <div className="compare-card__media skeleton" />
               <div className="compare-card__body space-y-2">
-                <div className="skeleton h-3 w-16 rounded" />
+                <div className="skeleton h-5 w-20 rounded" />
                 <div className="skeleton h-4 w-full rounded" />
-                <div className="skeleton h-5 w-24 rounded" />
               </div>
             </div>
           ))}
@@ -211,9 +255,12 @@ export default function CompareStage({
   trustFields = [],
   diffsOnly = false,
   differingKeys,
+  onToggleDiffs,
+  onReset,
   onRemove,
   onRefresh,
   refreshingKey = "",
+  catalogPath = "",
   t,
 }) {
   const columns = items.length;
@@ -228,7 +275,13 @@ export default function CompareStage({
           }}
         >
           <div className="compare-stage__label compare-stage__label--head">
-            {t("compare.specsColumn")}
+            <CompareBoardControls
+              diffsOnly={diffsOnly}
+              onToggleDiffs={onToggleDiffs}
+              onReset={onReset}
+              catalogPath={catalogPath}
+              t={t}
+            />
           </div>
           {items.map((item) => (
             <CompareListingCard

@@ -8,6 +8,7 @@ import {
   Scale,
 } from "lucide-react";
 import { readCompareIds, COMPARE_MAX } from "../lib/compareListings";
+import { getComparePath } from "../lib/compareConfig";
 import RealEstateSearchHero from "../components/RealEstateSearchHero";
 import RealEstateListingCard from "../components/RealEstateListingCard";
 import ListingGridSkeleton from "../components/ListingGridSkeleton";
@@ -139,7 +140,7 @@ export default function RealEstate() {
       />
 
       <Link
-        to="/realestate/sravnenie"
+        to={getComparePath("realestate")}
         className={`flex items-center justify-between gap-3 rounded-2xl border px-4 py-3.5 transition shadow-sm ${
           compareCount > 0
             ? "border-ink-900/10 bg-ink-900 text-white hover:bg-ink-800"

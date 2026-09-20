@@ -1,6 +1,6 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
-import { createBrowserRouter, RouterProvider, useParams, Navigate } from "react-router-dom";
+import { createBrowserRouter, RouterProvider, useParams, useSearchParams, Navigate } from "react-router-dom";
 
 import App from "./shell/App.jsx";
 import { DEFAULT_REAL_ESTATE_BROWSE_PATH } from "./lib/realestateSeo.js";
@@ -20,10 +20,7 @@ const Messages = React.lazy(() => import("./pages/Messages.jsx"));
 const AddListing = React.lazy(() => import("./pages/AddListing.jsx"));
 const EditListing = React.lazy(() => import("./pages/EditListing.jsx"));
 const Admin = React.lazy(() => import("./pages/Admin.jsx"));
-const ListingCompare = React.lazy(() => import("./pages/ListingCompare.jsx"));
-const RealEstateCompare = React.lazy(
-  () => import("./pages/RealEstateCompare.jsx")
-);
+const CompareHub = React.lazy(() => import("./pages/CompareHub.jsx"));
 const RealEstateDevelopment = React.lazy(
   () => import("./pages/RealEstateDevelopment.jsx")
 );
@@ -32,9 +29,16 @@ const Sections = React.lazy(() => import("./pages/Sections.jsx"));
 import "./styles/index.css";
 import { I18nProvider } from "./i18n/index.jsx";
 
-function CategoryCompareRoute() {
+function LegacyCompareRedirect({ cat }) {
   const { slug } = useParams();
-  return <ListingCompare cat={slug} />;
+  const [params] = useSearchParams();
+  const next = new URLSearchParams();
+  const key = cat || slug;
+  if (key) next.set("cat", key);
+  const share = params.get("share");
+  if (share) next.set("share", share);
+  const query = next.toString();
+  return <Navigate to={query ? `/sravnenie?${query}` : "/sravnenie"} replace />;
 }
 
 function CategoryListingRoute() {
@@ -120,8 +124,12 @@ const router = createBrowserRouter([
         element: <CategoryListingRoute />,
       },
       {
+        path: "sravnenie",
+        element: <CompareHub />,
+      },
+      {
         path: "c/:slug/sravnenie",
-        element: <CategoryCompareRoute />,
+        element: <LegacyCompareRedirect />,
       },
       {
         path: "realestate",
@@ -133,7 +141,7 @@ const router = createBrowserRouter([
       },
       {
         path: "realestate/sravnenie",
-        element: <RealEstateCompare />,
+        element: <LegacyCompareRedirect cat="realestate" />,
       },
       {
         path: "realestate/:citySlug",

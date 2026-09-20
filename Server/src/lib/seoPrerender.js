@@ -149,7 +149,7 @@ function buildCategoryMetaTags({ meta, slug, total, requestUrl }) {
 
 function buildSitemapXml(listings = []) {
   const baseUrl = getSiteBaseUrl();
-  const staticUrls = ["", "/listing", "/realestate", "/policy"].map((pathSuffix) => {
+  const staticUrls = ["", "/listing", "/realestate", "/policy", "/sravnenie"].map((pathSuffix) => {
     const loc = `${baseUrl}${pathSuffix}`;
     return `<url><loc>${escapeHtml(loc)}</loc><changefreq>daily</changefreq></url>`;
   });

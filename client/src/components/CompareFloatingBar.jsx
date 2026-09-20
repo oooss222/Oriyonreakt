@@ -10,7 +10,7 @@ import {
   clearCompare,
   removeCompareEntry,
 } from "../lib/compareListings";
-import { getCompareConfig, getComparePath } from "../lib/compareConfig";
+import { getCompareConfig, getComparePath, isComparePagePath } from "../lib/compareConfig";
 import { resolveMediaUrl } from "../lib/media";
 import { useI18n } from "../i18n";
 
@@ -104,8 +104,7 @@ export default function CompareFloatingBar() {
   const hidden =
     count === 0 ||
     !config ||
-    location.pathname === comparePath ||
-    location.pathname.startsWith(`${comparePath}/`);
+    isComparePagePath(location.pathname);
 
   React.useEffect(() => {
     const sync = () => {

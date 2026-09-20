@@ -180,6 +180,17 @@ export function readCompareCount(cat = "realestate") {
   return readCompareEntries(cat).length;
 }
 
+export function readCompareBucketCounts() {
+  return COMPARE_SUPPORTED_CATS.map((cat) => ({
+    cat,
+    count: readCompareCount(cat),
+  }));
+}
+
+export function readCompareTotalCount() {
+  return readCompareBucketCounts().reduce((sum, row) => sum + row.count, 0);
+}
+
 function writeCompareEntries(entries = [], cat = "realestate") {
   const key = normalizeCat(cat);
   const buckets = readAllBuckets();
@@ -355,9 +366,11 @@ export function isCompareSupported(cat) {
 }
 
 export function getActiveCompareCat(pathname = "") {
-  if (pathname.startsWith("/realestate")) return "realestate";
+  const path = String(pathname || "");
+  if (path === "/sravnenie" || path.endsWith("/sravnenie")) return null;
+  if (path.startsWith("/realestate")) return "realestate";
 
-  const match = String(pathname).match(/^\/c\/([^/]+)/);
+  const match = path.match(/^\/c\/([^/]+)/);
   const slug = match?.[1];
   if (slug && isCompareSupported(slug)) return slug;
 

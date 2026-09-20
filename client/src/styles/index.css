@@ -1313,6 +1313,46 @@
     }
   }
 
+  .compare-hub__head {
+    @apply flex flex-wrap items-center justify-between gap-3;
+  }
+
+  .compare-hub__head h1 {
+    @apply font-display text-2xl font-bold tracking-tight text-ink sm:text-[1.75rem];
+  }
+
+  .compare-hub__fav {
+    @apply inline-flex h-11 items-center gap-2 text-sm font-semibold text-sun transition hover:text-sun-600;
+  }
+
+  .compare-cats {
+    @apply flex flex-wrap gap-2;
+  }
+
+  .compare-cat {
+    @apply inline-flex h-11 items-center gap-2 rounded-full border border-ink/10 bg-white px-3.5 text-sm font-semibold text-ink-600 transition hover:border-ink/20 hover:bg-mist/70;
+  }
+
+  .compare-cat.is-on {
+    @apply border-ink bg-ink text-white;
+  }
+
+  .compare-cat__count {
+    @apply inline-flex min-w-[1.35rem] items-center justify-center rounded-full bg-mist px-1.5 text-xs font-bold text-ink-500;
+  }
+
+  .compare-cat.is-on .compare-cat__count {
+    @apply bg-white/15 text-white;
+  }
+
+  .compare-add-btn {
+    @apply inline-flex h-11 w-full min-w-0 items-center justify-center gap-2 rounded-xl border border-ink/10 bg-white px-3 text-sm font-semibold text-ink transition hover:border-ink/20 hover:bg-mist/70 active:scale-[0.99];
+  }
+
+  .compare-add-btn.is-on {
+    @apply border-sun/30 bg-sun/10 text-sun hover:bg-sun/15;
+  }
+
   .compare-head {
     @apply flex flex-wrap items-start justify-between gap-3;
   }
@@ -1361,8 +1401,36 @@
     @apply translate-x-4;
   }
 
+  .compare-stage__controls {
+    @apply flex flex-col items-start gap-3;
+  }
+
+  .compare-stage__label--head .compare-switch {
+    height: auto;
+    min-height: 2.75rem;
+    align-items: flex-start;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    white-space: normal;
+    text-align: left;
+    line-height: 1.3;
+  }
+
+  .compare-stage__label--head .compare-switch[aria-checked="true"] {
+    background: transparent;
+  }
+
+  .compare-reset {
+    @apply inline-flex h-11 items-center gap-2 text-sm font-semibold text-ink-400 transition hover:text-ink;
+  }
+
+  .compare-stage__more {
+    @apply inline-flex h-11 items-center text-sm font-semibold text-sun hover:text-sun-600;
+  }
+
   .compare-stage {
-    @apply overflow-hidden rounded-[1.25rem] border border-ink/10 bg-white shadow-soft;
+    @apply overflow-hidden rounded-[1.25rem] border border-ink/10 bg-white;
   }
 
   .compare-stage__scroll {
@@ -1417,13 +1485,14 @@
 
   .compare-stage__label--head {
     display: flex;
-    align-items: flex-end;
+    align-items: flex-start;
+    padding-top: 1.15rem;
     padding-bottom: 1.25rem;
-    font-size: 0.75rem;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: rgb(28 27 26 / 0.38);
+    font-size: inherit;
+    font-weight: inherit;
+    letter-spacing: normal;
+    text-transform: none;
+    color: inherit;
   }
 
   .compare-stage__value {
@@ -1467,13 +1536,27 @@
   .compare-card {
     display: flex;
     flex-direction: column;
+    align-items: center;
     min-width: 0;
-    padding: 0.85rem 0.85rem 1rem;
+    padding: 0.85rem 0.85rem 1.15rem;
+    text-align: center;
+  }
+
+  .compare-card__photo {
+    display: block;
   }
 
   .compare-card__media {
-    @apply relative aspect-[4/3] overflow-hidden bg-mist;
-    border-radius: 1rem;
+    @apply relative overflow-hidden bg-mist;
+    width: 6.75rem;
+    height: 6.75rem;
+    aspect-ratio: 1;
+    border-radius: 999px;
+    margin: 0 auto;
+  }
+
+  .compare-card__fallback {
+    @apply grid h-full w-full place-items-center text-ink-300;
   }
 
   .compare-card__media img {
@@ -1487,16 +1570,18 @@
   }
 
   .compare-card__remove {
-    @apply absolute right-2 top-2 inline-flex h-11 w-11 items-center justify-center rounded-full border border-ink/10 bg-white/95 text-ink-400 shadow-soft transition hover:bg-white hover:text-ink;
+    @apply mb-2 inline-flex h-11 items-center justify-center text-sm font-medium text-ink-400 transition hover:text-red-500;
   }
 
   .compare-card__body {
     display: flex;
     min-width: 0;
+    width: 100%;
     flex: 1;
     flex-direction: column;
+    align-items: center;
     gap: 0.4rem;
-    padding-top: 0.75rem;
+    padding-top: 0.85rem;
   }
 
   .compare-card__title {
@@ -1563,7 +1648,7 @@
     height: 2.75rem;
     aspect-ratio: 1;
     flex-shrink: 0;
-    border-radius: 0.7rem;
+    border-radius: 999px;
   }
 
   .compare-pin__title {

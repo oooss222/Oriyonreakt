@@ -76,10 +76,10 @@ export function decodeCompareShare(token) {
 }
 
 export function buildCompareShareUrl(cat, entries = [], origin = "") {
-  const path = getComparePath(cat);
   const token = encodeCompareShare(cat, entries);
+  const path = getComparePath(cat, { share: token });
   const base = origin || (typeof window !== "undefined" ? window.location.origin : "");
-  return `${base}${path}?share=${encodeURIComponent(token)}`;
+  return `${base}${path}`;
 }
 
 const LANG_STORAGE_KEY = "oriyon_lang";

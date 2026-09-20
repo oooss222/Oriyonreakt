@@ -90,44 +90,45 @@ export default function AdPurchasePanel({
             </div>
           )}
         </div>
+      </div>
 
-        <div className="flex shrink-0 items-center gap-1.5">
-          <button
-            type="button"
-            className={`inline-flex h-11 w-11 items-center justify-center rounded-full border transition ${
-              isFav
-                ? "border-red-200 bg-red-50 text-red-500"
-                : "border-ink/10 bg-white text-ink-500 hover:border-ink/20 hover:text-red-500"
-            }`}
-            onClick={onToggleFav}
-            aria-label={isFav ? t("favorites.ariaRemove") : t("favorites.add")}
-          >
-            <Heart className={`h-4 w-4 ${isFav ? "fill-current" : ""}`} />
-          </button>
+      <div className="flex items-center gap-1.5">
+        <button
+          type="button"
+          className={`inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border transition ${
+            isFav
+              ? "border-red-200 bg-red-50 text-red-500"
+              : "border-ink/10 bg-white text-ink-500 hover:border-ink/20 hover:text-red-500"
+          }`}
+          onClick={onToggleFav}
+          aria-label={isFav ? t("favorites.ariaRemove") : t("favorites.add")}
+        >
+          <Heart className={`h-4 w-4 ${isFav ? "fill-current" : ""}`} />
+        </button>
 
-          {showCompare && (
-            <CompareListingButton
-              listingId={ad.id || ad._id}
-              cat={compareCat}
-              listing={ad}
-              compact
-              showOpenLink={false}
-            />
+        {showCompare && (
+          <CompareListingButton
+            listingId={ad.id || ad._id}
+            cat={compareCat}
+            listing={ad}
+            labeled
+            compact
+            showOpenLink={false}
+          />
+        )}
+
+        <button
+          type="button"
+          className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-ink/10 bg-white text-ink-500 transition hover:border-ink/20 hover:bg-mist-50"
+          onClick={onShare}
+          aria-label={t("compare.share")}
+        >
+          {copied ? (
+            <Check className="h-4 w-4 text-lagoon" />
+          ) : (
+            <Share2 className="h-4 w-4" />
           )}
-
-          <button
-            type="button"
-            className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-ink/10 bg-white text-ink-500 transition hover:border-ink/20 hover:bg-mist-50"
-            onClick={onShare}
-            aria-label={t("compare.share")}
-          >
-            {copied ? (
-              <Check className="h-4 w-4 text-lagoon" />
-            ) : (
-              <Share2 className="h-4 w-4" />
-            )}
-          </button>
-        </div>
+        </button>
       </div>
 
       <div className="space-y-4 border-t border-ink/10 pt-5">

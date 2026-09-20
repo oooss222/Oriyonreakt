@@ -23,12 +23,8 @@ import HeaderSearchSuggestions from "./HeaderSearchSuggestions";
 import LanguageSwitcher from "./LanguageSwitcher";
 import UnreadBadge from "./UnreadBadge";
 import { useI18n } from "../i18n";
-import {
-  readCompareIds,
-  getActiveCompareCat,
-  findCompareCatWithItems,
-} from "../lib/compareListings";
-import { getComparePath } from "../lib/compareConfig";
+import { readCompareTotalCount } from "../lib/compareListings";
+import { COMPARE_HUB_PATH } from "../lib/compareConfig";
 
 export default function Header({ variant = "full" }) {
   const nav = useNavigate();
@@ -45,7 +41,6 @@ export default function Header({ variant = "full" }) {
   const [showSuggestions, setShowSuggestions] = React.useState(false);
   const [moderationCount, setModerationCount] = React.useState(0);
   const [compareCount, setCompareCount] = React.useState(0);
-  const [comparePath, setComparePath] = React.useState("/realestate/sravnenie");
   const [scrolled, setScrolled] = React.useState(false);
 
   const token = localStorage.getItem(TOKEN_KEY) || "";
@@ -112,10 +107,7 @@ export default function Header({ variant = "full" }) {
 
   React.useEffect(() => {
     const syncCompare = () => {
-      const pathCat = getActiveCompareCat(pathname);
-      const activeCat = findCompareCatWithItems(pathCat) || pathCat || "realestate";
-      setComparePath(getComparePath(activeCat));
-      setCompareCount(readCompareIds(activeCat).length);
+      setCompareCount(readCompareTotalCount());
     };
 
     syncCompare();
@@ -319,7 +311,7 @@ export default function Header({ variant = "full" }) {
             </Link>
 
             <Link
-              to={comparePath}
+              to={COMPARE_HUB_PATH}
               className="relative icon-btn"
               title={t("nav.compare")}
               aria-label={t("nav.compare")}
@@ -393,7 +385,7 @@ export default function Header({ variant = "full" }) {
             <LanguageSwitcher />
 
             <Link
-              to={comparePath}
+              to={COMPARE_HUB_PATH}
               className="relative hidden xs:inline-flex shrink-0 p-2 rounded-lg hover:bg-white/10 transition"
               title={t("nav.compare")}
               aria-label={t("nav.compare")}

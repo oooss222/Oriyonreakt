@@ -242,12 +242,26 @@ export const COMPARE_CONFIG = {
   },
 };
 
+export const COMPARE_HUB_PATH = "/sravnenie";
+
 export function getCompareConfig(cat) {
   return COMPARE_CONFIG[String(cat || "").trim()] || null;
 }
 
-export function getComparePath(cat) {
-  return getCompareConfig(cat)?.path || "/realestate/sravnenie";
+export function getComparePath(cat, extra = {}) {
+  const params = new URLSearchParams();
+  const key = String(cat || "").trim();
+  if (getCompareConfig(key)) params.set("cat", key);
+  for (const [name, value] of Object.entries(extra)) {
+    if (value != null && value !== "") params.set(name, String(value));
+  }
+  const query = params.toString();
+  return query ? `${COMPARE_HUB_PATH}?${query}` : COMPARE_HUB_PATH;
+}
+
+export function isComparePagePath(pathname = "") {
+  const path = String(pathname || "");
+  return path === COMPARE_HUB_PATH || path.endsWith("/sravnenie");
 }
 
 export function localizeCompareFields(fields = [], t) {

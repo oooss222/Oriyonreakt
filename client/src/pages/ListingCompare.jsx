@@ -1,6 +1,6 @@
 import React from "react";
-import { Link, useSearchParams } from "react-router-dom";
-import { Scale, Trash2, RefreshCw, Loader2 } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
+import { Scale, RefreshCw, Loader2 } from "lucide-react";
 import Breadcrumbs from "../components/Breadcrumbs";
 import EmptyState from "../components/EmptyState";
 import CompareExternalForm from "../components/CompareExternalForm";
@@ -36,7 +36,7 @@ import { decodeCompareShare } from "../lib/compareShare";
 import { usePageMeta } from "../lib/usePageMeta";
 import { useI18n, getCategoryLabel } from "../i18n";
 
-export default function ListingCompare({ cat }) {
+export default function ListingCompare({ cat, embed = false }) {
   const { t, lang } = useI18n();
   const [searchParams, setSearchParams] = useSearchParams();
   const config = getCompareConfig(cat);
@@ -128,7 +128,15 @@ export default function ListingCompare({ cat }) {
       replaceCompareEntries(next, cat);
       syncEntries();
       setShareNotice(t("compare.shareLoaded", { count: next.length }));
-      setSearchParams({}, { replace: true });
+      setSearchParams(
+        (prev) => {
+          const nextParams = new URLSearchParams();
+          const keepCat = prev.get("cat");
+          if (keepCat) nextParams.set("cat", keepCat);
+          return nextParams;
+        },
+        { replace: true }
+      );
       setLoading(false);
     }
 
@@ -341,48 +349,58 @@ export default function ListingCompare({ cat }) {
     setRefreshingAll(false);
   };
 
-  return (
-    <div className="compare-page container-x py-5 sm:py-6 space-y-4">
-      <Breadcrumbs items={breadcrumbs} />
+  const page = (
+    <>
+      {!embed && <Breadcrumbs items={breadcrumbs} />}
 
-      <header className="compare-head">
-        <div>
-          <h1>{t("compare.titleFull")}</h1>
-          <p className="compare-head__lead">{t("compare.pageLead")}</p>
-        </div>
-        <div className="compare-head__aside">
-          <span className="compare-head__count">
-            {t("compare.countSelected", { count })}
-          </span>
-          {externalItems.length > 0 && (
-            <button
-              type="button"
-              onClick={handleRefreshAll}
-              disabled={refreshingAll || Boolean(refreshingKey)}
-              className="btn btn-secondary"
-            >
-              {refreshingAll ? (
-                <Loader2 size={16} className="animate-spin" />
-              ) : (
-                <RefreshCw size={16} />
-              )}
-              {t("compare.refreshAll")}
-            </button>
-          )}
-          {count > 0 && (
-            <button
-              type="button"
-              onClick={() => clearCompare(cat)}
-              className="btn btn-secondary"
-            >
-              <Trash2 size={16} />
-              {t("compare.clearAll")}
-            </button>
-          )}
-        </div>
-      </header>
+      {!embed && (
+        <header className="compare-head">
+          <div>
+            <h1>{t("compare.title")}</h1>
+            <p className="compare-head__lead">{t("compare.pageLead")}</p>
+          </div>
+          <div className="compare-head__aside">
+            <span className="compare-head__count">
+              {t("compare.countSelected", { count })}
+            </span>
+            {externalItems.length > 0 && (
+              <button
+                type="button"
+                onClick={handleRefreshAll}
+                disabled={refreshingAll || Boolean(refreshingKey)}
+                className="btn btn-secondary"
+              >
+                {refreshingAll ? (
+                  <Loader2 size={16} className="animate-spin" />
+                ) : (
+                  <RefreshCw size={16} />
+                )}
+                {t("compare.refreshAll")}
+              </button>
+            )}
+          </div>
+        </header>
+      )}
 
-      <CompareExternalForm cat={cat} onAdded={syncEntries} />
+      {embed && externalItems.length > 0 && (
+        <div className="flex justify-end">
+          <button
+            type="button"
+            onClick={handleRefreshAll}
+            disabled={refreshingAll || Boolean(refreshingKey)}
+            className="btn btn-secondary"
+          >
+            {refreshingAll ? (
+              <Loader2 size={16} className="animate-spin" />
+            ) : (
+              <RefreshCw size={16} />
+            )}
+            {t("compare.refreshAll")}
+          </button>
+        </div>
+      )}
+
+      {!embed && <CompareExternalForm cat={cat} onAdded={syncEntries} />}
 
       {shareNotice && (
         <p className="text-sm text-lagoon-700 bg-lagoon/5 border border-lagoon/15 rounded-xl px-3 py-2">
@@ -420,36 +438,18 @@ export default function ListingCompare({ cat }) {
 
       {!loading && items.length > 0 && (
         <>
-          <div className="compare-toolbar">
-            <button
-              type="button"
-              role="switch"
-              aria-checked={diffsOnly}
-              onClick={() => setDiffsOnly((value) => !value)}
-              className="compare-switch"
-            >
-              <span className="compare-switch__track" aria-hidden>
-                <span className="compare-switch__thumb" />
-              </span>
-              {t("compare.diffsOnly")}
-            </button>
-            <Link
-              to={config.catalogPath}
-              className="inline-flex h-11 items-center text-sm font-semibold text-sun hover:text-sun-600"
-            >
-              {t("compare.findMoreOriyon")}
-            </Link>
-          </div>
-
           <CompareStage
             items={items}
             fieldGroups={fieldGroups}
             trustFields={trustFields}
             diffsOnly={diffsOnly}
             differingKeys={differingKeys}
+            onToggleDiffs={() => setDiffsOnly((value) => !value)}
+            onReset={() => clearCompare(cat)}
             onRemove={handleRemove}
             onRefresh={handleRefresh}
             refreshingKey={refreshingKey}
+            catalogPath={config.catalogPath}
             t={t}
           />
 
@@ -472,6 +472,16 @@ export default function ListingCompare({ cat }) {
           )}
         </>
       )}
+
+      {embed && <CompareExternalForm cat={cat} onAdded={syncEntries} />}
+    </>
+  );
+
+  if (embed) return <div className="space-y-4">{page}</div>;
+
+  return (
+    <div className="compare-page container-x py-5 sm:py-6 space-y-4">
+      {page}
     </div>
   );
 }
