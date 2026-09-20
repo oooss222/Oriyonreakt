@@ -13,6 +13,28 @@ export const DEAL_TYPES = [
   { value: "Посуточно", label: "Посуточно", icon: "daily" },
 ];
 
+export const BUY_RENT_DEAL_VALUES = ["Купить", "Снять"];
+export const BUY_DEAL_VALUES = ["Купить"];
+
+export function getDealValuesForSubcategory(subcategory = "") {
+  const sub = String(subcategory || "").trim();
+  if (!sub) return DEAL_TYPES.map((item) => item.value);
+  if (sub === "Новостройки") return BUY_DEAL_VALUES;
+  if (
+    sub === "Участки" ||
+    sub === "Гаражи и парковки" ||
+    sub === "Коммерческая недвижимость"
+  ) {
+    return BUY_RENT_DEAL_VALUES;
+  }
+  return DEAL_TYPES.map((item) => item.value);
+}
+
+export function getDealTypesForSubcategory(subcategory = "") {
+  const allowed = new Set(getDealValuesForSubcategory(subcategory));
+  return DEAL_TYPES.filter((item) => allowed.has(item.value));
+}
+
 export const ROOM_OPTIONS = ["1", "2", "3", "4", "5", "5+"];
 
 export const GUEST_OPTIONS = ["1", "2", "3", "4", "5", "6", "7", "8+"];
@@ -117,19 +139,14 @@ export function parseMultiSpecValue(value = "") {
 }
 
 export function isSubcategoryCompatibleWithDeal(subcategory = "", dealType = "") {
-  if (!subcategory) return true;
-  if (isDailyDeal(dealType)) {
-    return DAILY_HOUSING_TYPES.some((item) => item.value === subcategory);
-  }
-  if (subcategory === "Новостройки") {
-    return dealType === "Купить" || !dealType;
-  }
-  return true;
+  if (!subcategory || !dealType) return true;
+  return getDealValuesForSubcategory(subcategory).includes(dealType);
 }
 
 export function getDefaultDealForSubcategory(subcategory = "") {
+  const allowed = getDealValuesForSubcategory(subcategory);
   if (subcategory === "Новостройки") return "Купить";
-  return "";
+  return allowed[0] || "";
 }
 
 export function parseGuestCapacity(value = "") {
@@ -339,7 +356,6 @@ export const COMMERCIAL_PARKING_OPTIONS = ["Есть", "Нет"];
 
 const HOUSING_RENT_FILTER_SUBCATEGORIES = [
   "Квартиры",
-  "Новостройки",
   "Комнаты",
   "Дома и коттеджи",
 ];
@@ -368,8 +384,12 @@ const BUILD_YEARS = Array.from({ length: 2026 - 1970 + 1 }, (_, i) =>
   String(2026 - i)
 );
 
+function dealSpec(options = DEAL_TYPES.map((item) => item.value)) {
+  return { name: "Тип сделки", type: "select", options };
+}
+
 export const APARTMENT_SPECS = [
-  { name: "Тип сделки", type: "select", options: DEAL_TYPES.map((d) => d.value) },
+  dealSpec(),
   { name: "Гостей", type: "select", options: GUEST_OPTIONS, dailyOnly: true },
   { name: "Комнат", type: "select", options: ROOM_OPTIONS },
   { name: "Площадь общая", type: "text", placeholder: "м²" },
@@ -399,7 +419,7 @@ export const APARTMENT_SPECS = [
 ];
 
 export const HOUSE_SPECS = [
-  { name: "Тип сделки", type: "select", options: DEAL_TYPES.map((d) => d.value) },
+  dealSpec(),
   { name: "Гостей", type: "select", options: GUEST_OPTIONS, dailyOnly: true },
   { name: "Комнат", type: "select", options: ROOM_OPTIONS },
   { name: "Площадь дома", type: "text", placeholder: "м²" },
@@ -422,7 +442,7 @@ export const HOUSE_SPECS = [
 ];
 
 export const LAND_SPECS = [
-  { name: "Тип сделки", type: "select", options: DEAL_TYPES.map((d) => d.value) },
+  dealSpec(BUY_RENT_DEAL_VALUES),
   { name: "Площадь участка", type: "text", placeholder: "сот. или м²" },
   { name: "Назначение", type: "select", options: LAND_PURPOSE_OPTIONS },
   { name: "Коммуникации", type: "select", options: LAND_COMMUNICATIONS_OPTIONS },
@@ -430,7 +450,7 @@ export const LAND_SPECS = [
 ];
 
 export const COMMERCIAL_SPECS = [
-  { name: "Тип сделки", type: "select", options: DEAL_TYPES.map((d) => d.value) },
+  dealSpec(BUY_RENT_DEAL_VALUES),
   { name: "Тип объекта", type: "select", options: COMMERCIAL_OBJECT_TYPE_OPTIONS },
   { name: "Площадь", type: "text", placeholder: "м²" },
   { name: "Этаж", type: "text" },
@@ -441,7 +461,7 @@ export const COMMERCIAL_SPECS = [
 ];
 
 export const GARAGE_SPECS = [
-  { name: "Тип сделки", type: "select", options: DEAL_TYPES.map((d) => d.value) },
+  dealSpec(BUY_RENT_DEAL_VALUES),
   { name: "Тип", type: "select", options: GARAGE_TYPE_OPTIONS },
   { name: "Площадь", type: "text", placeholder: "м²" },
   { name: "Охрана", type: "select", options: GARAGE_SECURITY_OPTIONS },
@@ -450,7 +470,7 @@ export const GARAGE_SPECS = [
 ];
 
 export const ROOM_SPECS = [
-  { name: "Тип сделки", type: "select", options: DEAL_TYPES.map((d) => d.value) },
+  dealSpec(),
   { name: "Площадь", type: "text", placeholder: "м²" },
   { name: "Этаж", type: "text" },
   { name: "Мебель", type: "select", options: ["С мебелью", "Без мебели"] },
@@ -465,8 +485,26 @@ export const ROOM_SPECS = [
   { name: "Залог", type: "select", options: RENT_DEPOSIT_OPTIONS, rentOnly: true },
 ];
 
+export const NEW_BUILD_SPECS = [
+  dealSpec(BUY_DEAL_VALUES),
+  { name: "Комнат", type: "select", options: ROOM_OPTIONS },
+  { name: "Площадь общая", type: "text", placeholder: "м²" },
+  { name: "Площадь жилая", type: "text", placeholder: "м²" },
+  { name: "Этаж", type: "text" },
+  { name: "Этажей в доме", type: "text" },
+  { name: "Район", type: "select", options: DUSHANBE_DISTRICTS, dynamicOptionsFrom: "city" },
+  { name: "Адрес", type: "text", placeholder: "Улица, дом, ориентир" },
+  { name: "ЖК", type: "select", options: [] },
+  { name: "Тип дома", type: "select", options: ["Кирпич", "Панель", "Монолит", "Блок", "Другое"] },
+  { name: "Год постройки", type: "select", options: BUILD_YEARS },
+  { name: "Ремонт", type: "select", options: ["Без ремонта", "Косметический", "Евро", "Дизайнерский"] },
+  { name: "Балкон", type: "select", options: ["Есть", "Нет", "Лоджия", "2 балкона"] },
+  { name: "Санузел", type: "select", options: ["Раздельный", "Совмещённый", "2 санузла"] },
+  { name: "Парковка", type: "select", options: ["Есть", "Нет", "Гараж", "Подземная"] },
+];
+
 export const REAL_ESTATE_SUB_SPECS = {
-  Новостройки: APARTMENT_SPECS,
+  Новостройки: NEW_BUILD_SPECS,
   Квартиры: APARTMENT_SPECS,
   Комнаты: ROOM_SPECS,
   "Дома и коттеджи": HOUSE_SPECS,

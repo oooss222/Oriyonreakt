@@ -90,20 +90,51 @@ const PARTS_SPECS = [
 ];
 
 const TIRES_SPECS = [
+  {
+    name: "Тип",
+    type: "select",
+    options: ["Шины", "Диски", "Комплект"],
+  },
   { name: "Сезон", type: "select", options: COMMON_SPEC_OPTIONS.tireSeason },
   { name: "Диаметр", type: "select", options: COMMON_SPEC_OPTIONS.tireDiameter },
   { name: "Ширина", type: "select", options: COMMON_SPEC_OPTIONS.tireWidth },
   { name: "Состояние", type: "select", options: COMMON_SPEC_OPTIONS.condition },
 ];
 
-const GENERIC_VEHICLE_SPECS = [
+const TRUCK_SPECS = [
   { name: "Марка", type: "text" },
   { name: "Модель", type: "text" },
   { name: "Год", type: "select", options: COMMON_SPEC_OPTIONS.years },
-  { name: "Кузов", type: "select", options: COMMON_SPEC_OPTIONS.bodyType },
   { name: "Топливо", type: "select", options: COMMON_SPEC_OPTIONS.fuel },
   { name: "КПП", type: "select", options: COMMON_SPEC_OPTIONS.kpp },
-  { name: "Привод", type: "select", options: COMMON_SPEC_OPTIONS.drive },
+  { name: "Состояние", type: "select", options: COMMON_SPEC_OPTIONS.condition },
+];
+
+const MOTO_SPECS = [
+  { name: "Марка", type: "text" },
+  { name: "Модель", type: "text" },
+  { name: "Год", type: "select", options: COMMON_SPEC_OPTIONS.years },
+  {
+    name: "Тип",
+    type: "select",
+    options: ["Мотоцикл", "Скутер", "Квадроцикл", "Другое"],
+  },
+  { name: "Объем", type: "select", options: COMMON_SPEC_OPTIONS.engineVolume },
+  { name: "Состояние", type: "select", options: COMMON_SPEC_OPTIONS.condition },
+];
+
+const HEAVY_VEHICLE_SPECS = [
+  { name: "Марка", type: "text" },
+  { name: "Модель", type: "text" },
+  { name: "Год", type: "select", options: COMMON_SPEC_OPTIONS.years },
+  { name: "Топливо", type: "select", options: COMMON_SPEC_OPTIONS.fuel },
+  { name: "Состояние", type: "select", options: COMMON_SPEC_OPTIONS.condition },
+];
+
+const TRAILER_SPECS = [
+  { name: "Марка", type: "text" },
+  { name: "Модель", type: "text" },
+  { name: "Год", type: "select", options: COMMON_SPEC_OPTIONS.years },
   { name: "Состояние", type: "select", options: COMMON_SPEC_OPTIONS.condition },
 ];
 
@@ -139,8 +170,131 @@ const SERVICE_SPECS = [
 const REPAIR_MATERIALS_SPECS = [
   { name: "Тип", type: "select", options: COMMON_SPEC_OPTIONS.repairType },
   { name: "Материал/Бренд", type: "text" },
+];
+
+const FURNITURE_SPECS = [
+  { name: "Тип", type: "select", options: COMMON_SPEC_OPTIONS.furnitureType },
+  { name: "Материал", type: "select", options: COMMON_SPEC_OPTIONS.material },
+  { name: "Состояние", type: "select", options: COMMON_SPEC_OPTIONS.condition },
+  { name: "Цвет", type: "select", options: COMMON_SPEC_OPTIONS.color },
+  { name: "Размеры", type: "text" },
+];
+
+const FURNITURE_CUSTOM_SPECS = [
+  { name: "Тип", type: "select", options: COMMON_SPEC_OPTIONS.furnitureType },
+  { name: "Материал", type: "select", options: COMMON_SPEC_OPTIONS.material },
+  { name: "Цвет", type: "select", options: COMMON_SPEC_OPTIONS.color },
+  { name: "Размеры", type: "text" },
+];
+
+function resolveFurnitureSpecTemplate(subcategory = "") {
+  return subcategory === "Мебель на заказ" ? FURNITURE_CUSTOM_SPECS : FURNITURE_SPECS;
+}
+
+const HOME_APPLIANCE_TYPES = [
+  "Холодильник",
+  "Стиральная машина",
+  "Плита",
+  "Телевизор",
+  "Пылесос",
+  "Микроволновка",
+  "Водонагреватель",
+  "Другое",
+];
+
+const CCTV_TYPES = ["Камера", "Регистратор", "Комплект видеонаблюдения", "Другое"];
+const CCTV_BRANDS = ["Hikvision", "Dahua", "Xiaomi", "TP-Link", "Imou", "Другое"];
+const CLIMATE_TYPES = ["Кондиционер", "Вентилятор", "Увлажнитель", "Очиститель воздуха", "Другое"];
+const HEATER_TYPES = ["Масляный", "Конвектор", "Инфракрасный", "Тепловентилятор", "Другое"];
+
+const ELECTRONICS_HOME_SPECS = [
+  { name: "Тип", type: "select", options: HOME_APPLIANCE_TYPES },
+  { name: "Бренд", type: "select", options: APPLIANCE_BRANDS },
+  {
+    name: "Модель",
+    type: "select",
+    dependsOn: "Бренд",
+    optionsFrom: APPLIANCE_MODELS,
+  },
+  { name: "Состояние", type: "select", options: COMMON_SPEC_OPTIONS.condition },
+  { name: "Гарантия", type: "select", options: COMMON_SPEC_OPTIONS.warranty },
+];
+
+const ELECTRONICS_CCTV_SPECS = [
+  { name: "Тип", type: "select", options: CCTV_TYPES },
+  { name: "Бренд", type: "select", options: CCTV_BRANDS },
+  { name: "Состояние", type: "select", options: COMMON_SPEC_OPTIONS.condition },
+  { name: "Гарантия", type: "select", options: COMMON_SPEC_OPTIONS.warranty },
+];
+
+const ELECTRONICS_CLIMATE_SPECS = [
+  { name: "Тип", type: "select", options: CLIMATE_TYPES },
+  { name: "Бренд", type: "select", options: APPLIANCE_BRANDS },
+  { name: "Состояние", type: "select", options: COMMON_SPEC_OPTIONS.condition },
+  { name: "Гарантия", type: "select", options: COMMON_SPEC_OPTIONS.warranty },
+];
+
+const ELECTRONICS_HEATER_SPECS = [
+  { name: "Тип", type: "select", options: HEATER_TYPES },
+  { name: "Бренд", type: "select", options: APPLIANCE_BRANDS },
+  { name: "Состояние", type: "select", options: COMMON_SPEC_OPTIONS.condition },
+  { name: "Гарантия", type: "select", options: COMMON_SPEC_OPTIONS.warranty },
+];
+
+function resolveElectronicsSpecTemplate(subcategory = "") {
+  if (subcategory === "Видеонаблюдение и камеры") return ELECTRONICS_CCTV_SPECS;
+  if (subcategory === "Климатическая техника") return ELECTRONICS_CLIMATE_SPECS;
+  if (subcategory === "Обогреватели") return ELECTRONICS_HEATER_SPECS;
+  return ELECTRONICS_HOME_SPECS;
+}
+
+const COMPUTER_LAPTOP_SPECS = [
+  { name: "Бренд", type: "select", options: LAPTOP_BRANDS },
+  {
+    name: "Модель",
+    type: "select",
+    dependsOn: "Бренд",
+    optionsFrom: LAPTOP_MODELS,
+  },
+  { name: "Процессор", type: "text" },
+  { name: "ОЗУ", type: "select", options: COMMON_SPEC_OPTIONS.ram },
+  { name: "Накопитель", type: "select", options: COMMON_SPEC_OPTIONS.storage },
+  { name: "Видеокарта", type: "text" },
   { name: "Состояние", type: "select", options: COMMON_SPEC_OPTIONS.condition },
 ];
+
+const COMPUTER_PC_SPECS = [
+  { name: "Тип", type: "select", options: ["Готовый ПК", "Сборка"] },
+  { name: "Процессор", type: "text" },
+  { name: "ОЗУ", type: "select", options: COMMON_SPEC_OPTIONS.ram },
+  { name: "Накопитель", type: "select", options: COMMON_SPEC_OPTIONS.storage },
+  { name: "Видеокарта", type: "text" },
+  { name: "Состояние", type: "select", options: COMMON_SPEC_OPTIONS.condition },
+];
+
+const COMPUTER_CONSOLE_SPECS = [
+  {
+    name: "Платформа",
+    type: "select",
+    options: ["PlayStation", "Xbox", "Nintendo Switch", "Другое"],
+  },
+  { name: "Модель", type: "text" },
+  { name: "Состояние", type: "select", options: COMMON_SPEC_OPTIONS.condition },
+];
+
+const COMPUTER_PRINTER_SPECS = [
+  { name: "Тип", type: "select", options: ["Принтер", "МФУ", "Сканер", "Другое"] },
+  { name: "Бренд", type: "select", options: ["HP", "Canon", "Epson", "Brother", "Другое"] },
+  { name: "Модель", type: "text" },
+  { name: "Состояние", type: "select", options: COMMON_SPEC_OPTIONS.condition },
+];
+
+function resolveComputerSpecTemplate(subcategory = "") {
+  if (subcategory === "ПК") return COMPUTER_PC_SPECS;
+  if (subcategory === "Приставки") return COMPUTER_CONSOLE_SPECS;
+  if (subcategory === "Принтеры и сканеры") return COMPUTER_PRINTER_SPECS;
+  return COMPUTER_LAPTOP_SPECS;
+}
 
 // Builds a flat, DB-compatible `subs` list ("Группа — Пункт") from a
 // two-level {group, items[]} definition, so listings keep storing a single
@@ -480,11 +634,11 @@ export const CATS = {
       "Легковые авто": CAR_SPECS,
       "Запчасти": PARTS_SPECS,
       "Шины и диски": TIRES_SPECS,
-      "Грузовики и автобусы": GENERIC_VEHICLE_SPECS,
-      "Мототранспорт": GENERIC_VEHICLE_SPECS,
-      "Сельхозтехника": GENERIC_VEHICLE_SPECS,
-      "Спецтехника": GENERIC_VEHICLE_SPECS,
-      "Прицепы": GENERIC_VEHICLE_SPECS,
+      "Грузовики и автобусы": TRUCK_SPECS,
+      "Мототранспорт": MOTO_SPECS,
+      "Сельхозтехника": HEAVY_VEHICLE_SPECS,
+      "Спецтехника": HEAVY_VEHICLE_SPECS,
+      "Прицепы": TRAILER_SPECS,
       "Автохимия и автомасла": AUTO_CHEMICALS_SPECS,
     },
   },
@@ -500,13 +654,8 @@ export const CATS = {
       "Мебель для прихожей",
       "Мебель на заказ",
     ],
-    specTemplate: [
-      { name: "Тип", type: "select", options: COMMON_SPEC_OPTIONS.furnitureType },
-      { name: "Материал", type: "select", options: COMMON_SPEC_OPTIONS.material },
-      { name: "Состояние", type: "select", options: COMMON_SPEC_OPTIONS.condition },
-      { name: "Цвет", type: "select", options: COMMON_SPEC_OPTIONS.color },
-      { name: "Размеры", type: "text" },
-    ],
+    specTemplate: FURNITURE_SPECS,
+    resolveSpecTemplate: resolveFurnitureSpecTemplate,
   },
   phones: {
     title: "Телефоны",
@@ -532,18 +681,8 @@ export const CATS = {
       "Климатическая техника",
       "Обогреватели",
     ],
-    specTemplate: [
-      { name: "Тип", type: "select", options: COMMON_SPEC_OPTIONS.applianceType },
-      { name: "Бренд", type: "select", options: APPLIANCE_BRANDS },
-      {
-        name: "Модель",
-        type: "select",
-        dependsOn: "Бренд",
-        optionsFrom: APPLIANCE_MODELS,
-      },
-      { name: "Состояние", type: "select", options: COMMON_SPEC_OPTIONS.condition },
-      { name: "Гарантия", type: "select", options: COMMON_SPEC_OPTIONS.warranty },
-    ],
+    specTemplate: ELECTRONICS_HOME_SPECS,
+    resolveSpecTemplate: resolveElectronicsSpecTemplate,
   },
   computers: {
     title: "Компьютеры и оргтехника",
@@ -551,21 +690,8 @@ export const CATS = {
     img: "/img/computers.png",
     desc: "ПК, ноутбуки, оргтехника",
     subs: ["Ноутбуки", "ПК", "Приставки", "Принтеры и сканеры"],
-    specTemplate: [
-      { name: "Тип", type: "select", options: COMMON_SPEC_OPTIONS.computerType },
-      { name: "Бренд", type: "select", options: LAPTOP_BRANDS },
-      {
-        name: "Модель",
-        type: "select",
-        dependsOn: "Бренд",
-        optionsFrom: LAPTOP_MODELS,
-      },
-      { name: "Процессор", type: "text" },
-      { name: "ОЗУ", type: "select", options: COMMON_SPEC_OPTIONS.ram },
-      { name: "Накопитель", type: "select", options: COMMON_SPEC_OPTIONS.storage },
-      { name: "Видеокарта", type: "text" },
-      { name: "Состояние", type: "select", options: COMMON_SPEC_OPTIONS.condition },
-    ],
+    specTemplate: COMPUTER_LAPTOP_SPECS,
+    resolveSpecTemplate: resolveComputerSpecTemplate,
   },
   services: {
     title: "Услуги",

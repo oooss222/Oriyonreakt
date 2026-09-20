@@ -14,7 +14,28 @@ export const CONSTRUCTION_PRICE_PRESETS = [
   { label: "от 50 000 с.", from: "50000", to: "" },
 ];
 
+export const CONSTRUCTION_MATERIAL_SPECS = [
+  {
+    name: "Тип сделки",
+    type: "select",
+    options: ["Продажа"],
+  },
+];
+
 export const CONSTRUCTION_GOODS_SPECS = [
+  {
+    name: "Тип сделки",
+    type: "select",
+    options: ["Продажа"],
+  },
+  {
+    name: "Состояние",
+    type: "select",
+    options: COMMON_SPEC_OPTIONS.condition,
+  },
+];
+
+export const CONSTRUCTION_TOOL_SPECS = [
   {
     name: "Тип сделки",
     type: "select",
@@ -73,6 +94,8 @@ export function resolveConstructionSpecTemplate(subcategory = "") {
   if (group === "Аренда техники") return CONSTRUCTION_RENTAL_SPECS;
   if (group === "Услуги мастеров") return CONSTRUCTION_SERVICE_SPECS;
   if (group === "Проектирование") return CONSTRUCTION_DESIGN_SPECS;
+  if (group === "Материалы") return CONSTRUCTION_MATERIAL_SPECS;
+  if (group === "Инструменты") return CONSTRUCTION_TOOL_SPECS;
   return CONSTRUCTION_GOODS_SPECS;
 }
 

@@ -292,8 +292,8 @@ export default function ListingFiltersSidebar({
       : [];
 
   const conditionValue = draft.specs?.["Состояние"] || "";
-  const showConditionFilter = !["food", "business", "travel"].includes(
-    activeCat
+  const showConditionFilter = flatFields.some(
+    (field) => field.specKey === "Состояние"
   );
   const showCount = previewLoading
     ? "…"

@@ -124,6 +124,7 @@ export function resolveTravelSpecTemplate(subcategory = "") {
   if (group === "Базы отдыха") return TRAVEL_BASE_SPECS;
   if (group === "Транспорт и билеты") return TRAVEL_TRANSPORT_SPECS;
   if (group === "Снаряжение") return TRAVEL_GEAR_SPECS;
+  if (group === "Другое") return TRAVEL_GEAR_SPECS;
   return TRAVEL_TOUR_SPECS;
 }
 

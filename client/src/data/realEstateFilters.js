@@ -1,9 +1,12 @@
 import {
-  DEAL_TYPES,
+  LAND_PURPOSE_OPTIONS,
+  LAND_COMMUNICATIONS_OPTIONS,
+  LAND_RELIEF_OPTIONS,
   REAL_ESTATE_CITIES,
   ROOM_OPTIONS,
   SUBCATEGORY_META,
   ALL_RE_SUBCATEGORIES,
+  getDealValuesForSubcategory,
 } from "./realEstate";
 const REAL_ESTATE_SORT = {
   new: "Сначала новые",
@@ -24,8 +27,6 @@ export function getRealEstateSortOptions(dealType = "") {
   );
 }
 
-const DEAL_OPTIONS = DEAL_TYPES.map((item) => item.value);
-
 const BUILD_YEARS = Array.from({ length: 2026 - 1970 + 1 }, (_, i) =>
   String(2026 - i)
 );
@@ -36,13 +37,13 @@ function subcategoryField() {
   return { id: "subcategory", label: "Тип недвижимости", type: "subcategory" };
 }
 
-function dealField() {
+function dealField(subcategory = "") {
   return {
     id: "Тип сделки",
     label: "Сделка",
     type: "spec",
     specKey: "Тип сделки",
-    options: DEAL_OPTIONS,
+    options: getDealValuesForSubcategory(subcategory),
   };
 }
 
@@ -139,7 +140,7 @@ function searchAndSort() {
 const APARTMENT_GRID = {
   sortOptions: REAL_ESTATE_SORT,
   rows: [
-    [subcategoryField(), dealField(), roomsField(), priceField()],
+    [subcategoryField(), dealField("Квартиры"), roomsField(), priceField()],
     [areaRange(), floorRange(), ...floorToggles()],
     [
       cityField(),
@@ -162,7 +163,7 @@ const APARTMENT_GRID = {
 const NEW_BUILD_GRID = {
   ...APARTMENT_GRID,
   rows: [
-    [subcategoryField(), dealField(), roomsField(), priceField()],
+    [subcategoryField(), dealField("Новостройки"), roomsField(), priceField()],
     [areaRange(), floorRange(), ...floorToggles()],
     [
       cityField(),
@@ -172,8 +173,6 @@ const NEW_BUILD_GRID = {
     ],
   ],
   more: [
-    spec("Ремонт", "Ремонт", ["Без ремонта", "Косметический", "Евро", "Дизайнерский"]),
-    spec("Состояние", "Состояние", ["Новостройка", "Вторичка"]),
     spec("Парковка", "Парковка", ["Есть", "Нет", "Гараж", "Подземная"]),
     spec("Год постройки", "Год постройки", BUILD_YEARS),
     ...searchAndSort(),
@@ -183,7 +182,7 @@ const NEW_BUILD_GRID = {
 const ROOM_GRID = {
   sortOptions: REAL_ESTATE_SORT,
   rows: [
-    [subcategoryField(), dealField(), priceField(), areaRange("Площадь, м²")],
+    [subcategoryField(), dealField("Комнаты"), priceField(), areaRange("Площадь, м²")],
     [
       floorRange(),
       spec("Мебель", "Мебель", ["С мебелью", "Без мебели"]),
@@ -200,7 +199,7 @@ const ROOM_GRID = {
 const HOUSE_GRID = {
   sortOptions: REAL_ESTATE_SORT,
   rows: [
-    [subcategoryField(), dealField(), roomsField(), priceField()],
+    [subcategoryField(), dealField("Дома и коттеджи"), roomsField(), priceField()],
     [
       areaRange("Площадь дома, м²"),
       spec("Этажей", "Этажей в доме", ["1", "2", "3", "4+"]),
@@ -222,11 +221,11 @@ const HOUSE_GRID = {
 const LAND_GRID = {
   sortOptions: REAL_ESTATE_SORT,
   rows: [
-    [subcategoryField(), dealField(), priceField(), areaRange("Площадь участка")],
+    [subcategoryField(), dealField("Участки"), priceField(), areaRange("Площадь участка")],
     [
-      spec("Назначение", "Назначение", ["ИЖС", "Сельхоз", "Коммерция", "Дачный"]),
-      spec("Коммуникации", "Коммуникации", ["Все", "Частично", "Нет"]),
-      spec("Рельеф", "Рельеф", ["Ровный", "С уклоном", "Холмистый"]),
+      spec("Назначение", "Назначение", LAND_PURPOSE_OPTIONS),
+      spec("Коммуникации", "Коммуникации", LAND_COMMUNICATIONS_OPTIONS),
+      spec("Рельеф", "Рельеф", LAND_RELIEF_OPTIONS),
       null,
     ],
     [cityField(), districtField(), null, null],
@@ -239,7 +238,7 @@ const LAND_GRID = {
 const GARAGE_GRID = {
   sortOptions: REAL_ESTATE_SORT,
   rows: [
-    [subcategoryField(), dealField(), priceField(), areaRange("Площадь, м²")],
+    [subcategoryField(), dealField("Гаражи и парковки"), priceField(), areaRange("Площадь, м²")],
     [
       spec("Тип", "Тип", ["Гараж", "Машиноместо", "Бокс", "Подземный"]),
       spec("Охрана", "Охрана", ["Есть", "Нет"]),
@@ -258,7 +257,7 @@ const COMMERCIAL_GRID = {
   rows: [
     [
       subcategoryField(),
-      dealField(),
+      dealField("Коммерческая недвижимость"),
       priceField(),
       spec("Тип объекта", "Тип объекта", [
         "Офис",
@@ -284,7 +283,7 @@ const COMMERCIAL_GRID = {
 const DEFAULT_GRID = {
   sortOptions: REAL_ESTATE_SORT,
   rows: [
-    [subcategoryField(), dealField(), roomsField(), priceField()],
+    [subcategoryField(), dealField(""), roomsField(), priceField()],
     [areaRange(), floorRange(), cityField(), districtField()],
   ],
   more: [

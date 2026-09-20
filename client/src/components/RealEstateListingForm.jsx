@@ -7,11 +7,13 @@ import {
   PencilLine,
 } from "lucide-react";
 import {
-  DEAL_TYPES,
   ALL_RE_SUBCATEGORIES,
   REAL_ESTATE_CITIES,
   getDistrictsForCity,
   getCityCoordinates,
+  getDealTypesForSubcategory,
+  getDealValuesForSubcategory,
+  getDefaultDealForSubcategory,
 } from "../data/realEstate";
 import { formatPriceInput, getPriceDigits } from "../data/specOptions";
 import { TITLE_MAX, DESC_MAX } from "../data/listingCategories";
@@ -77,6 +79,18 @@ export default function RealEstateListingForm({
   const dealType = getSpecValue(specs, "Тип сделки");
   const isDaily = dealType === "Посуточно";
   const isRent = dealType === "Снять";
+  const availableDeals = getDealTypesForSubcategory(form.subcategory);
+
+  React.useEffect(() => {
+    if (!dealType) return;
+    const allowed = getDealValuesForSubcategory(form.subcategory);
+    if (allowed.includes(dealType)) return;
+    updateSpecByName(
+      setSpecs,
+      "Тип сделки",
+      getDefaultDealForSubcategory(form.subcategory)
+    );
+  }, [dealType, form.subcategory, setSpecs]);
 
   const detailFields = getRealEstateDetailFields(specs, { isDaily, isRent });
 
@@ -231,7 +245,7 @@ export default function RealEstateListingForm({
                 {t("realestate.dealType")}
               </label>
               <div className="flex flex-wrap gap-2">
-                {DEAL_TYPES.map((item) => (
+                {availableDeals.map((item) => (
                   <button
                     key={item.value}
                     type="button"

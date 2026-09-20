@@ -111,6 +111,15 @@ export const KIDS_STROLLER_SPECS = [
   },
 ];
 
+export const KIDS_CARE_SPECS = [
+  { name: "Возраст", type: "select", options: KIDS_AGES },
+  {
+    name: "Тип",
+    type: "select",
+    options: ["Питание", "Подгузники", "Уход", "Другое"],
+  },
+];
+
 export const KIDS_SERVICE_SPECS = [
   {
     name: "Формат",
@@ -127,6 +136,12 @@ export function resolveKidsSpecTemplate(subcategory = "") {
 
   if (group === "Услуги") return KIDS_SERVICE_SPECS;
   if (group === "Коляски и автокресла") return KIDS_STROLLER_SPECS;
+  if (
+    group === "Для новорождённых" &&
+    (item === "Уход" || item === "Кормление")
+  ) {
+    return KIDS_CARE_SPECS;
+  }
 
   if (
     item === "Обувь" ||

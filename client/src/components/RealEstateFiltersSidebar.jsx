@@ -6,6 +6,7 @@ import {
   REAL_ESTATE_CITIES,
   POPULAR_DUSHANBE_DISTRICTS,
   getDistrictsForCity,
+  getDealTypesForSubcategory,
   isDailyDeal,
   isRentDeal,
   isSubcategoryCompatibleWithDeal,
@@ -48,10 +49,10 @@ function FilterBlock({ title, children }) {
   );
 }
 
-function DealSegment({ value, onChange }) {
+function DealSegment({ value, onChange, options = DEAL_TYPES }) {
   return (
     <div className="re-filter-segment re-filter-segment--deal">
-      {DEAL_TYPES.map((item) => {
+      {options.map((item) => {
         const active = value === item.value;
 
         return (
@@ -294,12 +295,19 @@ export default function RealEstateFiltersSidebar({
           <div className="space-y-3">
             <DealSegment
               value={dealType}
+              options={getDealTypesForSubcategory(effectiveSubcategory)}
               onChange={(value) =>
                 commitDraft(
                   setDraft,
                   onApply,
                   (current) => ({
                     ...current,
+                    subcategory: isSubcategoryCompatibleWithDeal(
+                      current.subcategory,
+                      value
+                    )
+                      ? current.subcategory
+                      : "",
                     specs: {
                       ...current.specs,
                       "Тип сделки": value,
