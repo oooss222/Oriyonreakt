@@ -1,0 +1,2414 @@
+{
+  "source": "https://somon.tj/items/author/777321/",
+  "scrapedAt": "2026-09-21T23:22:00+05:00",
+  "seller": {
+    "id": "777321",
+    "name": "Шоҳимардон Магазин Huawei",
+    "verified": true,
+    "memberSince": "2018-11",
+    "city": "Душанбе",
+    "address": "82",
+    "website": "https://www.instagram.com/shohtel_tj",
+    "logo": "https://cdntj.somon.tj/media/cache1/8c/ca/8ccad0139a4d77df47fc9543c85d5bdb.webp",
+    "category": "Телефоны и связь / Мобильные телефоны",
+    "listingCount": 110
+  },
+  "stats": {
+    "parsed": 110,
+    "page1": 60,
+    "page2": 50,
+    "minPrice": 1099,
+    "maxPrice": 12222,
+    "brands": {
+      "Tecno": 17,
+      "Samsung": 17,
+      "Honor": 18,
+      "Realme": 4,
+      "Xiaomi": 41,
+      "Infinix": 10,
+      "Itel": 3
+    }
+  },
+  "listings": [
+    {
+      "id": "14433737",
+      "title": "Tecno Spark 40 Pro Plus Edge 8+8/256Gb Global Version",
+      "url": "https://somon.tj/adv/14433737_tecno-spark-40-pro-plus-edge-8-8-256gb-global-version/",
+      "price": 2333,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "256 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/ca/61/ca61a509dfad385c3124a2b5b5c36d61.webp",
+        "https://cdntj.somon.tj/media/cache1/e2/d9/e2d909d22d985b5f6069a9fc2f0c476d.webp",
+        "https://cdntj.somon.tj/media/cache1/61/95/61957fe273221330d20fd38741aa366f.webp",
+        "https://cdntj.somon.tj/media/cache1/bf/57/bf57cd26e28d52777bfce8b61bd457dd.webp",
+        "https://cdntj.somon.tj/media/cache1/a5/50/a55073dc20985cc1df2f5d79040cb953.webp"
+      ],
+      "badges": [
+        "VIP",
+        "IMEI проверен"
+      ],
+      "publishedAgo": "3 часа назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "16934253",
+      "title": "Tecno Spark 50 4+4/8/256Gb Global Version",
+      "url": "https://somon.tj/adv/16934253_tecno-spark-50-4-4-8-256gb-global-version/",
+      "price": 1950,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "256 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/e5/1c/e51c1dde851d55832607731a3366d550.webp",
+        "https://cdntj.somon.tj/media/cache1/cd/e5/cde51ff2a50f8eb804f1f8f9cc7756eb.webp",
+        "https://cdntj.somon.tj/media/cache1/8d/d9/8dd95ff720df0b78569e7e51c2af3c8d.webp",
+        "https://cdntj.somon.tj/media/cache1/f6/20/f6204d2f5076985fee29596ba3d76a3b.webp",
+        "https://cdntj.somon.tj/media/cache1/85/fa/85fabb7e58ca2e41bdf32e8ec61c4091.webp"
+      ],
+      "badges": [
+        "VIP"
+      ],
+      "publishedAgo": "3 часа назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "14724324",
+      "title": "Samsung Galaxy A17 6/128Gb Vietnam",
+      "url": "https://somon.tj/adv/14724324_samsung-galaxy-a17-6-128gb-vietnam/",
+      "price": 2299,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "128 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/20/8d/208daf9409f3a315868b54e3ba707d72.webp",
+        "https://cdntj.somon.tj/media/cache1/3f/b6/3fb621ed527d63937de44e2799d9b5e1.webp",
+        "https://cdntj.somon.tj/media/cache1/6f/91/6f91800e318d067bb3acadc3cd6222c2.webp",
+        "https://cdntj.somon.tj/media/cache1/25/8c/258cb98710b10539dffce407485ca063.webp"
+      ],
+      "badges": [
+        "VIP",
+        "IMEI проверен"
+      ],
+      "publishedAgo": "3 часа назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "17056313",
+      "title": "Honor X7e 6+6/12/128 Global Version",
+      "url": "https://somon.tj/adv/17056313_huawei-honor-x7e-6-6-12-128-global-version/",
+      "price": 2099,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "128 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/a0/45/a04522eeb5f86d7e0c2cd11a6bd828b6.webp",
+        "https://cdntj.somon.tj/media/cache1/9c/a3/9ca3850d22f7fa9e2250e63826dcf6f1.webp",
+        "https://cdntj.somon.tj/media/cache1/a4/43/a4436bf7f252212ab4825617921a1979.webp",
+        "https://cdntj.somon.tj/media/cache1/cf/19/cf1905cd143be9a2997e7d421647456a.webp",
+        "https://cdntj.somon.tj/media/cache1/1f/3d/1f3d6423825f932255cd47bf374d3831.webp"
+      ],
+      "badges": [
+        "VIP"
+      ],
+      "publishedAgo": "3 часа назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "13330196",
+      "title": "Realme Note 60X 64Gb Global Version 2025",
+      "url": "https://somon.tj/adv/13330196_realme-note-60x-64gb-global-version-2025/",
+      "price": 1150,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "64 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/fe/56/fe564b1559b3317d12852381e705060a.webp",
+        "https://cdntj.somon.tj/media/cache1/63/93/6393bf488f36c19bf45ea6ce100f89f9.webp",
+        "https://cdntj.somon.tj/media/cache1/3b/a9/3ba95a00de99a1d00d3a4d8bfad9d795.webp",
+        "https://cdntj.somon.tj/media/cache1/1c/23/1c231c1cac949079c1ae8593cf135b63.webp",
+        "https://cdntj.somon.tj/media/cache1/0f/81/0f81d8d36d22b6256b829b13483c721e.webp"
+      ],
+      "badges": [
+        "VIP"
+      ],
+      "publishedAgo": "3 часа назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "16412946",
+      "title": "Honor 600 8+8/16/256Gb Global Version",
+      "url": "https://somon.tj/adv/16412946_huawei-honor-600-8-8-16-256gb-global-version/",
+      "price": 4888,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "256 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/e6/ac/e6ac51e9dd5480cd00e08f633417fdb6.webp",
+        "https://cdntj.somon.tj/media/cache1/bc/d6/bcd63ab2b4226d37f3171c18ef1919c3.webp",
+        "https://cdntj.somon.tj/media/cache1/a7/a0/a7a06c765a9fc7109a91933431378d4e.webp",
+        "https://cdntj.somon.tj/media/cache1/56/45/5645f1c8183697583f7b8896036eeabd.webp",
+        "https://cdntj.somon.tj/media/cache1/81/40/8140415c6750d836a402758622fb4dd8.webp"
+      ],
+      "badges": [
+        "VIP",
+        "IMEI проверен"
+      ],
+      "publishedAgo": "3 часа назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "16270191",
+      "title": "Samsung Galaxy A37 5G 6/128Gb 2026 Vietnam",
+      "url": "https://somon.tj/adv/16270191_samsung-galaxy-a37-5g-8-256gb-2026-vietnam/",
+      "price": 3480,
+      "oldPrice": 3888,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "128 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/62/7d/627d1add5a3d8108b4f364b896a0ea2a.webp",
+        "https://cdntj.somon.tj/media/cache1/66/2c/662cf90860a32c5f105043e3feac2454.webp",
+        "https://cdntj.somon.tj/media/cache1/d1/27/d1272844dd251b60086a79e41a098017.webp",
+        "https://cdntj.somon.tj/media/cache1/db/34/db34d9b7179f81d38ccff9db7a1a8873.webp",
+        "https://cdntj.somon.tj/media/cache1/95/39/9539e402ac11a5cc98682502764a2bf2.webp"
+      ],
+      "badges": [
+        "VIP",
+        "IMEI проверен"
+      ],
+      "publishedAgo": "3 часа назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "15926308",
+      "title": "Tecno Camon 50 Pro 8+8/16/256Gb Global Version 2026",
+      "url": "https://somon.tj/adv/15926308_tecno-camon-50-pro-8-8-16-256gb-global-version-2026/",
+      "price": 3150,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "256 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/36/d9/36d92394538ec53e8a9162f791cc4c20.webp",
+        "https://cdntj.somon.tj/media/cache1/74/ad/74ad97464df88d1762bf513e93b01cd5.webp",
+        "https://cdntj.somon.tj/media/cache1/a2/87/a2873b28f65ac42ab057fe3f353ce9b1.webp",
+        "https://cdntj.somon.tj/media/cache1/62/8f/628ff0a2e1cb44ff2eb8a27ab0dd4931.webp",
+        "https://cdntj.somon.tj/media/cache1/48/cd/48cdf2019a8e86075c53199bdadb6f72.webp"
+      ],
+      "badges": [
+        "VIP",
+        "IMEI проверен"
+      ],
+      "publishedAgo": "3 часа назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "17055686",
+      "title": "Huawei Honor X5C Plus 4+4/8/256Gb Global Version",
+      "url": "https://somon.tj/adv/17055686_huawei-honor-x5c-plus-4-4-8-256gb-global-version/",
+      "price": 1590,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "256 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/c3/da/c3da812d2078ee84ad3e066f6546a379.webp",
+        "https://cdntj.somon.tj/media/cache1/9e/f2/9ef22654f67ebe1997f8d7a07271102d.webp",
+        "https://cdntj.somon.tj/media/cache1/36/82/3682ab5ff8d34ca536601be5b8d21c8e.webp",
+        "https://cdntj.somon.tj/media/cache1/8d/f2/8df24d42147439c882bf14907966a534.webp",
+        "https://cdntj.somon.tj/media/cache1/a3/5f/a35f8325dcccb17434babba87e2184f6.webp"
+      ],
+      "badges": [
+        "VIP"
+      ],
+      "publishedAgo": "3 часа назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "14492194",
+      "title": "Xiaomi Poco M7 6/128Gb Global Version",
+      "url": "https://somon.tj/adv/14492194_xiaomi-poco-m7-6-128gb-global-version-new-7000mah-battery/",
+      "price": 1799,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "128 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/f4/53/f453378cddfdb36c8ba0fc75d6b058f8.webp",
+        "https://cdntj.somon.tj/media/cache1/07/bf/07bf7c4d80264b6432cbf9b4e0e26378.webp",
+        "https://cdntj.somon.tj/media/cache1/39/25/392554648e99d7a61b31d93d54b3e9ce.webp",
+        "https://cdntj.somon.tj/media/cache1/87/f0/87f0e07708809207efb13fb4c4fbdf9f.webp",
+        "https://cdntj.somon.tj/media/cache1/82/96/8296a44f644bb13d4a4d8ff0d684204a.webp"
+      ],
+      "badges": [
+        "VIP",
+        "IMEI проверен"
+      ],
+      "publishedAgo": "3 часа назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "14492249",
+      "title": "Xiaomi Redmi 15 8+8/16/256Gb Global Version",
+      "url": "https://somon.tj/adv/14492249_xiaomi-redmi-15-8-8-16-256gb-global-version/",
+      "price": 2222,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "256 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/4a/96/4a96ca939edafbb5db249716d846b4d0.webp",
+        "https://cdntj.somon.tj/media/cache1/5c/6e/5c6ebda0446806b05d5288aef6d2d888.webp",
+        "https://cdntj.somon.tj/media/cache1/8b/d1/8bd133b9a665339fb27f8289cdf9aac4.webp",
+        "https://cdntj.somon.tj/media/cache1/b2/35/b2358ebf47d2c3235312845eb801c7bd.webp",
+        "https://cdntj.somon.tj/media/cache1/40/8c/408ce6188524031bc851482b3a3b30d0.webp"
+      ],
+      "badges": [
+        "VIP",
+        "IMEI проверен"
+      ],
+      "publishedAgo": "3 часа назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "16002598",
+      "title": "Samsung Galaxy A57 5G 8/128Gb Vietnam 2026",
+      "url": "https://somon.tj/adv/16002598_samsung-galaxy-a57-5g-8-128gb-vietnam-2026/",
+      "price": 4150,
+      "oldPrice": 4999,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "128 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/90/7f/907f7d80087bacefcb3c374d7b9ba2fb.webp",
+        "https://cdntj.somon.tj/media/cache1/b5/1f/b51f4e82e3138416b08205d44c6e2618.webp",
+        "https://cdntj.somon.tj/media/cache1/6d/72/6d724dba1908a225d90776303b2532d6.webp",
+        "https://cdntj.somon.tj/media/cache1/af/ae/afae43d885e7745d7c4c9297b655a3f8.webp",
+        "https://cdntj.somon.tj/media/cache1/db/6c/db6c613137741e9cf382c4096255c0bc.webp"
+      ],
+      "badges": [
+        "VIP",
+        "IMEI проверен"
+      ],
+      "publishedAgo": "3 часа назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "16781049",
+      "title": "Tecno Camon 50 Ultra 5G 8+8/16/256Gb Global Version",
+      "url": "https://somon.tj/adv/16781049_tecno-camon-50-ultra-5g-8-8-16-256gb-global-version/",
+      "price": 3888,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "256 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/bd/14/bd14af73b42ceae21a54ce141770a3f3.webp",
+        "https://cdntj.somon.tj/media/cache1/c4/5d/c45d1767486dea816566908676d1140e.webp",
+        "https://cdntj.somon.tj/media/cache1/85/85/85854af68e557be5ba85e398234f3089.webp",
+        "https://cdntj.somon.tj/media/cache1/b6/c4/b6c4dd04dbba136442f283cf97357280.webp",
+        "https://cdntj.somon.tj/media/cache1/fe/43/fe430925b669e12fbf13813a92d7d095.webp"
+      ],
+      "badges": [
+        "VIP",
+        "IMEI проверен"
+      ],
+      "publishedAgo": "3 часа назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "14208151",
+      "title": "Xiaomi Redmi A5 128Gb Global Version",
+      "url": "https://somon.tj/adv/14208151_xiaomi-redmi-a5-128gb-global-version/",
+      "price": 1333,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "128 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/03/c1/03c1019e4f35c505e94a4c382e15627d.webp",
+        "https://cdntj.somon.tj/media/cache1/9f/71/9f715dba887af31beeb9b88afb2323b2.webp",
+        "https://cdntj.somon.tj/media/cache1/bd/fd/bdfd83391ef7e31352cfd12ee8ae6aa5.webp"
+      ],
+      "badges": [
+        "VIP",
+        "IMEI проверен"
+      ],
+      "publishedAgo": "3 часа назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "15564812",
+      "title": "Samsung Galaxy A17 128Gb Vietnam 2026",
+      "url": "https://somon.tj/adv/15564812_samsung-galaxy-a17-128gb-vietnam-2026/",
+      "price": 2050,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "128 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/5d/46/5d46f1dca4a7a35270caffd981fadf13.webp",
+        "https://cdntj.somon.tj/media/cache1/63/a0/63a0d9c273f69a3b7442610af7b16317.webp",
+        "https://cdntj.somon.tj/media/cache1/6a/62/6a62b2873409202cd4e00b125f04ab70.webp",
+        "https://cdntj.somon.tj/media/cache1/d8/e7/d8e790cabd0a42deec904814d65b2597.webp",
+        "https://cdntj.somon.tj/media/cache1/1f/81/1f81e054c9b1092d32e476af1bc238c8.webp"
+      ],
+      "badges": [
+        "VIP",
+        "IMEI проверен"
+      ],
+      "publishedAgo": "3 часа назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "12460306",
+      "title": "Samsung Galaxy A06 64Gb 2025",
+      "url": "https://somon.tj/adv/12460306_samsung-galaxy-a06-64gb-2024-9/",
+      "price": 1299,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "64 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/6f/e1/6fe1008d70adc476b71a23461b5f84e4.webp",
+        "https://cdntj.somon.tj/media/cache1/87/6c/876ca7503d4d0a2a72c8f8522d149f99.webp",
+        "https://cdntj.somon.tj/media/cache1/e8/ac/e8acdee7301452298053fa4aef305ade.webp",
+        "https://cdntj.somon.tj/media/cache1/5e/62/5e6217177e6a7bc87fa8b99a2904fde3.webp",
+        "https://cdntj.somon.tj/media/cache1/ee/1e/ee1ef32dc3adc1e6750515abe1056476.webp"
+      ],
+      "badges": [
+        "VIP",
+        "IMEI проверен"
+      ],
+      "publishedAgo": "3 часа назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "15538973",
+      "title": "Honor X8d 8+8/16/256Gb Global Version",
+      "url": "https://somon.tj/adv/15538973_honor-x8d-8-8-16-256gb-global-version-7000mah-battery-new/",
+      "price": 2490,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "256 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/06/30/0630ad1bf3e7bf118843317437426bce.webp",
+        "https://cdntj.somon.tj/media/cache1/8d/5e/8d5ec1245063d0840c1d11a55f59944b.webp",
+        "https://cdntj.somon.tj/media/cache1/b3/60/b3607dbb949f96ae676f376f684d55e3.webp",
+        "https://cdntj.somon.tj/media/cache1/9c/94/9c94f8be9888eb19d4bf051a51b6d7ec.webp"
+      ],
+      "badges": [
+        "VIP",
+        "IMEI проверен"
+      ],
+      "publishedAgo": "3 часа назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "13658929",
+      "title": "Xiaomi Redmi A5 64Gb Global Version 5200mAh battery",
+      "url": "https://somon.tj/adv/13658929_xiaomi-redmi-a5-64gb-global-version-2025-new/",
+      "price": 1199,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "64 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/6c/04/6c0407264427e4251f659ab3e5887f00.webp",
+        "https://cdntj.somon.tj/media/cache1/c3/cb/c3cbf2ee16f6b37c4cdd559e79b6cebd.webp",
+        "https://cdntj.somon.tj/media/cache1/2c/6e/2c6e9aea391d06faa6e4c9d7e8d9557f.webp",
+        "https://cdntj.somon.tj/media/cache1/a0/70/a07023fba65953bb58fba2c64184d3c1.webp",
+        "https://cdntj.somon.tj/media/cache1/0f/a7/0fa724ae2b2897d15b84c290b1e70e02.webp"
+      ],
+      "badges": [
+        "VIP",
+        "IMEI проверен"
+      ],
+      "publishedAgo": "3 часа назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "14861406",
+      "title": "Honor X9d 5G 8+8/16/256Gb Global Version",
+      "url": "https://somon.tj/adv/14861406_huawei-honor-x9d-5g-8-256gb-global-version-8300mah/",
+      "price": 3620,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "256 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/ad/71/ad7187b24bab8b606a5991cd2c4e235d.webp",
+        "https://cdntj.somon.tj/media/cache1/99/88/9988102453d6517460dde095741bd5c9.webp",
+        "https://cdntj.somon.tj/media/cache1/e6/39/e63978048d742237ec739b4d1b8b6d0c.webp",
+        "https://cdntj.somon.tj/media/cache1/44/f8/44f8de4734db778fc463987e32b66f11.webp",
+        "https://cdntj.somon.tj/media/cache1/bd/62/bd62eae10837992824d6b99271fe47b4.webp"
+      ],
+      "badges": [
+        "VIP",
+        "IMEI проверен"
+      ],
+      "publishedAgo": "3 часа назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "17004017",
+      "title": "Xiaomi Redmi 17 4+4/8/128Gb Global Version 7500mAh battery",
+      "url": "https://somon.tj/adv/17004017_xiaomi-redmi-17-4-4-8-128gb-global-version-7500mah-battery/",
+      "price": 1850,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "128 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/45/e2/45e2256e64bacef0af6feb3d4e30adfd.webp",
+        "https://cdntj.somon.tj/media/cache1/32/d1/32d192fcb752749655cb3ff0dffd85d1.webp",
+        "https://cdntj.somon.tj/media/cache1/d9/8b/d98b694fae0436dd07b652f9d90efece.webp",
+        "https://cdntj.somon.tj/media/cache1/fa/6a/fa6a12d0bb0c02a81cbfba85a54c5b97.webp",
+        "https://cdntj.somon.tj/media/cache1/5b/28/5b28d58c228ed6d3f2b0ad6a7c8dd234.webp"
+      ],
+      "badges": [
+        "VIP"
+      ],
+      "publishedAgo": "3 часа назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "15136040",
+      "title": "Samsung Galaxy A17 8/256Gb Vietnam",
+      "url": "https://somon.tj/adv/15136040_samsung-galaxy-a17-8-256gb-vietnam/",
+      "price": 2699,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "256 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/b2/ad/b2add5273819e821aa5b48cc4fc8d19a.webp",
+        "https://cdntj.somon.tj/media/cache1/7b/dc/7bdc20d9defd664a94fe58c59065ab92.webp",
+        "https://cdntj.somon.tj/media/cache1/a7/6b/a76bacccf12708f7701bec69402b3b66.webp",
+        "https://cdntj.somon.tj/media/cache1/87/c8/87c8ff7f53278587f15e4482894cf559.webp"
+      ],
+      "badges": [
+        "VIP",
+        "IMEI проверен"
+      ],
+      "publishedAgo": "3 часа назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "14208204",
+      "title": "Xiaomi Poco C71 128Gb Global Version",
+      "url": "https://somon.tj/adv/14208204_xiaomi-poco-c71-128gb-global-version/",
+      "price": 1333,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "128 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/1b/d3/1bd3dc8dc04e4698b7a9af4f22398226.webp",
+        "https://cdntj.somon.tj/media/cache1/b2/21/b2217eb198408d8983f5343d0fbd9a7c.webp",
+        "https://cdntj.somon.tj/media/cache1/32/91/329154b9353f08352fb75f5bc527a9ab.webp",
+        "https://cdntj.somon.tj/media/cache1/81/e5/81e5530f13c04cedf978e0efa2255cc3.webp",
+        "https://cdntj.somon.tj/media/cache1/49/08/4908c2de4db86e1564d56ec0e687fde2.webp"
+      ],
+      "badges": [
+        "VIP",
+        "IMEI проверен"
+      ],
+      "publishedAgo": "3 часа назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "17056656",
+      "title": "Honor X7e 6+6/12/256GB Global Version",
+      "url": "https://somon.tj/adv/17056656_huawei-honor-x7e-6-6-12-256gb-global-version/",
+      "price": 2222,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "256 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/1e/52/1e52030ba74c9f01399ecf4012a1210b.webp",
+        "https://cdntj.somon.tj/media/cache1/64/ba/64ba9a35c76a6b48a8f3cf0ab2767496.webp",
+        "https://cdntj.somon.tj/media/cache1/06/dd/06dd49f35cbedfbf322cf95094a4b81a.webp",
+        "https://cdntj.somon.tj/media/cache1/ce/65/ce658e05741f008ac99b5853a70ab61f.webp",
+        "https://cdntj.somon.tj/media/cache1/17/7d/177d05a98e988febe93d3309f9da2820.webp"
+      ],
+      "badges": [
+        "VIP"
+      ],
+      "publishedAgo": "3 часа назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "16976706",
+      "title": "Xiaomi Redmi Note 17 8+8/256Gb Global Version",
+      "url": "https://somon.tj/adv/16976706_xiaomi-redmi-note-17-8-8-256gb-global-version-7500mah-battery/",
+      "price": 2580,
+      "oldPrice": 2699,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "256 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/87/fc/87fc852e2d3af8b079c25b660f98429f.webp",
+        "https://cdntj.somon.tj/media/cache1/1a/54/1a54884bb7435fbac159dba6d1b1f941.webp",
+        "https://cdntj.somon.tj/media/cache1/07/40/07402329d99898bededd31bcbc1771c8.webp",
+        "https://cdntj.somon.tj/media/cache1/44/3d/443d5a5ae93cef12f59d16e9a873a7ac.webp",
+        "https://cdntj.somon.tj/media/cache1/c8/c0/c8c04691714125cd9bf5611f36b1eb1e.webp"
+      ],
+      "badges": [
+        "VIP"
+      ],
+      "publishedAgo": "3 часа назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "15926310",
+      "title": "Tecno Go 3 4+4/8/128Gb Global Version 2026",
+      "url": "https://somon.tj/adv/15926310_tecno-go-3-4-4-8-128gb-global-version-2026/",
+      "price": 1399,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "128 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/25/fb/25fbf3a140d9daac166a9a9c0f49e7f1.webp",
+        "https://cdntj.somon.tj/media/cache1/ff/e1/ffe1fd9e02293b5fc25667f6e12fa75d.webp",
+        "https://cdntj.somon.tj/media/cache1/e3/d4/e3d48f651bcd504e777726291c287b93.webp",
+        "https://cdntj.somon.tj/media/cache1/84/fd/84fdc6f261d1948ed66eb9668336077d.webp",
+        "https://cdntj.somon.tj/media/cache1/71/66/716607d89ef6648a8c85cf50c2401883.webp"
+      ],
+      "badges": [
+        "VIP",
+        "IMEI проверен"
+      ],
+      "publishedAgo": "3 часа назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "16413010",
+      "title": "Huawei Honor 600 Lite 5G 8+8/16/256Gb Global Version",
+      "url": "https://somon.tj/adv/16413010_huawei-honor-600-lite-5g-8-8-16-256gb-global-version/",
+      "price": 3777,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "256 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/ba/8c/ba8c0e93cbfee039ecb1dcad88e74dd7.webp",
+        "https://cdntj.somon.tj/media/cache1/62/12/6212eda3fc2d8aa9de36b2e3171878d8.webp",
+        "https://cdntj.somon.tj/media/cache1/9b/1d/9b1d6e37ee3c9c21a97f2c13089eface.webp",
+        "https://cdntj.somon.tj/media/cache1/a1/51/a151d24fcf7f709abdef4601f3648db5.webp"
+      ],
+      "badges": [
+        "VIP",
+        "IMEI проверен"
+      ],
+      "publishedAgo": "3 часа назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "14238332",
+      "title": "Samsung Galaxy A16 4/128Gb Vietnam 2025",
+      "url": "https://somon.tj/adv/14238332_samsung-galaxy-a16-4-128gb-vietnam-2025/",
+      "price": 1888,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "128 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/ec/8b/ec8b291e1fc53f1eb3a414232c487383.webp",
+        "https://cdntj.somon.tj/media/cache1/28/d8/28d832af98eface2f730cd4fe4e3fcf4.webp",
+        "https://cdntj.somon.tj/media/cache1/fb/f7/fbf78c17fa8d01d54332e91509489af9.webp",
+        "https://cdntj.somon.tj/media/cache1/87/d4/87d48aa5e7e92b2239edf593ef5b2f19.webp",
+        "https://cdntj.somon.tj/media/cache1/16/d8/16d865b4f0b487f9e24856d6ea41336b.webp"
+      ],
+      "badges": [
+        "VIP",
+        "IMEI проверен"
+      ],
+      "publishedAgo": "3 часа назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "16317050",
+      "title": "Xiaomi Redmi A7 Pro 4+4/8/128GB Global Version",
+      "url": "https://somon.tj/adv/16317050_xiaomi-redmi-a7-pro-4-4-8-128gb-global-version/",
+      "price": 1399,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "128 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/52/f9/52f9a98e1bd8fc2442510c9bea983c8a.webp",
+        "https://cdntj.somon.tj/media/cache1/50/50/505066ab131782907eb655e21279c553.webp",
+        "https://cdntj.somon.tj/media/cache1/b8/f8/b8f8b2554d17fff07b32e4efba4e436c.webp",
+        "https://cdntj.somon.tj/media/cache1/06/8d/068d7c279c631197755447332c8a51b2.webp",
+        "https://cdntj.somon.tj/media/cache1/a7/dc/a7dce57df8a2c3e1d9c8f2bee716e3c5.webp"
+      ],
+      "badges": [
+        "VIP",
+        "IMEI проверен"
+      ],
+      "publishedAgo": "3 часа назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "17130234",
+      "title": "Infinix Smart 20 4+4/8/64Gb Global Version",
+      "url": "https://somon.tj/adv/17130234_infinix-smart-20-4-4-8-64gb-global-version/",
+      "price": 1333,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "64 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/af/0f/af0f33e23664c206130c87d5295151c3.webp",
+        "https://cdntj.somon.tj/media/cache1/0f/05/0f05e9c8d21f446301d9769e06d37562.webp",
+        "https://cdntj.somon.tj/media/cache1/4a/82/4a828bdc665b05e9726092c832426344.webp",
+        "https://cdntj.somon.tj/media/cache1/1c/0f/1c0f566b9cdc1f2af5db9c77c8314493.webp",
+        "https://cdntj.somon.tj/media/cache1/a8/ce/a8ce980557e8b6f5fde646bcf4c1ca40.webp"
+      ],
+      "badges": [
+        "VIP"
+      ],
+      "publishedAgo": "3 часа назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "14031709",
+      "title": "Samsung Galaxy A26 5G 6/128Gb 2026 Vietnam",
+      "url": "https://somon.tj/adv/14031709_samsung-galaxy-a26-5g-6-128gb-2025/",
+      "price": 2555,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "128 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/08/56/0856d45446d4272420648ce7abe07b2a.webp",
+        "https://cdntj.somon.tj/media/cache1/bd/ec/bdec606b40b4a4d04d822ee18f060e5c.webp",
+        "https://cdntj.somon.tj/media/cache1/e1/e8/e1e87f3757a3bcc5f8a37dac8481cbec.webp",
+        "https://cdntj.somon.tj/media/cache1/06/59/0659dc1ae228422a3ea68a1c24a4f721.webp",
+        "https://cdntj.somon.tj/media/cache1/db/40/db400a5b552043b87d7537e96684f131.webp"
+      ],
+      "badges": [
+        "VIP",
+        "IMEI проверен"
+      ],
+      "publishedAgo": "Вчера",
+      "city": "Душанбе"
+    },
+    {
+      "id": "14492138",
+      "title": "Xiaomi Redmi 15C 4+4/8/128Gb Global Version",
+      "url": "https://somon.tj/adv/14492138_xiaomi-redmi-15c-4-4-8-128gb-global-version-new-6000mah-battery/",
+      "price": 1777,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "128 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/91/30/9130a15073afcc03aa781336ae01c253.webp",
+        "https://cdntj.somon.tj/media/cache1/be/08/be0895abdd125cfa41d5b27c3c3a6bdd.webp",
+        "https://cdntj.somon.tj/media/cache1/0b/5c/0b5c805059190f34889c0622f8bf218a.webp",
+        "https://cdntj.somon.tj/media/cache1/c7/6c/c76c4ae2c53fa4a5a692bdc5e63f7bfc.webp",
+        "https://cdntj.somon.tj/media/cache1/6b/fc/6bfca3cb7975ca5941f4857bf295af1d.webp"
+      ],
+      "badges": [
+        "ТОП",
+        "IMEI проверен"
+      ],
+      "publishedAgo": "2 дня назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "14492240",
+      "title": "Xiaomi Redmi 15 6+6/12/128Gb Global Version",
+      "url": "https://somon.tj/adv/14492240_xiaomi-redmi-15-6-6-12-128gb-global-version-new-7000mah-battery/",
+      "price": 1999,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "128 gb",
+      "images": [],
+      "badges": [
+        "ТОП",
+        "IMEI проверен"
+      ],
+      "publishedAgo": "4 дня назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "15674292",
+      "title": "Xiaomi Redmi Note 15 Pro 5G 8+8/256Gb Global Version 2026",
+      "url": "https://somon.tj/adv/15674292_xiaomi-redmi-note-15-pro-5g-8-8-256gb-global-version-2026/",
+      "price": 3444,
+      "oldPrice": 3499,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "256 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/22/7f/227f28e54e4dada722a815160d0cbae3.webp",
+        "https://cdntj.somon.tj/media/cache1/79/dc/79dcd20dd849eb9c35f94e8aee8cb8fa.webp",
+        "https://cdntj.somon.tj/media/cache1/10/d6/10d66926c11733991b87fb2dace6faac.webp",
+        "https://cdntj.somon.tj/media/cache1/f6/0e/f60e3e22c02ca7af351a7a046d3ab8bf.webp"
+      ],
+      "badges": [
+        "ТОП",
+        "IMEI проверен"
+      ],
+      "publishedAgo": "4 дня назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "14492146",
+      "title": "Xiaomi Redmi 15C 8+8/16/256Gb Global Version",
+      "url": "https://somon.tj/adv/14492146_xiaomi-redmi-15c-8-8-16-256gb-global-version-new-6000mah-battery/",
+      "price": 1888,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "256 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/a9/e0/a9e081d275d47c30bbb350e11ba581f1.webp",
+        "https://cdntj.somon.tj/media/cache1/5e/ca/5eca3c0d0e899dfd7d161f282cda9210.webp",
+        "https://cdntj.somon.tj/media/cache1/9e/1e/9e1ec71156b8791acb3940d8cbff1ffd.webp"
+      ],
+      "badges": [
+        "ТОП",
+        "IMEI проверен"
+      ],
+      "publishedAgo": "4 дня назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "17178839",
+      "title": "Xiaomi Poco M8 5G 8+8/16/512GB Global Version",
+      "url": "https://somon.tj/adv/17178839_xiaomi-poco-m8-5g-8-8-16-512gb-global-version/",
+      "price": 2999,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "512 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/88/55/8855847c4e701e4c863a58e36f0aa65f.webp",
+        "https://cdntj.somon.tj/media/cache1/2a/a7/2aa7cc937246dbfc1df5118cc8487e0f.webp",
+        "https://cdntj.somon.tj/media/cache1/23/8f/238f5ceacc00515f3a1c4bd5511276a0.webp",
+        "https://cdntj.somon.tj/media/cache1/44/ec/44ec95b47d6544022a198551c7f0478b.webp"
+      ],
+      "badges": [
+        "IMEI проверен"
+      ],
+      "publishedAgo": "4 минуты назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "15538723",
+      "title": "Honor X8D 16/128Gb Global Version 7000mAh Battery",
+      "url": "https://somon.tj/adv/15538723_honor-x8d-8-8-16-128gb-global-version-7000mah-battery/",
+      "price": 2399,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "128 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/d0/f3/d0f3fa8e482b8b57406ae06a4c65d9ca.webp",
+        "https://cdntj.somon.tj/media/cache1/5c/29/5c290248b33780385f470b2a6e7380e2.webp",
+        "https://cdntj.somon.tj/media/cache1/1c/4a/1c4ab52b5ceffa05611c9f3f8875786a.webp",
+        "https://cdntj.somon.tj/media/cache1/06/8b/068be825d4751892b531aba2158aeea1.webp"
+      ],
+      "badges": [
+        "IMEI проверен"
+      ],
+      "publishedAgo": "3 часа назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "14861558",
+      "title": "Huawei Honor X9d 5G 12/256Gb Global Version",
+      "url": "https://somon.tj/adv/14861558_huawei-honor-x9d-5g-12-256gb-global-version-8300-mah-battery/",
+      "price": 3888,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "256 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/d1/be/d1be7a3debfad2e9c3be28441575c59d.webp",
+        "https://cdntj.somon.tj/media/cache1/83/9f/839fd70842e734c744ac919b615e2bf7.webp",
+        "https://cdntj.somon.tj/media/cache1/3c/53/3c53dbc1e457bd90404212c407debff9.webp",
+        "https://cdntj.somon.tj/media/cache1/59/bc/59bc3feabd5c23e15521140163ca107c.webp",
+        "https://cdntj.somon.tj/media/cache1/77/09/770971760f598ee861afa3bdfa33f6a1.webp"
+      ],
+      "badges": [
+        "IMEI проверен"
+      ],
+      "publishedAgo": "3 часа назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "14775190",
+      "title": "Honor X5C Plus 4+4/8/128Gb Global Version",
+      "url": "https://somon.tj/adv/14775190_huawei-honor-x5c-4-128gb-global-version-new/",
+      "price": 1399,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "128 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/a7/41/a741919745aa0aaa60a0a40400e47d9a.webp",
+        "https://cdntj.somon.tj/media/cache1/cc/28/cc287d759198db815ef9f3b820fc2bcb.webp",
+        "https://cdntj.somon.tj/media/cache1/43/6b/436b1c03f07e15ad121e1016a7239525.webp"
+      ],
+      "badges": [
+        "IMEI проверен"
+      ],
+      "publishedAgo": "3 часа назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "14208235",
+      "title": "Tecno Camon 40 8+8/16/128Gb Global Version",
+      "url": "https://somon.tj/adv/14208235_tecno-camon-40-8-8-16-128gb-global-version/",
+      "price": 2333,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "128 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/d8/fc/d8fc83cb04b6a1540b7424ac635ebfbc.webp",
+        "https://cdntj.somon.tj/media/cache1/85/19/851949133861e1e44c02dd950815f897.webp",
+        "https://cdntj.somon.tj/media/cache1/63/5a/635a31fa07a2bf7e2a7879efedfa85cc.webp",
+        "https://cdntj.somon.tj/media/cache1/f9/8f/f98fd2afdc361e42109084b16db2bdab.webp",
+        "https://cdntj.somon.tj/media/cache1/e4/d7/e4d7f4ed16e0592c7dc0aaa28a0674bb.webp"
+      ],
+      "badges": [
+        "IMEI проверен"
+      ],
+      "publishedAgo": "Сегодня",
+      "city": "Душанбе"
+    },
+    {
+      "id": "14208231",
+      "title": "Tecno Camon 40 8+8/256Gb Global Version",
+      "url": "https://somon.tj/adv/14208231_tecno-camon-40-8-8-256gb-global-version/",
+      "price": 2444,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "256 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/77/f4/77f43580ac3efd2f2180360f9e3023a0.webp",
+        "https://cdntj.somon.tj/media/cache1/eb/d2/ebd28d06d6d15b8d94f1706698d9caa3.webp",
+        "https://cdntj.somon.tj/media/cache1/5d/05/5d05eeed35c8d8c69ea6c252bfefa4c7.webp",
+        "https://cdntj.somon.tj/media/cache1/ab/21/ab21b5143778d8570c72db3fa6bbbbf4.webp",
+        "https://cdntj.somon.tj/media/cache1/58/1e/581e9c564589fbe2aaa4bc8f8715e893.webp"
+      ],
+      "badges": [
+        "IMEI проверен"
+      ],
+      "publishedAgo": "Сегодня",
+      "city": "Душанбе"
+    },
+    {
+      "id": "16317119",
+      "title": "Xiaomi Redmi A7 Pro 4+4/8/64GB Global Version",
+      "url": "https://somon.tj/adv/16317119_xiaomi-redmi-a7-pro-4-4-8-64gb-global-version/",
+      "price": 1299,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "64 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/a9/f4/a9f4ea97375bb370d92018a0164290d2.webp",
+        "https://cdntj.somon.tj/media/cache1/db/6f/db6f419353b1ea6803bb234120e1f112.webp",
+        "https://cdntj.somon.tj/media/cache1/90/95/9095b8efa2cf02b8ce9bff0c638d32e1.webp",
+        "https://cdntj.somon.tj/media/cache1/e0/7c/e07c75d01d9c77e29dd57034853b636b.webp",
+        "https://cdntj.somon.tj/media/cache1/f5/b3/f5b39a919e6514976bff7e8241649a35.webp"
+      ],
+      "badges": [
+        "IMEI проверен"
+      ],
+      "publishedAgo": "Вчера",
+      "city": "Душанбе"
+    },
+    {
+      "id": "15496918",
+      "title": "Realme C85 6+6/128Gb Global Version 2026",
+      "url": "https://somon.tj/adv/15496918_realme-c85-6-6-128gb-global-version-2026-7000mah-battery/",
+      "price": 1980,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "128 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/06/78/0678a040b8f912cd04eae04797e62c75.webp",
+        "https://cdntj.somon.tj/media/cache1/6c/f9/6cf9bb2b04d0017fc048dc8df2e451d0.webp",
+        "https://cdntj.somon.tj/media/cache1/0a/8c/0a8c7fecc40038bb19c2ebac463e99c2.webp",
+        "https://cdntj.somon.tj/media/cache1/df/ff/dffff090f3bb52e91d74d2c1e18da828.webp",
+        "https://cdntj.somon.tj/media/cache1/d7/b1/d7b1ad8417f896e7ce3c4b1b0802b830.webp"
+      ],
+      "badges": [
+        "IMEI проверен"
+      ],
+      "publishedAgo": "Вчера",
+      "city": "Душанбе"
+    },
+    {
+      "id": "15377583",
+      "title": "Xiaomi Redmi Note 15 Pro 12+12/24/512Gb Global Version 2026",
+      "url": "https://somon.tj/adv/15377583_xiaomi-redmi-note-15-pro-12-12-24-512gb-global-version-2026/",
+      "price": 3499,
+      "oldPrice": 3666,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "512 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/ab/ca/abcabeb46cad83205df2aa981dab3b9d.webp",
+        "https://cdntj.somon.tj/media/cache1/55/94/559422c86c91bf104f766c53ef9014a7.webp",
+        "https://cdntj.somon.tj/media/cache1/e1/51/e151745accd5188112937d0c105cbee4.webp",
+        "https://cdntj.somon.tj/media/cache1/2d/5b/2d5bb753be4b963e2442685169eabe52.webp",
+        "https://cdntj.somon.tj/media/cache1/2f/0d/2f0dd82ad51e6e66040488093f0406eb.webp"
+      ],
+      "badges": [
+        "IMEI проверен"
+      ],
+      "publishedAgo": "Вчера",
+      "city": "Душанбе"
+    },
+    {
+      "id": "14966524",
+      "title": "Huawei Honor X7d 8/256Gb Global Version 6500 mAh",
+      "url": "https://somon.tj/adv/14966524_huawei-honor-x7d-8-256gb-global-version-6500-mah-battery/",
+      "price": 2222,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "256 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/09/00/09002094ff66554f29bd334495e6af64.webp",
+        "https://cdntj.somon.tj/media/cache1/95/03/9503354ee1c853bf8522e1320824fbdb.webp",
+        "https://cdntj.somon.tj/media/cache1/63/55/6355a8279fb97a8ca1d845e53d50e344.webp",
+        "https://cdntj.somon.tj/media/cache1/fd/cd/fdcd15f3abb0032325a1b45c8fff0be6.webp",
+        "https://cdntj.somon.tj/media/cache1/82/8c/828c521cbd5c1ff6d12cbc85c8b82cc2.webp"
+      ],
+      "badges": [
+        "IMEI проверен"
+      ],
+      "publishedAgo": "Вчера",
+      "city": "Душанбе"
+    },
+    {
+      "id": "15400386",
+      "title": "Xiaomi Poco M8 Pro 5G 8+8/16/256Gb Global Version 2026",
+      "url": "https://somon.tj/adv/15400386_xiaomi-poco-m8-pro-5g-8-8-16-256gb-global-version-2026/",
+      "price": 3099,
+      "oldPrice": 3333,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "256 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/58/b4/58b4b437f951945f7138c07b3d8d35a0.webp",
+        "https://cdntj.somon.tj/media/cache1/95/54/9554a1230e3997075be9bc518857e7ce.webp",
+        "https://cdntj.somon.tj/media/cache1/d4/37/d437f916a420a3c5a0d05119c4be6cb1.webp",
+        "https://cdntj.somon.tj/media/cache1/38/fb/38fb9b208ed0d438c49366a82b10a944.webp",
+        "https://cdntj.somon.tj/media/cache1/a9/68/a9683fe6b572511b4f46582e496ec388.webp"
+      ],
+      "badges": [
+        "IMEI проверен"
+      ],
+      "publishedAgo": "Вчера",
+      "city": "Душанбе"
+    },
+    {
+      "id": "14208200",
+      "title": "Xiaomi Poco C71 64Gb Global Version 2025",
+      "url": "https://somon.tj/adv/14208200_xiaomi-poco-c71-64gb-global-version-2025/",
+      "price": 1222,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "64 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/82/65/826554ddd5b7b456ce9e384b0d545360.webp",
+        "https://cdntj.somon.tj/media/cache1/66/bc/66bc8d93e1620155a6ee4e6c59cf286f.webp",
+        "https://cdntj.somon.tj/media/cache1/6c/10/6c10bf3fef5b18db5865ba67e65a28e9.webp",
+        "https://cdntj.somon.tj/media/cache1/56/f2/56f2b8ad8dc3d56c140d34ed5ea8ab9b.webp",
+        "https://cdntj.somon.tj/media/cache1/a6/08/a60800aad4bbf2aae3fc86de46a10755.webp"
+      ],
+      "badges": [
+        "IMEI проверен"
+      ],
+      "publishedAgo": "Вчера",
+      "city": "Душанбе"
+    },
+    {
+      "id": "15377498",
+      "title": "Xiaomi Redmi Note 15 6+6/12/128Gb Global Version 2026",
+      "url": "https://somon.tj/adv/15377498_xiaomi-redmi-note-15-6-6-12-128gb-global-version-2026/",
+      "price": 2380,
+      "oldPrice": 2555,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "128 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/20/93/209330b7e7750dd86eec5ecf7cfc2e0a.webp",
+        "https://cdntj.somon.tj/media/cache1/82/0a/820a5f955abf7992100bbb5da6475df6.webp",
+        "https://cdntj.somon.tj/media/cache1/b4/5a/b45a299b424d8dfbbb901da8127e5e47.webp",
+        "https://cdntj.somon.tj/media/cache1/ed/a4/eda454d2c1a14d5f903712be57879042.webp",
+        "https://cdntj.somon.tj/media/cache1/e4/55/e45524e16c802325514ab4107afb173a.webp"
+      ],
+      "badges": [
+        "IMEI проверен"
+      ],
+      "publishedAgo": "Вчера",
+      "city": "Душанбе"
+    },
+    {
+      "id": "14441619",
+      "title": "Infinix Hot 60i 8+8/16/256Gb Global Version",
+      "url": "https://somon.tj/adv/14441619_infinix-hot-60i-8-8-16-256gb-global-version-new/",
+      "price": 1777,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "256 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/ff/53/ff537592790ba66f1dc7705eb43e01f5.webp",
+        "https://cdntj.somon.tj/media/cache1/34/bc/34bc2171a2baabc8824073eff4f9c330.webp",
+        "https://cdntj.somon.tj/media/cache1/8d/cf/8dcf88621b109e1d91172fd8ed78a3af.webp",
+        "https://cdntj.somon.tj/media/cache1/26/ff/26ff84be0bc184bc00a4d403e9587643.webp",
+        "https://cdntj.somon.tj/media/cache1/ff/fe/fffea46f0fb1218cd0bb74a545d83a03.webp"
+      ],
+      "badges": [
+        "IMEI проверен"
+      ],
+      "publishedAgo": "2 дня назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "14208251",
+      "title": "Realme C75X 8+8/16/256Gb Global Version",
+      "url": "https://somon.tj/adv/14208251_realme-c75x-6-6-12-128gb-global-version/",
+      "price": 1777,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "256 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/c8/22/c82229655ff1be61ac91492c3663c270.webp",
+        "https://cdntj.somon.tj/media/cache1/13/6b/136b0f6dcda5ea8d14e490a8a3bb7f23.webp",
+        "https://cdntj.somon.tj/media/cache1/ce/b3/ceb3b8a9af0379a1607cfb87a0251fe2.webp",
+        "https://cdntj.somon.tj/media/cache1/25/53/255305f1b219684e1ae1756be492f759.webp"
+      ],
+      "badges": [],
+      "publishedAgo": "2 дня назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "14780519",
+      "title": "Xiaomi Mi 15T Pro 5G 12/512Gb Global Version",
+      "url": "https://somon.tj/adv/14780519_xiaomi-mi-15t-pro-5g-12-512gb-global-version-new/",
+      "price": 8888,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "512 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/99/8b/998b2381e0548e5bcca82f5b9964aef6.webp",
+        "https://cdntj.somon.tj/media/cache1/49/48/494825059d0d8474228cda0bb257c298.webp",
+        "https://cdntj.somon.tj/media/cache1/18/ff/18fffd8395d26b6673b063d2e17a8ae0.webp",
+        "https://cdntj.somon.tj/media/cache1/52/de/52de2d67c6bc60d4cea1cea7ff765451.webp",
+        "https://cdntj.somon.tj/media/cache1/79/d5/79d5a550008485346a08b0ebb50ce770.webp"
+      ],
+      "badges": [
+        "IMEI проверен"
+      ],
+      "publishedAgo": "2 дня назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "14208229",
+      "title": "Tecno Camon 30 5G 8+8/16/256Gb Global Version",
+      "url": "https://somon.tj/adv/14208229_tecno-camon-30-5g-8-8-16-256gb-global-version/",
+      "price": 1999,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "256 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/17/b1/17b1704156444f29e7ca7e19e5a7f156.webp",
+        "https://cdntj.somon.tj/media/cache1/11/34/11343aa5af0029f731019c202d5d8595.webp",
+        "https://cdntj.somon.tj/media/cache1/de/62/de628e4919252a3e4b469e5e1d26eb1a.webp",
+        "https://cdntj.somon.tj/media/cache1/00/ca/00ca60b59fcbb25b7aecc45a7c02c57e.webp",
+        "https://cdntj.somon.tj/media/cache1/1d/e3/1de35cb57952a77ed3216dd17c9e256d.webp"
+      ],
+      "badges": [],
+      "publishedAgo": "2 дня назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "13545935",
+      "title": "Xiaomi Mi 15 Ultra 16/512Gb Global Version",
+      "url": "https://somon.tj/adv/13545935_xiaomi-mi-15-ultra-16-512gb-global-version-2025/",
+      "price": 12222,
+      "oldPrice": 13699,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "512 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/e7/bd/e7bd440b6cc093958bba501417d51932.webp",
+        "https://cdntj.somon.tj/media/cache1/73/9a/739a5ee0e9052792d32c7f8ec1c1c38e.webp",
+        "https://cdntj.somon.tj/media/cache1/95/96/95960b55a5baa53e222b09be4e0db7ea.webp",
+        "https://cdntj.somon.tj/media/cache1/6a/66/6a666e88be906ecbd1e3cfaa220f0f65.webp",
+        "https://cdntj.somon.tj/media/cache1/0d/50/0d5000115ae68975c0521318da52baf6.webp"
+      ],
+      "badges": [
+        "IMEI проверен"
+      ],
+      "publishedAgo": "2 дня назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "13286857",
+      "title": "Samsung Galaxy S25 Ultra 5G 12/256Gb Vietnam",
+      "url": "https://somon.tj/adv/13286857_samsung-galaxy-s25-ultra-5g-12-256gb-vietnam/",
+      "price": 7777,
+      "oldPrice": 11799,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "256 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/36/a6/36a65499460ef057da4a0dc57439015d.webp",
+        "https://cdntj.somon.tj/media/cache1/2e/21/2e217a2624118c1163c4c8ccf767ccf5.webp",
+        "https://cdntj.somon.tj/media/cache1/0f/2d/0f2d296e997290488a3bbd76bedea3c6.webp",
+        "https://cdntj.somon.tj/media/cache1/83/76/83764b3ba47d42d75610a50ecad4fec7.webp",
+        "https://cdntj.somon.tj/media/cache1/35/c9/35c932dbd0f7536968944b54c955f380.webp"
+      ],
+      "badges": [
+        "IMEI проверен"
+      ],
+      "publishedAgo": "2 дня назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "13989551",
+      "title": "Tecno Pova 7 Neo 8+8/256Gb Global Version",
+      "url": "https://somon.tj/adv/13989551_tecno-pova-7-neo-8-8-256gb-global-version-2025/",
+      "price": 2299,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "256 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/de/0e/de0e47ad7185a6838db58baa0d79153a.webp",
+        "https://cdntj.somon.tj/media/cache1/95/15/9515bac1ec4baf0b03eebaf7d46551c6.webp",
+        "https://cdntj.somon.tj/media/cache1/30/68/3068651403ccfbecaf44ae37ff51193c.webp"
+      ],
+      "badges": [
+        "IMEI проверен"
+      ],
+      "publishedAgo": "2 дня назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "15527255",
+      "title": "Xiaomi Poco M7 Pro 5G 12/512Gb Global Version",
+      "url": "https://somon.tj/adv/15527255_xiaomi-poco-m7-pro-5g-12-512gb-global-version/",
+      "price": 2899,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "512 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/7a/d6/7ad6712ef7d5e89e084f7590dec5ac0d.webp",
+        "https://cdntj.somon.tj/media/cache1/31/2f/312f3f6d132dbb37345219f56b5bbd9c.webp",
+        "https://cdntj.somon.tj/media/cache1/2f/a4/2fa43d55dc0869f1528b017231c0cf40.webp",
+        "https://cdntj.somon.tj/media/cache1/8c/20/8c207e0388fe6c639ef654f3617e2a9d.webp",
+        "https://cdntj.somon.tj/media/cache1/7c/55/7c556e7ccc5181471d014f7aab4389a6.webp"
+      ],
+      "badges": [
+        "IMEI проверен"
+      ],
+      "publishedAgo": "2 дня назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "15496951",
+      "title": "Realme C85 8+8/16/256Gb Global Version 2026",
+      "url": "https://somon.tj/adv/15496951_realme-c85-8-8-16-256gb-global-version-2026-7000mah-battery/",
+      "price": 2150,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "256 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/0c/90/0c9096315ed23a2bfe14a24356e09b98.webp",
+        "https://cdntj.somon.tj/media/cache1/28/4d/284d80f9a86b793b2d08128536b20430.webp",
+        "https://cdntj.somon.tj/media/cache1/ad/2b/ad2b66c3b47096eb1eaabdd2b21cde5e.webp",
+        "https://cdntj.somon.tj/media/cache1/af/a3/afa3a0ef873673b09ea1f367d9f6c591.webp",
+        "https://cdntj.somon.tj/media/cache1/96/51/96518e1aae24be288dc988f4a9abb52f.webp"
+      ],
+      "badges": [
+        "IMEI проверен"
+      ],
+      "publishedAgo": "2 дня назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "16934327",
+      "title": "Itel A200 3+3/6/64Gb Global Version",
+      "url": "https://somon.tj/adv/16934327_itel-a200-3-3-6-64gb-global-version/",
+      "price": 1150,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "64 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/0f/84/0f840219927c27f3b7f2237484c9b75c.webp",
+        "https://cdntj.somon.tj/media/cache1/b5/4d/b54d2c7ebfa1bdf859e10975c4d280f2.webp",
+        "https://cdntj.somon.tj/media/cache1/f2/57/f2576270f8a66eafef382c7cb6f128b8.webp",
+        "https://cdntj.somon.tj/media/cache1/74/4a/744a289c5629477021a4ce862327d5c5.webp",
+        "https://cdntj.somon.tj/media/cache1/ca/bd/cabdb75ff2f637057d9df58515984357.webp"
+      ],
+      "badges": [],
+      "publishedAgo": "2 дня назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "14268399",
+      "title": "Huawei Honor X6C 6/128Gb Global Version",
+      "url": "https://somon.tj/adv/14268399_huawei-honor-x6c-6-128gb-global-version/",
+      "price": 1699,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "128 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/76/f8/76f81f7da5a4ad153c8e99088bf8d01b.webp",
+        "https://cdntj.somon.tj/media/cache1/0c/19/0c19963100b49d6e9d404e67c6d146e5.webp",
+        "https://cdntj.somon.tj/media/cache1/3d/51/3d5135798f48cb5e30d990d9c5d95f86.webp",
+        "https://cdntj.somon.tj/media/cache1/ae/84/ae841309668fbd88078018375cfa649a.webp",
+        "https://cdntj.somon.tj/media/cache1/f8/4e/f84e7699fdfee9f28ebc8f87af8e9481.webp"
+      ],
+      "badges": [
+        "IMEI проверен"
+      ],
+      "publishedAgo": "4 дня назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "15377417",
+      "title": "Xiaomi Redmi Note 15 Pro Plus 8+8/16/256GB Global Version 2026",
+      "url": "https://somon.tj/adv/15377417_xiaomi-redmi-note-15-pro-plus-8-8-16-256gb-global-version-2026/",
+      "price": 4199,
+      "oldPrice": 4444,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "256 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/58/0a/580aadc95f2f20ab699869dce91a3449.webp",
+        "https://cdntj.somon.tj/media/cache1/4f/0f/4f0f252c7a22b57158352de41eb10ed8.webp",
+        "https://cdntj.somon.tj/media/cache1/d1/9e/d19e065ce8d6f37a4cfa2cb0a3d02f7a.webp",
+        "https://cdntj.somon.tj/media/cache1/67/95/679530681e8489b6fa95fc9ad3df80cd.webp",
+        "https://cdntj.somon.tj/media/cache1/b9/be/b9be4790b36bcc17814285778682c608.webp"
+      ],
+      "badges": [
+        "IMEI проверен"
+      ],
+      "publishedAgo": "4 дня назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "14440379",
+      "title": "Samsung Galaxy A07 128Gb 2026",
+      "url": "https://somon.tj/adv/14440379_samsung-galaxy-a07-128gb-new/",
+      "price": 1599,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "128 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/50/31/5031a728fd58f5ecd9ac433201f571cd.webp",
+        "https://cdntj.somon.tj/media/cache1/98/99/9899fdd483ed89b405371a4caef9ac00.webp",
+        "https://cdntj.somon.tj/media/cache1/5c/5e/5c5ed1cacf141afbfb5a6a29f0988cea.webp",
+        "https://cdntj.somon.tj/media/cache1/ad/81/ad816782c240f771dca2abf8d7ee8451.webp",
+        "https://cdntj.somon.tj/media/cache1/ee/dc/eedc60d0d20e0f8a99bbdb6e36ff7a5f.webp"
+      ],
+      "badges": [
+        "IMEI проверен"
+      ],
+      "publishedAgo": "4 дня назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "15377565",
+      "title": "Xiaomi Redmi Note 15 Pro 8+8/16/256Gb Global Version 2026",
+      "url": "https://somon.tj/adv/15377565_xiaomi-redmi-note-15-pro-8-8-16-256gb-global-version-2026/",
+      "price": 3250,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "256 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/7e/1c/7e1c06859db833773443fe2f3396623c.webp",
+        "https://cdntj.somon.tj/media/cache1/93/19/93197d191895e2fd74d1692ed763357b.webp",
+        "https://cdntj.somon.tj/media/cache1/42/b9/42b9d6f7a5fba1b545c16a1925e89926.webp",
+        "https://cdntj.somon.tj/media/cache1/aa/91/aa91d150d172fa2ace81578d9c4c4b1f.webp",
+        "https://cdntj.somon.tj/media/cache1/b3/f6/b3f6b3df8241d48ac3ff8b8dc68594d3.webp"
+      ],
+      "badges": [
+        "IMEI проверен"
+      ],
+      "publishedAgo": "4 дня назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "16574382",
+      "title": "Xiaomi Redmi Note 15 Pro 5G 8+8/512Gb Global Version",
+      "url": "https://somon.tj/adv/16574382_xiaomi-redmi-note-15-pro-5g-8-8-512gb-global-version/",
+      "price": 3555,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "512 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/3d/19/3d1941d803c31217128bf1707faab270.webp",
+        "https://cdntj.somon.tj/media/cache1/ce/64/ce6436f4908166e063454f6e46673953.webp",
+        "https://cdntj.somon.tj/media/cache1/6c/8f/6c8fcfa241e8bcd81faed2c10ddf8bd8.webp",
+        "https://cdntj.somon.tj/media/cache1/05/6f/056f8829a5765bea5ca5aba3da518b86.webp",
+        "https://cdntj.somon.tj/media/cache1/d2/a0/d2a0ca247ffdb68bc10d20b192b56fad.webp"
+      ],
+      "badges": [
+        "IMEI проверен"
+      ],
+      "publishedAgo": "5 дней назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "16976046",
+      "title": "Tecno Go 3 4+4/8/64Gb Global Version",
+      "url": "https://somon.tj/adv/16976046_tecno-go-3-4-4-8-64gb-global-version/",
+      "price": 1333,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "64 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/35/ca/35ca019a268c5f7ca230386d9c94bb8b.webp",
+        "https://cdntj.somon.tj/media/cache1/6a/4d/6a4da28d77c5f81a009a306503e6ea6c.webp",
+        "https://cdntj.somon.tj/media/cache1/87/5c/875c1c8ea45e8ef97ceac6e2eea3bf16.webp",
+        "https://cdntj.somon.tj/media/cache1/d6/06/d606e8aa1d2b34878363453330b55d52.webp",
+        "https://cdntj.somon.tj/media/cache1/8e/7c/8e7c54eda2be8d927720063da6fed00a.webp"
+      ],
+      "badges": [],
+      "publishedAgo": "5 дней назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "14031759",
+      "title": "Samsung Galaxy A56 5G 8/128Gb 2025",
+      "url": "https://somon.tj/adv/14031759_samsung-galaxy-a56-5g-12-256gb-2025/",
+      "price": 3777,
+      "oldPrice": 4280,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "256 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/8c/d3/8cd3141045ec1011eb9a6b964e6d8113.webp",
+        "https://cdntj.somon.tj/media/cache1/4c/94/4c945f740c4149f0db60dc10c2949a09.webp",
+        "https://cdntj.somon.tj/media/cache1/b8/c4/b8c45554d1c35a9e88bf6f605234f775.webp",
+        "https://cdntj.somon.tj/media/cache1/a6/65/a66593a9acadb8baed952ead5fc32cf6.webp",
+        "https://cdntj.somon.tj/media/cache1/20/e8/20e8280aff145c3e0d8788948cec6ed1.webp"
+      ],
+      "badges": [
+        "IMEI проверен"
+      ],
+      "publishedAgo": "6 дней назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "15999275",
+      "title": "Samsung Galaxy A57 5G 12/512Gb Malaysia 2026",
+      "url": "https://somon.tj/adv/15999275_samsung-galaxy-a57-5g-12-512gb-vietnam-2026/",
+      "price": 5999,
+      "oldPrice": 6666,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "512 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/9f/b3/9fb3a53f365a9d11baddd8a80ca4f1aa.webp",
+        "https://cdntj.somon.tj/media/cache1/62/12/6212b6147cb248b841aa2c79a9ef0bb3.webp",
+        "https://cdntj.somon.tj/media/cache1/18/31/1831da9ba5c14d9e2f082f00314cee1f.webp",
+        "https://cdntj.somon.tj/media/cache1/ac/26/ac26346c42cf25969a25420f6256d326.webp",
+        "https://cdntj.somon.tj/media/cache1/7d/be/7dbe4410e51071c6457fbecaf0ee4a16.webp"
+      ],
+      "badges": [
+        "IMEI проверен"
+      ],
+      "publishedAgo": "1 неделя назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "16934210",
+      "title": "Itel A100Cs 2+2/64Gb Global Version",
+      "url": "https://somon.tj/adv/16934210_itel-a100cs-2-2-64gb-global-version/",
+      "price": 1099,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "64 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/a0/b9/a0b94db0c011c958471c224463ecab31.webp",
+        "https://cdntj.somon.tj/media/cache1/b5/ff/b5ff87b0f6130a30e94647d5f34ada68.webp",
+        "https://cdntj.somon.tj/media/cache1/8d/7c/8d7ce1b3574b0d8d7d5b1edc1bd2dac7.webp",
+        "https://cdntj.somon.tj/media/cache1/30/fd/30fd416cb3f2235b6d3219084a4028ec.webp",
+        "https://cdntj.somon.tj/media/cache1/e9/d8/e9d882381c722cf8b27ec6831bf2f07c.webp"
+      ],
+      "badges": [],
+      "publishedAgo": "1 неделя назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "16189087",
+      "title": "Xiaomi Poco X8 Pro Max 12+12/24/256Gb Global Version 2026",
+      "url": "https://somon.tj/adv/16189087_xiaomi-poco-x8-pro-max-12-12-24-256gb-global-version-2026/",
+      "price": 5777,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "256 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/e2/49/e24965a8cd80fa5da48127275abab4e5.webp",
+        "https://cdntj.somon.tj/media/cache1/3c/59/3c598cd51c4c083ef25e9dea9515d8bb.webp",
+        "https://cdntj.somon.tj/media/cache1/d2/03/d203976dbb3e1ddc23d912fb6064dd6f.webp",
+        "https://cdntj.somon.tj/media/cache1/c4/43/c443c665a1dfdc01482fe87e6a9a813a.webp",
+        "https://cdntj.somon.tj/media/cache1/a6/b5/a6b5579e85ebf9860ecfc32237aaa38f.webp"
+      ],
+      "badges": [
+        "IMEI проверен"
+      ],
+      "publishedAgo": "1 неделя назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "17031173",
+      "title": "Samsung Galaxy A07 4/64Gb 2026",
+      "url": "https://somon.tj/adv/17031173_samsung-galaxy-a07-4-64gb-2026/",
+      "price": 1480,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "64 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/b9/58/b9584f44b7b969a7ead6568d0e61c7ab.webp",
+        "https://cdntj.somon.tj/media/cache1/98/50/9850809eaa6565bc8b773c35412107bc.webp",
+        "https://cdntj.somon.tj/media/cache1/f4/63/f46362bff03b3c526efe179784e99aa7.webp",
+        "https://cdntj.somon.tj/media/cache1/92/93/9293895f432697b134ad15457c1d3aed.webp"
+      ],
+      "badges": [],
+      "publishedAgo": "1 неделя назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "15400616",
+      "title": "Itel Super S26 Ultra edge 8+8/16/256Gb Global Version 2026",
+      "url": "https://somon.tj/adv/15400616_itel-super-s26-ultra-edge-8-8-16-256gb-global-version-2026/",
+      "price": 2222,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "256 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/ea/2f/ea2f1b761cd000fada91b39cacf99137.webp",
+        "https://cdntj.somon.tj/media/cache1/13/d2/13d2ceb760865525a29a8fa2e8d10976.webp",
+        "https://cdntj.somon.tj/media/cache1/73/6f/736f04a2ad4b2702eb45a485fb7315ba.webp",
+        "https://cdntj.somon.tj/media/cache1/27/61/2761eb1396d15a3f05164cbd5f91a59e.webp",
+        "https://cdntj.somon.tj/media/cache1/22/e7/22e71e7b89fb068497241171238b4b09.webp"
+      ],
+      "badges": [
+        "IMEI проверен"
+      ],
+      "publishedAgo": "1 неделя назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "13649043",
+      "title": "Samsung Galaxy A56 5G 8/128Gb Vietnam",
+      "url": "https://somon.tj/adv/13649043_samsung-galaxy-a56-5g-8-128gb-vietnam/",
+      "price": 3888,
+      "oldPrice": 4099,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "128 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/52/c6/52c6aad44520ee698a87c295aabfbbf7.webp",
+        "https://cdntj.somon.tj/media/cache1/bd/9c/bd9c4924ba7e9d3f2a2d08a87ac877da.webp",
+        "https://cdntj.somon.tj/media/cache1/91/2a/912af047fbeb87712bc211378e5aa9c1.webp",
+        "https://cdntj.somon.tj/media/cache1/1c/14/1c14fe8e19da3f8a55d6248149065c56.webp",
+        "https://cdntj.somon.tj/media/cache1/ba/d5/bad5e003a1a9fae3491e8ff90d58e05a.webp"
+      ],
+      "badges": [
+        "IMEI проверен"
+      ],
+      "publishedAgo": "1 неделя назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "16359090",
+      "title": "Honor 600 Pro 12+12/24/512Gb Global Version",
+      "url": "https://somon.tj/adv/16359090_huawei-honor-600-pro-12-12-24-512gb-global-version/",
+      "price": 7799,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "512 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/63/72/63722e7471fdc03ede4df1e55d072d76.webp",
+        "https://cdntj.somon.tj/media/cache1/a1/ca/a1cadd0af10afce83f0d52329b823c2b.webp",
+        "https://cdntj.somon.tj/media/cache1/88/ac/88accf17dee6175c8f92d24a63832e41.webp",
+        "https://cdntj.somon.tj/media/cache1/ef/48/ef485a2b4ccf51b7524ffec1a0f51b6a.webp",
+        "https://cdntj.somon.tj/media/cache1/a3/d7/a3d72b6bd6cb48a963fd121b9986a47a.webp"
+      ],
+      "badges": [
+        "IMEI проверен"
+      ],
+      "publishedAgo": "1 неделя назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "16039140",
+      "title": "Tecno Pova 7 Pro 5G 8+8/16/256GB Global Version",
+      "url": "https://somon.tj/adv/16039140_tecno-pova-7-pro-5g-8-8-16-256gb-global-version/",
+      "price": 2888,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "256 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/9b/ca/9bca44ef5369619a5e6be09b3c83f470.webp",
+        "https://cdntj.somon.tj/media/cache1/35/54/3554463efa4fce950e63f0c8c873c7e2.webp",
+        "https://cdntj.somon.tj/media/cache1/45/15/45156fb1d85e01d48ca1d6ac540ec95d.webp",
+        "https://cdntj.somon.tj/media/cache1/08/23/08234b9adbb3cec7885f84e792fd8ced.webp"
+      ],
+      "badges": [
+        "IMEI проверен"
+      ],
+      "publishedAgo": "2 недели назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "16439876",
+      "title": "Honor X5D Plus 4+4/128gb Global Version",
+      "url": "https://somon.tj/adv/16439876_huawei-honor-x5d-plus-4-4-128-global-version/",
+      "price": 1599,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "128 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/8b/d9/8bd99e8fe0088c5687a2d6bd1b129727.webp",
+        "https://cdntj.somon.tj/media/cache1/85/ef/85efc58e535392453e643a6fe6060a37.webp",
+        "https://cdntj.somon.tj/media/cache1/7e/64/7e6432a6cde0a1483f8425facdaa7154.webp",
+        "https://cdntj.somon.tj/media/cache1/17/ce/17ce2bc3dd5d0550b7923f780eacda33.webp",
+        "https://cdntj.somon.tj/media/cache1/68/4a/684a724dd5c4e53e45c06d3989650f64.webp"
+      ],
+      "badges": [
+        "IMEI проверен"
+      ],
+      "publishedAgo": "2 недели назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "16574368",
+      "title": "Honor 600 5G 8+8/16/512Gb Global Version",
+      "url": "https://somon.tj/adv/16574368_huawei-honor-600-5g-8-8-16-512gb-global-version/",
+      "price": 5555,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "512 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/67/82/67822b5aeac00d483777a550b55d70c7.webp",
+        "https://cdntj.somon.tj/media/cache1/73/18/73181965fe9a0744393d4c34eb5d390d.webp"
+      ],
+      "badges": [
+        "IMEI проверен"
+      ],
+      "publishedAgo": "2 недели назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "16358740",
+      "title": "Infinix Note 60 Pro 12+12/256Gb Global Version",
+      "url": "https://somon.tj/adv/16358740_infinix-note-60-pro-12-12-256gb-global-version/",
+      "price": 4444,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "256 gb",
+      "images": [],
+      "badges": [
+        "IMEI проверен"
+      ],
+      "publishedAgo": "2 недели назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "14966394",
+      "title": "Tecno Spark Slim 8+8/16/256Gb Global Version",
+      "url": "https://somon.tj/adv/14966394_tecno-spark-slim-8-8-16-256gb-global-version-new/",
+      "price": 3099,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "256 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/5f/70/5f70cd008cc6485ebb32bc4f0048536c.webp",
+        "https://cdntj.somon.tj/media/cache1/3e/8f/3e8f59ea9a3d91e4e674a1a62c75ded6.webp",
+        "https://cdntj.somon.tj/media/cache1/17/e6/17e6a0bdb493ec6a493604380a414f6e.webp",
+        "https://cdntj.somon.tj/media/cache1/78/81/78816fba87779461ee32fbb0a5543bec.webp"
+      ],
+      "badges": [
+        "IMEI проверен"
+      ],
+      "publishedAgo": "2 недели назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "16934130",
+      "title": "Tecno Spark 50 4+4/8/128GB Global Version",
+      "url": "https://somon.tj/adv/16934130_tecno-spark-50-4-4-8-128gb-global-version/",
+      "price": 1777,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "128 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/cd/17/cd1790dca9281385beec11f1146c4cde.webp",
+        "https://cdntj.somon.tj/media/cache1/3b/fd/3bfddd891eefe07cee05cda8c8d91d58.webp",
+        "https://cdntj.somon.tj/media/cache1/09/e4/09e4a66d11bf314bd037ef96419efa67.webp",
+        "https://cdntj.somon.tj/media/cache1/e9/c8/e9c84d69266998c81b3a15851e40cf86.webp",
+        "https://cdntj.somon.tj/media/cache1/f3/48/f3488f6346f0d98eb8ca72b1da6f2653.webp"
+      ],
+      "badges": [],
+      "publishedAgo": "2 недели назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "16976344",
+      "title": "Xiaomi Redmi 17 8+8/16/256Gb Global Version",
+      "url": "https://somon.tj/adv/16976344_redmi-17-8-8-16-256gb-global-version/",
+      "price": 2270,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "256 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/8a/cd/8acdb1368b5126b0f3f960d9018ea8d1.webp",
+        "https://cdntj.somon.tj/media/cache1/a4/f5/a4f5436327cec5a5b7899254f71cea30.webp",
+        "https://cdntj.somon.tj/media/cache1/87/d9/87d9b69086042d488b15f6b80cf20487.webp",
+        "https://cdntj.somon.tj/media/cache1/e8/33/e833a454895f0b7cf3f239bf6bf6d988.webp",
+        "https://cdntj.somon.tj/media/cache1/e8/1b/e81b04387cb12fe8ba7b975511c65e3a.webp"
+      ],
+      "badges": [],
+      "publishedAgo": "2 недели назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "14433605",
+      "title": "Infinix Hot 60 Pro Plus Edge 8+8/16/256Gb Global Version",
+      "url": "https://somon.tj/adv/14433605_infinix-hot-60-pro-plus-edge-8-8-16-256gb-global-version-new/",
+      "price": 2399,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "256 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/9b/11/9b1144ea84d04d2f74a3dccedd806a57.webp",
+        "https://cdntj.somon.tj/media/cache1/e1/c0/e1c03c31bc76111152c4696f83a1b481.webp",
+        "https://cdntj.somon.tj/media/cache1/ea/4e/ea4e6253d8c24ebfe4c0949d8ec83507.webp",
+        "https://cdntj.somon.tj/media/cache1/e5/b0/e5b0cb55cec8386f0514b2e771113166.webp",
+        "https://cdntj.somon.tj/media/cache1/53/57/5357ef7a3747b60c97a10d79858fd1ce.webp"
+      ],
+      "badges": [
+        "IMEI проверен"
+      ],
+      "publishedAgo": "2 недели назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "16188988",
+      "title": "Xiaomi Poco X8 Pro 12+12/512gb Global Version 2026",
+      "url": "https://somon.tj/adv/16188988_xiaomi-poco-x8-pro-12-12-24-512gb-global-version-2026/",
+      "price": 4666,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "512 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/a0/ba/a0ba665fb96be32ee54538f8308bf654.webp",
+        "https://cdntj.somon.tj/media/cache1/09/87/0987f468077b34599c69535d26a9cc5b.webp",
+        "https://cdntj.somon.tj/media/cache1/71/bd/71bd458dced22776ac25c20a933880f0.webp",
+        "https://cdntj.somon.tj/media/cache1/15/37/15376ee6803d7606a4f93ee6f7733c11.webp",
+        "https://cdntj.somon.tj/media/cache1/4f/b1/4fb17f84eaa13c245afeba3717899479.webp"
+      ],
+      "badges": [
+        "IMEI проверен"
+      ],
+      "publishedAgo": "2 недели назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "14966501",
+      "title": "Honor X7d 6+6/12/128Gb Global Version",
+      "url": "https://somon.tj/adv/14966501_huawei-honor-x7d-6-128gb-global-version/",
+      "price": 2222,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "128 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/92/3f/923f495f999ea50d118c585d64c5d440.webp",
+        "https://cdntj.somon.tj/media/cache1/3c/43/3c434bb191621ed6a26067ad2571c498.webp",
+        "https://cdntj.somon.tj/media/cache1/c5/a0/c5a04f5c14d9b8dc494eb77bb8031de1.webp",
+        "https://cdntj.somon.tj/media/cache1/e9/9a/e99a32db7ca829dfa28c8682614d2fcd.webp",
+        "https://cdntj.somon.tj/media/cache1/02/68/02687f5cc0ddb23ef61ee59133de8585.webp"
+      ],
+      "badges": [
+        "IMEI проверен"
+      ],
+      "publishedAgo": "2 недели назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "16188944",
+      "title": "Xiaomi Poco X8 Pro 8+8/16/256Gb Global Version 2026",
+      "url": "https://somon.tj/adv/16188944_xiaomi-poco-x8-pro-8-8-16-256gb-global-version-2026/",
+      "price": 4150,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "256 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/5c/27/5c274df43a663479adb2bce832a1d510.webp",
+        "https://cdntj.somon.tj/media/cache1/48/d9/48d921c4c93cb77f9278f7cee51f699a.webp",
+        "https://cdntj.somon.tj/media/cache1/01/7c/017c620f47729976c145314dd0776a42.webp",
+        "https://cdntj.somon.tj/media/cache1/c0/fa/c0fa26a1995e8ea2ceb4fb8f12efdd16.webp",
+        "https://cdntj.somon.tj/media/cache1/f7/a6/f7a6282eb60a027b56426bfcdd64907b.webp"
+      ],
+      "badges": [
+        "IMEI проверен"
+      ],
+      "publishedAgo": "2 недели назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "15377396",
+      "title": "Xiaomi Redmi Note 15 Pro Plus 12+12/24/512Gb Global Version",
+      "url": "https://somon.tj/adv/15377396_xiaomi-redmi-note-15-pro-plus-12-12-24-512gb-global-version-2026/",
+      "price": 4699,
+      "oldPrice": 4999,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "512 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/79/09/7909b5fb5585b022302f6495619abc0d.webp",
+        "https://cdntj.somon.tj/media/cache1/af/0f/af0f395d1d8f5b7139878d1e7727a3ef.webp",
+        "https://cdntj.somon.tj/media/cache1/8e/ae/8eae23b17da0994321fdb3c3f6885ea0.webp",
+        "https://cdntj.somon.tj/media/cache1/04/60/0460959e60789964a4b36ba5e79917a9.webp",
+        "https://cdntj.somon.tj/media/cache1/17/a9/17a93475f5ba9475daa05cce4da34d4a.webp"
+      ],
+      "badges": [
+        "IMEI проверен"
+      ],
+      "publishedAgo": "2 недели назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "16189177",
+      "title": "Xiaomi Poco X8 Pro Max 12+12/24/512Gb Global Version 2026",
+      "url": "https://somon.tj/adv/16189177_xiaomi-poco-x8-pro-max-12-12-24-512gb-global-version-2026/",
+      "price": 5999,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "512 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/a5/86/a58616dbeaa260d826cca0b699a51348.webp",
+        "https://cdntj.somon.tj/media/cache1/10/58/1058aeebb5e0ca2e34780b88bd31f3f7.webp",
+        "https://cdntj.somon.tj/media/cache1/6e/c6/6ec68dc09abee5cb593ce67ce6c530b4.webp",
+        "https://cdntj.somon.tj/media/cache1/73/91/73917de1174eaa955c4b30c65c116fd0.webp",
+        "https://cdntj.somon.tj/media/cache1/a9/f5/a9f57d4dd13a750dd6705a6ee76054f1.webp"
+      ],
+      "badges": [
+        "IMEI проверен"
+      ],
+      "publishedAgo": "2 недели назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "14208391",
+      "title": "Infinix Note 50 8+8/16/256Gb Global Version",
+      "url": "https://somon.tj/adv/14208391_infinix-note-50-8-8-16-256gb-global-version/",
+      "price": 2999,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "256 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/0e/23/0e23df5a0aec676d39bda64376a17053.webp",
+        "https://cdntj.somon.tj/media/cache1/29/4d/294d146817332b3a3e2608362e73b005.webp",
+        "https://cdntj.somon.tj/media/cache1/be/48/be484c3d8d7af71a85ac0da49e60e43a.webp",
+        "https://cdntj.somon.tj/media/cache1/c3/31/c3311b93e5adc426f87c9f80de8c7817.webp"
+      ],
+      "badges": [
+        "IMEI проверен"
+      ],
+      "publishedAgo": "3 недели назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "15167003",
+      "title": "Tecno Spark 40 Pro 8+8/16/256Gb Global Version",
+      "url": "https://somon.tj/adv/15167003_tecno-spark-40-pro-8-8-16-256gb-global-version/",
+      "price": 1999,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "256 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/cb/3a/cb3a48c5e90a2a5fe7f3dc7b5a2a8584.webp",
+        "https://cdntj.somon.tj/media/cache1/9c/14/9c1431c09b09e85363f885d0cabd6b3f.webp",
+        "https://cdntj.somon.tj/media/cache1/84/57/8457f89e6d8f84b6a08f7874ae4c6e13.webp",
+        "https://cdntj.somon.tj/media/cache1/4c/8b/4c8bb147f3c1d10a038d6399560635f5.webp",
+        "https://cdntj.somon.tj/media/cache1/28/80/28802a42c7830741f5a5b9cd1022ca88.webp"
+      ],
+      "badges": [
+        "IMEI проверен"
+      ],
+      "publishedAgo": "3 недели назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "15377508",
+      "title": "Xiaomi Redmi Note 15 8+8/16/128Gb Global Version 2026",
+      "url": "https://somon.tj/adv/15377508_xiaomi-redmi-note-15-8-8-16-128gb-global-version-2026/",
+      "price": 2555,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "128 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/4f/f6/4ff6a7ecdc419a88e707f422baf2e217.webp",
+        "https://cdntj.somon.tj/media/cache1/06/20/0620a42c789737e9f865574dfa500cf4.webp",
+        "https://cdntj.somon.tj/media/cache1/05/0e/050e2685deb666fd19cd269653add2f8.webp",
+        "https://cdntj.somon.tj/media/cache1/8d/10/8d1086accd9ed52586bda3a65a671ad8.webp",
+        "https://cdntj.somon.tj/media/cache1/e0/fc/e0fcdbbcaf347e9dae97acefc1db39a6.webp"
+      ],
+      "badges": [
+        "IMEI проверен"
+      ],
+      "publishedAgo": "3 недели назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "12621539",
+      "title": "Xiaomi Mi 14T Pro 5G 12/256Gb Natural Titanium Global",
+      "url": "https://somon.tj/adv/12621539_xiaomi-mi-14t-pro-5g-12-256gb-natural-titanium-global-version-new/",
+      "price": 7850,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "256 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/8b/5c/8b5c051da452e56442cbab9bf2d011b8.webp",
+        "https://cdntj.somon.tj/media/cache1/09/ed/09ed1be45b7dc92590e96394135ba809.webp",
+        "https://cdntj.somon.tj/media/cache1/05/6e/056e33671132544a87bd6b993f7a43e8.webp",
+        "https://cdntj.somon.tj/media/cache1/ad/d2/add27b14ece0f69c031f12ededcda9f5.webp",
+        "https://cdntj.somon.tj/media/cache1/b8/5d/b85d45768e3330a8c90b5bde0e72e281.webp"
+      ],
+      "badges": [
+        "IMEI проверен"
+      ],
+      "publishedAgo": "3 недели назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "16045897",
+      "title": "Samsung Galaxy A15 8/256Gb Vietnam",
+      "url": "https://somon.tj/adv/16045897_samsung-galaxy-a15-8-256gb-vietnam/",
+      "price": 2099,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "256 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/40/99/409933f943ac28fcd1c765602747c97b.webp",
+        "https://cdntj.somon.tj/media/cache1/d7/9a/d79a4646b13bb475fadbdba0c7297686.webp",
+        "https://cdntj.somon.tj/media/cache1/35/7e/357ea3a99676cfca7b58627046746ac3.webp",
+        "https://cdntj.somon.tj/media/cache1/54/a4/54a4b0eaa3311ac7034a18839ae26c3a.webp",
+        "https://cdntj.somon.tj/media/cache1/e1/cb/e1cb76c20c2ea327b8311110b7dc6437.webp"
+      ],
+      "badges": [
+        "IMEI проверен"
+      ],
+      "publishedAgo": "3 недели назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "14492162",
+      "title": "Xiaomi Poco C85 6/128Gb Global Version",
+      "url": "https://somon.tj/adv/14492162_xiaomi-poco-c85-6-128gb-global-version-new-6000mah/",
+      "price": 1399,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "128 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/0c/7c/0c7c2596957bf252179b77060cdfcc05.webp",
+        "https://cdntj.somon.tj/media/cache1/78/73/78738a7e75ff739547d62d5a75ab9f64.webp",
+        "https://cdntj.somon.tj/media/cache1/83/b0/83b003f4e3f397ca4d91bfa106f0539c.webp",
+        "https://cdntj.somon.tj/media/cache1/c8/01/c8010dbe9b5d6d5043ea6e74277a9f8a.webp",
+        "https://cdntj.somon.tj/media/cache1/73/41/7341b58da111a62127938d3d1fc94444.webp"
+      ],
+      "badges": [
+        "IMEI проверен"
+      ],
+      "publishedAgo": "3 недели назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "14905070",
+      "title": "Xiaomi Redmi Note 14 Pro Edge 8+8/256Gb Global Version",
+      "url": "https://somon.tj/adv/14905070_xiaomi-redmi-note-14-pro-edge-8-8-256gb-global-version/",
+      "price": 2888,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "256 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/19/07/1907cab4d4bb7252bd9283287c48e1ca.webp",
+        "https://cdntj.somon.tj/media/cache1/69/67/6967797e9e3840534baae31fee032af6.webp",
+        "https://cdntj.somon.tj/media/cache1/ff/fc/fffc2aaa9bf705d58e62897b45ec196f.webp",
+        "https://cdntj.somon.tj/media/cache1/3e/2a/3e2a0e2294e8cdff05acc00177052560.webp",
+        "https://cdntj.somon.tj/media/cache1/4c/5c/4c5c0ee25dc40524a9892f997dc7aa0a.webp"
+      ],
+      "badges": [
+        "IMEI проверен"
+      ],
+      "publishedAgo": "3 недели назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "15166963",
+      "title": "Tecno Spark Go 2 3+3/6/128Gb Global Version",
+      "url": "https://somon.tj/adv/15166963_tecno-spark-go-2-3-3-6-128gb-global-version/",
+      "price": 1099,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "128 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/13/ee/13eea5f6e266b82bad97723775c605e8.webp",
+        "https://cdntj.somon.tj/media/cache1/3f/ec/3fecf6f53aec035acdfd17827a10f530.webp",
+        "https://cdntj.somon.tj/media/cache1/78/73/78730029c4033faa6c9972b0a9dce2c0.webp",
+        "https://cdntj.somon.tj/media/cache1/8c/51/8c51adced9db7ada151748c506db7a3a.webp",
+        "https://cdntj.somon.tj/media/cache1/b8/39/b8395b125da970a00a9efc1071f5525b.webp"
+      ],
+      "badges": [
+        "IMEI проверен"
+      ],
+      "publishedAgo": "3 недели назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "14831480",
+      "title": "Xiaomi Mi 15T 5G 12/512Gb Global Version",
+      "url": "https://somon.tj/adv/14831480_xiaomi-mi-15t-5g-12-512gb-global-version-new/",
+      "price": 7200,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "512 gb",
+      "images": [],
+      "badges": [
+        "IMEI проверен"
+      ],
+      "publishedAgo": "3 недели назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "14775159",
+      "title": "Xiaomi Poco X7 5G 8+8/256GB Global Version",
+      "url": "https://somon.tj/adv/14775159_xiaomi-poco-x7-5g-8-8-256gb-global-version/",
+      "price": 2999,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "256 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/26/45/264565e14455d68666a90c551e880492.webp",
+        "https://cdntj.somon.tj/media/cache1/b1/6e/b16ed865ed6983ef7559b65415467dc3.webp",
+        "https://cdntj.somon.tj/media/cache1/80/43/80430f5fe6494244aa858f81ddef23d3.webp",
+        "https://cdntj.somon.tj/media/cache1/a3/d4/a3d40316a5e42ade0d99359a0cbb6edf.webp",
+        "https://cdntj.somon.tj/media/cache1/d6/64/d6647f1c0343ee46ac7b1a595211a6e0.webp"
+      ],
+      "badges": [
+        "IMEI проверен"
+      ],
+      "publishedAgo": "3 недели назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "13091772",
+      "title": "Xiaomi Redmi Note 14 Pro Plus 5G 12+6/512Gb Global Version",
+      "url": "https://somon.tj/adv/13091772_xiaomi-redmi-note-14-pro-plus-5g-12-6-512gb-global-version-2025/",
+      "price": 4222,
+      "oldPrice": 4850,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "512 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/0e/e1/0ee1bd5058a85fd2d4bfadbb47210ac6.webp",
+        "https://cdntj.somon.tj/media/cache1/a0/f7/a0f7c428e7e65511fb9f1107c19aa188.webp",
+        "https://cdntj.somon.tj/media/cache1/9d/4b/9d4be384c550caab7df3e565f9472553.webp",
+        "https://cdntj.somon.tj/media/cache1/ac/1f/ac1fc3f068a9ce599319f58fef1d85a4.webp",
+        "https://cdntj.somon.tj/media/cache1/02/e5/02e5d5421c0365c3ad8dfaec8f6a85d5.webp"
+      ],
+      "badges": [
+        "IMEI проверен"
+      ],
+      "publishedAgo": "3 недели назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "16309673",
+      "title": "Infinix Smart 20 4+4/8/128Gb Global Version 2026",
+      "url": "https://somon.tj/adv/16309673_infinix-smart-20-4-4-8-128gb-global-version-2026-new/",
+      "price": 1480,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "128 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/fa/31/fa31164c7c953d40c6b61e1cb911bee2.webp",
+        "https://cdntj.somon.tj/media/cache1/8d/17/8d17fe5fdad6def39e43cb868a733cf4.webp",
+        "https://cdntj.somon.tj/media/cache1/74/1b/741b6bf462f10dc6a4920ec587597e82.webp",
+        "https://cdntj.somon.tj/media/cache1/d9/9b/d99b0e43df4e9929ec5e7bb8320e4f1e.webp"
+      ],
+      "badges": [
+        "IMEI проверен"
+      ],
+      "publishedAgo": "3 недели назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "14492167",
+      "title": "Xiaomi Poco C85 8/256Gb Global Version",
+      "url": "https://somon.tj/adv/14492167_xiaomi-poco-c85-8-256gb-global-version-new-6000mah-battery/",
+      "price": 1777,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "256 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/bb/d8/bbd8439559c19a93be8d37f69d53b6ba.webp",
+        "https://cdntj.somon.tj/media/cache1/f1/c6/f1c65b31099856bdb9ee59f4d6899cfb.webp",
+        "https://cdntj.somon.tj/media/cache1/cf/59/cf5931c02a65e8165c031e36aae615a2.webp",
+        "https://cdntj.somon.tj/media/cache1/9f/da/9fdac5613e410b3f225fdd1373b7007f.webp",
+        "https://cdntj.somon.tj/media/cache1/2d/c2/2dc2f25354ced2246eab565c997ce5bc.webp"
+      ],
+      "badges": [
+        "IMEI проверен"
+      ],
+      "publishedAgo": "3 недели назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "14441804",
+      "title": "Infinix Hot 60 Pro 8+8/16/256Gb Global Version",
+      "url": "https://somon.tj/adv/14441804_infinix-hot-60-pro-8-8-16-256gb-global-version-new/",
+      "price": 2222,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "256 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/9b/df/9bdff75064e666d6d9255833ae3fed00.webp",
+        "https://cdntj.somon.tj/media/cache1/47/32/4732100d511b7a732d9b10c2e31d9efc.webp",
+        "https://cdntj.somon.tj/media/cache1/bc/f5/bcf564cc9b9c45333d14e4649e646e37.webp",
+        "https://cdntj.somon.tj/media/cache1/1b/e5/1be569fa151af11da498048e19be62c8.webp",
+        "https://cdntj.somon.tj/media/cache1/88/6e/886eb77a069bbe44b4fdc47447f905eb.webp"
+      ],
+      "badges": [
+        "IMEI проверен"
+      ],
+      "publishedAgo": "3 недели назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "13648978",
+      "title": "Samsung Galaxy A56 5G 8/256Gb 2025 Vietnam",
+      "url": "https://somon.tj/adv/13648978_samsung-galaxy-a56-5g-8-256gb-2025-vietnam/",
+      "price": 4199,
+      "oldPrice": 4350,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "256 gb",
+      "images": [],
+      "badges": [
+        "IMEI проверен"
+      ],
+      "publishedAgo": "3 недели назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "16358983",
+      "title": "infinix Hot 70 4+4/128Gb Global Version",
+      "url": "https://somon.tj/adv/16358983_infinix-hot-70-4-4-128gb-global-version/",
+      "price": 1777,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "256 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/0e/83/0e8399345c6261ae40be2ae8cbfa07b4.webp",
+        "https://cdntj.somon.tj/media/cache1/61/0a/610a6bde3d9dfeec0e2b6a630d7e11e6.webp",
+        "https://cdntj.somon.tj/media/cache1/ac/88/ac8891bd7aa397d5059e5295e498445c.webp",
+        "https://cdntj.somon.tj/media/cache1/cf/b8/cfb880cbdcd4d48fdab0b9eb3c4e75c8.webp",
+        "https://cdntj.somon.tj/media/cache1/06/13/0613a33a088566bbc5efcdee96db1940.webp"
+      ],
+      "badges": [
+        "IMEI проверен"
+      ],
+      "publishedAgo": "3 недели назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "14492188",
+      "title": "Xiaomi Poco M7 8/256Gb Global Version",
+      "url": "https://somon.tj/adv/14492188_xiaomi-poco-8-256gb-global-version-new-7000mah-battery/",
+      "price": 2099,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "256 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/e1/f9/e1f9213ddee499ad4a9ac33ba34d3488.webp",
+        "https://cdntj.somon.tj/media/cache1/2a/f1/2af1969eafe946f778f86856ffe69d79.webp",
+        "https://cdntj.somon.tj/media/cache1/fb/4e/fb4e1c5894124921aaa5e7927b6f544d.webp",
+        "https://cdntj.somon.tj/media/cache1/9c/a6/9ca6b30457baa0866e14e72733d30a76.webp",
+        "https://cdntj.somon.tj/media/cache1/13/03/130358f4b5311e29a024d40a03a5daf0.webp"
+      ],
+      "badges": [
+        "IMEI проверен"
+      ],
+      "publishedAgo": "3 недели назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "13659055",
+      "title": "Samsung Galaxy A06 4/64Gb 2026",
+      "url": "https://somon.tj/adv/13659055_samsung-galaxy-a06-6-128gb-2025/",
+      "price": 1333,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "128 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/37/24/3724f359a68446fb12c9866417a0811a.webp",
+        "https://cdntj.somon.tj/media/cache1/35/a4/35a49a499df853f8ce7572c2a3ff86fe.webp",
+        "https://cdntj.somon.tj/media/cache1/8a/41/8a4130b36953cb7d80e26d2ea535e6cb.webp",
+        "https://cdntj.somon.tj/media/cache1/fe/b4/feb4d0d2db21301908cc0f80630447a7.webp"
+      ],
+      "badges": [
+        "IMEI проверен"
+      ],
+      "publishedAgo": "3 недели назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "14208412",
+      "title": "Infinix Note 50 Pro 12+12/24/256Gb Global Version",
+      "url": "https://somon.tj/adv/14208412_infinix-note-50-pro-12-12-24-256gb-global-version/",
+      "price": 3333,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "256 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/34/c1/34c11613133ebe921b365fa2f4263089.webp",
+        "https://cdntj.somon.tj/media/cache1/46/fc/46fc549da5244b234661f9ab9ac5ae68.webp",
+        "https://cdntj.somon.tj/media/cache1/fa/34/fa34e7d28b277bcc7681c2e8695a19d7.webp",
+        "https://cdntj.somon.tj/media/cache1/84/c9/84c9b71b7588442e482a8275f92f77fa.webp",
+        "https://cdntj.somon.tj/media/cache1/2d/ec/2dec4ab351fda76629d5615090cff5f6.webp"
+      ],
+      "badges": [
+        "IMEI проверен"
+      ],
+      "publishedAgo": "4 недели назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "14338285",
+      "title": "Honor 400 Lite 8/256Gb Global Version",
+      "url": "https://somon.tj/adv/14338285_huawei-honor-400-lite-8-256gb-global-version/",
+      "price": 2999,
+      "oldPrice": 3599,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "256 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/2d/d0/2dd0a5ade19140312ae4cbc6430d1885.webp",
+        "https://cdntj.somon.tj/media/cache1/e8/21/e821560d3195bccac01a03eb9875d37c.webp",
+        "https://cdntj.somon.tj/media/cache1/22/c7/22c72c0fe4573166b7442d53f8315965.webp",
+        "https://cdntj.somon.tj/media/cache1/4d/2b/4d2bb2513ac27fa1b24e8fad3a432dd7.webp",
+        "https://cdntj.somon.tj/media/cache1/89/18/891830231189a60d1768746864cca6dd.webp"
+      ],
+      "badges": [
+        "IMEI проверен"
+      ],
+      "publishedAgo": "4 недели назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "12621619",
+      "title": "Xiaomi Mi 14T 5G 12/256Gb Natural Titanium",
+      "url": "https://somon.tj/adv/12621619_xiaomi-mi-14t-5g-12-256gb-natural-titanium-global-version-new/",
+      "price": 6666,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "256 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/55/6e/556e1532c9bdc4d709409986f704c25e.webp",
+        "https://cdntj.somon.tj/media/cache1/34/c1/34c18e773e3a6b89180340d00451710d.webp",
+        "https://cdntj.somon.tj/media/cache1/e9/9d/e99d92a5a7b9c2de3dd589687103a0b6.webp",
+        "https://cdntj.somon.tj/media/cache1/2b/5b/2b5becace07bdff7257c8d7d94c40365.webp"
+      ],
+      "badges": [
+        "IMEI проверен"
+      ],
+      "publishedAgo": "4 недели назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "14338154",
+      "title": "Tecno Camon 40 Pro 8+8/256Gb Global Version",
+      "url": "https://somon.tj/adv/14338154_tecno-camon-40-pro-8-8-256gb-global-version-new/",
+      "price": 2658,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "256 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/86/d9/86d95f620897ce2e13dfdb65ab4cd43f.webp",
+        "https://cdntj.somon.tj/media/cache1/ce/c7/cec7b24b717df899ae9480e11bb70e21.webp",
+        "https://cdntj.somon.tj/media/cache1/a9/26/a926799f1a2d3023d257b4a376857f28.webp",
+        "https://cdntj.somon.tj/media/cache1/f5/e7/f5e70ecc40f3d238d534d2ae91b09b35.webp",
+        "https://cdntj.somon.tj/media/cache1/09/cf/09cfd524619ab8fc870103195d713a84.webp"
+      ],
+      "badges": [
+        "IMEI проверен"
+      ],
+      "publishedAgo": "4 недели назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "14441748",
+      "title": "Tecno Spark 40 Pro 8+8/16/128Gb Global Version",
+      "url": "https://somon.tj/adv/14441748_tecno-spark-40-pro-8-8-16-128gb-global-version-new/",
+      "price": 1870,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "128 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/ba/d0/bad01e15cb8b77c6771b656faed44327.webp",
+        "https://cdntj.somon.tj/media/cache1/ff/e4/ffe4e050a2866139dc2e8235998f46c6.webp",
+        "https://cdntj.somon.tj/media/cache1/79/4e/794e587d2c98f11f8facaa8ca73986f0.webp",
+        "https://cdntj.somon.tj/media/cache1/8b/7b/8b7bd99575862fe6f6e12a8ed41caf14.webp",
+        "https://cdntj.somon.tj/media/cache1/fb/31/fb31838417ce2affee604e571d334d6a.webp"
+      ],
+      "badges": [
+        "IMEI проверен"
+      ],
+      "publishedAgo": "4 недели назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "14338236",
+      "title": "Infinix GT 30 Pro 12+12/24/256Gb Global Version 2025",
+      "url": "https://somon.tj/adv/14338236_infinix-gt-30-pro-12-12-24-256gb-global-version-2025-new/",
+      "price": 3555,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "256 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/b1/b0/b1b08c83980cb9ee4c42a4b66762c98a.webp",
+        "https://cdntj.somon.tj/media/cache1/03/44/0344229617e337a8cb9f18258a33a0a6.webp",
+        "https://cdntj.somon.tj/media/cache1/73/ec/73ec3caa4016cd1ef8a3b7511eb7a90e.webp",
+        "https://cdntj.somon.tj/media/cache1/19/2d/192d4cd784f25953c5a7be96e5c1ab7b.webp",
+        "https://cdntj.somon.tj/media/cache1/4a/70/4a70b04ca05165dbed8a5db3616b375f.webp"
+      ],
+      "badges": [
+        "IMEI проверен"
+      ],
+      "publishedAgo": "4 недели назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "13558009",
+      "title": "Xiaomi Redmi Note 14 8+8/256Gb Global Version 2025",
+      "url": "https://somon.tj/adv/13558009_xiaomi-redmi-note-14-8-8-256gb-global-version-2025-new/",
+      "price": 2199,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "256 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/ff/bb/ffbbc5fbc438539d0619baf9262bc54b.webp",
+        "https://cdntj.somon.tj/media/cache1/fc/fa/fcfa82553d98ca0d5eb9bada55a9be53.webp",
+        "https://cdntj.somon.tj/media/cache1/f1/e0/f1e046b689497aac5a5ec4bb4c59db2b.webp",
+        "https://cdntj.somon.tj/media/cache1/e8/e9/e8e9f6988ea728cb7bc72bf7b9bad587.webp",
+        "https://cdntj.somon.tj/media/cache1/7c/bd/7cbd656d97ee6750a57ed015821c7a5b.webp"
+      ],
+      "badges": [
+        "IMEI проверен"
+      ],
+      "publishedAgo": "4 недели назад",
+      "city": "Душанбе"
+    },
+    {
+      "id": "14338251",
+      "title": "Honor X6C 256Gb Global Version",
+      "url": "https://somon.tj/adv/14338251_huawei-honor-x6c-256gb-global-version/",
+      "price": 1777,
+      "oldPrice": null,
+      "currency": "TJS",
+      "condition": "Новый",
+      "storage": "256 gb",
+      "images": [
+        "https://cdntj.somon.tj/media/cache1/4f/0c/4f0c7c3ad869c0ab570382a9886d2f56.webp",
+        "https://cdntj.somon.tj/media/cache1/22/63/22637ebe5e8ebaa8e9bcdfabd818ff12.webp",
+        "https://cdntj.somon.tj/media/cache1/ba/23/ba233789cdeab49e586470ed8be83591.webp",
+        "https://cdntj.somon.tj/media/cache1/1a/62/1a62f3a5de11cb93da49a55064df9661.webp",
+        "https://cdntj.somon.tj/media/cache1/b4/46/b4469c5c5c36f5da1f8171dbe03cfcc2.webp"
+      ],
+      "badges": [
+        "IMEI проверен"
+      ],
+      "publishedAgo": "4 недели назад",
+      "city": "Душанбе"
+    }
+  ]
+}
