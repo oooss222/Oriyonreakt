@@ -52,7 +52,7 @@ export default function SavedSearchesPanel({ onApply }) {
       const local = readLocalSavedSearches().filter(
         (entry) => entry.savedAt !== item.savedAt
       );
-      localStorage.setItem("oriyon_saved_searches", JSON.stringify(local));
+      localStorage.setItem("diyor_saved_searches", JSON.stringify(local));
     }
 
     load();

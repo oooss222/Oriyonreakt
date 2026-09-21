@@ -23,11 +23,11 @@ function sanitizeEntries(entries = []) {
   for (const raw of entries) {
     if (!raw || typeof raw !== "object") continue;
 
-    if (raw.source === "oriyon" && raw.id) {
+    if ((raw.source === "diyor" || raw.source === "oriyon") && raw.id) {
       const id = String(raw.id);
       if (seen.has(id)) continue;
       seen.add(id);
-      next.push({ source: "oriyon", id, cat: raw.cat || "" });
+      next.push({ source: "diyor", id, cat: raw.cat || "" });
     } else if (raw.source === "external" && (raw.key || raw.url)) {
       const key = String(raw.key || raw.url);
       if (seen.has(key)) continue;

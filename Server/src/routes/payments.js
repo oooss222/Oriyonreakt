@@ -19,7 +19,7 @@ const {
 function buildOrderId(userId) {
   const suffix = crypto.randomBytes(4).toString("hex");
 
-  return `oriyon-${String(userId).slice(0, 8)}-${Date.now()}-${suffix}`;
+  return `diyor-${String(userId).slice(0, 8)}-${Date.now()}-${suffix}`;
 }
 
 async function completePaidOrder(order, providerPayload = {}) {
@@ -118,7 +118,7 @@ router.post("/alif/wallet-top-up", auth, async (req, res) => {
       amount,
       callbackUrl,
       returnUrl,
-      info: `Пополнение кошелька Oriyon (${formatAmount(amount)} TJS)`,
+      info: `Пополнение кошелька Diyor (${formatAmount(amount)} TJS)`,
       email: user.email,
       phone: user.phone,
     });

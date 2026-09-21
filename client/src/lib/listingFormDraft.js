@@ -1,8 +1,8 @@
 import { api } from "./api";
 
-const DRAFT_STORAGE_KEY = "oriyon_listing_draft_v1";
+const DRAFT_STORAGE_KEY = "diyor_listing_draft_v1";
 const DRAFT_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
-const LANG_STORAGE_KEY = "oriyon_lang";
+const LANG_STORAGE_KEY = "diyor_lang";
 
 function getActiveLocale() {
   try {

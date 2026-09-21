@@ -1,6 +1,6 @@
 import { isDailyDeal } from "../data/realEstate";
 
-const LANG_STORAGE_KEY = "oriyon_lang";
+const LANG_STORAGE_KEY = "diyor_lang";
 const SELLER_TYPE_LABELS_BY_LANG = {
   ru: { private: "Частный продавец", company: "Агент / компания" },
   en: { private: "Private seller", company: "Agent / company" },

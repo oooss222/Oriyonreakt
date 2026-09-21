@@ -42,8 +42,8 @@ export default function CompareListingButton({
     };
 
     sync();
-    window.addEventListener("oriyon:compare-change", sync);
-    return () => window.removeEventListener("oriyon:compare-change", sync);
+    window.addEventListener("diyor:compare-change", sync);
+    return () => window.removeEventListener("diyor:compare-change", sync);
   }, [listingId, cat, supported]);
 
   React.useEffect(() => {

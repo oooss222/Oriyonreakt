@@ -467,7 +467,7 @@
     @apply font-semibold text-ink;
   }
 
-  /* --- Oriyon design system (P4) --- */
+  /* --- Diyor design system (P4) --- */
   .filter-panel,
   .panel {
     @apply rounded-2xl border border-ink/10 bg-white shadow-soft;

@@ -1,9 +1,14 @@
-export const CONSENT_KEY = "oriyon_cookie_consent";
-export const CONSENT_EVENT = "oriyon:cookie-consent-change";
+export const CONSENT_KEY = "diyor_cookie_consent";
+const LEGACY_CONSENT_KEY = "oriyon_cookie_consent";
+export const CONSENT_EVENT = "diyor:cookie-consent-change";
 
 export function readCookieConsent() {
   try {
-    const raw = JSON.parse(localStorage.getItem(CONSENT_KEY) || "null");
+    const raw = JSON.parse(
+      localStorage.getItem(CONSENT_KEY) ||
+        localStorage.getItem(LEGACY_CONSENT_KEY) ||
+        "null"
+    );
     if (raw?.level === "all" || raw?.level === "essential") {
       return raw;
     }
@@ -41,6 +46,7 @@ export function saveCookieConsent(level) {
 
 export function clearAnalyticsData() {
   try {
+    localStorage.removeItem("diyor_pref");
     localStorage.removeItem("oriyon_pref");
   } catch {
     // ignore storage errors

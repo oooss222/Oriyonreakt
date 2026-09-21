@@ -333,7 +333,7 @@ async function fetchPage(url) {
         signal: controller.signal,
         headers: {
           "User-Agent":
-            "Mozilla/5.0 (compatible; OriyonCompareBot/1.0; +https://oriyon.store)",
+            "Mozilla/5.0 (compatible; DiyorCompareBot/1.0; +https://diyor.tj)",
           Accept: "text/html,application/xhtml+xml",
           "Accept-Language": "ru-RU,ru;q=0.9,en;q=0.8",
         },

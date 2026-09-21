@@ -17,8 +17,8 @@ import { getCompareItemKey, isExternalCompareItem } from "../lib/compareResolve"
 import { useI18n } from "../i18n";
 
 function pickSeedItem(items = []) {
-  const oriyon = items.find((item) => !isExternalCompareItem(item));
-  return oriyon || items[0] || null;
+  const diyor = items.find((item) => !isExternalCompareItem(item));
+  return diyor || items[0] || null;
 }
 
 export default function CompareSimilarPanel({ cat, items = [], onAdded }) {

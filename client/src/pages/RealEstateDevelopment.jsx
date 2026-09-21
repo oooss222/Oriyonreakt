@@ -45,9 +45,9 @@ export default function RealEstateDevelopment() {
 
   usePageMeta({
     title: development
-      ? `${development.name} — новостройка в ${development.city} | Oriyon.store`
-      : "Жилой комплекс | Oriyon.store",
-    description: development?.description || "Новостройки и квартиры от застройщика на Oriyon.store",
+      ? `${development.name} — новостройка в ${development.city} | Diyor.tj`
+      : "Жилой комплекс | Diyor.tj",
+    description: development?.description || "Новостройки и квартиры от застройщика на Diyor.tj",
   });
 
   if (loading) {

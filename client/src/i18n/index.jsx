@@ -3,7 +3,7 @@ import ru from "./locales/ru.js";
 import ruExtra from "./locales/extra/ru.js";
 import { mergeLocale } from "./helpers.js";
 
-export const LANG_STORAGE_KEY = "oriyon_lang";
+export const LANG_STORAGE_KEY = "diyor_lang";
 export const SUPPORTED_LANGS = ["ru", "tg", "en"];
 
 // Russian stays in the main bundle because it is both the default and the
@@ -39,7 +39,14 @@ function normalizeLang(value) {
 
 function readStoredLang() {
   try {
-    return normalizeLang(localStorage.getItem(LANG_STORAGE_KEY));
+    const current = localStorage.getItem(LANG_STORAGE_KEY);
+    if (current) return normalizeLang(current);
+    const legacy = localStorage.getItem("oriyon_lang");
+    if (legacy) {
+      localStorage.setItem(LANG_STORAGE_KEY, legacy);
+      return normalizeLang(legacy);
+    }
+    return "ru";
   } catch {
     return "ru";
   }

@@ -1,5 +1,5 @@
 import { getComparePath } from "./compareConfig";
-import { getEntryKey } from "./compareListings";
+import { getEntryKey, isOwnCompareSource, OWN_COMPARE_SOURCE } from "./compareListings";
 
 function toBase64Url(value) {
   const json = JSON.stringify(value);
@@ -22,13 +22,13 @@ function fromBase64Url(value) {
 }
 
 /**
- * Compact share payload: Oriyon ids + external URLs only (re-import on open).
+ * Compact share payload: Diyor ids + external URLs only (re-import on open).
  */
 export function buildSharePayload(cat, entries = []) {
   const payload = { v: 1, c: cat, o: [], e: [] };
 
   for (const entry of entries) {
-    if (entry.source === "oriyon" && entry.id) {
+    if (isOwnCompareSource(entry.source) && entry.id) {
       payload.o.push(String(entry.id));
     } else if (entry.source === "external" && entry.url) {
       payload.e.push({
@@ -53,7 +53,7 @@ export function decodeCompareShare(token) {
     const entries = [];
     for (const id of payload.o || []) {
       if (!id) continue;
-      entries.push({ source: "oriyon", id: String(id), cat: payload.c });
+      entries.push({ source: OWN_COMPARE_SOURCE, id: String(id), cat: payload.c });
     }
     for (const row of payload.e || []) {
       if (!row?.u) continue;
@@ -82,11 +82,11 @@ export function buildCompareShareUrl(cat, entries = [], origin = "") {
   return `${base}${path}`;
 }
 
-const LANG_STORAGE_KEY = "oriyon_lang";
+const LANG_STORAGE_KEY = "diyor_lang";
 const SHARE_TEXT_LABELS = {
-  ru: "Сравнение объявлений на Oriyon.store",
-  en: "Listing comparison on Oriyon.store",
-  tg: "Муқоисаи эълонҳо дар Oriyon.store",
+  ru: "Сравнение объявлений на Diyor.tj",
+  en: "Listing comparison on Diyor.tj",
+  tg: "Муқоисаи эълонҳо дар Diyor.tj",
 };
 
 function defaultShareText() {

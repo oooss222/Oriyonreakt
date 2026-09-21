@@ -19,8 +19,8 @@ export default function Footer() {
         {/* Compact mobile strip */}
         <div className="lg:hidden py-6 space-y-4">
           <div className="brand-wordmark text-xl">
-            Oriyon<span className="text-sun">.</span>
-            <span className="text-white/60 text-base font-semibold">store</span>
+            Diyor<span className="text-sun">.</span>
+            <span className="text-white/60 text-base font-semibold">tj</span>
           </div>
           <p className="text-sm text-white/65 leading-relaxed">
             {t("footer.tagline")}
@@ -40,19 +40,19 @@ export default function Footer() {
             </Link>
           </div>
           <a
-            href="mailto:info@oriyon.store"
+            href="mailto:info@diyor.tj"
             className="inline-flex items-center gap-2 text-sm text-white/65 hover:text-sun transition"
           >
             <Mail className="w-4 h-4 text-sun" aria-hidden="true" />
-            info@oriyon.store
+            info@diyor.tj
           </a>
         </div>
 
         <div className="hidden lg:grid py-10 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           <section aria-labelledby="footer-brand">
             <div className="brand-wordmark text-2xl mb-3">
-              Oriyon<span className="text-sun">.</span>
-              <span className="text-white/60 text-lg font-semibold">store</span>
+              Diyor<span className="text-sun">.</span>
+              <span className="text-white/60 text-lg font-semibold">tj</span>
             </div>
             <p className="text-sm text-white/65 leading-relaxed">
               {t("footer.tagline")}
@@ -110,10 +110,10 @@ export default function Footer() {
               <li className="flex items-center gap-2">
                 <Mail className="w-4 h-4 text-sun" aria-hidden="true" />
                 <a
-                  href="mailto:info@oriyon.store"
+                  href="mailto:info@diyor.tj"
                   className="hover:text-sun underline-offset-2 hover:underline transition-colors"
                 >
-                  info@oriyon.store
+                  info@diyor.tj
                 </a>
               </li>
               <li>{t("footer.location")}</li>
@@ -157,7 +157,7 @@ export default function Footer() {
 
       <div className="border-t border-white/10 py-3 lg:py-4 text-center text-white/45 text-xs sm:text-sm">
         © {year}{" "}
-        <span className="font-medium text-white/70">Oriyon.store</span> — {t("footer.copyright")}
+        <span className="font-medium text-white/70">Diyor.tj</span> — {t("footer.copyright")}
       </div>
     </footer>
     </>

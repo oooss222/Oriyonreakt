@@ -24,7 +24,12 @@ function isRateLimited(sessionId) {
 router.post("/", optionalAuth, async (req, res) => {
   try {
     const body = req.body || {};
-    const sessionId = String(body.sessionId || req.headers["x-oriyon-session"] || "").trim();
+    const sessionId = String(
+      body.sessionId ||
+        req.headers["x-diyor-session"] ||
+        req.headers["x-oriyon-session"] ||
+        ""
+    ).trim();
     const city = String(body.city || "Душанбе").trim() || "Душанбе";
     const events = Array.isArray(body.events) ? body.events.slice(0, 20) : [];
 

@@ -1,9 +1,9 @@
 import { api } from "./api";
-import { getEntryKey } from "./compareListings";
+import { getEntryKey, isOwnCompareSource } from "./compareListings";
 import { enrichRealEstateListing } from "./realEstate";
 import { getCompareConfig } from "./compareConfig";
 
-const LANG_STORAGE_KEY = "oriyon_lang";
+const LANG_STORAGE_KEY = "diyor_lang";
 const NO_TITLE_LABELS = { ru: "Без названия", en: "Untitled", tg: "Бе ном" };
 
 function noTitleLabel() {
@@ -45,7 +45,7 @@ export async function resolveCompareEntries(entries = [], cat = "") {
         return config?.enrich ? config.enrich(item) : item;
       }
 
-      if (entry.source === "oriyon" && entry.id) {
+      if (isOwnCompareSource(entry.source) && entry.id) {
         try {
           const item = await api.listingById(entry.id);
           if (!item) return null;

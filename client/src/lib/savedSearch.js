@@ -1,4 +1,5 @@
-const LOCAL_KEY = "oriyon_saved_searches";
+const LOCAL_KEY = "diyor_saved_searches";
+const LEGACY_LOCAL_KEY = "oriyon_saved_searches";
 
 export function buildSearchLabel(draft = {}, activeCat = "") {
   return [
@@ -103,7 +104,11 @@ export function isDuplicateSavedSearch(items = [], draft = {}, activeCat = "") {
 
 export function readLocalSavedSearches() {
   try {
-    return JSON.parse(localStorage.getItem(LOCAL_KEY) || "[]");
+    return JSON.parse(
+      localStorage.getItem(LOCAL_KEY) ||
+        localStorage.getItem(LEGACY_LOCAL_KEY) ||
+        "[]"
+    );
   } catch {
     return [];
   }

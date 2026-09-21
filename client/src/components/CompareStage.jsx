@@ -212,7 +212,7 @@ function CompareBoardControls({ diffsOnly, onToggleDiffs, onReset, catalogPath, 
       )}
       {catalogPath && (
         <Link to={catalogPath} className="compare-stage__more">
-          {t("compare.findMoreOriyon")}
+          {t("compare.findMoreDiyor")}
         </Link>
       )}
     </div>

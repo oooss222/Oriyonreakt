@@ -7,9 +7,14 @@ router.get("/home", optionalAuth, async (req, res) => {
     const city = String(req.query.city || "Душанбе").trim() || "Душанбе";
     const limit = Number(req.query.limit || 20);
     const sessionId = String(
-      req.query.sessionId || req.headers["x-oriyon-session"] || ""
+      req.query.sessionId ||
+        req.headers["x-diyor-session"] ||
+        req.headers["x-oriyon-session"] ||
+        ""
     ).trim();
-    const profileHeader = String(req.headers["x-oriyon-profile"] || "").trim();
+    const profileHeader = String(
+      req.headers["x-diyor-profile"] || req.headers["x-oriyon-profile"] || ""
+    ).trim();
 
     const result = await RecommendationService.getHomeFeed({
       profileHeader,

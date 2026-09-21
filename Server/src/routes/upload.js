@@ -37,7 +37,7 @@ function uploadToCloudinary(buffer) {
 
   return new Promise((resolve, reject) => {
     const options = {
-      folder: "oriyon/listings",
+      folder: "diyor/listings",
       resource_type: "image",
       format: "webp",
     };

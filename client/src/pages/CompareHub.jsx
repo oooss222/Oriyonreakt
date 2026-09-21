@@ -35,8 +35,8 @@ export default function CompareHub() {
   React.useEffect(() => {
     const sync = () => setBuckets(readCompareBucketCounts());
     sync();
-    window.addEventListener("oriyon:compare-change", sync);
-    return () => window.removeEventListener("oriyon:compare-change", sync);
+    window.addEventListener("diyor:compare-change", sync);
+    return () => window.removeEventListener("diyor:compare-change", sync);
   }, []);
 
   const requested = searchParams.get("cat") || shareCat || "";

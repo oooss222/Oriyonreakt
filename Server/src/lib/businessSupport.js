@@ -1,6 +1,7 @@
 const { query } = require("../db");
 
-const SUPPORT_TITLE = "Oriyon Premium — консультация";
+const SUPPORT_TITLE = "Diyor Premium — консультация";
+const LEGACY_SUPPORT_TITLES = ["Oriyon Premium — консультация"];
 const SUPPORT_CAT = "support";
 
 async function findSupportAdmin() {
@@ -29,11 +30,11 @@ async function findExistingSupportListing() {
       u.name AS admin_name
     FROM listings l
     JOIN users u ON u.id = l.owner
-    WHERE l.title = $1
+    WHERE l.title = ANY($1::text[])
       AND l.cat = $2
     LIMIT 1
     `,
-    [SUPPORT_TITLE, SUPPORT_CAT]
+    [[SUPPORT_TITLE, ...LEGACY_SUPPORT_TITLES], SUPPORT_CAT]
   );
 
   return result.rows[0] || null;
@@ -60,7 +61,7 @@ async function createSupportListing(adminId) {
       FLOOR(10000000 + RANDOM() * 90000000),
       $1,
       '',
-      'Служебный диалог для консультаций по премиум-аккаунту Oriyon',
+      'Служебный диалог для консультаций по премиум-аккаунту Diyor',
       '',
       $2,
       '',
@@ -100,7 +101,7 @@ async function getBusinessSupportContact() {
   return {
     listingId: listing.id,
     adminId: listing.owner,
-    adminName: listing.admin_name || "Администратор Oriyon",
+    adminName: listing.admin_name || "Администратор Diyor",
     title: SUPPORT_TITLE,
   };
 }

@@ -1,4 +1,4 @@
-const LANG_STORAGE_KEY = "oriyon_lang";
+const LANG_STORAGE_KEY = "diyor_lang";
 const SUPPORTED_LANGS = ["ru", "tg", "en"];
 
 function getActiveLang() {

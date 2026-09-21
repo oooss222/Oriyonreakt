@@ -58,11 +58,11 @@ test("toPublicListing removes moderation bookkeeping but keeps the listing", () 
 });
 
 test("media URLs are limited to our own upload pipeline", () => {
-  process.env.CLOUDINARY_CLOUD_NAME = "oriyoncloud";
+  process.env.CLOUDINARY_CLOUD_NAME = "diyorcloud";
 
   assert.equal(isAllowedMediaUrl("/uploads/a.webp"), true);
   assert.equal(
-    isAllowedMediaUrl("https://res.cloudinary.com/oriyoncloud/image/upload/x.webp"),
+    isAllowedMediaUrl("https://res.cloudinary.com/diyorcloud/image/upload/x.webp"),
     true
   );
   assert.equal(
@@ -103,7 +103,7 @@ test("ad URLs are rejected unless https", () => {
 });
 
 test("listing validation mirrors the limits the form enforces", () => {
-  process.env.CLOUDINARY_CLOUD_NAME = "oriyoncloud";
+  process.env.CLOUDINARY_CLOUD_NAME = "diyorcloud";
 
   assert.doesNotThrow(() =>
     assertListingFields({
@@ -211,6 +211,8 @@ test("blocked display names reject fake, generic, and brand names", () => {
     "!!!",
     "@#$",
     "продавец",
+    "Diyor",
+    "Oriyon",
     "Админ",
     "имя",
     "хозяин",

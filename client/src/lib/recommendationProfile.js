@@ -1,5 +1,5 @@
-const PROFILE_KEY = "oriyon_pref";
-const SESSION_KEY = "oriyon_sid";
+const PROFILE_KEY = "diyor_pref";
+const SESSION_KEY = "diyor_sid";
 const PROFILE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 const MAX_VIEWED = 20;
 const MAX_SEARCHES = 10;
@@ -23,8 +23,12 @@ function randomId() {
 
 export function getOrCreateSessionId() {
   try {
-    const existing = localStorage.getItem(SESSION_KEY);
-    if (existing) return existing;
+    const existing =
+      localStorage.getItem(SESSION_KEY) || localStorage.getItem("oriyon_sid");
+    if (existing) {
+      localStorage.setItem(SESSION_KEY, existing);
+      return existing;
+    }
 
     const next = randomId();
     localStorage.setItem(SESSION_KEY, next);
@@ -36,7 +40,11 @@ export function getOrCreateSessionId() {
 
 export function getDefaultCity() {
   try {
-    return localStorage.getItem("oriyon_city") || "Душанбе";
+    return (
+      localStorage.getItem("diyor_city") ||
+      localStorage.getItem("oriyon_city") ||
+      "Душанбе"
+    );
   } catch {
     return "Душанбе";
   }
@@ -44,7 +52,7 @@ export function getDefaultCity() {
 
 export function setDefaultCity(city) {
   try {
-    if (city) localStorage.setItem("oriyon_city", city);
+    if (city) localStorage.setItem("diyor_city", city);
   } catch {
     // ignore storage errors
   }
@@ -83,7 +91,11 @@ function pruneProfile(profile, now = Date.now()) {
 
 export function readRecommendationProfile() {
   try {
-    const raw = JSON.parse(localStorage.getItem(PROFILE_KEY) || "null");
+    const raw = JSON.parse(
+      localStorage.getItem(PROFILE_KEY) ||
+        localStorage.getItem("oriyon_pref") ||
+        "null"
+    );
     if (!raw || typeof raw !== "object") {
       return pruneProfile({ sid: getOrCreateSessionId(), city: getDefaultCity() });
     }
@@ -175,7 +187,7 @@ export function encodeProfileForHeader(profile) {
 
 export function getRecommendationHeaders(profile = readRecommendationProfile()) {
   return {
-    "X-Oriyon-Session": profile.sid || getOrCreateSessionId(),
-    "X-Oriyon-Profile": encodeProfileForHeader(profile),
+    "X-Diyor-Session": profile.sid || getOrCreateSessionId(),
+    "X-Diyor-Profile": encodeProfileForHeader(profile),
   };
 }

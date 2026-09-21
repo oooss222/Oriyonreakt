@@ -86,7 +86,7 @@ export function buildCompareVerdict(items = [], fields = [], t) {
       score += (1 - row.price / (minPrice || row.price)) * 100;
       // Prefer denser specs
       score += maxFilled ? (row.filled / maxFilled) * 20 : 0;
-      // Prefer Oriyon when close on price (within 8%)
+      // Prefer Diyor when close on price (within 8%)
       if (!row.external && row.price <= minPrice * 1.08) score += 18;
       if (row.price === minPrice) score += 12;
       return { ...row, score };
@@ -100,7 +100,7 @@ export function buildCompareVerdict(items = [], fields = [], t) {
   if (winner.price === minPrice) {
     reasons.push(t("compare.verdictReasonPrice"));
   } else if (!winner.external && winner.price <= minPrice * 1.08) {
-    reasons.push(t("compare.verdictReasonOriyon"));
+    reasons.push(t("compare.verdictReasonDiyor"));
   }
   if (winner.filled === maxFilled && maxFilled > 0) {
     reasons.push(t("compare.verdictReasonSpecs"));

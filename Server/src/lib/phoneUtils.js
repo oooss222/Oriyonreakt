@@ -43,7 +43,7 @@ function phoneToSyntheticEmail(phone) {
     return null;
   }
 
-  return `${normalized.replace(/\D/g, "")}@phone.oriyon.store`;
+  return `${normalized.replace(/\D/g, "")}@phone.diyor.tj`;
 }
 
 module.exports = {

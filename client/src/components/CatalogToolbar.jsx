@@ -1,7 +1,7 @@
 import React from "react";
 import { ArrowUpDown, ChevronDown, LayoutGrid, List } from "lucide-react";
 
-const VIEW_KEY = "oriyon_catalog_view";
+const VIEW_KEY = "diyor_catalog_view";
 
 export function readCatalogView() {
   try {

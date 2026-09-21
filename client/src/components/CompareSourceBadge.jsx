@@ -36,7 +36,7 @@ export default function CompareSourceBadge({
     <span
       className={`inline-flex items-center rounded-lg bg-sun/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-sun-700 ${className}`}
     >
-      Oriyon
+      Diyor.tj
     </span>
   );
 }

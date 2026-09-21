@@ -31,7 +31,7 @@ export function getThreadRole(item, me) {
 
 export function getPeerName(item, me, t) {
   if (isBusinessSupportThread(item)) {
-    return t("chat.supportOriyon");
+    return t("chat.supportDiyor");
   }
 
   const peerId = getPeerId(item, me);

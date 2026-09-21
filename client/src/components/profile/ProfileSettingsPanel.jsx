@@ -240,7 +240,7 @@ export default function ProfileSettingsPanel({
         <div className="rounded-2xl overflow-hidden border border-ink/10 bg-ink text-white p-5 shadow-soft">
           <div className="flex items-center gap-2 text-sun text-xs font-bold uppercase tracking-wider mb-2">
             <Crown size={16} />
-            Oriyon Premium
+            Diyor Premium
           </div>
           <h3 className="font-display text-xl font-bold text-white mb-2 tracking-tight">
             {t("profile.premiumTitle")}
@@ -267,7 +267,7 @@ export default function ProfileSettingsPanel({
           </ul>
           <p className="text-xs text-white/45 mb-3">{t("profile.premiumAdminHint")}</p>
           <a
-            href="https://t.me/oriyon_support"
+            href="https://t.me/diyor_support"
             target="_blank"
             rel="noreferrer"
             className="inline-flex items-center gap-2 rounded-xl bg-sun px-4 py-2.5 text-sm font-bold text-white hover:bg-sun-600 transition"

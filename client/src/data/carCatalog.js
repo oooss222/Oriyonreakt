@@ -1,4 +1,4 @@
-/** Seekauto passenger-car brands and series, merged with existing Oriyon catalog names. */
+/** Seekauto passenger-car brands and series, merged with existing Diyor catalog names. */
 export const CAR_BRANDS = [
   "Toyota",
   "Hyundai",

@@ -1,4 +1,4 @@
-const LANG_STORAGE_KEY = "oriyon_lang";
+const LANG_STORAGE_KEY = "diyor_lang";
 const OTHER_PLATFORM_LABELS = {
   ru: "Другая площадка",
   en: "Other platform",

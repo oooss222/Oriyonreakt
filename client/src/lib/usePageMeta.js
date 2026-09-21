@@ -1,8 +1,8 @@
 import React from "react";
 
-export const DEFAULT_TITLE = "Oriyon.store — объявления";
+export const DEFAULT_TITLE = "Diyor.tj — объявления";
 export const DEFAULT_DESCRIPTION =
-  "Oriyon.store — маркетплейс объявлений в Таджикистане. Покупка и продажа товаров и услуг.";
+  "Diyor.tj — маркетплейс объявлений в Таджикистане. Покупка и продажа товаров и услуг.";
 
 function upsertMeta(name, content, attr = "name") {
   if (!content) return;
@@ -62,7 +62,7 @@ export function usePageMeta({
   React.useEffect(() => {
     if (!enabled) return undefined;
 
-    const pageTitle = title ? `${title} — Oriyon.store` : DEFAULT_TITLE;
+    const pageTitle = title ? `${title} — Diyor.tj` : DEFAULT_TITLE;
     const pageDescription = description || DEFAULT_DESCRIPTION;
 
     document.title = pageTitle;
@@ -70,7 +70,7 @@ export function usePageMeta({
     upsertMeta("og:title", pageTitle, "property");
     upsertMeta("og:description", pageDescription, "property");
     upsertMeta("og:type", type, "property");
-    upsertMeta("og:site_name", "Oriyon.store", "property");
+    upsertMeta("og:site_name", "Diyor.tj", "property");
     const htmlLang = document.documentElement.lang || "ru";
     upsertMeta(
       "og:locale",

@@ -1,8 +1,15 @@
 import { getListingThumb } from "./media";
 
 const LEGACY_RE_KEY = "oriyon_re_compare";
-const STORAGE_KEY = "oriyon_compare";
+const LEGACY_STORAGE_KEY = "oriyon_compare";
+const STORAGE_KEY = "diyor_compare";
 const MAX_ITEMS = 4;
+
+export const OWN_COMPARE_SOURCE = "diyor";
+
+export function isOwnCompareSource(source) {
+  return source === OWN_COMPARE_SOURCE || source === "oriyon";
+}
 
 export const COMPARE_SUPPORTED_CATS = [
   "realestate",
@@ -52,14 +59,14 @@ function normalizeEntry(raw, cat) {
   if (!raw) return null;
 
   if (typeof raw === "string") {
-    return { source: "oriyon", id: raw, cat };
+    return { source: "diyor", id: raw, cat };
   }
 
-  if (raw.source === "oriyon" && raw.id) {
+  if (isOwnCompareSource(raw.source) && raw.id) {
     const preview = normalizePreview(raw.preview);
     return preview
-      ? { source: "oriyon", id: String(raw.id), cat: raw.cat || cat, preview }
-      : { source: "oriyon", id: String(raw.id), cat: raw.cat || cat };
+      ? { source: OWN_COMPARE_SOURCE, id: String(raw.id), cat: raw.cat || cat, preview }
+      : { source: OWN_COMPARE_SOURCE, id: String(raw.id), cat: raw.cat || cat };
   }
 
   if (raw.source === "external" && raw.key && raw.snapshot) {
@@ -112,7 +119,12 @@ let cachedBuckets = null;
 if (typeof window !== "undefined") {
   // Another tab may have changed the list.
   window.addEventListener("storage", (event) => {
-    if (!event.key || event.key === STORAGE_KEY || event.key === LEGACY_RE_KEY) {
+    if (
+      !event.key ||
+      event.key === STORAGE_KEY ||
+      event.key === LEGACY_STORAGE_KEY ||
+      event.key === LEGACY_RE_KEY
+    ) {
       cachedBuckets = null;
     }
   });
@@ -122,7 +134,11 @@ function readAllBuckets() {
   if (cachedBuckets) return cachedBuckets;
 
   try {
-    const raw = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+    const raw = JSON.parse(
+      localStorage.getItem(STORAGE_KEY) ||
+        localStorage.getItem(LEGACY_STORAGE_KEY) ||
+        "{}"
+    );
     const buckets =
       raw && typeof raw === "object" && !Array.isArray(raw) ? { ...raw } : {};
 
@@ -130,7 +146,7 @@ function readAllBuckets() {
     if (Array.isArray(legacy) && legacy.length && !buckets.realestate?.length) {
       buckets.realestate = legacy
         .filter(Boolean)
-        .map((id) => ({ source: "oriyon", id, cat: "realestate" }));
+        .map((id) => ({ source: "diyor", id, cat: "realestate" }));
       localStorage.setItem(STORAGE_KEY, JSON.stringify(buckets));
     }
 
@@ -146,14 +162,14 @@ function writeAllBuckets(buckets) {
   cachedBuckets = buckets;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(buckets));
   window.dispatchEvent(
-    new CustomEvent("oriyon:compare-change", { detail: buckets })
+    new CustomEvent("diyor:compare-change", { detail: buckets })
   );
   return buckets;
 }
 
 export function getEntryKey(entry) {
   if (!entry) return "";
-  if (entry.source === "oriyon") return String(entry.id || "");
+  if (isOwnCompareSource(entry.source)) return String(entry.id || "");
   if (entry.source === "external") return String(entry.key || "");
   return "";
 }
@@ -222,8 +238,8 @@ export function toggleCompareId(id, cat = "realestate", preview) {
 
   const snapshot = normalizePreview(preview);
   const nextEntry = snapshot
-    ? { source: "oriyon", id: entryKey, cat: key, preview: snapshot }
-    : { source: "oriyon", id: entryKey, cat: key };
+    ? { source: "diyor", id: entryKey, cat: key, preview: snapshot }
+    : { source: "diyor", id: entryKey, cat: key };
   const entries = writeCompareEntries([...current, nextEntry], key);
   return { entries, ok: true, reason: "added", active: true };
 }
@@ -334,7 +350,7 @@ export function removeCompareId(id, cat = "realestate") {
 export function isInCompare(id, cat = "realestate") {
   const entryKey = String(id || "");
   return readCompareEntries(cat).some(
-    (entry) => entry.source === "oriyon" && getEntryKey(entry) === entryKey
+    (entry) => isOwnCompareSource(entry.source) && getEntryKey(entry) === entryKey
   );
 }
 

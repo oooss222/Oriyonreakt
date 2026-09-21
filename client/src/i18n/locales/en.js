@@ -100,9 +100,9 @@ export default {
     trustLoginTitle: "Buy and sell near you",
     trustRegisterTitle: "Create an account and post your first listing",
     trustLoginText:
-      "Oriyon.store brings private sellers and businesses together — from phones to real estate.",
+      "Diyor.tj brings private sellers and businesses together — from phones to real estate.",
     trustRegisterText:
-      "Thousands of buyers search daily for goods, cars, and property on Oriyon.store.",
+      "Thousands of buyers search daily for goods, cars, and property on Diyor.tj.",
     trustLegalPrefix: "By continuing, you agree to the",
     trustLegalLink: "site policy",
     chipFree: "Free",

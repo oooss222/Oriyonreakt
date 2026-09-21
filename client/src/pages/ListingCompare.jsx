@@ -22,6 +22,7 @@ import {
   replaceCompareEntries,
   mergeCompareEntries,
   COMPARE_MAX,
+  isOwnCompareSource,
 } from "../lib/compareListings";
 import { getCompareConfig, localizeCompareFields, groupCompareFields } from "../lib/compareConfig";
 import {
@@ -70,8 +71,8 @@ export default function ListingCompare({ cat, embed = false }) {
 
   React.useEffect(() => {
     syncEntries();
-    window.addEventListener("oriyon:compare-change", syncEntries);
-    return () => window.removeEventListener("oriyon:compare-change", syncEntries);
+    window.addEventListener("diyor:compare-change", syncEntries);
+    return () => window.removeEventListener("diyor:compare-change", syncEntries);
   }, [syncEntries]);
 
   // Hydrate from ?share=
@@ -95,7 +96,7 @@ export default function ListingCompare({ cat, embed = false }) {
 
       const next = [];
       for (const entry of decoded.entries) {
-        if (entry.source === "oriyon") {
+        if (isOwnCompareSource(entry.source)) {
           next.push(entry);
           continue;
         }

@@ -1,4 +1,4 @@
-# Oriyon.Store
+# Diyor.tj
 
 React + Vite frontend and Express + PostgreSQL API.
 
@@ -28,9 +28,9 @@ npm start
 3. Set env vars in Render dashboard:
    - `DATABASE_URL` — PostgreSQL connection string
    - `JWT_SECRET` — random secret
-   - `CLIENT_URL` — `https://oriyon.store`
-   - `CORS_ORIGIN` — `https://oriyon.store,https://www.oriyon.store`
-4. Point `oriyon.store` DNS to the Render service URL.
+   - `CLIENT_URL` — `https://diyor.tj`
+   - `CORS_ORIGIN` — `https://diyor.tj,https://www.diyor.tj,https://oriyon.store,https://www.oriyon.store`
+4. Point `diyor.tj` DNS to the Render service URL.
 
 The frontend calls `/api` on the same host (no separate DigitalOcean backend).
 

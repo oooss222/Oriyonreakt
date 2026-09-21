@@ -111,8 +111,8 @@ export default function Header({ variant = "full" }) {
     };
 
     syncCompare();
-    window.addEventListener("oriyon:compare-change", syncCompare);
-    return () => window.removeEventListener("oriyon:compare-change", syncCompare);
+    window.addEventListener("diyor:compare-change", syncCompare);
+    return () => window.removeEventListener("diyor:compare-change", syncCompare);
   }, [pathname]);
 
   React.useEffect(() => {
@@ -231,8 +231,8 @@ export default function Header({ variant = "full" }) {
         >
           <Link to="/" className="flex items-center gap-2 group shrink-0 min-w-0">
             <img
-              src="/oriyon.store.png"
-              alt="Oriyon Store"
+              src="/diyor.tj.png"
+              alt="Diyor.tj"
               className={`object-contain transition-all duration-300 group-hover:scale-105 ${
                 scrolled ? "w-10 h-10" : "w-12 h-12 lg:w-14 lg:h-14"
               }`}
@@ -243,9 +243,9 @@ export default function Header({ variant = "full" }) {
                 scrolled ? "text-base" : "text-lg"
               }`}
             >
-              Oriyon
+              Diyor
               <span className="text-sun">.</span>
-              <span className="text-white/70 font-semibold text-[0.85em]">store</span>
+              <span className="text-white/70 font-semibold text-[0.85em]">tj</span>
             </span>
           </Link>
 
@@ -376,8 +376,8 @@ export default function Header({ variant = "full" }) {
           <div className="flex items-center gap-1.5 xs:gap-2">
             <Link to="/" className="shrink-0" aria-label={t("nav.backHome")}>
               <img
-                src="/oriyon.store.png"
-                alt="Oriyon Store"
+                src="/diyor.tj.png"
+                alt="Diyor.tj"
                 className="w-9 h-9 object-contain"
               />
             </Link>
@@ -403,8 +403,8 @@ export default function Header({ variant = "full" }) {
           <div className="lg:hidden py-2.5 flex items-center justify-between gap-3">
             <Link to="/" className="shrink-0" aria-label={t("nav.backHome")}>
               <img
-                src="/oriyon.store.png"
-                alt="Oriyon Store"
+                src="/diyor.tj.png"
+                alt="Diyor.tj"
                 className="w-9 h-9 object-contain"
               />
             </Link>

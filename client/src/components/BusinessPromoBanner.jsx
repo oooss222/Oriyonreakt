@@ -53,7 +53,7 @@ export default function BusinessPromoBanner({
   return (
     <section
       className={`surface-panel overflow-hidden relative ${className}`}
-      aria-label="Oriyon Premium"
+      aria-label="Diyor Premium"
     >
       <div
         className="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-sun to-lagoon"
@@ -68,7 +68,7 @@ export default function BusinessPromoBanner({
 
           <div className="flex-1 min-w-0">
             <div className="text-[11px] font-bold uppercase tracking-wide text-sun-700">
-              Oriyon Premium
+              Diyor Premium
             </div>
             <h3 className="font-display font-bold text-lg text-ink mt-0.5">
               {t("business.promoBanner.title")}

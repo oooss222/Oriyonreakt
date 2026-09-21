@@ -269,7 +269,7 @@ router.post("/:listingId", messageSendLimiter, async (req, res) => {
 
     if (attachmentUrl && !isAllowedMediaUrl(attachmentUrl)) {
       return res.status(400).json({
-        error: "Attachment must be uploaded through Oriyon",
+        error: "Attachment must be uploaded through Diyor",
       });
     }
 

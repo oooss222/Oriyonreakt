@@ -231,7 +231,7 @@ export default function BusinessProfileSection({ token, me, onUpdated }) {
           <div>
             <div className="inline-flex items-center gap-2 text-sun-700 font-semibold">
               <Crown size={18} />
-              Oriyon Premium
+              Diyor Premium
             </div>
             <h2 className="text-xl font-bold mt-2">{t("business.premiumAccount")}</h2>
             <p className="text-sm text-ink-500 mt-1 max-w-2xl">
@@ -327,7 +327,7 @@ export default function BusinessProfileSection({ token, me, onUpdated }) {
                         companyName: e.target.value,
                       }))
                     }
-                    placeholder="Oriyon Estate"
+                    placeholder="Diyor Estate"
                   />
                 </label>
 
@@ -396,7 +396,7 @@ export default function BusinessProfileSection({ token, me, onUpdated }) {
                       companyWebsite: e.target.value,
                     }))
                   }
-                  placeholder="oriyon.tj"
+                  placeholder="diyor.tj"
                 />
               </label>
 
@@ -414,7 +414,7 @@ export default function BusinessProfileSection({ token, me, onUpdated }) {
                       companyInstagram: e.target.value,
                     }))
                   }
-                  placeholder="@oriyon_estate"
+                  placeholder="@diyor_estate"
                 />
               </label>
             </div>

@@ -20,10 +20,10 @@ export function buildComparePriceInsights(items = [], t) {
       key: getCompareItemKey(item),
       price: getCompareItemPrice(item),
       isExternal: isExternalCompareItem(item),
-      source: item._compareSource || "oriyon",
+      source: item._compareSource || "diyor",
       sourceLabel: isExternalCompareItem(item)
         ? getPlatformLabel(item._compareSource)
-        : "Oriyon",
+        : "Diyor.tj",
       title: item.title || "",
     }))
     .filter((row) => row.price != null && row.price > 0);
@@ -42,7 +42,7 @@ export function buildComparePriceInsights(items = [], t) {
   }));
 
   const cheapestKeys = insights.filter((row) => row.isCheapest).map((row) => row.key);
-  const oriyonItems = insights.filter((row) => !row.isExternal);
+  const diyorItems = insights.filter((row) => !row.isExternal);
   const externalItems = insights.filter((row) => row.isExternal);
 
   let headline = null;
@@ -50,15 +50,15 @@ export function buildComparePriceInsights(items = [], t) {
 
   if (minPrice === maxPrice) {
     headline = t("compare.priceSame");
-  } else if (oriyonItems.length && externalItems.length) {
-    const oriyonBest = Math.min(...oriyonItems.map((row) => row.price));
+  } else if (diyorItems.length && externalItems.length) {
+    const diyorBest = Math.min(...diyorItems.map((row) => row.price));
     const externalBest = Math.min(...externalItems.map((row) => row.price));
-    const diff = Math.abs(oriyonBest - externalBest);
+    const diff = Math.abs(diyorBest - externalBest);
 
-    if (oriyonBest < externalBest) {
-      headline = t("compare.oriyonCheaper", { diff: formatDiff(diff, t) });
+    if (diyorBest < externalBest) {
+      headline = t("compare.diyorCheaper", { diff: formatDiff(diff, t) });
       tone = "positive";
-    } else if (externalBest < oriyonBest) {
+    } else if (externalBest < diyorBest) {
       headline = t("compare.externalCheaper", { diff: formatDiff(diff, t) });
       tone = "warning";
     } else {

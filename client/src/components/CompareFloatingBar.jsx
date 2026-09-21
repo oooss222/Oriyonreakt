@@ -114,8 +114,8 @@ export default function CompareFloatingBar() {
     };
 
     sync();
-    window.addEventListener("oriyon:compare-change", sync);
-    return () => window.removeEventListener("oriyon:compare-change", sync);
+    window.addEventListener("diyor:compare-change", sync);
+    return () => window.removeEventListener("diyor:compare-change", sync);
   }, [location.pathname]);
 
   if (hidden) return null;

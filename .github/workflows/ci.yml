@@ -16,7 +16,7 @@ jobs:
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: oriyon_ci
+          POSTGRES_DB: diyor_ci
         ports:
           - 5432:5432
         options: >-
@@ -44,12 +44,12 @@ jobs:
           PGPASSWORD: postgres
         run: |
           psql -h localhost -U postgres -d postgres -v ON_ERROR_STOP=1 \
-            -c "CREATE ROLE oriyon_app LOGIN PASSWORD 'apppass' NOSUPERUSER NOBYPASSRLS;" \
-            -c "ALTER DATABASE oriyon_ci OWNER TO oriyon_app;"
+            -c "CREATE ROLE diyor_app LOGIN PASSWORD 'apppass' NOSUPERUSER NOBYPASSRLS;" \
+            -c "ALTER DATABASE diyor_ci OWNER TO diyor_app;"
 
       - name: Run tests
         env:
-          DATABASE_URL: postgres://oriyon_app:apppass@localhost:5432/oriyon_ci
+          DATABASE_URL: postgres://diyor_app:apppass@localhost:5432/diyor_ci
           JWT_SECRET: ci-secret-that-is-long-enough-for-validation
           NODE_ENV: test
         run: npm --prefix Server test

@@ -51,8 +51,8 @@ export default function Category() {
     if (!isCompareSupported(slug)) return undefined;
 
     const sync = () => setCompareCount(readCompareIds(slug).length);
-    window.addEventListener("oriyon:compare-change", sync);
-    return () => window.removeEventListener("oriyon:compare-change", sync);
+    window.addEventListener("diyor:compare-change", sync);
+    return () => window.removeEventListener("diyor:compare-change", sync);
   }, [slug]);
 
   const lifestyleTiles = React.useMemo(

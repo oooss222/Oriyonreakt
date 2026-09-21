@@ -1,6 +1,7 @@
 import React from "react";
 
-const STORAGE_KEY = "oriyon_viewed_listings";
+const STORAGE_KEY = "diyor_viewed_listings";
+const LEGACY_STORAGE_KEY = "oriyon_viewed_listings";
 const MAX_ITEMS = 500;
 const VIEW_EVENT = "listing-viewed";
 
@@ -10,7 +11,7 @@ let cachedIds = null;
 
 if (typeof window !== "undefined") {
   window.addEventListener("storage", (event) => {
-    if (!event.key || event.key === STORAGE_KEY) {
+    if (!event.key || event.key === STORAGE_KEY || event.key === LEGACY_STORAGE_KEY) {
       cachedIds = null;
     }
   });
@@ -20,7 +21,11 @@ function readViewedIds() {
   if (cachedIds) return cachedIds;
 
   try {
-    const raw = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+    const raw = JSON.parse(
+      localStorage.getItem(STORAGE_KEY) ||
+        localStorage.getItem(LEGACY_STORAGE_KEY) ||
+        "[]"
+    );
     cachedIds = Array.isArray(raw) ? raw.map(String) : [];
   } catch {
     cachedIds = [];

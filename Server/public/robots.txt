@@ -12,4 +12,4 @@ Disallow: /add
 Disallow: /edit/
 Disallow: /uploads/
 
-Sitemap: https://oriyon.store/sitemap.xml
+Sitemap: https://diyor.tj/sitemap.xml

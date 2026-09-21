@@ -69,6 +69,10 @@ const BLOCKED_WORDS = [
   "korbar",
 
   // Brands (phones, cars, etc.)
+  "diyor",
+  "oriyon",
+  "диёр",
+  "орийон",
   "apple",
   "samsung",
   "iphone",

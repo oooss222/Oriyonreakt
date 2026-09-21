@@ -119,7 +119,7 @@ export default function SellerContactButtons({
           onClick={onChat}
         >
           <MessageCircle className="w-5 h-5" />
-          {compact ? t("seller.writeChat") : t("seller.writeOriyon")}
+          {compact ? t("seller.writeChat") : t("seller.writeDiyor")}
         </button>
       )}
 

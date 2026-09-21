@@ -88,7 +88,7 @@ function assertListingFields({
 
       if (!isAllowedMediaUrl(url)) {
         throw new ListingValidationError(
-          "Images must be uploaded through Oriyon",
+          "Images must be uploaded through Diyor",
           "images"
         );
       }

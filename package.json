@@ -1,5 +1,5 @@
 {
-  "name": "oriyon-app",
+  "name": "diyor-app",
   "private": true,
   "scripts": {
     "build": "npm --prefix client ci --include=dev && npm --prefix client run build && node scripts/copy-client-dist.js && npm --prefix Server ci",

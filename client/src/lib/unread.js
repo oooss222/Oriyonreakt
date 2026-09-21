@@ -91,8 +91,8 @@ export function requestUnreadRefresh() {
 }
 
 export function subscribeUnreadRefresh(callback) {
-  window.addEventListener("oriyon:unread-refresh", callback);
-  return () => window.removeEventListener("oriyon:unread-refresh", callback);
+  window.addEventListener("diyor:unread-refresh", callback);
+  return () => window.removeEventListener("diyor:unread-refresh", callback);
 }
 
 /** Subscribes to the shared unread badge; polling runs while anyone listens. */

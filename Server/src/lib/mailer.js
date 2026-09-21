@@ -67,9 +67,9 @@ async function sendFinanceReportEmail({ to, from, toDate, csv, summaryText = "" 
   await transporter.sendMail({
     from: process.env.SMTP_FROM,
     to,
-    subject: `Oriyon — финансовый отчёт (${periodLabel})`,
+    subject: `Diyor — финансовый отчёт (${periodLabel})`,
     text: [
-      "Финансовый отчёт Oriyon.store",
+      "Финансовый отчёт Diyor.tj",
       "",
       summaryText,
       "",
@@ -92,7 +92,7 @@ async function sendListingExpiryEmail({ to, name, listings = [] }) {
   }
 
   const clientUrl = String(
-    process.env.CLIENT_URL || process.env.APP_URL || "https://oriyon.store"
+    process.env.CLIENT_URL || process.env.APP_URL || "https://diyor.tj"
   ).replace(/\/$/, "");
   const lines = listings.map(
     (item) =>
@@ -101,14 +101,14 @@ async function sendListingExpiryEmail({ to, name, listings = [] }) {
 
   await sendGenericEmail({
     to,
-    subject: "Oriyon — объявления скоро истекают",
+    subject: "Diyor — объявления скоро истекают",
     text: [
       `Здравствуйте${name ? `, ${name}` : ""}!`,
       "",
       "Срок публикации следующих объявлений скоро закончится:",
       ...lines,
       "",
-      "Продлите публикацию или поднимите объявление в профиле Oriyon.",
+      "Продлите публикацию или поднимите объявление в профиле Diyor.",
       `${clientUrl}/profile?tab=my`,
     ].join("\n"),
   });
@@ -129,7 +129,7 @@ async function sendListingModerationEmail({
   }
 
   const clientUrl = String(
-    process.env.CLIENT_URL || process.env.APP_URL || "https://oriyon.store"
+    process.env.CLIENT_URL || process.env.APP_URL || "https://diyor.tj"
   ).replace(/\/$/, "");
   const listingUrl = `${clientUrl}/ad/${listingId}`;
   const profileUrl = `${clientUrl}/profile?tab=my`;
@@ -137,7 +137,7 @@ async function sendListingModerationEmail({
   if (action === "approved") {
     await sendGenericEmail({
       to,
-      subject: "Oriyon — объявление одобрено",
+      subject: "Diyor — объявление одобрено",
       text: [
         `Здравствуйте${name ? `, ${name}` : ""}!`,
         "",
@@ -153,7 +153,7 @@ async function sendListingModerationEmail({
   if (action === "rejected") {
     await sendGenericEmail({
       to,
-      subject: "Oriyon — объявление отклонено",
+      subject: "Diyor — объявление отклонено",
       text: [
         `Здравствуйте${name ? `, ${name}` : ""}!`,
         "",
@@ -178,7 +178,7 @@ async function sendSavedSearchAlertEmail({ to, name, searchLabel, listings = [] 
   }
 
   const clientUrl = String(
-    process.env.CLIENT_URL || process.env.APP_URL || "https://oriyon.store"
+    process.env.CLIENT_URL || process.env.APP_URL || "https://diyor.tj"
   ).replace(/\/$/, "");
   const lines = listings.map(
     (item) => `- ${item.title} · ${item.price || "—"} · ${clientUrl}/ad/${item.id}`
@@ -186,7 +186,7 @@ async function sendSavedSearchAlertEmail({ to, name, searchLabel, listings = [] 
 
   await sendGenericEmail({
     to,
-    subject: `Oriyon — новые объявления: ${searchLabel}`,
+    subject: `Diyor — новые объявления: ${searchLabel}`,
     text: [
       `Здравствуйте${name ? `, ${name}` : ""}!`,
       "",

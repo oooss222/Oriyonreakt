@@ -6,7 +6,7 @@ import {
 import { hasAnalyticsConsent } from "./cookieConsent";
 import { ApiError } from "./apiError";
 
-const LANG_STORAGE_KEY = "oriyon_lang";
+const LANG_STORAGE_KEY = "diyor_lang";
 const NETWORK_ERROR_MESSAGES = {
   ru: "Нет соединения с сервером. Проверьте интернет и попробуйте снова.",
   en: "No connection to the server. Check your internet and try again.",

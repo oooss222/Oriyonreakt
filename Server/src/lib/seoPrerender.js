@@ -4,7 +4,7 @@ const { getCategoryMeta, getCategorySlugs } = require("./categoryMeta");
 
 function getSiteBaseUrl() {
   return String(
-    process.env.CLIENT_URL || process.env.APP_URL || "https://oriyon.store"
+    process.env.CLIENT_URL || process.env.APP_URL || "https://diyor.tj"
   ).replace(/\/$/, "");
 }
 
@@ -46,12 +46,12 @@ function buildListingMetaTags(listing, requestUrl = "") {
   const url = escapeHtml(requestUrl || `${getSiteBaseUrl()}/ad/${listing?.id || listing?._id}`);
 
   return `
-    <title>${title} — Oriyon.store</title>
+    <title>${title} — Diyor.tj</title>
     <meta name="description" content="${description}" />
-    <meta property="og:title" content="${title} — Oriyon.store" />
+    <meta property="og:title" content="${title} — Diyor.tj" />
     <meta property="og:description" content="${description}" />
     <meta property="og:type" content="product" />
-    <meta property="og:site_name" content="Oriyon.store" />
+    <meta property="og:site_name" content="Diyor.tj" />
     <meta property="og:url" content="${url}" />
     ${image ? `<meta property="og:image" content="${image}" />` : ""}
     <link rel="canonical" href="${url}" />
@@ -130,18 +130,18 @@ function buildCategoryMetaTags({ meta, slug, total, requestUrl }) {
   );
   const description = escapeHtml(
     total
-      ? `${meta.description}. ${total} ${pluralizeListings(total)} в категории «${meta.title}» на Oriyon.store.`
-      : `${meta.description}. Объявления в категории «${meta.title}» на Oriyon.store.`
+      ? `${meta.description}. ${total} ${pluralizeListings(total)} в категории «${meta.title}» на Diyor.tj.`
+      : `${meta.description}. Объявления в категории «${meta.title}» на Diyor.tj.`
   );
   const url = escapeHtml(requestUrl || `${getSiteBaseUrl()}/c/${slug}`);
 
   return `
-    <title>${title} | Oriyon.store</title>
+    <title>${title} | Diyor.tj</title>
     <meta name="description" content="${description}" />
     <meta property="og:title" content="${title}" />
     <meta property="og:description" content="${description}" />
     <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="Oriyon.store" />
+    <meta property="og:site_name" content="Diyor.tj" />
     <meta property="og:url" content="${url}" />
     <link rel="canonical" href="${url}" />
   `;
@@ -217,7 +217,7 @@ function buildRobotsTxt() {
   ];
 
   const lines = [
-    "# https://oriyon.store",
+    "# https://diyor.tj",
     "# Public marketplace pages are allowed; private app areas are blocked.",
     "",
     "User-agent: *",

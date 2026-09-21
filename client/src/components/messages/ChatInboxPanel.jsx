@@ -179,7 +179,7 @@ export default function ChatInboxPanel({
               String(getPeerId(selected, me)) === String(peerId);
             const thumb = listingImageUrl(item.listingImage);
             const listingTitle = supportItem
-              ? t("chat.supportOriyon")
+              ? t("chat.supportDiyor")
               : item.listingTitle || t("chat.listing");
             const unread = Number(item.unreadCount || 0) > 0;
             const preview = getMessagePreview(item, t);

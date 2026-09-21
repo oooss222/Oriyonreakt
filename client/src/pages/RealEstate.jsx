@@ -38,8 +38,8 @@ export default function RealEstate() {
 
   React.useEffect(() => {
     const sync = () => setCompareCount(readCompareIds().length);
-    window.addEventListener("oriyon:compare-change", sync);
-    return () => window.removeEventListener("oriyon:compare-change", sync);
+    window.addEventListener("diyor:compare-change", sync);
+    return () => window.removeEventListener("diyor:compare-change", sync);
   }, []);
 
   React.useEffect(() => {

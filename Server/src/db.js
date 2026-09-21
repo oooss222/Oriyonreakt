@@ -88,7 +88,7 @@ function getPoolConfig() {
       ...poolDefaults,
       host: process.env.PGHOST || "localhost",
       port: Number(process.env.PGPORT || 5432),
-      database: process.env.PGDATABASE || "oriyon",
+      database: process.env.PGDATABASE || "diyor",
       user: process.env.PGUSER || "postgres",
       password: process.env.PGPASSWORD || "postgres",
     };
@@ -973,7 +973,7 @@ async function seedRealEstateDevelopments() {
     {
       slug: "shohmansur-residence",
       name: "Shohmansur Residence",
-      developer: "Oriyon Development",
+      developer: "Diyor Development",
       city: "Душанбе",
       district: "Шохмансур",
       address: "ул. Айни, 45",

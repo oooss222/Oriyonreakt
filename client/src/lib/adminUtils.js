@@ -1,4 +1,4 @@
-const LANG_STORAGE_KEY = "oriyon_lang";
+const LANG_STORAGE_KEY = "diyor_lang";
 const SUPPORTED_LANGS = ["ru", "tg", "en"];
 
 // Plain JS (not a component), so it can't call useI18n() — reads the same

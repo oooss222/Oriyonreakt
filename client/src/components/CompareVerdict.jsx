@@ -62,7 +62,7 @@ export default function CompareVerdict({ verdict, catalogPath, t }) {
                 to={catalogPath}
                 className="inline-flex items-center gap-1.5 rounded-xl border border-ink/10 bg-white px-3.5 py-2 text-sm font-semibold text-ink-600 hover:bg-mist transition"
               >
-                {t("compare.findMoreOriyon")}
+                {t("compare.findMoreDiyor")}
               </Link>
             )}
           </div>

@@ -38,7 +38,7 @@ async function sendSms(phone, code) {
       body: JSON.stringify({
         phone,
         code,
-        message: `Код Oriyon: ${code}. Действует 5 минут.`,
+        message: `Код Diyor: ${code}. Действует 5 минут.`,
       }),
     });
 

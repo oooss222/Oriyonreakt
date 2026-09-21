@@ -1,10 +1,10 @@
 import { api } from "./api";
 import { goToAuth } from "./auth";
 
-export const BUSINESS_SUPPORT_TITLE = "Oriyon Premium — консультация";
+export const BUSINESS_SUPPORT_TITLE = "Diyor Premium — консультация";
 
 export const BUSINESS_SUPPORT_DRAFT =
-  "Здравствуйте! Интересует премиум-аккаунт Oriyon Premium. Подскажите, пожалуйста, условия подключения.";
+  "Здравствуйте! Интересует премиум-аккаунт Diyor Premium. Подскажите, пожалуйста, условия подключения.";
 
 export function isBusinessSupportThread(item) {
   if (!item) return false;
@@ -13,7 +13,9 @@ export function isBusinessSupportThread(item) {
   const title = String(item.listingTitle || "").toLowerCase();
 
   return (
+    title.includes("diyor premium") ||
     title.includes("oriyon premium") ||
+    title.includes("diyor бизнес") ||
     title.includes("oriyon бизнес") ||
     title.includes("консультация") ||
     title.includes("поддержка")
@@ -27,7 +29,7 @@ export async function openBusinessSupportChat({ nav, token }) {
     listingId: contact.listingId,
     peerId: contact.adminId,
     title: BUSINESS_SUPPORT_TITLE,
-    peerName: contact.adminName || "Администратор Oriyon",
+    peerName: contact.adminName || "Администратор Diyor",
     support: "1",
     draft: BUSINESS_SUPPORT_DRAFT,
   });

@@ -264,7 +264,7 @@ export function buildRealEstatePageTitle(draft = {}) {
 
 export function buildRealEstateMetaDescription(draft = {}) {
   const title = buildRealEstatePageTitle(draft);
-  return `${title} — объявления на Oriyon.store. Цены в сомони, фильтры по району, площади и цене за м².`;
+  return `${title} — объявления на Diyor.tj. Цены в сомони, фильтры по району, площади и цене за м².`;
 }
 
 export function buildRealEstateBreadcrumbs(draft = {}) {
