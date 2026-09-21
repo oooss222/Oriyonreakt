@@ -6,6 +6,9 @@ services:
     buildCommand: npm run build
     startCommand: npm start
     healthCheckPath: /api/health
+    domains:
+      - oriyon.store
+      - www.oriyon.store
     envVars:
       - key: NODE_VERSION
         value: 20.11.0
@@ -14,7 +17,7 @@ services:
       - key: CLIENT_URL
         value: https://oriyon.store
       - key: CORS_ORIGIN
-        value: https://oriyon.store,https://www.oriyon.store
+        value: https://oriyon.store,https://www.oriyon.store,https://oriyonreakt-1.onrender.com
       - key: JWT_SECRET
         sync: false
       - key: DATABASE_URL

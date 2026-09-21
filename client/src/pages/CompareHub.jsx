@@ -65,9 +65,7 @@ export default function CompareHub() {
   }, [filled, selected, selectCat]);
 
   const emptyCatalog =
-    getCompareConfig(selected)?.catalogPath ||
-    getCompareConfig("phones")?.catalogPath ||
-    "/";
+    getCompareConfig("phones")?.catalogPath || "/listing";
 
   return (
     <div className="compare-page compare-hub container-x py-5 sm:py-6 space-y-5">
