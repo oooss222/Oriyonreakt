@@ -91,7 +91,7 @@ const apiGeneralLimiter = createRateLimiter({
   windowMs: 60 * 1000,
   max: 200,
   message: "Too many requests. Slow down.",
-  skip: (req) => req.path === "/health",
+  skip: (req) => req.path === "/health" || req.path.startsWith("/media/proxy"),
 });
 
 function userOrIpKey(req) {

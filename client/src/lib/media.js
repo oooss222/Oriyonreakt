@@ -2,6 +2,23 @@ import { API_BASE } from "./api";
 
 const PLACEHOLDER = "/img/placeholder.jpg";
 const CLOUDINARY_UPLOAD = "/upload/";
+const SOMON_IMAGE_HOST = "cdntj.somon.tj";
+
+function proxySomonImage(url) {
+  let parsed;
+
+  try {
+    parsed = new URL(url);
+  } catch {
+    return url;
+  }
+
+  if (parsed.protocol !== "https:" || parsed.hostname !== SOMON_IMAGE_HOST) {
+    return url;
+  }
+
+  return `${API_BASE}/media/proxy?url=${encodeURIComponent(parsed.href)}`;
+}
 
 // A transformation segment looks like "w_400,q_auto/" or "c_limit/".
 const EXISTING_TRANSFORM = /^[a-z]{1,3}_[^/]*\//;
@@ -47,7 +64,7 @@ export function resolveMediaUrl(
     value.startsWith("/img/") ||
     value.startsWith("data:")
   ) {
-    return withImageWidth(value, width);
+    return withImageWidth(proxySomonImage(value), width);
   }
 
   const server = API_BASE.replace(/\/api$/, "");

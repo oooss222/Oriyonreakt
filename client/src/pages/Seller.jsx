@@ -21,6 +21,7 @@ import BusinessBadge from "../components/BusinessBadge";
 import { usePageMeta } from "../lib/usePageMeta";
 import { getDisplayName, parseCompanyAddresses } from "../lib/businessAccount";
 import { api } from "../lib/api";
+import { resolveMediaUrl } from "../lib/media";
 import { goToAuth } from "../lib/auth";
 import { useI18n } from "../i18n";
 import { getUserFacingErrorMessage } from "../lib/apiError";
@@ -226,7 +227,7 @@ export default function Seller() {
           <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-sun to-lagoon flex items-center justify-center text-white font-bold text-lg shadow-sm shrink-0 overflow-hidden">
             {seller.sellerType === "company" && seller.companyLogo ? (
               <img
-                src={seller.companyLogo}
+                src={resolveMediaUrl(seller.companyLogo)}
                 alt={sellerName}
                 className="w-full h-full object-cover"
               />

@@ -78,6 +78,8 @@ app.use(
   })
 );
 
+app.use("/api/media", require("./routes/media"));
+
 app.get("/api/health", async (req, res) => {
   try {
     await pool.query("SELECT 1");
