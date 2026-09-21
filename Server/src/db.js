@@ -421,6 +421,18 @@ async function initDb() {
     ALTER TABLE listings
       ADD COLUMN IF NOT EXISTS price_num NUMERIC;
 
+    ALTER TABLE listings
+      ADD COLUMN IF NOT EXISTS source_url TEXT;
+
+    CREATE UNIQUE INDEX IF NOT EXISTS listings_source_url_unique
+      ON listings (source_url)
+      WHERE source_url IS NOT NULL AND source_url <> '';
+
+    CREATE TABLE IF NOT EXISTS import_image_hosts (
+      host TEXT PRIMARY KEY,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
+
     CREATE INDEX IF NOT EXISTS idx_listings_re_area
       ON listings(re_area_sqm)
       WHERE cat = 'realestate';

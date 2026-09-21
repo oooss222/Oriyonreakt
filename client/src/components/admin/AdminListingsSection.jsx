@@ -10,6 +10,119 @@ import { HOME_CATEGORIES } from "../../data/categories";
 
 const PAGE_SIZE = 25;
 
+function CatalogImport({ token, onImported }) {
+  const { t } = useI18n();
+  const [url, setUrl] = React.useState("");
+  const [cat, setCat] = React.useState("phones");
+  const [preview, setPreview] = React.useState(null);
+  const [result, setResult] = React.useState(null);
+  const [error, setError] = React.useState("");
+  const [busy, setBusy] = React.useState("");
+
+  const check = async () => {
+    try {
+      setBusy("preview");
+      setError("");
+      setResult(null);
+      setPreview(await api.adminImportPreview(token, url.trim()));
+    } catch (e) {
+      setPreview(null);
+      setError(e.message || t("admin.listings.loadError"));
+    } finally {
+      setBusy("");
+    }
+  };
+
+  const run = async () => {
+    try {
+      setBusy("import");
+      setError("");
+      const data = await api.adminImportCatalog(token, url.trim(), cat);
+      setResult(data);
+      setPreview(data);
+      if (onImported) onImported();
+    } catch (e) {
+      setError(e.message || t("admin.listings.loadError"));
+    } finally {
+      setBusy("");
+    }
+  };
+
+  return (
+    <div className="rounded-2xl border border-sun-100 bg-sun-50/40 p-4 space-y-3">
+      <div>
+        <h3 className="font-bold">{t("admin.listings.importTitle")}</h3>
+        <p className="text-sm text-ink-500 mt-1">{t("admin.listings.importHint")}</p>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-[1fr_180px_auto_auto] gap-2">
+        <input
+          value={url}
+          onChange={(e) => setUrl(e.target.value)}
+          placeholder="https://"
+          className="h-11 rounded-xl border px-3 outline-none focus:ring-2 focus:ring-sun/40 bg-white"
+        />
+        <select
+          value={cat}
+          onChange={(e) => setCat(e.target.value)}
+          className="h-11 rounded-xl border px-3 outline-none focus:ring-2 focus:ring-sun/40 bg-white"
+        >
+          {HOME_CATEGORIES.map((item) => (
+            <option key={item.slug} value={item.slug}>
+              {item.title}
+            </option>
+          ))}
+        </select>
+        <button
+          type="button"
+          onClick={check}
+          disabled={!url.trim() || Boolean(busy)}
+          className="btn btn-secondary disabled:opacity-60"
+        >
+          {busy === "preview" ? t("admin.listings.importPreviewing") : t("admin.listings.importPreview")}
+        </button>
+        <button
+          type="button"
+          onClick={run}
+          disabled={!preview || Boolean(busy)}
+          className="btn btn-primary disabled:opacity-60"
+        >
+          {busy === "import" ? t("admin.listings.importRunning") : t("admin.listings.importRun")}
+        </button>
+      </div>
+      {error && (
+        <div className="rounded-xl border border-red-200 bg-red-50 text-red-700 p-3 text-sm">
+          {error}
+        </div>
+      )}
+      {preview && (
+        <div className="space-y-2">
+          <div className="text-sm text-ink-600">
+            {preview.seller?.name} · {preview.kind === "listing" ? t("admin.listings.importKindListing") : t("admin.listings.importKindCatalog")} · {t("admin.listings.importFound", { count: preview.total })}
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+            {(preview.items || []).map((item) => (
+              <div key={item.url} className="rounded-xl border bg-white p-2 text-xs">
+                {item.image ? (
+                  <img src={getListingThumb({ images: [item.image] })} alt="" className="h-16 w-full object-cover rounded-lg mb-1" />
+                ) : null}
+                <div className="font-semibold line-clamp-2">{item.title}</div>
+                <div className="text-sun-700">{item.price ? formatPrice(item.price) : ""}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      {result && (
+        <div className="rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-800 p-3 text-sm space-y-1">
+          <div>{t("admin.listings.importDone", { inserted: result.inserted, updated: result.updated })}</div>
+          {result.sellerEmail ? <div>{t("admin.listings.importSeller", { email: result.sellerEmail })}</div> : null}
+          {result.sellerPassword ? <div>{t("admin.listings.importPassword", { password: result.sellerPassword })}</div> : null}
+        </div>
+      )}
+    </div>
+  );
+}
+
 const STATUS_OPTION_KEYS = [
   { value: "all", key: "admin.listings.statusAll" },
   { value: "pending", key: "admin.listings.statusPending" },
@@ -127,6 +240,8 @@ export default function AdminListingsSection({ token }) {
           {refreshing ? t("admin.users.refreshing") : t("admin.users.refresh")}
         </button>
       </div>
+
+      <CatalogImport token={token} onImported={load} />
 
       {error && (
         <div className="rounded-xl border border-red-200 bg-red-50 text-red-700 p-3">

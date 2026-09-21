@@ -13,6 +13,8 @@ const {
   DESC_MAX,
 } = require("../src/lib/listingValidation");
 const { normalizeUrl } = require("../src/lib/compareImport/detectPlatform");
+const { parseSomonCards } = require("../src/lib/catalogImport");
+const { isBlockedHostname } = require("../src/lib/safePublicUrl");
 
 test("parsePriceValue reads the formats sellers actually type", () => {
   assert.equal(parsePriceValue("160 000"), 160000);
@@ -234,5 +236,25 @@ test("blocked display names reject fake, generic, and brand names", () => {
   for (const name of ["Али", "Ali Rahimov", "Зарина", "Johny"]) {
     assert.equal(isBlockedDisplayName(name), false, name);
   }
+});
+
+test("catalog import reads somon cards and blocks internal hosts", () => {
+  const html = `
+    <div class="advert-grid js-advert-click">
+      <a class="advert-grid__content-title" href="/adv/14433737_tecno/">Tecno Spark 40</a>
+      <a class="advert-grid__content-price" href="/adv/14433737_tecno/">2 333 c.</a>
+      <div class="advert-grid__content-place">Душанбе</div>
+      <div data-src="https://cdntj.somon.tj/media/cache1/ca/61/photo.webp"></div>
+    </div>
+  `;
+  const cards = parseSomonCards(html, "https://somon.tj/items/author/777321/");
+  assert.equal(cards.length, 1);
+  assert.equal(cards[0].title, "Tecno Spark 40");
+  assert.equal(cards[0].price, 2333);
+  assert.equal(cards[0].externalId, "14433737");
+  assert.equal(cards[0].url, "https://somon.tj/adv/14433737_tecno/");
+  assert.equal(isBlockedHostname("127.0.0.1"), true);
+  assert.equal(isBlockedHostname("localhost"), true);
+  assert.equal(isBlockedHostname("somon.tj"), false);
 });
 

@@ -14,6 +14,7 @@ const { sendFinanceReport } = require("../lib/financeReport");
 const { getConfig: getAlifConfig, checkPaymentStatus, normalizeCallbackPayload, isSuccessfulStatus } = require("../lib/alifPay");
 const PaymentOrder = require("../models/PaymentOrder");
 const AdCampaign = require("../models/AdCampaign");
+const { previewCatalog, importCatalog } = require("../lib/catalogImport");
 
 const FINANCE_AUDIT_ACTIONS = ["wallet.adjust"];
 const ACCOUNTANT_EXPORT_TYPES = ["users", "transactions"];
@@ -786,6 +787,38 @@ router.get("/listings", requireRole("admin", "super_admin"), async (req, res) =>
 
     return res.status(500).json({
       error: "Failed to load listings",
+    });
+  }
+});
+
+router.post("/import/preview", requireRole("admin", "super_admin"), async (req, res) => {
+  try {
+    const preview = await previewCatalog(req.body?.url);
+    return res.json(preview);
+  } catch (error) {
+    return res.status(400).json({
+      error: error.message || "Не удалось прочитать страницу",
+    });
+  }
+});
+
+router.post("/import/catalog", requireRole("admin", "super_admin"), async (req, res) => {
+  try {
+    const result = await importCatalog({
+      url: req.body?.url,
+      cat: req.body?.cat,
+    });
+    await audit(req, "listings.import", "user", null, {
+      sourceUrl: result.sourceUrl,
+      inserted: result.inserted,
+      updated: result.updated,
+      total: result.total,
+    });
+    return res.json(result);
+  } catch (error) {
+    console.error("ADMIN_IMPORT_ERROR:", error?.message);
+    return res.status(400).json({
+      error: error.message || "Не удалось импортировать объявления",
     });
   }
 });

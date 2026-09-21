@@ -761,6 +761,20 @@ export const api = {
       body: data,
     }),
 
+  adminImportPreview: (token, url) =>
+    request("/admin/import/preview", {
+      method: "POST",
+      token,
+      body: { url },
+    }),
+
+  adminImportCatalog: (token, url, cat) =>
+    request("/admin/import/catalog", {
+      method: "POST",
+      token,
+      body: { url, cat },
+    }),
+
   adminListings: (token, params = {}) => {
     const qs = new URLSearchParams();
 

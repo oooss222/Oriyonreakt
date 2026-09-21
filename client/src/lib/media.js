@@ -59,6 +59,14 @@ export function resolveMediaUrl(
 
   const value = String(src);
 
+  if (value.startsWith("/api/media/proxy") || value.startsWith("api/media/proxy")) {
+    const path = value.startsWith("/") ? value : `/${value}`;
+    if (API_BASE.startsWith("http")) {
+      return `${API_BASE.replace(/\/api$/, "")}${path}`;
+    }
+    return path;
+  }
+
   if (
     value.startsWith("http") ||
     value.startsWith("/img/") ||

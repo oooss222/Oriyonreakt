@@ -29,7 +29,6 @@ const {
   SYSTEM_CONTEXT,
 } = require("./lib/rlsContext");
 const Listing = require("./models/Listing");
-const { seedSomonShop } = require("./lib/seedSomonShop");
 
 const app = express();
 const server = http.createServer(app);
@@ -212,10 +211,7 @@ async function start() {
     validateEnv();
     // Migrations and backfills touch every owner's rows, and queries now
     // default to the anonymous role.
-    await runWithRlsContext(SYSTEM_CONTEXT, async () => {
-      await initDb();
-      await seedSomonShop();
-    });
+    await runWithRlsContext(SYSTEM_CONTEXT, initDb);
 
     server.listen(PORT, "0.0.0.0", () => {
       console.log(`API running on port ${PORT}`);

@@ -1,9 +1,11 @@
 const router = require("express").Router();
+const { query } = require("../db");
+const { isBlockedHostname } = require("../lib/safePublicUrl");
 
-const ALLOWED_HOST = "cdntj.somon.tj";
+const SOMON_HOST = "cdntj.somon.tj";
 const MAX_BYTES = 8 * 1024 * 1024;
 
-function somonImageUrl(raw) {
+async function allowedImageUrl(raw) {
   let parsed;
 
   try {
@@ -12,11 +14,26 @@ function somonImageUrl(raw) {
     return null;
   }
 
-  if (parsed.protocol !== "https:" || parsed.hostname !== ALLOWED_HOST) {
+  if (parsed.protocol !== "https:" || parsed.username || parsed.password) {
     return null;
   }
 
-  if (parsed.username || parsed.password) {
+  const host = parsed.hostname.toLowerCase();
+  if (isBlockedHostname(host)) {
+    return null;
+  }
+
+  if (host === SOMON_HOST) {
+    return parsed.href;
+  }
+
+  try {
+    const known = await query(
+      `SELECT 1 FROM import_image_hosts WHERE host = $1`,
+      [host]
+    );
+    if (!known.rows.length) return null;
+  } catch {
     return null;
   }
 
@@ -24,7 +41,7 @@ function somonImageUrl(raw) {
 }
 
 router.get("/proxy", async (req, res) => {
-  const target = somonImageUrl(req.query.url);
+  const target = await allowedImageUrl(req.query.url);
 
   if (!target) {
     return res.status(400).end();
