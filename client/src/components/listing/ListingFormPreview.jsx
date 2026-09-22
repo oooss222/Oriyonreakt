@@ -24,7 +24,6 @@ export default function ListingFormPreview({ item }) {
             vip={false}
             top={false}
             showFavorite={false}
-            showCompare={false}
           />
         ) : (
           <div className="listing-card__media listing-form-preview-empty">
