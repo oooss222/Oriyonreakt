@@ -976,6 +976,14 @@ class _MyListingsScreenState extends ConsumerState<MyListingsScreen> {
 
   Future<void> _promote(Listing item) async {
     final t = ref.read(stringsProvider);
+    final highlight = <({int amount, int price})>[];
+    final packs = <({int amount, int price})>[];
+    try {
+      final settings = await ref.read(apiClientProvider).siteSettings();
+      highlight.addAll(_settingPlans(settings["highlightPlans"], "days"));
+      packs.addAll(_settingPlans(settings["bumpPackPlans"], "count"));
+    } catch (_) {}
+    if (!mounted) return;
     final plan = await showModalBottomSheet<(String, int)>(
       context: context,
       showDragHandle: true,
@@ -994,6 +1002,18 @@ class _MyListingsScreenState extends ConsumerState<MyListingsScreen> {
                 title: Text("${plan.days} дн. · ${plan.price} TJS"),
                 onTap: () => Navigator.pop(context, ("top", plan.days)),
               ),
+            if (highlight.isNotEmpty) ListTile(title: Text(t.t("ads.highlight"), style: AppText.h3)),
+            for (final plan in highlight)
+              ListTile(
+                title: Text("${plan.amount} дн. · ${plan.price} TJS"),
+                onTap: () => Navigator.pop(context, ("highlight", plan.amount)),
+              ),
+            if (packs.isNotEmpty) ListTile(title: Text(t.t("ads.bumpPack"), style: AppText.h3)),
+            for (final plan in packs)
+              ListTile(
+                title: Text("${plan.amount} шт. · ${plan.price} TJS"),
+                onTap: () => Navigator.pop(context, ("bump_pack", plan.amount)),
+              ),
           ],
         );
       },
@@ -1003,6 +1023,18 @@ class _MyListingsScreenState extends ConsumerState<MyListingsScreen> {
     await ref.read(authControllerProvider.notifier).refreshMe();
     if (mounted) setState(() {});
   }
+}
+
+List<({int amount, int price})> _settingPlans(dynamic raw, String field) {
+  if (raw is! List) return const [];
+  final plans = <({int amount, int price})>[];
+  for (final item in raw) {
+    if (item is! Map) continue;
+    final amount = int.tryParse("${item[field] ?? ""}".split(".").first) ?? 0;
+    final price = num.tryParse("${item["price"] ?? ""}")?.round() ?? 0;
+    if (amount > 0) plans.add((amount: amount, price: price));
+  }
+  return plans;
 }
 
 class SellerScreen extends ConsumerStatefulWidget {

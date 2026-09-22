@@ -13,6 +13,7 @@ import "../../models/listing.dart";
 import "../../state/providers.dart";
 import "../../theme.dart";
 import "../../utils/media.dart";
+import "../../widgets/ad_slot.dart";
 import "../../widgets/common.dart";
 import "../../widgets/spec_fields.dart";
 
@@ -38,6 +39,7 @@ class _AddListingScreenState extends ConsumerState<AddListingScreen> {
   bool _specsExpanded = false;
   bool _loading = false;
   String _error = "";
+  String? _publishedId;
 
   bool get _isEdit => widget.editId != null && widget.editId!.isNotEmpty;
 
@@ -141,6 +143,10 @@ class _AddListingScreenState extends ConsumerState<AddListingScreen> {
           ? await api.updateListing(widget.editId!, payload)
           : await api.createListing(payload);
       if (!mounted) return;
+      if (!_isEdit) {
+        setState(() => _publishedId = result.id);
+        return;
+      }
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(t.t("listing.published"))),
       );
@@ -188,6 +194,30 @@ class _AddListingScreenState extends ConsumerState<AddListingScreen> {
       return Scaffold(
         appBar: AppBar(title: Text(t.t("add.title"))),
         body: LoginGate(message: t.t("auth.needLogin"), actionLabel: t.t("nav.login")),
+      );
+    }
+
+    if (_publishedId != null) {
+      final publishedId = _publishedId!;
+      return Scaffold(
+        appBar: AppBar(title: Text(t.t("listing.published"))),
+        body: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            Text(t.t("listing.published"), style: AppText.h2),
+            const SizedBox(height: 16),
+            const AdSlot(placement: "app_post_success", height: 180),
+            const SizedBox(height: 16),
+            FilledButton(
+              onPressed: () => context.go("/ad/$publishedId"),
+              child: Text(t.t("ads.openListing")),
+            ),
+            TextButton(
+              onPressed: () => context.push("/my-listings"),
+              child: Text(t.t("ads.promoteOffer")),
+            ),
+          ],
+        ),
       );
     }
 

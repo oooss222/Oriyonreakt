@@ -1,7 +1,10 @@
 import "dart:convert";
+import "dart:io";
+import "dart:math";
 
 import "package:dio/dio.dart";
 import "package:flutter_secure_storage/flutter_secure_storage.dart";
+import "package:shared_preferences/shared_preferences.dart";
 
 import "../config.dart";
 import "../models/ad.dart";
@@ -9,6 +12,19 @@ import "../models/listing.dart";
 import "../models/message.dart";
 import "../models/user.dart";
 import "api_exception.dart";
+
+const adViewerKey = "diyor_ad_viewer";
+
+Future<String> adViewerId() async {
+  final prefs = await SharedPreferences.getInstance();
+  final current = prefs.getString(adViewerKey);
+  if (current != null && current.isNotEmpty) return current;
+  final next = "${DateTime.now().microsecondsSinceEpoch.toRadixString(16)}${Random().nextInt(1 << 32).toRadixString(16)}";
+  await prefs.setString(adViewerKey, next);
+  return next;
+}
+
+String adPlatform() => Platform.isIOS ? "ios" : "android";
 
 class ApiClient {
   ApiClient({FlutterSecureStorage? storage, Dio? dio})
@@ -296,12 +312,76 @@ class ApiClient {
     );
   }
 
-  Future<List<PromoAd>> ads({required String placement, String cat = ""}) async {
-    final data = await _send("GET", "/ads", query: {
-      "placement": placement,
-      if (cat.isNotEmpty) "cat": cat,
-    });
-    return parsePromoAdList(data);
+  Future<List<PromoAd>> ads({
+    required String placement,
+    String cat = "",
+    String city = "",
+    String query = "",
+    String platform = "",
+  }) async {
+    final data = await _dio.get<dynamic>(
+      "/ads",
+      queryParameters: {
+        "placement": placement,
+        if (cat.isNotEmpty) "cat": cat,
+        if (city.isNotEmpty) "city": city,
+        if (query.isNotEmpty) "q": query,
+        if (platform.isNotEmpty) "platform": platform,
+        "app_version": AppConfig.appVersion,
+        "viewer": await adViewerId(),
+      },
+      options: Options(
+        receiveTimeout: const Duration(seconds: 4),
+        sendTimeout: const Duration(seconds: 4),
+      ),
+    );
+    return parsePromoAdList(data.data);
+  }
+
+  Future<Map<String, dynamic>> adConfig(String platform) async {
+    final data = await _dio.get<dynamic>(
+      "/ads/config",
+      queryParameters: {"platform": platform, "app_version": AppConfig.appVersion},
+      options: Options(receiveTimeout: const Duration(seconds: 4)),
+    );
+    if (data.data is Map) return Map<String, dynamic>.from(data.data as Map);
+    return const {};
+  }
+
+  Future<void> trackAdImpression({
+    required String campaignId,
+    String creativeId = "",
+    required String placement,
+    required String platform,
+  }) async {
+    try {
+      await _dio.post(
+        "/ads/impression",
+        data: {
+          "campaignId": campaignId,
+          "creativeId": creativeId,
+          "placement": placement,
+          "platform": platform,
+          "viewer": await adViewerId(),
+        },
+        options: Options(receiveTimeout: const Duration(seconds: 4)),
+      );
+    } catch (_) {}
+  }
+
+  Future<Map<String, String>> openAd(PromoAd ad, {required String placement, required String platform}) async {
+    final data = await _dio.get<dynamic>(
+      "/ads/click/${ad.campaignId.isEmpty ? ad.id : ad.campaignId}",
+      queryParameters: {
+        "format": "json",
+        "placement": placement,
+        "platform": platform,
+        if (ad.creativeId.isNotEmpty) "creative": ad.creativeId,
+        "viewer": await adViewerId(),
+      },
+    );
+    final map = data.data is Map ? Map<String, dynamic>.from(data.data as Map) : const {};
+    return {"url": "${map["url"] ?? ""}", "deeplink": "${map["deeplink"] ?? ""}"};
   }
 
   Future<void> trackAd(String id, {String type = "impression"}) async {

@@ -100,7 +100,7 @@ export default React.memo(function ProfileListingCard({
     <article
       className={[
         "group relative flex flex-col overflow-hidden rounded-[1.25rem] border bg-white shadow-soft transition-all duration-300 hover:shadow-lift",
-        getPromotionCardClass({ vip: ad.vip, top: ad.top }),
+        getPromotionCardClass({ vip: ad.vip, top: ad.top, highlight: ad.highlight }),
         selected ? "ring-2 ring-sun border-sun" : "border-ink/10",
         inactive ? "opacity-75" : "",
       ].join(" ")}

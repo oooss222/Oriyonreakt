@@ -32,6 +32,7 @@ function ListingCard({
         {
           vip: item?.vip,
           top: item?.top,
+          highlight: item?.highlight,
         }
       )} ${className}`}
       style={style}

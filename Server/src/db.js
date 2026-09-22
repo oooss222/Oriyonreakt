@@ -812,6 +812,112 @@ async function initDb() {
     CREATE INDEX IF NOT EXISTS idx_user_events_type_created
       ON user_events(event_type, created_at DESC);
 
+    ALTER TABLE ad_campaigns DROP CONSTRAINT IF EXISTS ad_campaigns_placement_check;
+    ALTER TABLE ad_campaigns DROP CONSTRAINT IF EXISTS ad_campaigns_format_check;
+
+    CREATE TABLE IF NOT EXISTS advertisers (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      name TEXT NOT NULL,
+      contacts TEXT NOT NULL DEFAULT '',
+      notes TEXT NOT NULL DEFAULT '',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
+
+    CREATE TABLE IF NOT EXISTS ad_placements (
+      code TEXT PRIMARY KEY,
+      title TEXT NOT NULL,
+      platform TEXT NOT NULL DEFAULT 'web',
+      width INTEGER NOT NULL DEFAULT 0,
+      height INTEGER NOT NULL DEFAULT 0,
+      mobile_width INTEGER NOT NULL DEFAULT 0,
+      mobile_height INTEGER NOT NULL DEFAULT 0,
+      enabled BOOLEAN NOT NULL DEFAULT true,
+      config JSONB NOT NULL DEFAULT '{}'::jsonb,
+      sort_order INTEGER NOT NULL DEFAULT 0
+    );
+
+    ALTER TABLE ad_campaigns ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'active';
+    ALTER TABLE ad_campaigns ADD COLUMN IF NOT EXISTS advertiser_id UUID;
+    ALTER TABLE ad_campaigns ADD COLUMN IF NOT EXISTS impression_limit BIGINT;
+    ALTER TABLE ad_campaigns ADD COLUMN IF NOT EXISTS click_limit BIGINT;
+    ALTER TABLE ad_campaigns ADD COLUMN IF NOT EXISTS contract_amount NUMERIC(12, 2);
+    ALTER TABLE ad_campaigns ADD COLUMN IF NOT EXISTS platforms TEXT[] NOT NULL DEFAULT ARRAY['web']::text[];
+    ALTER TABLE ad_campaigns ADD COLUMN IF NOT EXISTS min_app_version TEXT NOT NULL DEFAULT '';
+    ALTER TABLE ad_campaigns ADD COLUMN IF NOT EXISTS categories TEXT[] NOT NULL DEFAULT ARRAY[]::text[];
+    ALTER TABLE ad_campaigns ADD COLUMN IF NOT EXISTS cities TEXT[] NOT NULL DEFAULT ARRAY[]::text[];
+    ALTER TABLE ad_campaigns ADD COLUMN IF NOT EXISTS devices TEXT[] NOT NULL DEFAULT ARRAY[]::text[];
+    ALTER TABLE ad_campaigns ADD COLUMN IF NOT EXISTS languages TEXT[] NOT NULL DEFAULT ARRAY[]::text[];
+    ALTER TABLE ad_campaigns ADD COLUMN IF NOT EXISTS keywords TEXT[] NOT NULL DEFAULT ARRAY[]::text[];
+    ALTER TABLE ad_campaigns ADD COLUMN IF NOT EXISTS placements TEXT[] NOT NULL DEFAULT ARRAY[]::text[];
+    ALTER TABLE ad_campaigns ADD COLUMN IF NOT EXISTS frequency_cap INTEGER NOT NULL DEFAULT 0;
+    ALTER TABLE ad_campaigns ADD COLUMN IF NOT EXISTS weight INTEGER NOT NULL DEFAULT 1;
+    ALTER TABLE ad_campaigns ADD COLUMN IF NOT EXISTS image_mobile TEXT NOT NULL DEFAULT '';
+    ALTER TABLE ad_campaigns ADD COLUMN IF NOT EXISTS image_app TEXT NOT NULL DEFAULT '';
+    ALTER TABLE ad_campaigns ADD COLUMN IF NOT EXISTS deeplink TEXT NOT NULL DEFAULT '';
+    ALTER TABLE ad_campaigns ADD COLUMN IF NOT EXISTS network_code TEXT NOT NULL DEFAULT '';
+
+    CREATE TABLE IF NOT EXISTS ad_creatives (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      campaign_id UUID NOT NULL REFERENCES ad_campaigns(id) ON DELETE CASCADE,
+      type TEXT NOT NULL DEFAULT 'banner',
+      image_desktop TEXT NOT NULL DEFAULT '',
+      image_mobile TEXT NOT NULL DEFAULT '',
+      image_app TEXT NOT NULL DEFAULT '',
+      headline TEXT NOT NULL DEFAULT '',
+      body TEXT NOT NULL DEFAULT '',
+      click_url TEXT NOT NULL DEFAULT '',
+      deeplink TEXT NOT NULL DEFAULT '',
+      html_code TEXT NOT NULL DEFAULT '',
+      network_code TEXT NOT NULL DEFAULT '',
+      weight INTEGER NOT NULL DEFAULT 1,
+      active BOOLEAN NOT NULL DEFAULT true,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_ad_creatives_campaign
+      ON ad_creatives(campaign_id);
+
+    CREATE TABLE IF NOT EXISTS ad_events (
+      id BIGSERIAL PRIMARY KEY,
+      campaign_id UUID NOT NULL,
+      creative_id UUID,
+      placement TEXT NOT NULL DEFAULT '',
+      platform TEXT NOT NULL DEFAULT 'web',
+      event_type TEXT NOT NULL,
+      viewer_key TEXT NOT NULL DEFAULT '',
+      ip_hash TEXT NOT NULL DEFAULT '',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_ad_events_created
+      ON ad_events(created_at DESC);
+
+    CREATE INDEX IF NOT EXISTS idx_ad_events_campaign
+      ON ad_events(campaign_id, event_type, created_at DESC);
+
+    CREATE TABLE IF NOT EXISTS ad_frequency (
+      viewer_key TEXT NOT NULL,
+      creative_id UUID NOT NULL,
+      day DATE NOT NULL,
+      count INTEGER NOT NULL DEFAULT 0,
+      PRIMARY KEY (viewer_key, creative_id, day)
+    );
+
+    CREATE TABLE IF NOT EXISTS ad_inquiries (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      name TEXT NOT NULL,
+      contact TEXT NOT NULL,
+      company TEXT NOT NULL DEFAULT '',
+      message TEXT NOT NULL DEFAULT '',
+      placement TEXT NOT NULL DEFAULT '',
+      status TEXT NOT NULL DEFAULT 'new',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
+
+    ALTER TABLE listings ADD COLUMN IF NOT EXISTS highlight_until TIMESTAMPTZ;
+    ALTER TABLE listings ADD COLUMN IF NOT EXISTS bump_pack_remaining INTEGER NOT NULL DEFAULT 0;
+    ALTER TABLE listings ADD COLUMN IF NOT EXISTS bump_pack_next_at TIMESTAMPTZ;
+
     -- Subcategory is compared directly so the index can be used; older rows may
     -- still carry stray whitespace from earlier imports.
     UPDATE listings
@@ -840,6 +946,9 @@ async function initDb() {
   await backfillRealEstateMeta();
   await migrateServiceCategories();
   await seedRealEstateDevelopments();
+
+  const { seedDemoAds } = require("./lib/seedAds");
+  await seedDemoAds();
 }
 
 function schemaFingerprint(schemaSql) {
@@ -1242,6 +1351,11 @@ function mapListing(row) {
     topUntil && !Number.isNaN(Date.parse(topUntil))
       ? Date.parse(topUntil) > now
       : false;
+  const highlightUntil = row.highlight_until || null;
+  const highlight =
+    highlightUntil && !Number.isNaN(Date.parse(highlightUntil))
+      ? Date.parse(highlightUntil) > now
+      : false;
 
   return {
   id: row.id,
@@ -1286,8 +1400,11 @@ function mapListing(row) {
 
     vip,
     top,
+    highlight,
     vipUntil,
     topUntil,
+    highlightUntil,
+    bumpPackRemaining: Number(row.bump_pack_remaining || 0),
     bumpedAt: row.bumped_at || null,
     expiresAt: row.expires_at || null,
     expiryNoticeSentAt: row.expiry_notice_sent_at || null,

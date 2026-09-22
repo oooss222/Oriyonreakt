@@ -18,6 +18,7 @@ import "../../theme.dart";
 import "../../utils/format.dart";
 import "../../utils/media.dart";
 import "../../utils/nav.dart";
+import "../../widgets/ad_slot.dart";
 import "../../widgets/common.dart";
 import "../../widgets/favorite.dart";
 
@@ -197,6 +198,15 @@ class _ListingDetailScreenState extends ConsumerState<ListingDetailScreen> {
               ),
             ),
           Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+            child: AdSlot(
+              placement: "app_listing_detail",
+              category: ad.cat,
+              city: ad.location,
+              height: 100,
+            ),
+          ),
+          Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -251,6 +261,13 @@ class _ListingDetailScreenState extends ConsumerState<ListingDetailScreen> {
                   Text(ad.description, style: AppText.body.copyWith(height: 1.5)),
                   const SizedBox(height: 16),
                 ],
+                AdSlot(
+                  placement: "app_listing_detail",
+                  category: ad.cat,
+                  city: ad.location,
+                  height: 100,
+                ),
+                const SizedBox(height: 16),
                 AppCard(
                   onTap: ad.ownerId.isEmpty ? null : () => context.push("/seller/${ad.ownerId}"),
                   padding: const EdgeInsets.all(12),

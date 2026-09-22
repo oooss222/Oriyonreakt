@@ -38,6 +38,9 @@ export default function Footer() {
             <Link to="/policy" className="text-white/80 hover:text-sun transition">
               {t("footer.sitePolicy")}
             </Link>
+            <Link to="/advertise" className="text-white/80 hover:text-sun transition">
+              {t("ads.pageTitle")}
+            </Link>
           </div>
           <a
             href="mailto:info@diyor.tj"
@@ -97,6 +100,11 @@ export default function Footer() {
               <li>
                 <Link to="/policy" className="hover:text-sun transition-colors">
                   {t("footer.sitePolicy")}
+                </Link>
+              </li>
+              <li>
+                <Link to="/advertise" className="hover:text-sun transition-colors">
+                  {t("ads.pageTitle")}
                 </Link>
               </li>
             </ul>

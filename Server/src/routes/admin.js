@@ -14,6 +14,8 @@ const { sendFinanceReport } = require("../lib/financeReport");
 const { getConfig: getAlifConfig, checkPaymentStatus, normalizeCallbackPayload, isSuccessfulStatus } = require("../lib/alifPay");
 const PaymentOrder = require("../models/PaymentOrder");
 const AdCampaign = require("../models/AdCampaign");
+const { dailyStats } = require("../lib/adDelivery");
+const { listPlacements } = require("../lib/adPlacements");
 const { previewCatalog, importCatalog } = require("../lib/catalogImport");
 
 const FINANCE_AUDIT_ACTIONS = ["wallet.adjust"];
@@ -1581,6 +1583,167 @@ router.delete(
       return res.status(500).json({
         error: "Failed to delete ad",
       });
+    }
+  }
+);
+
+router.get(
+  "/ads/placements",
+  requireRole("admin", "super_admin"),
+  async (req, res) => {
+    try {
+      const result = await query(
+        `
+        SELECT code, title, platform, width, height, mobile_width, mobile_height, enabled, config, sort_order
+        FROM ad_placements
+        ORDER BY sort_order ASC, code ASC
+        `
+      );
+
+      return res.json(result.rows);
+    } catch (error) {
+      console.error("ADMIN_AD_PLACEMENTS_ERROR:", error?.message);
+      return res.status(500).json({ error: "Failed to load placements" });
+    }
+  }
+);
+
+router.put(
+  "/ads/placements/:code",
+  requireRole("admin", "super_admin"),
+  async (req, res) => {
+    try {
+      const code = String(req.params.code || "").trim();
+
+      if (!listPlacements().includes(code)) {
+        return res.status(400).json({ error: "Invalid placement" });
+      }
+
+      const result = await query(
+        `
+        UPDATE ad_placements
+        SET
+          enabled = $2,
+          config = COALESCE($3::jsonb, config)
+        WHERE code = $1
+        RETURNING *
+        `,
+        [
+          code,
+          req.body?.enabled !== false,
+          req.body?.config ? JSON.stringify(req.body.config) : null,
+        ]
+      );
+
+      if (!result.rows[0]) {
+        return res.status(404).json({ error: "Placement not found" });
+      }
+
+      await audit(req, "ad.placement", "ad_placement", code, {
+        enabled: result.rows[0].enabled,
+      });
+
+      return res.json(result.rows[0]);
+    } catch (error) {
+      console.error("ADMIN_AD_PLACEMENT_UPDATE_ERROR:", error?.message);
+      return res.status(500).json({ error: "Failed to update placement" });
+    }
+  }
+);
+
+router.get(
+  "/ads/inquiries",
+  requireRole("admin", "super_admin"),
+  async (req, res) => {
+    try {
+      const result = await query(
+        `
+        SELECT *
+        FROM ad_inquiries
+        ORDER BY created_at DESC
+        LIMIT 200
+        `
+      );
+
+      return res.json(result.rows);
+    } catch (error) {
+      console.error("ADMIN_AD_INQUIRIES_ERROR:", error?.message);
+      return res.status(500).json({ error: "Failed to load inquiries" });
+    }
+  }
+);
+
+router.get(
+  "/ads/stats.csv",
+  requireRole("admin", "super_admin"),
+  async (req, res) => {
+    try {
+      const rows = await dailyStats({ from: req.query.from, to: req.query.to });
+      const csv = toCsv(rows, [
+        { label: "day", value: (row) => row.day },
+        { label: "platform", value: (row) => row.platform },
+        { label: "placement", value: (row) => row.placement },
+        { label: "campaign", value: (row) => row.campaignId },
+        { label: "impressions", value: (row) => row.impressions },
+        { label: "clicks", value: (row) => row.clicks },
+        { label: "ctr", value: (row) => row.ctr },
+      ]);
+
+      res.setHeader("Content-Type", "text/csv; charset=utf-8");
+      res.setHeader("Content-Disposition", "attachment; filename=diyor-ads.csv");
+      return res.send(csv);
+    } catch (error) {
+      console.error("ADMIN_AD_CSV_ERROR:", error?.message);
+      return res.status(500).json({ error: "Failed to export ad stats" });
+    }
+  }
+);
+
+router.get(
+  "/ads/daily",
+  requireRole("admin", "super_admin"),
+  async (req, res) => {
+    try {
+      const rows = await dailyStats({ from: req.query.from, to: req.query.to });
+      return res.json(rows);
+    } catch (error) {
+      console.error("ADMIN_AD_DAILY_ERROR:", error?.message);
+      return res.status(500).json({ error: "Failed to load ad stats" });
+    }
+  }
+);
+
+router.post(
+  "/ads/:id/status",
+  requireRole("admin", "super_admin"),
+  async (req, res) => {
+    try {
+      const status = String(req.body?.status || "").trim();
+
+      if (!["draft", "active", "paused", "ended"].includes(status)) {
+        return res.status(400).json({ error: "Invalid status" });
+      }
+
+      const result = await query(
+        `
+        UPDATE ad_campaigns
+        SET status = $2, active = $3, updated_at = now()
+        WHERE id = $1
+        RETURNING *
+        `,
+        [req.params.id, status, status === "active"]
+      );
+
+      if (!result.rows[0]) {
+        return res.status(404).json({ error: "Ad not found" });
+      }
+
+      await audit(req, "ad.status", "ad_campaign", req.params.id, { status });
+
+      return res.json({ ok: true, status, active: status === "active" });
+    } catch (error) {
+      console.error("ADMIN_AD_STATUS_ERROR:", error?.message);
+      return res.status(500).json({ error: "Failed to update ad status" });
     }
   }
 );

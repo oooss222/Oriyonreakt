@@ -33,6 +33,7 @@ class Listing {
     required this.views,
     required this.vip,
     required this.top,
+    this.highlight = false,
     this.sellerName = "",
     this.phone = "",
     this.sellerWhatsapp = "",
@@ -59,6 +60,7 @@ class Listing {
   final int views;
   final bool vip;
   final bool top;
+  final bool highlight;
   final String sellerName;
   final String phone;
   final String sellerWhatsapp;
@@ -110,6 +112,7 @@ class Listing {
       views: int.tryParse("${json["views"] ?? 0}") ?? 0,
       vip: json["vip"] == true,
       top: json["top"] == true,
+      highlight: json["highlight"] == true,
       sellerName: "${json["sellerName"] ?? json["ownerName"] ?? seller["name"] ?? ""}",
       phone: _readContact(json, seller, owner, const ["phone", "sellerPhone", "seller_phone", "ownerPhone"]),
       sellerWhatsapp: _readContact(json, seller, owner, const ["sellerWhatsapp", "whatsapp"]),

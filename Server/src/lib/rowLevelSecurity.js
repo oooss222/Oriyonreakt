@@ -40,6 +40,12 @@ async function setupRowLevelSecurity(query) {
     "user_events",
     "phone_otps",
     "ad_campaigns",
+    "advertisers",
+    "ad_placements",
+    "ad_creatives",
+    "ad_events",
+    "ad_frequency",
+    "ad_inquiries",
     "re_developments",
     "chat_thread_settings",
     "user_chat_blocks",
@@ -335,6 +341,73 @@ async function setupRowLevelSecurity(query) {
       app.is_system() OR app.is_staff()
     ) WITH CHECK (
       app.is_system() OR app.is_staff()
+    );
+
+    DROP POLICY IF EXISTS advertisers_all ON advertisers;
+    CREATE POLICY advertisers_all ON advertisers FOR ALL USING (
+      app.is_system() OR app.is_admin()
+    ) WITH CHECK (
+      app.is_system() OR app.is_admin()
+    );
+
+    DROP POLICY IF EXISTS ad_placements_select ON ad_placements;
+    CREATE POLICY ad_placements_select ON ad_placements FOR SELECT USING (true);
+
+    DROP POLICY IF EXISTS ad_placements_modify ON ad_placements;
+    CREATE POLICY ad_placements_modify ON ad_placements FOR ALL USING (
+      app.is_system() OR app.is_admin()
+    ) WITH CHECK (
+      app.is_system() OR app.is_admin()
+    );
+
+    DROP POLICY IF EXISTS ad_creatives_select ON ad_creatives;
+    CREATE POLICY ad_creatives_select ON ad_creatives FOR SELECT USING (
+      app.is_system() OR app.is_staff() OR EXISTS (
+        SELECT 1 FROM ad_campaigns c
+        WHERE c.id = ad_creatives.campaign_id
+          AND c.active = true
+          AND (c.starts_at IS NULL OR c.starts_at <= now())
+          AND (c.ends_at IS NULL OR c.ends_at >= now())
+      )
+    );
+
+    DROP POLICY IF EXISTS ad_creatives_modify ON ad_creatives;
+    CREATE POLICY ad_creatives_modify ON ad_creatives FOR ALL USING (
+      app.is_system() OR app.is_admin()
+    ) WITH CHECK (
+      app.is_system() OR app.is_admin()
+    );
+
+    DROP POLICY IF EXISTS ad_events_select ON ad_events;
+    CREATE POLICY ad_events_select ON ad_events FOR SELECT USING (
+      app.is_system() OR app.is_admin()
+    );
+
+    DROP POLICY IF EXISTS ad_events_insert ON ad_events;
+    CREATE POLICY ad_events_insert ON ad_events FOR INSERT WITH CHECK (
+      app.is_system() OR app.is_admin()
+    );
+
+    DROP POLICY IF EXISTS ad_frequency_all ON ad_frequency;
+    CREATE POLICY ad_frequency_all ON ad_frequency FOR ALL USING (
+      app.is_system() OR app.is_admin()
+    ) WITH CHECK (
+      app.is_system() OR app.is_admin()
+    );
+
+    DROP POLICY IF EXISTS ad_inquiries_insert ON ad_inquiries;
+    CREATE POLICY ad_inquiries_insert ON ad_inquiries FOR INSERT WITH CHECK (true);
+
+    DROP POLICY IF EXISTS ad_inquiries_select ON ad_inquiries;
+    CREATE POLICY ad_inquiries_select ON ad_inquiries FOR SELECT USING (
+      app.is_system() OR app.is_admin()
+    );
+
+    DROP POLICY IF EXISTS ad_inquiries_modify ON ad_inquiries;
+    CREATE POLICY ad_inquiries_modify ON ad_inquiries FOR ALL USING (
+      app.is_system() OR app.is_admin()
+    ) WITH CHECK (
+      app.is_system() OR app.is_admin()
     );
 
     DROP POLICY IF EXISTS re_developments_select ON re_developments;

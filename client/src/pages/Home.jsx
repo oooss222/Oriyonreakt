@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import ListingCard from "../components/ListingCard";
 import RealEstateListingCard from "../components/RealEstateListingCard";
 import ListingGridSkeleton from "../components/ListingGridSkeleton";
-import AdSlot from "../components/AdSlot";
+import AdSlot, { AdFeedCard, useAdCreatives } from "../components/AdSlot";
 import BusinessPromoBanner from "../components/BusinessPromoBanner";
 import { api } from "../lib/api";
 import { getUserFacingErrorMessage } from "../lib/apiError";
@@ -11,6 +11,7 @@ import { useI18n } from "../i18n";
 import { getDefaultCity } from "../lib/recommendationProfile";
 import { CONSENT_EVENT } from "../lib/cookieConsent";
 import { arrangePromotionFeed } from "../lib/listingSort";
+import { buildFeedWithAds } from "../lib/adFeed";
 import { usePageMeta } from "../lib/usePageMeta";
 import { REAL_ESTATE_CAT, DEFAULT_REAL_ESTATE_BROWSE_PATH } from "../data/realEstate";
 import {
@@ -33,7 +34,11 @@ function RealEstateSection({ items }) {
 
   if (!items?.length) {
     return (
-      <AdSlot placement="home_top" className="overflow-hidden rounded-3xl" />
+      <section className="space-y-4 animate-fade-in-up">
+        <div className="rounded-3xl border border-dashed border-ink/10 p-6 text-sm text-ink-400">
+          {t("home.noPublished")}
+        </div>
+      </section>
     );
   }
 
@@ -70,8 +75,9 @@ function RealEstateSection({ items }) {
   );
 }
 
-function HorizontalSection({ title, icon: Icon, items, linkTo = "/listing" }) {
+function HorizontalSection({ title, icon: Icon, items, linkTo = "/listing", feedAd = null, interval = 8 }) {
   const { t } = useI18n();
+  const rows = buildFeedWithAds(items, feedAd, interval);
 
   if (!items?.length) return null;
 
@@ -101,14 +107,18 @@ function HorizontalSection({ title, icon: Icon, items, linkTo = "/listing" }) {
       </div>
 
       <div className="listing-grid">
-        {items.map((ad) => (
+        {rows.map((row, index) =>
+          row.type === "ad" ? (
+            <AdFeedCard key={`ad-${index}`} ad={row.item} />
+          ) : (
           <ListingCard
-            key={ad.id || ad._id}
-            item={ad}
+            key={row.item.id || row.item._id}
+            item={row.item}
             listings={items}
             trackSource="home"
           />
-        ))}
+          )
+        )}
       </div>
     </section>
   );
@@ -217,10 +227,12 @@ export default function Home() {
         new Date(a?.bumpedAt || a?.createdAt || 0).getTime()
     )
     .slice(0, 10);
+  const homeFeed = useAdCreatives("feed_native", { eager: true });
 
   return (
     <div className="page-shell">
       <div className="container-x py-6 space-y-10">
+        <AdSlot placement="home_top" eager className="overflow-hidden rounded-3xl" />
         {loading && (
           <ListingGridSkeleton count={12} />
         )}
@@ -305,6 +317,8 @@ export default function Home() {
               icon={TrendingUp}
               items={newestListings}
               linkTo="/listing"
+              feedAd={homeFeed.items[0] || null}
+              interval={homeFeed.interval || 8}
             />
           </div>
             )}

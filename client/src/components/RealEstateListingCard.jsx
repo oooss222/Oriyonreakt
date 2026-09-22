@@ -58,9 +58,7 @@ function RealEstateListingCard({
     return (
       <Link
         {...linkProps}
-        className={`listing-card listing-card--horizontal group focus:outline-none focus:ring-2 focus:ring-sun/40 ${viewed ? "listing-card--viewed" : ""} ${getPromotionCardClass(
-          { vip: listing.vip, top: listing.top }
-        )}`}
+        className={`listing-card listing-card--horizontal group focus:outline-none focus:ring-2 focus:ring-sun/40 ${viewed ? "listing-card--viewed" : ""} ${getPromotionCardClass({ vip: listing.vip, top: listing.top, highlight: listing.highlight })}`}
       >
         <ListingCardMedia
           item={listing}
@@ -133,7 +131,7 @@ function RealEstateListingCard({
     <Link
       {...linkProps}
       className={`re-listing-card group focus:outline-none focus:ring-2 focus:ring-sun/40 ${viewed ? "listing-card--viewed" : ""} ${getPromotionCardClass(
-        { vip: listing.vip, top: listing.top }
+        { vip: listing.vip, top: listing.top, highlight: listing.highlight }
       )}`}
     >
       <ListingCardMedia

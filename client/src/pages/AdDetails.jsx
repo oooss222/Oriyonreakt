@@ -840,6 +840,14 @@ export default function AdDetails() {
               )}
             </section>
 
+            <AdSlot
+              placement="listing_detail"
+              cat={ad.cat || ""}
+              city={ad.location || ""}
+              eager
+              className="overflow-hidden rounded-2xl"
+            />
+
             <section className="panel p-5 xl:hidden">
               <AdListingHeader
                 title={ad.title}
@@ -919,12 +927,6 @@ export default function AdDetails() {
               </section>
             )}
 
-            <AdSlot
-              placement="ad_details_mid"
-              cat={ad.cat || ""}
-              variant="native"
-            />
-
             {/* Description */}
             <section className="panel p-5 md:p-6">
               <h2 className="section-title mb-4 text-lg sm:text-lg">{t("form.description")}</h2>
@@ -932,6 +934,22 @@ export default function AdDetails() {
                 {ad.description || t("listing.noDescription")}
               </p>
             </section>
+
+            <AdSlot
+              placement="listing_detail"
+              cat={ad.cat || ""}
+              city={ad.location || ""}
+              variant="native"
+            />
+
+            <div className="hidden xl:block">
+              <AdSlot
+                placement="sidebar"
+                cat={ad.cat || ""}
+                city={ad.location || ""}
+                className="overflow-hidden rounded-2xl"
+              />
+            </div>
 
             <AdRelatedListings
               ad={ad}

@@ -264,6 +264,7 @@ class ListingCard extends StatelessWidget {
       child: AppCard(
         vip: item.vip,
         top: item.top && !item.vip,
+        highlight: item.highlight,
         child: horizontal ? SizedBox(width: 168, height: 248, child: child) : SizedBox.expand(child: child),
       ),
     );

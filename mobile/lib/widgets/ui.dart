@@ -55,6 +55,7 @@ class AppCard extends StatelessWidget {
     this.onTap,
     this.vip = false,
     this.top = false,
+    this.highlight = false,
   });
 
   final Widget child;
@@ -62,6 +63,7 @@ class AppCard extends StatelessWidget {
   final VoidCallback? onTap;
   final bool vip;
   final bool top;
+  final bool highlight;
 
   @override
   Widget build(BuildContext context) {
@@ -70,18 +72,23 @@ class AppCard extends StatelessWidget {
         ? const Color(0x8CFF6A00)
         : top
             ? const Color(0x800E7C7B)
-            : palette.line;
-    final wash = vip
-        ? const Color(0x0FFF6A00)
-        : top
-            ? const Color(0x0A0E7C7B)
-            : palette.surface;
+            : highlight
+                ? const Color(0xFFE0B34A)
+                : palette.line;
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final wash = highlight
+        ? (dark ? const Color(0xFF3D3218) : const Color(0xFFFFF4D6))
+        : vip
+            ? const Color(0x0FFF6A00)
+            : top
+                ? const Color(0x0A0E7C7B)
+                : palette.surface;
 
     final content = DecoratedBox(
       decoration: BoxDecoration(
         color: wash,
         borderRadius: AppRadii.card,
-        border: Border.all(color: borderColor, width: vip || top ? 2 : 1),
+        border: Border.all(color: borderColor, width: vip || top || highlight ? 2 : 1),
         boxShadow: AppShadows.soft,
       ),
       child: ClipRRect(

@@ -1583,7 +1583,7 @@ class ListingModel {
   static async promote(id, userId, type, days) {
     const normalizedType = String(type || "").trim().toLowerCase();
 
-    if (!["vip", "top", "bump"].includes(normalizedType)) {
+    if (!["vip", "top", "bump", "highlight", "bump_pack"].includes(normalizedType)) {
       throw new Error("INVALID_TYPE");
     }
 
@@ -1628,6 +1628,73 @@ class ListingModel {
       );
 
       return mapListing(bumpResult.rows[0]);
+    }
+
+    if (normalizedType === "highlight" || normalizedType === "bump_pack") {
+      const plans =
+        normalizedType === "highlight"
+          ? settings.highlightPlans || []
+          : settings.bumpPackPlans || [];
+      const plan = plans.find((item) =>
+        normalizedType === "highlight"
+          ? Number(item.days) === Number(days)
+          : Number(item.count) === Number(days)
+      );
+
+      if (!plan) {
+        throw new Error("INVALID_DAYS");
+      }
+
+      const price = Math.max(0, Number(plan.price) || 0);
+      const label =
+        normalizedType === "highlight"
+          ? `Выделение (${plan.days} дн.): ${safeTitle}`
+          : `Пакет поднятий (${plan.count}): ${safeTitle}`;
+
+      if (price > 0) {
+        await User.chargeWallet(userId, price, { description: label });
+      }
+
+      if (normalizedType === "highlight") {
+        const currentUntil =
+          listing.highlightUntil && new Date(listing.highlightUntil) > new Date()
+            ? new Date(listing.highlightUntil)
+            : new Date();
+        const nextUntil = new Date(currentUntil.getTime() + Number(plan.days) * 86400000);
+        const highlighted = await query(
+          `
+          UPDATE listings
+          SET highlight_until = $3, updated_at = now()
+          WHERE id = $1 AND owner = $2
+          RETURNING *
+          `,
+          [id, userId, nextUntil]
+        );
+
+        return mapListing(highlighted.rows[0]);
+      }
+
+      const extra = Math.max(0, Number(plan.count) - 1);
+      const packed = await query(
+        `
+        UPDATE listings
+        SET
+          bumped_at = now(),
+          bump_pack_remaining = bump_pack_remaining + $3,
+          bump_pack_next_at = CASE
+            WHEN bump_pack_remaining + $3 > 0
+              AND (bump_pack_next_at IS NULL OR bump_pack_next_at <= now())
+            THEN now() + interval '24 hours'
+            ELSE bump_pack_next_at
+          END,
+          updated_at = now()
+        WHERE id = $1 AND owner = $2
+        RETURNING *
+        `,
+        [id, userId, extra]
+      );
+
+      return mapListing(packed.rows[0]);
     }
 
     const isVip = normalizedType === "vip";

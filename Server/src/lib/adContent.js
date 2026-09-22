@@ -77,13 +77,42 @@ class AdValidationError extends Error {
   }
 }
 
-function assertAdUrls({ linkUrl, imageUrl } = {}) {
-  if (linkUrl && !isAllowedLinkUrl(linkUrl)) {
+function isRenderableAdImage(url) {
+  const value = String(url || "").trim();
+
+  if (!value || value.includes("..")) return false;
+  if (value.startsWith("/ads/") || value.startsWith("/uploads/")) return true;
+
+  return isAllowedLinkUrl(value);
+}
+
+function isSafeAdDestination(url) {
+  const value = String(url || "").trim();
+
+  if (!value || value.includes("..") || value.includes("\\")) return false;
+  if (value.startsWith("/") && !value.startsWith("//")) return true;
+  if (/^diyor:\/\//i.test(value)) return true;
+
+  return isAllowedLinkUrl(value);
+}
+
+function assertAdUrls({ linkUrl, imageUrl, deeplink, imageMobile, imageApp } = {}) {
+  if (linkUrl && !isSafeAdDestination(linkUrl)) {
     throw new AdValidationError("Link URL must be https", "linkUrl");
   }
 
-  if (imageUrl && !isAllowedLinkUrl(imageUrl)) {
-    throw new AdValidationError("Image URL must be https", "imageUrl");
+  if (deeplink && !isSafeAdDestination(deeplink)) {
+    throw new AdValidationError("Link URL must be https", "deeplink");
+  }
+
+  for (const [field, value] of [
+    ["imageUrl", imageUrl],
+    ["imageMobile", imageMobile],
+    ["imageApp", imageApp],
+  ]) {
+    if (value && !isRenderableAdImage(value)) {
+      throw new AdValidationError("Image URL must be https", field);
+    }
   }
 }
 
@@ -91,4 +120,6 @@ module.exports = {
   sanitizeAdHtml,
   assertAdUrls,
   AdValidationError,
+  isRenderableAdImage,
+  isSafeAdDestination,
 };

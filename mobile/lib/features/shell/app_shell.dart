@@ -4,6 +4,7 @@ import "package:go_router/go_router.dart";
 
 import "../../state/providers.dart";
 import "../../theme.dart";
+import "../../widgets/ad_slot.dart";
 import "../../widgets/motion_nav_bar.dart";
 
 class AppShell extends ConsumerWidget {
@@ -29,18 +30,32 @@ class AppShell extends ConsumerWidget {
     final keyboardOpen = MediaQuery.viewInsetsOf(context).bottom > 0;
     final path = GoRouterState.of(context).uri.path;
     final inThread = path.contains("/thread/");
+    final hideSticky = path.startsWith("/add") || path.startsWith("/messages") || path.startsWith("/auth");
 
     return Scaffold(
       extendBody: true,
-      body: AnimatedSwitcher(
-        duration: AppMotion.of(context, AppMotion.fast),
-        switchInCurve: AppMotion.enter,
-        switchOutCurve: AppMotion.exit,
-        layoutBuilder: (current, _) => current ?? const SizedBox.shrink(),
-        child: KeyedSubtree(
-          key: ValueKey(indexForPath(path)),
-          child: child,
-        ),
+      body: Stack(
+        children: [
+          AdInterstitial(
+            child: AnimatedSwitcher(
+              duration: AppMotion.of(context, AppMotion.fast),
+              switchInCurve: AppMotion.enter,
+              switchOutCurve: AppMotion.exit,
+              layoutBuilder: (current, _) => current ?? const SizedBox.shrink(),
+              child: KeyedSubtree(
+                key: ValueKey(indexForPath(path)),
+                child: child,
+              ),
+            ),
+          ),
+          if (!keyboardOpen && !inThread && !hideSticky)
+            Positioned(
+              left: 12,
+              right: 12,
+              bottom: AppSpace.navHeight + 18 + bottomInset,
+              child: const AdStickyBar(),
+            ),
+        ],
       ),
       bottomNavigationBar: keyboardOpen || inThread
           ? null

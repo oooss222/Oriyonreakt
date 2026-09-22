@@ -26,6 +26,15 @@ const DEFAULTS = {
   vipPrice: 25,
   topPrice: 15,
   bumpPrice: 5,
+  highlightPlans: [
+    { days: 3, price: 4 },
+    { days: 7, price: 8 },
+    { days: 14, price: 14 },
+  ],
+  bumpPackPlans: [
+    { count: 3, price: 12 },
+    { count: 7, price: 24 },
+  ],
   registrationEnabled: true,
   policyContent: DEFAULT_POLICY,
   accountantReportEmail: "",
@@ -48,6 +57,19 @@ function readSettingPrice(value, fallback) {
   return roundMoney(Math.max(0, numeric));
 }
 
+function normalizePlanList(value, fallback, field) {
+  if (!Array.isArray(value)) return fallback;
+
+  const plans = value
+    .map((item) => ({
+      [field]: Math.max(1, Number(item?.[field]) || 0),
+      price: readSettingPrice(item?.price, 0),
+    }))
+    .filter((item) => item[field] > 0);
+
+  return plans.length ? plans : fallback;
+}
+
 function parseSettingPrice(value, fallback) {
   if (value === undefined || value === null || value === "") {
     return fallback;
@@ -66,6 +88,8 @@ function normalizeSettings(row) {
     vipPrice: readSettingPrice(data.vipPrice, DEFAULTS.vipPrice),
     topPrice: readSettingPrice(data.topPrice, DEFAULTS.topPrice),
     bumpPrice: readSettingPrice(data.bumpPrice, DEFAULTS.bumpPrice),
+    highlightPlans: normalizePlanList(data.highlightPlans, DEFAULTS.highlightPlans, "days"),
+    bumpPackPlans: normalizePlanList(data.bumpPackPlans, DEFAULTS.bumpPackPlans, "count"),
     registrationEnabled: Boolean(data.registrationEnabled),
     policyContent: String(data.policyContent || DEFAULTS.policyContent),
     accountantReportEmail: String(data.accountantReportEmail || ""),
@@ -129,6 +153,8 @@ class SiteSettingsModel {
       vipPrice: settings.vipPrice,
       topPrice: settings.topPrice,
       bumpPrice: settings.bumpPrice,
+      highlightPlans: settings.highlightPlans,
+      bumpPackPlans: settings.bumpPackPlans,
       registrationEnabled: settings.registrationEnabled,
     };
   }
@@ -153,6 +179,16 @@ class SiteSettingsModel {
       vipPrice: parseSettingPrice(payload.vipPrice, current.vipPrice),
       topPrice: parseSettingPrice(payload.topPrice, current.topPrice),
       bumpPrice: parseSettingPrice(payload.bumpPrice, current.bumpPrice),
+      highlightPlans: normalizePlanList(
+        payload.highlightPlans,
+        current.highlightPlans,
+        "days"
+      ),
+      bumpPackPlans: normalizePlanList(
+        payload.bumpPackPlans,
+        current.bumpPackPlans,
+        "count"
+      ),
       registrationEnabled:
         payload.registrationEnabled !== undefined
           ? Boolean(payload.registrationEnabled)

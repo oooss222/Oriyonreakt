@@ -10,6 +10,7 @@ import {
   Eye,
 } from "lucide-react";
 import { useI18n } from "../../i18n";
+import AdSlot from "../AdSlot";
 
 function statusMeta(status, t) {
   const key = String(status || "pending").toLowerCase();
@@ -72,6 +73,19 @@ export default function ListingSubmitResult({ listing, onEditAgain }) {
             </div>
           </div>
         ) : null}
+
+        {id && status !== "rejected" ? (
+          <Link
+            to={`/profile?tab=promote&listing=${id}`}
+            className="mt-4 inline-flex text-sm font-semibold text-sun-700 underline"
+          >
+            {t("promotion.highlight")} · VIP · TOP · {t("promotion.bumpPack")}
+          </Link>
+        ) : null}
+
+        <div className="mt-5">
+          <AdSlot placement="post_success" eager className="overflow-hidden rounded-2xl" />
+        </div>
 
         <div className="mt-6 flex flex-col gap-2.5">
           {id && status !== "rejected" ? (

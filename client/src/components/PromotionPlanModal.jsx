@@ -11,16 +11,18 @@ export default function PromotionPlanModal({
   open,
   type,
   cat = "",
+  plans: customPlans = null,
   walletBalance = 0,
   onClose,
   onConfirm,
   confirming = false,
 }) {
   const { t } = useI18n();
-  const plans = React.useMemo(
-    () => (open ? getPromotionPlans(type, cat) : []),
-    [open, type, cat]
-  );
+  const plans = React.useMemo(() => {
+    if (!open) return [];
+    if (Array.isArray(customPlans) && customPlans.length) return customPlans;
+    return getPromotionPlans(type, cat);
+  }, [open, type, cat, customPlans]);
 
   const [selectedDays, setSelectedDays] = React.useState(null);
 
@@ -33,8 +35,15 @@ export default function PromotionPlanModal({
     return null;
   }
 
-  const selectedPlan = getPromotionPlan(type, selectedDays, cat);
-  const title = type === "vip" ? t("promotion.connectVipTitle") : t("promotion.connectTopTitle");
+  const selectedPlan = plans.find((plan) => plan.days === selectedDays) || getPromotionPlan(type, selectedDays, cat);
+  const title =
+    type === "highlight"
+      ? t("promotion.connectHighlightTitle")
+      : type === "bump_pack"
+        ? t("promotion.connectBumpPackTitle")
+        : type === "vip"
+          ? t("promotion.connectVipTitle")
+          : t("promotion.connectTopTitle");
   const accent =
     type === "vip"
       ? "border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50"
@@ -97,7 +106,7 @@ export default function PromotionPlanModal({
                 }`}
               >
                 <span className="font-semibold text-ink-900">
-                  {formatPromotionDaysLabel(t, plan.days)}
+                  {plan.label || formatPromotionDaysLabel(t, plan.days)}
                 </span>
                 <span className="text-right">
                   <span className="block font-bold text-ink">

@@ -12,6 +12,8 @@ const getId = (item) => item?.id || item?._id;
 export default function ListingPromotionPanel({
   listings = [],
   bumpPrice = 5,
+  highlightPlans = [],
+  bumpPackPlans = [],
   walletBalance = 0,
   promotingId = null,
   onPromote,
@@ -152,6 +154,8 @@ export default function ListingPromotionPanel({
         <ListingPromotionActions
           listing={selectedListing}
           bumpPrice={bumpPrice}
+          highlightPlans={highlightPlans}
+          bumpPackPlans={bumpPackPlans}
           walletBalance={walletBalance}
           promoting={
             promotingId && String(promotingId).startsWith(`${selectedId}-`)

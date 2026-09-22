@@ -13,6 +13,8 @@ export default function AdminSettingsSection({ token }) {
     vipPrice: 25,
     topPrice: 15,
     bumpPrice: 5,
+    highlightPlans: [],
+    bumpPackPlans: [],
     registrationEnabled: true,
     policyContent: "",
     accountantReportEmail: "",
@@ -31,6 +33,8 @@ export default function AdminSettingsSection({ token }) {
           vipPrice: data.vipPrice ?? 25,
           topPrice: data.topPrice ?? 15,
           bumpPrice: data.bumpPrice ?? 5,
+          highlightPlans: data.highlightPlans || [],
+          bumpPackPlans: data.bumpPackPlans || [],
           registrationEnabled: Boolean(data.registrationEnabled),
           policyContent: data.policyContent || "",
           accountantReportEmail: data.accountantReportEmail || "",
@@ -61,6 +65,8 @@ export default function AdminSettingsSection({ token }) {
         vipPrice: Number(form.vipPrice),
         topPrice: Number(form.topPrice),
         bumpPrice: Number(form.bumpPrice),
+        highlightPlans: form.highlightPlans,
+        bumpPackPlans: form.bumpPackPlans,
         registrationEnabled: form.registrationEnabled,
         policyContent: form.policyContent,
         accountantReportEmail: form.accountantReportEmail.trim(),
@@ -71,6 +77,8 @@ export default function AdminSettingsSection({ token }) {
         vipPrice: updated.vipPrice,
         topPrice: updated.topPrice,
         bumpPrice: updated.bumpPrice,
+        highlightPlans: updated.highlightPlans || form.highlightPlans,
+        bumpPackPlans: updated.bumpPackPlans || form.bumpPackPlans,
         registrationEnabled: updated.registrationEnabled,
         policyContent: updated.policyContent,
         accountantReportEmail: updated.accountantReportEmail || "",
@@ -160,6 +168,50 @@ export default function AdminSettingsSection({ token }) {
               {t("admin.settings.bumpPriceHint")}
             </div>
           </label>
+
+          {(form.highlightPlans || []).map((plan, index) => (
+            <label key={`highlight-${plan.days}`} className="block">
+              <div className="text-sm font-medium mb-1">Выделить, {plan.days} дн., TJS</div>
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                className="input w-full"
+                value={plan.price}
+                onChange={(event) => {
+                  const price = event.target.value;
+                  setForm((prev) => ({
+                    ...prev,
+                    highlightPlans: prev.highlightPlans.map((item, itemIndex) =>
+                      itemIndex === index ? { ...item, price } : item
+                    ),
+                  }));
+                }}
+              />
+            </label>
+          ))}
+
+          {(form.bumpPackPlans || []).map((plan, index) => (
+            <label key={`pack-${plan.count}`} className="block">
+              <div className="text-sm font-medium mb-1">Поднять ×{plan.count}, TJS</div>
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                className="input w-full"
+                value={plan.price}
+                onChange={(event) => {
+                  const price = event.target.value;
+                  setForm((prev) => ({
+                    ...prev,
+                    bumpPackPlans: prev.bumpPackPlans.map((item, itemIndex) =>
+                      itemIndex === index ? { ...item, price } : item
+                    ),
+                  }));
+                }}
+              />
+            </label>
+          ))}
         </div>
 
         <div className="admin-stat space-y-3">

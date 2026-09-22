@@ -62,6 +62,15 @@ export default function Profile() {
     vipPrice: 25,
     topPrice: 15,
     bumpPrice: 5,
+    highlightPlans: [
+      { days: 3, price: 4 },
+      { days: 7, price: 8 },
+      { days: 14, price: 14 },
+    ],
+    bumpPackPlans: [
+      { count: 3, price: 12 },
+      { count: 7, price: 24 },
+    ],
   });
   const [promotingId, setPromotingId] = React.useState(null);
 
@@ -99,6 +108,8 @@ export default function Profile() {
           vipPrice: settings.vipPrice ?? 25,
           topPrice: settings.topPrice ?? 15,
           bumpPrice: settings.bumpPrice ?? 5,
+          highlightPlans: settings.highlightPlans || [],
+          bumpPackPlans: settings.bumpPackPlans || [],
         });
       })
       .catch(() => {});
@@ -460,7 +471,7 @@ export default function Profile() {
             : t("profile.bumpPaid", { price: priceLabel });
 
         if (!confirm(confirmText)) return;
-      } else if (!getPromotionPlan(type, days)) {
+      } else if (type !== "highlight" && type !== "bump_pack" && !getPromotionPlan(type, days)) {
         alert(t("profile.selectPromotion"));
         return;
       }
@@ -583,6 +594,8 @@ export default function Profile() {
         <ListingPromotionPanel
           listings={myItems}
           bumpPrice={promotionPrices.bumpPrice}
+          highlightPlans={promotionPrices.highlightPlans}
+          bumpPackPlans={promotionPrices.bumpPackPlans}
           walletBalance={walletBalance}
           promotingId={promotingId}
           onPromote={promoteListing}

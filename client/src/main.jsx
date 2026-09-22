@@ -25,6 +25,7 @@ const RealEstateDevelopment = React.lazy(
   () => import("./pages/RealEstateDevelopment.jsx")
 );
 const Sections = React.lazy(() => import("./pages/Sections.jsx"));
+const Advertise = React.lazy(() => import("./pages/Advertise.jsx"));
 
 import "./styles/index.css";
 import { I18nProvider } from "./i18n/index.jsx";
@@ -166,6 +167,14 @@ const router = createBrowserRouter([
       {
         path: "policy",
         element: <Policy />,
+      },
+      {
+        path: "advertise",
+        element: <Advertise />,
+      },
+      {
+        path: "admin/ads",
+        element: <Navigate to="/admin?section=ads" replace />,
       },
       {
         path: "profile",

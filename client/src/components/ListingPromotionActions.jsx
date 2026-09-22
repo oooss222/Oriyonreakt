@@ -55,6 +55,8 @@ function Benefit({ icon: Icon, children }) {
 export default function ListingPromotionActions({
   listing,
   bumpPrice = 5,
+  highlightPlans = [],
+  bumpPackPlans = [],
   walletBalance = 0,
   onPromote,
   promoting = null,
@@ -93,6 +95,17 @@ export default function ListingPromotionActions({
       open={Boolean(planPickerType)}
       type={planPickerType}
       cat={listing?.cat || ""}
+      plans={
+        planPickerType === "highlight"
+          ? highlightPlans.map((plan) => ({ days: plan.days, price: plan.price }))
+          : planPickerType === "bump_pack"
+            ? bumpPackPlans.map((plan) => ({
+                days: plan.count,
+                price: plan.price,
+                label: t("promotion.lifts", { count: plan.count }),
+              }))
+            : null
+      }
       walletBalance={balance}
       confirming={
         planPickerType === "vip"
@@ -165,6 +178,22 @@ export default function ListingPromotionActions({
                 : bumpedAtLabel
                 ? t("promotion.bumpUpdated", { date: bumpedAtLabel })
                 : t("promotion.bumpPrice", { price: formatMoney(bumpPrice) })}
+            </button>
+            <button
+              type="button"
+              disabled={Boolean(promoting) || !highlightPlans.length}
+              onClick={() => openPlanPicker("highlight")}
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-900"
+            >
+              {t("promotion.highlight")}
+            </button>
+            <button
+              type="button"
+              disabled={Boolean(promoting) || !bumpPackPlans.length}
+              onClick={() => openPlanPicker("bump_pack")}
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-ink/10 bg-white px-3 py-2 text-xs font-semibold text-ink-700"
+            >
+              {t("promotion.bumpPack")}
             </button>
           </div>
         </div>
@@ -329,6 +358,29 @@ export default function ListingPromotionActions({
               : bumpedAtLabel
               ? t("promotion.bumpUpdated", { date: bumpedAtLabel })
               : t("promotion.bumpPriceShort", { price: formatMoney(bumpPrice) })}
+          </button>
+        </div>
+
+        <div className="grid gap-2 sm:grid-cols-2">
+          <button
+            type="button"
+            disabled={Boolean(promoting) || !highlightPlans.length}
+            onClick={() => openPlanPicker("highlight")}
+            className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-sm font-semibold text-amber-900"
+          >
+            {highlightPlans[0]
+              ? t("promotion.highlightFrom", { price: formatMoney(Math.min(...highlightPlans.map((plan) => plan.price))) })
+              : t("promotion.highlight")}
+          </button>
+          <button
+            type="button"
+            disabled={Boolean(promoting) || !bumpPackPlans.length}
+            onClick={() => openPlanPicker("bump_pack")}
+            className="rounded-xl border border-ink/10 bg-white px-4 py-2.5 text-sm font-semibold text-ink-700"
+          >
+            {bumpPackPlans[0]
+              ? t("promotion.bumpPackFrom", { price: formatMoney(Math.min(...bumpPackPlans.map((plan) => plan.price))) })
+              : t("promotion.bumpPack")}
           </button>
         </div>
 

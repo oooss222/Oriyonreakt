@@ -9,6 +9,7 @@ import {
   X,
 } from "lucide-react";
 import { api } from "../../lib/api";
+import AdminAdPlacements from "./AdminAdPlacements";
 import { getId } from "../../lib/adminUtils";
 import {
   AD_FORMATS,
@@ -32,6 +33,10 @@ const EMPTY_FORM = {
   htmlCode: "",
   cat: "",
   priority: 0,
+  platforms: "web",
+  keywords: "",
+  cities: "",
+  frequencyCap: 0,
   active: true,
   startsAt: "",
   endsAt: "",
@@ -117,6 +122,10 @@ export default function AdminAdsSection({ token }) {
       htmlCode: item.htmlCode || "",
       cat: item.cat || "",
       priority: Number(item.priority || 0),
+      platforms: Array.isArray(item.platforms) ? item.platforms.join(", ") : "web",
+      keywords: Array.isArray(item.keywords) ? item.keywords.join(", ") : "",
+      cities: Array.isArray(item.cities) ? item.cities.join(", ") : "",
+      frequencyCap: Number(item.frequencyCap || 0),
       active: item.active !== false,
       startsAt: toLocalInput(item.startsAt),
       endsAt: toLocalInput(item.endsAt),
@@ -177,6 +186,19 @@ export default function AdminAdsSection({ token }) {
         htmlCode: form.htmlCode.trim(),
         cat: form.cat,
         priority: Number(form.priority || 0),
+        platforms: String(form.platforms || "web")
+          .split(",")
+          .map((item) => item.trim())
+          .filter(Boolean),
+        keywords: String(form.keywords || "")
+          .split(",")
+          .map((item) => item.trim())
+          .filter(Boolean),
+        cities: String(form.cities || "")
+          .split(",")
+          .map((item) => item.trim())
+          .filter(Boolean),
+        frequencyCap: Number(form.frequencyCap || 0),
         active: form.active,
         startsAt: fromLocalInput(form.startsAt),
         endsAt: fromLocalInput(form.endsAt),
@@ -243,6 +265,8 @@ export default function AdminAdsSection({ token }) {
             {t("admin.ads.newCampaign")}
           </button>
         </div>
+
+        <AdminAdPlacements token={token} />
 
         {stats && (
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-5">
@@ -344,6 +368,20 @@ export default function AdminAdsSection({ token }) {
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex justify-end gap-2">
+                        <button
+                          type="button"
+                          className="rounded-xl border px-2 py-1 text-xs font-semibold"
+                          onClick={async () => {
+                            await api.adminSetAdStatus(
+                              token,
+                              getId(item),
+                              item.active ? "paused" : "active"
+                            );
+                            await load();
+                          }}
+                        >
+                          {item.active ? "Пауза" : "Включить"}
+                        </button>
                         <button
                           type="button"
                           className="p-2 rounded-xl border hover:bg-mist-50"
@@ -478,6 +516,43 @@ export default function AdminAdsSection({ token }) {
                   onChange={(e) =>
                     setForm((prev) => ({ ...prev, priority: Number(e.target.value || 0) }))
                   }
+                />
+              </label>
+
+              <label className="field">
+                <span className="field__label">Платформы: web, ios, android</span>
+                <input
+                  className="input w-full"
+                  value={form.platforms}
+                  onChange={(e) => setForm((prev) => ({ ...prev, platforms: e.target.value }))}
+                />
+              </label>
+
+              <label className="field">
+                <span className="field__label">Ключевые слова</span>
+                <input
+                  className="input w-full"
+                  value={form.keywords}
+                  onChange={(e) => setForm((prev) => ({ ...prev, keywords: e.target.value }))}
+                />
+              </label>
+
+              <label className="field">
+                <span className="field__label">Города</span>
+                <input
+                  className="input w-full"
+                  value={form.cities}
+                  onChange={(e) => setForm((prev) => ({ ...prev, cities: e.target.value }))}
+                />
+              </label>
+
+              <label className="field">
+                <span className="field__label">Показов одному зрителю в сутки, 0 = без лимита</span>
+                <input
+                  type="number"
+                  className="input w-full"
+                  value={form.frequencyCap}
+                  onChange={(e) => setForm((prev) => ({ ...prev, frequencyCap: Number(e.target.value || 0) }))}
                 />
               </label>
 

@@ -138,16 +138,40 @@ async function processSavedSearchAlerts() {
   return sent;
 }
 
+async function runBumpPacks() {
+  const result = await query(
+    `
+    UPDATE listings
+    SET
+      bumped_at = now(),
+      bump_pack_remaining = bump_pack_remaining - 1,
+      bump_pack_next_at = CASE
+        WHEN bump_pack_remaining - 1 > 0 THEN now() + interval '24 hours'
+        ELSE NULL
+      END,
+      updated_at = now()
+    WHERE status = 'approved'
+      AND bump_pack_remaining > 0
+      AND bump_pack_next_at IS NOT NULL
+      AND bump_pack_next_at <= now()
+    RETURNING id
+    `
+  );
+
+  return result.rows.length;
+}
+
 async function runListingMaintenance() {
   const archived = await archiveExpiredListings();
   const nudges = await sendExpiryNudges();
   const alerts = await processSavedSearchAlerts();
   const autoBump = await runPremiumListingAutoBump();
+  const bumpPacks = await runBumpPacks();
 
-  if (archived || nudges || alerts || autoBump.usersProcessed) {
+  if (archived || nudges || alerts || autoBump.usersProcessed || bumpPacks) {
     console.log(
       "LISTING_MAINTENANCE:",
-      JSON.stringify({ archived, nudges, alerts, autoBump })
+      JSON.stringify({ archived, nudges, alerts, autoBump, bumpPacks })
     );
   }
 }

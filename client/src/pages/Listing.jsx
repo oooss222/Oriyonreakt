@@ -12,7 +12,7 @@ import ListingFiltersSidebar from "../components/ListingFiltersSidebar";
 import RealEstateFiltersSidebar from "../components/RealEstateFiltersSidebar";
 import SubcategoryChips from "../components/SubcategoryChips";
 import SimilarListingsSection from "../components/SimilarListingsSection";
-import AdSlot, { AdFeedCard, useAdPlacement } from "../components/AdSlot";
+import AdSlot, { AdFeedCard, useAdCreatives } from "../components/AdSlot";
 import RealEstateSearchHero from "../components/RealEstateSearchHero";
 import RealEstateListingCard from "../components/RealEstateListingCard";
 import RealEstateMoreFiltersModal from "../components/RealEstateMoreFiltersModal";
@@ -441,10 +441,16 @@ export default function Listing() {
     };
   }, [activeCat, appliedDraft.location]);
 
-  const feedAd = useAdPlacement("listing_feed", activeCat);
+  const feedAds = useAdCreatives("feed_native", {
+    cat: activeCat,
+    city: appliedDraft.location || "",
+    q: search,
+    eager: true,
+  });
+  const feedAd = feedAds.items[0] || null;
   const feedRows = React.useMemo(
-    () => buildFeedWithAds(items, feedAd, FEED_AD_INTERVAL),
-    [items, feedAd]
+    () => buildFeedWithAds(items, feedAd, feedAds.interval || FEED_AD_INTERVAL),
+    [items, feedAd, feedAds.interval]
   );
   const effectiveListingCat = cat || categoryFromPath || (seoDraft ? REAL_ESTATE_CAT : "");
   const catConfig = effectiveListingCat ? CATS[effectiveListingCat] : null;
@@ -842,6 +848,9 @@ export default function Listing() {
               activeCat={activeCat}
               appliedDraft={appliedDraft}
             />
+            <div className="sticky top-24 mt-4 hidden lg:block">
+              <AdSlot placement="sidebar" cat={activeCat} eager className="overflow-hidden rounded-2xl" />
+            </div>
           </aside>
         ) : (
           <aside className="filter-sidebar-anchor hidden lg:block">
@@ -859,6 +868,9 @@ export default function Listing() {
               hasActiveFilters={hasActiveFilters}
               hideSort
             />
+            <div className="sticky top-24 mt-4">
+              <AdSlot placement="sidebar" cat={activeCat} city={appliedDraft.location || ""} eager className="overflow-hidden rounded-2xl" />
+            </div>
           </aside>
         )}
 
@@ -1033,9 +1045,30 @@ export default function Listing() {
 
       {!loading && !error && items.length > 0 && (
         <>
+          {search ? (
+            <AdSlot
+              placement="search_top"
+              cat={activeCat}
+              city={appliedDraft.location || ""}
+              q={search}
+              eager
+              className="overflow-hidden rounded-2xl"
+            />
+          ) : (
+            <AdSlot
+              placement="category_top"
+              cat={activeCat}
+              city={appliedDraft.location || ""}
+              eager
+              className="overflow-hidden rounded-2xl"
+            />
+          )}
+
           <AdSlot
             placement="listing_top"
             cat={activeCat}
+            city={appliedDraft.location || ""}
+            q={search}
             className="overflow-hidden rounded-2xl"
           />
 

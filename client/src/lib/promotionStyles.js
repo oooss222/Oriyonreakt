@@ -1,13 +1,11 @@
-export function getPromotionCardClass({ vip = false, top = false } = {}) {
-  if (vip) {
-    return "promotion-card promotion-card-vip";
-  }
+export function getPromotionCardClass({ vip = false, top = false, highlight = false } = {}) {
+  const parts = [];
 
-  if (top) {
-    return "promotion-card promotion-card-top";
-  }
+  if (vip) parts.push("promotion-card promotion-card-vip");
+  else if (top) parts.push("promotion-card promotion-card-top");
+  if (highlight) parts.push("promotion-card promotion-card-highlight");
 
-  return "";
+  return parts.join(" ");
 }
 
 export function getPromotionCardAccent({ vip = false, top = false } = {}) {

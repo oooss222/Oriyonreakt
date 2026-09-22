@@ -16,6 +16,7 @@ import "../../state/providers.dart";
 import "../../theme.dart";
 import "../../utils/format.dart";
 import "../../utils/media.dart";
+import "../../widgets/ad_slot.dart";
 import "../../widgets/common.dart";
 import "../../widgets/favorite.dart";
 
@@ -273,6 +274,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final loggedIn = ref.watch(authControllerProvider).isLoggedIn;
     final dark = Theme.of(context).brightness == Brightness.dark;
     final cats = homeFeedCategories;
+    final slots = ref.watch(adSlotsProvider).valueOrNull;
+    final feedRows = mixOrganicFeed(
+      _popular,
+      interval: adFeedInterval(slots, "app_feed_native"),
+      enabled: adSlotOn(slots, "app_feed_native"),
+    );
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: dark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
@@ -291,6 +298,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   unread: unread,
                   onLanguage: _pickLanguage,
                   onBell: () => loggedIn ? context.go("/messages") : context.push("/auth"),
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                  child: adSlotOn(slots, "app_home_top")
+                      ? const AdSlot(placement: "app_home_top", height: 100)
+                      : const SizedBox.shrink(),
                 ),
               ),
               SliverToBoxAdapter(
@@ -384,10 +399,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   SliverPadding(
                     padding: EdgeInsets.fromLTRB(16, 0, 16, AppSpace.belowNav(context)),
                     sliver: SliverList.separated(
-                      itemCount: _popular.length,
+                      itemCount: feedRows.length,
                       separatorBuilder: (_, _) => const SizedBox(height: 14),
                       itemBuilder: (context, index) {
-                        final item = _popular[index];
+                        final row = feedRows[index];
+                        if (row.ad) {
+                          return const AdSlot(placement: "app_feed_native", nativeCard: true);
+                        }
+                        final item = row.listing!;
                         return ListingCard(
                           item: item,
                           featured: true,

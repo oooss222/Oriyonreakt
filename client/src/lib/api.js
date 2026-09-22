@@ -27,7 +27,7 @@ function localizedMessage(dict) {
   }
 }
 
-const API = (
+export const API = (
   import.meta.env.VITE_API_BASE ||
   import.meta.env.VITE_API_URL ||
   "/api"
@@ -609,22 +609,68 @@ export const api = {
       body,
     }),
 
-  ads: ({ placement, cat = "" } = {}) => {
+  ads: ({
+    placement,
+    cat = "",
+    city = "",
+    q = "",
+    platform = "web",
+    device = "",
+    lang = "",
+    viewer = "",
+    appVersion = "",
+  } = {}) => {
     const qs = new URLSearchParams();
 
     qs.set("placement", placement);
-
-    if (cat) {
-      qs.set("cat", cat);
-    }
+    if (cat) qs.set("cat", cat);
+    if (city) qs.set("city", city);
+    if (q) qs.set("q", q);
+    if (platform) qs.set("platform", platform);
+    if (device) qs.set("device", device);
+    if (lang) qs.set("lang", lang);
+    if (viewer) qs.set("viewer", viewer);
+    if (appVersion) qs.set("app_version", appVersion);
 
     return request(`/ads?${qs.toString()}`);
   },
+
+  trackAdImpression: (body) =>
+    request("/ads/impression", {
+      method: "POST",
+      body,
+    }),
 
   trackAd: (id, type = "impression") =>
     request(`/ads/${encodeURIComponent(id)}/track`, {
       method: "POST",
       body: { type },
+    }),
+
+  adInquiry: (body) =>
+    request("/ads/inquiries", {
+      method: "POST",
+      body,
+    }),
+
+  adminAdPlacements: (token) => request("/admin/ads/placements", { token }),
+
+  adminUpdateAdPlacement: (token, code, body) =>
+    request(`/admin/ads/placements/${encodeURIComponent(code)}`, {
+      method: "PUT",
+      token,
+      body,
+    }),
+
+  adminAdInquiries: (token) => request("/admin/ads/inquiries", { token }),
+
+  adminAdDaily: (token) => request("/admin/ads/daily", { token }),
+
+  adminSetAdStatus: (token, id, status) =>
+    request(`/admin/ads/${encodeURIComponent(id)}/status`, {
+      method: "POST",
+      token,
+      body: { status },
     }),
 
   adminAdStats: (token) => request("/admin/ads/stats", { token }),

@@ -11,14 +11,24 @@ export function pickAd(items = []) {
   return items[index];
 }
 
-export function buildFeedWithAds(items = [], ad = null, interval = 10) {
-  if (!ad) {
-    return items.map((item) => ({ type: "listing", item }));
+export function buildFeedWithAds(items = [], ad = null, interval = 8) {
+  const listings = items.map((item) => ({ type: "listing", item }));
+
+  if (!ad || interval <= 0) {
+    return listings;
   }
 
-  const result = [];
+  const promoted = [];
+  const regular = [];
 
-  items.forEach((item, index) => {
+  items.forEach((item) => {
+    if (item?.vip || item?.top) promoted.push(item);
+    else regular.push(item);
+  });
+
+  const result = promoted.map((item) => ({ type: "listing", item }));
+
+  regular.forEach((item, index) => {
     result.push({ type: "listing", item });
 
     if ((index + 1) % interval === 0) {

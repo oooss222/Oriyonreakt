@@ -7,6 +7,7 @@ import "../../data/spec_templates.dart";
 import "../../models/listing.dart";
 import "../../state/providers.dart";
 import "../../theme.dart";
+import "../../widgets/ad_slot.dart";
 import "../../widgets/common.dart";
 import "../../widgets/favorite.dart";
 import "catalog_filter_sheet.dart";
@@ -156,6 +157,18 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
     final t = ref.watch(stringsProvider);
     final favs = ref.watch(favoritesIdsProvider).valueOrNull ?? {};
     final title = _cat.isEmpty ? t.t("nav.catalog") : categoryTitle(_cat);
+    final slots = ref.watch(adSlotsProvider).valueOrNull;
+    final query = _search.text.trim();
+    final topPlacement = query.isNotEmpty
+        ? "app_search_top"
+        : _cat.isNotEmpty
+            ? "app_category_top"
+            : "";
+    final entries = mixOrganicFeed(
+      _items,
+      interval: adFeedInterval(slots, "app_feed_native"),
+      enabled: adSlotOn(slots, "app_feed_native"),
+    );
 
     return Scaffold(
       appBar: AppBar(title: Text(title)),
@@ -290,6 +303,17 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
               ),
             ),
           const SizedBox(height: 8),
+          if (topPlacement.isNotEmpty && adSlotOn(slots, topPlacement))
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+              child: AdSlot(
+                placement: topPlacement,
+                category: _cat,
+                city: _city,
+                query: query,
+                height: 100,
+              ),
+            ),
           Expanded(
             child: AnimatedSwitcher(
               duration: AppMotion.of(context, AppMotion.standard),
@@ -326,12 +350,22 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
                             child: GridView.builder(
                               padding: EdgeInsets.fromLTRB(12, 0, 12, AppSpace.belowNav(context)),
                               gridDelegate: ListingGridDelegate.of(context),
-                              itemCount: _items.length + (_loadingMore ? 1 : 0),
+                              itemCount: entries.length + (_loadingMore ? 1 : 0),
                               itemBuilder: (context, index) {
-                                if (index >= _items.length) {
+                                if (index >= entries.length) {
                                   return const Center(child: CircularProgressIndicator());
                                 }
-                                final item = _items[index];
+                                final row = entries[index];
+                                if (row.ad) {
+                                  return AdSlot(
+                                    placement: "app_feed_native",
+                                    category: _cat,
+                                    city: _city,
+                                    query: query,
+                                    nativeCard: true,
+                                  );
+                                }
+                                final item = row.listing!;
                                 return ListingCard(
                                   item: item,
                                   strings: t,

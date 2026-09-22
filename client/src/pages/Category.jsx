@@ -8,7 +8,8 @@ import TransportQuickFilters from "../components/transport/TransportQuickFilters
 import CategorySubcategoryStrip from "../components/CategorySubcategoryStrip";
 import ListingGridSkeleton from "../components/ListingGridSkeleton";
 import ListingCard from "../components/ListingCard";
-import AdSlot from "../components/AdSlot";
+import AdSlot, { AdFeedCard, useAdCreatives } from "../components/AdSlot";
+import { buildFeedWithAds } from "../lib/adFeed";
 import { usePageMeta } from "../lib/usePageMeta";
 import { api } from "../lib/api";
 import { CATS } from "../data/listingCategories";
@@ -42,6 +43,7 @@ export default function Category() {
   const [q, setQ] = React.useState("");
   const [stats, setStats] = React.useState({ total: 0, bySubcategory: {} });
   const [preview, setPreview] = React.useState([]);
+  const categoryFeed = useAdCreatives("feed_native", { cat: slug, eager: true });
   const [loadingPreview, setLoadingPreview] = React.useState(true);
   const [compareCount, setCompareCount] = React.useState(() =>
     isCompareSupported(slug) ? readCompareIds(slug).length : 0
@@ -265,14 +267,12 @@ export default function Category() {
         </Link>
       )}
 
-      {slug === "transport" && (
-        <AdSlot
-          placement="category_feed"
-          cat={slug}
-          variant="banner"
-          className="overflow-hidden rounded-2xl [&_img]:max-h-40 [&_img]:w-full [&_img]:object-cover"
-        />
-      )}
+      <AdSlot
+        placement="category_top"
+        cat={slug}
+        eager
+        className="overflow-hidden rounded-2xl"
+      />
 
       {!isLifestyle && (
         <div className="surface-panel p-3 md:p-4">
@@ -374,20 +374,24 @@ export default function Category() {
         {!loadingPreview && preview.length > 0 && (
           <>
             <AdSlot
-              placement="category_feed"
+              placement="category_top"
               cat={slug}
-              variant="native"
-              className="mb-4"
+              className="mb-4 overflow-hidden rounded-2xl"
             />
 
             <div className="listing-grid">
-              {preview.map((ad) => (
-                <ListingCard
-                  key={ad._id || ad.id}
-                  item={ad}
-                  trackSource="category"
-                />
-              ))}
+              {buildFeedWithAds(preview, categoryFeed.items[0] || null, categoryFeed.interval || 8).map(
+                (row, index) =>
+                  row.type === "ad" ? (
+                    <AdFeedCard key={`ad-${index}`} ad={row.item} />
+                  ) : (
+                    <ListingCard
+                      key={row.item._id || row.item.id}
+                      item={row.item}
+                      trackSource="category"
+                    />
+                  )
+              )}
             </div>
           </>
         )}
