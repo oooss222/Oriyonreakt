@@ -20,7 +20,6 @@ import RealEstateCategoryGrid from "../components/realestate/RealEstateCategoryG
 import RealEstateDistrictBar from "../components/realestate/RealEstateDistrictBar";
 import { usePageMeta } from "../lib/usePageMeta";
 import { api } from "../lib/api";
-import { sortListingsByPromotion } from "../lib/listingSort";
 import { REAL_ESTATE_CAT } from "../data/realEstate";
 import { buildRealEstateListingUrl, buildRealEstateCategoryUrl } from "../lib/realEstate";
 import { useI18n, getCategoryLabel } from "../i18n";
@@ -78,7 +77,7 @@ export default function RealEstate() {
 
         setStats(statsData || { total: 0, bySubcategory: {} });
         setListings(listingRows);
-        setPremium(sortListingsByPromotion(Array.isArray(promoted) ? promoted : []));
+        setPremium(Array.isArray(promoted) ? promoted : []);
 
         if (listingRows.length === 0) {
           const wider = await api.listings({

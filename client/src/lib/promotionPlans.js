@@ -2,18 +2,28 @@ import data from "@shared/promotionPlans.json";
 
 export const VIP_PLANS = data.VIP_PLANS;
 export const TOP_PLANS = data.TOP_PLANS;
+export const PREMIUM_CATS = data.PREMIUM_CATS || [];
 
-export function getPromotionPlans(type) {
-  return type === "vip" ? VIP_PLANS : type === "top" ? TOP_PLANS : [];
+const premiumCats = new Set(PREMIUM_CATS);
+
+function planTier(cat) {
+  return premiumCats.has(String(cat || "")) ? "premium" : "standard";
 }
 
-export function getPromotionPlan(type, days) {
+export function getPromotionPlans(type, cat) {
+  const table = type === "vip" ? VIP_PLANS : type === "top" ? TOP_PLANS : null;
+  if (!table) return [];
+  if (Array.isArray(table)) return table;
+  return table[planTier(cat)] || table.standard || [];
+}
+
+export function getPromotionPlan(type, days, cat) {
   const normalizedDays = Number(days);
-  return getPromotionPlans(type).find((plan) => plan.days === normalizedDays) || null;
+  return getPromotionPlans(type, cat).find((plan) => plan.days === normalizedDays) || null;
 }
 
-export function getMinPromotionPrice(type) {
-  const plans = getPromotionPlans(type);
+export function getMinPromotionPrice(type, cat) {
+  const plans = getPromotionPlans(type, cat);
   if (!plans.length) return 0;
   return Math.min(...plans.map((plan) => plan.price));
 }

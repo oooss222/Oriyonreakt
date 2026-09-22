@@ -67,8 +67,8 @@ export default function ListingPromotionActions({
   const topActive = Boolean(listing?.top);
   const listingId = listing?._id || listing?.id;
   const balance = Number(walletBalance || 0);
-  const vipFromPrice = getMinPromotionPrice("vip");
-  const topFromPrice = getMinPromotionPrice("top");
+  const vipFromPrice = getMinPromotionPrice("vip", listing?.cat);
+  const topFromPrice = getMinPromotionPrice("top", listing?.cat);
 
   const vipUntilLabel = formatUntil(listing?.vipUntil);
   const topUntilLabel = formatUntil(listing?.topUntil);
@@ -92,6 +92,7 @@ export default function ListingPromotionActions({
     <PromotionPlanModal
       open={Boolean(planPickerType)}
       type={planPickerType}
+      cat={listing?.cat || ""}
       walletBalance={balance}
       confirming={
         planPickerType === "vip"
@@ -130,16 +131,20 @@ export default function ListingPromotionActions({
 
             <button
               type="button"
-              disabled={Boolean(promoting)}
+              disabled={Boolean(promoting) || vipActive}
               onClick={() => openPlanPicker("top")}
               className={`inline-flex items-center justify-center gap-2 rounded-xl border px-3 py-2 text-xs font-semibold transition disabled:opacity-60 ${
-                topActive
+                vipActive
+                  ? "border-ink/10 bg-mist text-ink-400"
+                  : topActive
                   ? "border-lagoon/30 bg-lagoon/10 text-lagoon-700"
                   : "border-ink/10 bg-white text-ink-600 hover:border-lagoon/25 hover:bg-lagoon/5"
               }`}
             >
               <TrendingUp className="w-4 h-4" />
-              {topBusy
+              {vipActive
+                ? t("promotion.topIncludedInVip")
+                : topBusy
                 ? t("promotion.activating")
                 : topActive
                 ? t("promotion.topUntil", { date: topUntilLabel || "—" })
@@ -280,15 +285,19 @@ export default function ListingPromotionActions({
 
               <button
                 type="button"
-                disabled={Boolean(promoting)}
+                disabled={Boolean(promoting) || vipActive}
                 onClick={() => openPlanPicker("top")}
                 className={`w-full rounded-xl px-4 py-3 text-sm font-bold transition disabled:opacity-60 ${
-                  topActive
+                  vipActive
+                    ? "bg-mist text-ink-400 border border-ink/10"
+                    : topActive
                     ? "bg-white text-lagoon-700 border border-lagoon/25"
                     : "bg-lagoon text-white hover:bg-lagoon-600"
                 }`}
               >
-                {topBusy
+                {vipActive
+                  ? t("promotion.topIncludedInVip")
+                  : topBusy
                   ? t("promotion.activatingTop")
                   : topActive
                   ? t("promotion.topActiveUntil", { date: topUntilLabel || "—" })

@@ -29,6 +29,25 @@ const REGION_CITIES = {
 const PROMOTION_ORDER =
   "(listings.vip_until > now()) DESC, (listings.top_until > now()) DESC";
 
+const SHELF_ROW = 4;
+const CATEGORY_VIP_CAP = 8;
+
+function usesExplicitSort(sort) {
+  return [
+    "old",
+    "price_asc",
+    "price_desc",
+    "views_desc",
+    "price_per_sqm_asc",
+    "price_per_sqm_desc",
+  ].includes(sort);
+}
+
+function promotionLaneMode(sort, cat) {
+  if (usesExplicitSort(sort)) return null;
+  return cat ? "category" : "shelf";
+}
+
 // Selects the owner columns the listing cards need. A join keeps this to one
 // lookup per row instead of one per column.
 const OWNER_JOIN_SELECT = `
@@ -45,26 +64,59 @@ function buildListingOrderBy(sort, priceExpr) {
   }
 
   if (sort === "price_asc") {
-    return `${PROMOTION_ORDER}, ${priceExpr} ASC NULLS LAST, listings.created_at DESC`;
+    return `${priceExpr} ASC NULLS LAST, listings.created_at DESC`;
   }
 
   if (sort === "price_desc") {
-    return `${PROMOTION_ORDER}, ${priceExpr} DESC NULLS LAST, listings.created_at DESC`;
+    return `${priceExpr} DESC NULLS LAST, listings.created_at DESC`;
   }
 
   if (sort === "views_desc") {
-    return `${PROMOTION_ORDER}, COALESCE(listings.views, 0) DESC, listings.created_at DESC`;
+    return `COALESCE(listings.views, 0) DESC, listings.created_at DESC`;
   }
 
   if (sort === "price_per_sqm_asc") {
-    return `${PROMOTION_ORDER}, listings.re_price_per_sqm ASC NULLS LAST, listings.created_at DESC`;
+    return `listings.re_price_per_sqm ASC NULLS LAST, listings.created_at DESC`;
   }
 
   if (sort === "price_per_sqm_desc") {
-    return `${PROMOTION_ORDER}, listings.re_price_per_sqm DESC NULLS LAST, listings.created_at DESC`;
+    return `listings.re_price_per_sqm DESC NULLS LAST, listings.created_at DESC`;
   }
 
-  return `${PROMOTION_ORDER}, COALESCE(listings.bumped_at, listings.created_at) DESC, listings.created_at DESC`;
+  return null;
+}
+
+function buildPromotionLaneOrder(mode) {
+  const recency =
+    "COALESCE(ranked.bumped_at, ranked.created_at) DESC, ranked.created_at DESC";
+  const isVip = "COALESCE(ranked.vip_until > now(), false)";
+  const isTopOnly = `(COALESCE(ranked.top_until > now(), false) AND NOT ${isVip})`;
+  const organic = `WHEN NOT ${isVip} AND NOT ${isTopOnly} THEN 2`;
+
+  if (mode === "shelf") {
+    return `
+      CASE
+        WHEN ${isVip} AND ranked.vip_rn <= ${SHELF_ROW} THEN 0
+        WHEN ${isTopOnly} AND ranked.top_rn <= ${SHELF_ROW} THEN 1
+        ${organic}
+        WHEN ${isVip} THEN 3
+        ELSE 4
+      END,
+      ${recency}`;
+  }
+
+  return `
+    CASE
+      WHEN ranked.vip_total <= ${CATEGORY_VIP_CAP} AND ${isVip} THEN 0
+      WHEN ranked.vip_total <= ${CATEGORY_VIP_CAP} AND ${isTopOnly} THEN 1
+      WHEN ranked.vip_total <= ${CATEGORY_VIP_CAP} THEN 2
+      WHEN ${isVip} AND ranked.vip_rn <= ${SHELF_ROW} THEN 0
+      WHEN ${isTopOnly} AND ranked.top_rn <= ${SHELF_ROW} THEN 1
+      ${organic}
+      WHEN ${isVip} THEN 3
+      ELSE 4
+    END,
+    ${recency}`;
 }
 
 function parseGuestCapacity(value) {
@@ -567,20 +619,47 @@ class ListingModel {
       verifiedOnly,
     });
 
-    let orderBy = buildListingOrderBy(sort, priceExpr);
+    const orderBy = buildListingOrderBy(sort, priceExpr);
+    const laneMode = orderBy ? null : promotionLaneMode(sort, cat);
+    const whereSql = conditions.length ? ` WHERE ${conditions.join(" AND ")}` : "";
 
-    let sql = `
-      SELECT
-        listings.*,${OWNER_JOIN_SELECT}
-      FROM listings${OWNER_JOIN}
-    `;
+    let sql;
 
-    if (conditions.length) {
-      sql += ` WHERE ${conditions.join(" AND ")}`;
+    if (laneMode) {
+      sql = `
+        SELECT ranked.*
+        FROM (
+          SELECT
+            listings.*,${OWNER_JOIN_SELECT},
+            ROW_NUMBER() OVER (
+              PARTITION BY COALESCE(listings.vip_until > now(), false)
+              ORDER BY COALESCE(listings.bumped_at, listings.created_at) DESC, listings.created_at DESC
+            ) AS vip_rn,
+            ROW_NUMBER() OVER (
+              PARTITION BY (
+                COALESCE(listings.top_until > now(), false)
+                AND NOT COALESCE(listings.vip_until > now(), false)
+              )
+              ORDER BY COALESCE(listings.bumped_at, listings.created_at) DESC, listings.created_at DESC
+            ) AS top_rn,
+            COUNT(*) FILTER (WHERE listings.vip_until > now()) OVER () AS vip_total
+          FROM listings${OWNER_JOIN}
+          ${whereSql}
+        ) ranked
+        ORDER BY ${buildPromotionLaneOrder(laneMode)}
+      `;
+    } else {
+      sql = `
+        SELECT
+          listings.*,${OWNER_JOIN_SELECT}
+        FROM listings${OWNER_JOIN}
+        ${whereSql}
+        ORDER BY ${orderBy}
+      `;
     }
 
     values.push(safeLimit);
-    sql += ` ORDER BY ${orderBy} LIMIT $${values.length}`;
+    sql += ` LIMIT $${values.length}`;
 
     values.push(safeOffset);
     sql += ` OFFSET $${values.length}`;
@@ -1553,7 +1632,7 @@ class ListingModel {
 
     const isVip = normalizedType === "vip";
     const { getPromotionPlan } = require("../lib/promotionPlans");
-    const plan = getPromotionPlan(normalizedType, days);
+    const plan = getPromotionPlan(normalizedType, days, listing.cat);
 
     if (!plan) {
       throw new Error("INVALID_DAYS");
@@ -1573,12 +1652,18 @@ class ListingModel {
         ? new Date(listing.topUntil)
         : null;
 
+    if (!isVip && currentVipUntil) {
+      throw new Error("VIP_COVERS_TOP");
+    }
+
     const nextVipUntil = isVip
       ? new Date((currentVipUntil || now).getTime() + planDays * msPerDay)
       : currentVipUntil;
-    const nextTopUntil = !isVip
-      ? new Date((currentTopUntil || now).getTime() + planDays * msPerDay)
-      : currentTopUntil;
+    const nextTopUntil = isVip
+      ? currentTopUntil
+        ? new Date(nextVipUntil.getTime() + (currentTopUntil.getTime() - now.getTime()))
+        : null
+      : new Date((currentTopUntil || now).getTime() + planDays * msPerDay);
 
     await User.chargeWallet(userId, price, {
       description: isVip
@@ -1717,7 +1802,7 @@ class ListingModel {
         listings.*,${OWNER_JOIN_SELECT}
       FROM listings${OWNER_JOIN}
       WHERE ${conditions.join(" AND ")}
-      ORDER BY ${PROMOTION_ORDER}, COALESCE(listings.bumped_at, listings.created_at) DESC, listings.created_at DESC
+      ORDER BY COALESCE(listings.bumped_at, listings.created_at) DESC, listings.created_at DESC
       LIMIT $${values.length}
       `,
       values

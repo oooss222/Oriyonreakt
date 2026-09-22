@@ -68,8 +68,7 @@ export function PromotionBadgeGroup({
 
   return (
     <div className={`flex flex-wrap items-center gap-1.5 ${className}`}>
-      {vip && <PromotionBadge type="vip" size={size} />}
-      {top && <PromotionBadge type="top" size={size} />}
+      <PromotionBadge type={vip ? "vip" : "top"} size={size} />
     </div>
   );
 }

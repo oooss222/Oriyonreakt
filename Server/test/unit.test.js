@@ -162,9 +162,18 @@ test("listing photo limits are shared with the client", () => {
 
 test("promotion plans are shared with the client", () => {
   assert.deepEqual(VIP_PLANS, sharedPlans.VIP_PLANS);
-  assert.equal(getPromotionPlan("vip", 7)?.price, 15);
-  assert.equal(getPromotionPlan("top", 30)?.price, 40);
-  assert.equal(getPromotionPlan("vip", 99), null);
+  assert.equal(getPromotionPlan("vip", 7, "phones")?.price, 10);
+  assert.equal(getPromotionPlan("vip", 7, "realestate")?.price, 17);
+  assert.equal(getPromotionPlan("top", 30, "transport")?.price, 30);
+  assert.equal(getPromotionPlan("vip", 99, "phones"), null);
+
+  const phoneVip = getPromotionPlan("vip", 7, "phones");
+  const phoneVipDay = getPromotionPlan("vip", 1, "phones");
+  assert.ok(phoneVip.price / phoneVip.days < phoneVipDay.price);
+
+  const phoneTop = getPromotionPlan("top", 30, "phones");
+  const phoneTopDay = getPromotionPlan("top", 1, "phones");
+  assert.ok(phoneTop.price / phoneTop.days < phoneTopDay.price);
 });
 
 const {

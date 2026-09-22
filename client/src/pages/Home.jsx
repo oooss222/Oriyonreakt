@@ -10,7 +10,7 @@ import { getUserFacingErrorMessage } from "../lib/apiError";
 import { useI18n } from "../i18n";
 import { getDefaultCity } from "../lib/recommendationProfile";
 import { CONSENT_EVENT } from "../lib/cookieConsent";
-import { sortListingsByPromotion } from "../lib/listingSort";
+import { arrangePromotionFeed } from "../lib/listingSort";
 import { usePageMeta } from "../lib/usePageMeta";
 import { REAL_ESTATE_CAT, DEFAULT_REAL_ESTATE_BROWSE_PATH } from "../data/realEstate";
 import {
@@ -176,9 +176,7 @@ export default function Home() {
               : []
           );
           setPersonalized(Boolean(recommendations?.personalized));
-          setRealEstateListings(
-            sortListingsByPromotion(Array.isArray(realEstate) ? realEstate : [])
-          );
+          setRealEstateListings(Array.isArray(realEstate) ? realEstate : []);
         }
       } catch (e) {
         if (active) {
@@ -198,38 +196,27 @@ export default function Home() {
     };
   }, [reloadKey, t]);
 
-  const feedPool = React.useMemo(() => {
-    const merged = [...forYou, ...listings];
-    const seen = new Set();
+  const hotListings = (forYou.length ? forYou : listings).slice(0, 10);
 
-    return merged.filter((item) => {
-      const id = item?.id || item?._id;
-      if (!id || seen.has(id)) return false;
-      seen.add(id);
-      return true;
-    });
-  }, [forYou, listings]);
+  const electronicsListings = arrangePromotionFeed(
+    listings.filter((item) => item.cat === "electronics")
+  ).slice(0, 10);
 
-  const sortedListings = React.useMemo(
-    () => sortListingsByPromotion(feedPool),
-    [feedPool]
-  );
+  const phonesListings = arrangePromotionFeed(
+    listings.filter((item) => item.cat === "phones")
+  ).slice(0, 10);
 
-  const hotListings = (forYou.length ? forYou : sortedListings).slice(0, 10);
+  const computersListings = arrangePromotionFeed(
+    listings.filter((item) => item.cat === "computers")
+  ).slice(0, 10);
 
-  const electronicsListings = sortedListings
-    .filter((item) => item.cat === "electronics")
+  const newestListings = [...listings]
+    .sort(
+      (a, b) =>
+        new Date(b?.bumpedAt || b?.createdAt || 0).getTime() -
+        new Date(a?.bumpedAt || a?.createdAt || 0).getTime()
+    )
     .slice(0, 10);
-
-  const phonesListings = sortedListings
-    .filter((item) => item.cat === "phones")
-    .slice(0, 10);
-
-  const computersListings = sortedListings
-    .filter((item) => item.cat === "computers")
-    .slice(0, 10);
-
-  const newestListings = sortedListings.slice(0, 10);
 
   return (
     <div className="page-shell">

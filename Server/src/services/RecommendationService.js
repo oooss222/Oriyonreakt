@@ -128,7 +128,7 @@ async function getHomeFeed({
     .map((item) => ({
       item,
       score: profile.isColdStart
-        ? Number(item.views || 0) + (item.vip ? 50 : item.top ? 25 : 0)
+        ? Number(item.views || 0)
         : scoreListing(item, profile),
     }))
     .sort((a, b) => b.score - a.score);

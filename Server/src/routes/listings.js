@@ -515,6 +515,12 @@ router.post("/:id/promote", auth, async (req, res) => {
       });
     }
 
+    if (e?.message === "VIP_COVERS_TOP") {
+      return res.status(400).json({
+        error: "VIP already places this listing above TOP",
+      });
+    }
+
     if (e?.message === "INSUFFICIENT_BALANCE") {
       return res.status(402).json({
         error: "Insufficient balance",

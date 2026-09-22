@@ -38,6 +38,15 @@ export function sortListingsByPromotion(items = []) {
   return [...items].sort(compareListingsByPromotion);
 }
 
+function compareNullableNumber(a, b, direction) {
+  const aOk = Number.isFinite(a);
+  const bOk = Number.isFinite(b);
+  if (!aOk && !bOk) return 0;
+  if (!aOk) return 1;
+  if (!bOk) return -1;
+  return direction === "asc" ? a - b : b - a;
+}
+
 export function sortListingsByMode(items = [], sort = "new") {
   if (sort === "old") {
     return [...items].sort(
@@ -47,83 +56,57 @@ export function sortListingsByMode(items = [], sort = "new") {
     );
   }
 
-  if (sort === "price_asc") {
-    return [...items].sort((a, b) => {
-      const promo = compareListingsByPromotion(a, b);
-
-      if (promo !== 0) {
-        return promo;
-      }
-
-      const priceA = parseListingPrice(a);
-      const priceB = parseListingPrice(b);
-
-      if (priceA == null && priceB == null) return 0;
-      if (priceA == null) return 1;
-      if (priceB == null) return -1;
-
-      return priceA - priceB;
-    });
-  }
-
-  if (sort === "price_desc") {
-    return [...items].sort((a, b) => {
-      const promo = compareListingsByPromotion(a, b);
-
-      if (promo !== 0) {
-        return promo;
-      }
-
-      const priceA = parseListingPrice(a);
-      const priceB = parseListingPrice(b);
-
-      if (priceA == null && priceB == null) return 0;
-      if (priceA == null) return 1;
-      if (priceB == null) return -1;
-
-      return priceB - priceA;
-    });
+  if (sort === "price_asc" || sort === "price_desc") {
+    const direction = sort === "price_asc" ? "asc" : "desc";
+    return [...items].sort((a, b) =>
+      compareNullableNumber(parseListingPrice(a), parseListingPrice(b), direction)
+    );
   }
 
   if (sort === "views_desc") {
-    return [...items].sort((a, b) => {
-      const promo = compareListingsByPromotion(a, b);
-
-      if (promo !== 0) {
-        return promo;
-      }
-
-      return Number(b?.views || 0) - Number(a?.views || 0);
-    });
+    return [...items].sort(
+      (a, b) => Number(b?.views || 0) - Number(a?.views || 0)
+    );
   }
 
-  if (sort === "price_per_sqm_asc") {
-    return [...items].sort((a, b) => {
-      const promo = compareListingsByPromotion(a, b);
-      if (promo !== 0) return promo;
-
-      const priceA = Number(a?.rePricePerSqm);
-      const priceB = Number(b?.rePricePerSqm);
-      if (!Number.isFinite(priceA) && !Number.isFinite(priceB)) return 0;
-      if (!Number.isFinite(priceA)) return 1;
-      if (!Number.isFinite(priceB)) return -1;
-      return priceA - priceB;
-    });
+  if (sort === "price_per_sqm_asc" || sort === "price_per_sqm_desc") {
+    const direction = sort === "price_per_sqm_asc" ? "asc" : "desc";
+    return [...items].sort((a, b) =>
+      compareNullableNumber(Number(a?.rePricePerSqm), Number(b?.rePricePerSqm), direction)
+    );
   }
 
-  if (sort === "price_per_sqm_desc") {
-    return [...items].sort((a, b) => {
-      const promo = compareListingsByPromotion(a, b);
-      if (promo !== 0) return promo;
+  return [...items];
+}
 
-      const priceA = Number(a?.rePricePerSqm);
-      const priceB = Number(b?.rePricePerSqm);
-      if (!Number.isFinite(priceA) && !Number.isFinite(priceB)) return 0;
-      if (!Number.isFinite(priceA)) return 1;
-      if (!Number.isFinite(priceB)) return -1;
-      return priceB - priceA;
-    });
+export function arrangePromotionFeed(items = [], { row = 4, capAt = 8 } = {}) {
+  const vip = [];
+  const top = [];
+  const regular = [];
+
+  for (const item of items) {
+    if (item?.vip) vip.push(item);
+    else if (item?.top) top.push(item);
+    else regular.push(item);
   }
 
-  return sortListingsByPromotion(items);
+  const byRecency = (a, b) =>
+    new Date(b?.bumpedAt || b?.createdAt || 0).getTime() -
+    new Date(a?.bumpedAt || a?.createdAt || 0).getTime();
+
+  vip.sort(byRecency);
+  top.sort(byRecency);
+  regular.sort(byRecency);
+
+  if (vip.length <= capAt) {
+    return [...vip, ...top, ...regular];
+  }
+
+  return [
+    ...vip.slice(0, row),
+    ...top.slice(0, row),
+    ...regular,
+    ...vip.slice(row),
+    ...top.slice(row),
+  ];
 }

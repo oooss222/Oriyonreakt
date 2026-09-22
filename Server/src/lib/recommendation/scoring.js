@@ -43,19 +43,6 @@ function scoreListing(listing, profile) {
   const freshness = freshnessScore(listing.createdAt || listing.created_at);
   const popularity = Math.min(1, Math.log1p(Number(listing.views || 0)) / 8);
 
-  const now = Date.now();
-  const vipUntil = listing.vipUntil || listing.vip_until;
-  const topUntil = listing.topUntil || listing.top_until;
-  const vip =
-    vipUntil && !Number.isNaN(Date.parse(vipUntil))
-      ? Date.parse(vipUntil) > now
-      : Boolean(listing.vip);
-  const top =
-    topUntil && !Number.isNaN(Date.parse(topUntil))
-      ? Date.parse(topUntil) > now
-      : Boolean(listing.top);
-
-  const promoBoost = vip ? 0.15 : top ? 0.08 : 0;
   const retargetBoost = profile.viewedWithoutContact.has(listingId) ? 0.25 : 0;
 
   return (
@@ -64,7 +51,6 @@ function scoreListing(listing, profile) {
     0.15 * priceFit +
     0.15 * freshness +
     0.1 * popularity +
-    promoBoost +
     retargetBoost
   );
 }

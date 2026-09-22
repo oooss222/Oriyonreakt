@@ -1,22 +1,30 @@
-const { VIP_PLANS, TOP_PLANS } = require("../../../shared/promotionPlans.json");
+const { VIP_PLANS, TOP_PLANS, PREMIUM_CATS } = require("../../../shared/promotionPlans.json");
 
-function getPromotionPlans(type) {
-  const normalizedType = String(type || "").trim().toLowerCase();
+const premiumCats = new Set(PREMIUM_CATS || []);
 
-  if (normalizedType === "vip") return VIP_PLANS;
-  if (normalizedType === "top") return TOP_PLANS;
-
-  return [];
+function planTier(cat) {
+  return premiumCats.has(String(cat || "")) ? "premium" : "standard";
 }
 
-function getPromotionPlan(type, days) {
+function getPromotionPlans(type, cat) {
+  const normalizedType = String(type || "").trim().toLowerCase();
+  const table = normalizedType === "vip" ? VIP_PLANS : normalizedType === "top" ? TOP_PLANS : null;
+
+  if (!table) return [];
+  if (Array.isArray(table)) return table;
+
+  return table[planTier(cat)] || table.standard || [];
+}
+
+function getPromotionPlan(type, days, cat) {
   const normalizedDays = Number(days);
-  return getPromotionPlans(type).find((plan) => plan.days === normalizedDays) || null;
+  return getPromotionPlans(type, cat).find((plan) => plan.days === normalizedDays) || null;
 }
 
 module.exports = {
   VIP_PLANS,
   TOP_PLANS,
+  PREMIUM_CATS,
   getPromotionPlans,
   getPromotionPlan,
 };
