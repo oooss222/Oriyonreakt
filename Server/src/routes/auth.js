@@ -225,6 +225,8 @@ const PHONE_ERRORS = {
   WRONG_CODE: "Неверный код",
   USER_NOT_FOUND: "Пользователь с этим номером не найден. Зарегистрируйтесь",
   NAME_REQUIRED: "Укажите, как к вам обращаться",
+  SMS_SEND_FAILED: "Не удалось отправить SMS. Попробуйте ещё раз",
+  SMS_NOT_CONFIGURED: "Отправка SMS не настроена",
 };
 
 function phoneError(res, err, fallback = "Ошибка") {

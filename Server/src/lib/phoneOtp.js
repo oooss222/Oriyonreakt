@@ -23,7 +23,74 @@ function shouldExposeDevCode() {
   return process.env.SMS_EXPOSE_CODE !== "false";
 }
 
+function otpMessage(code) {
+  return `Код Diyor: ${code}. Действует 5 минут.`;
+}
+
+function payomchiDigits(phone) {
+  return String(phone || "").replace(/\D/g, "");
+}
+
+async function sendViaPayomchi(phone, code) {
+  const apiKey = String(process.env.PAYOMCHI_API_KEY || "").trim();
+  const base = String(
+    process.env.PAYOMCHI_API_URL || "https://api.payomchi.tj"
+  ).replace(/\/$/, "");
+  const senderId = String(process.env.PAYOMCHI_SENDER_ID || "").trim();
+  const payload = {
+    phone: payomchiDigits(phone),
+    message: otpMessage(code),
+    channel: "sms",
+  };
+
+  if (senderId) {
+    payload.senderId = senderId;
+  }
+
+  let res;
+
+  try {
+    res = await fetch(`${base}/api/v1/user/sms`, {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        "X-Api-Key": apiKey,
+        "Idempotency-Key": crypto.randomUUID(),
+      },
+      body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(15000),
+    });
+  } catch (e) {
+    console.error("[payomchi] SMS request error", e?.message);
+    const err = new Error("SMS_SEND_FAILED");
+    err.status = 502;
+    throw err;
+  }
+
+  if (res.status !== 200 && res.status !== 201) {
+    let detail = "";
+
+    try {
+      const data = await res.json();
+      detail = data?.message || data?.error || data?.title || "";
+    } catch {
+      detail = "";
+    }
+
+    console.error("[payomchi] SMS failed", res.status, detail);
+    const err = new Error("SMS_SEND_FAILED");
+    err.status = 502;
+    throw err;
+  }
+}
+
 async function sendSms(phone, code) {
+  if (String(process.env.PAYOMCHI_API_KEY || "").trim()) {
+    await sendViaPayomchi(phone, code);
+    return;
+  }
+
   const webhook = process.env.SMS_WEBHOOK_URL;
 
   if (webhook) {
@@ -38,7 +105,7 @@ async function sendSms(phone, code) {
       body: JSON.stringify({
         phone,
         code,
-        message: `Код Diyor: ${code}. Действует 5 минут.`,
+        message: otpMessage(code),
       }),
     });
 
@@ -47,6 +114,12 @@ async function sendSms(phone, code) {
     }
 
     return;
+  }
+
+  if (process.env.NODE_ENV === "production") {
+    const err = new Error("SMS_NOT_CONFIGURED");
+    err.status = 500;
+    throw err;
   }
 
   console.log(`[phone-otp] ${phone} → ${code}`);
@@ -117,7 +190,12 @@ async function requestOtp(rawPhone) {
     [phone, codeHash, sendCount, expiresAt]
   );
 
-  await sendSms(phone, code);
+  try {
+    await sendSms(phone, code);
+  } catch (err) {
+    await query(`DELETE FROM phone_otps WHERE phone = $1`, [phone]);
+    throw err;
+  }
 
   const result = {
     ok: true,

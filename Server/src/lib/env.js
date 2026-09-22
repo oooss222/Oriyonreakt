@@ -25,6 +25,16 @@ function validateEnv() {
     warnings.push("SMS_EXPOSE_CODE is enabled in production (ignored)");
   }
 
+  if (
+    isProd &&
+    !String(process.env.PAYOMCHI_API_KEY || "").trim() &&
+    !process.env.SMS_WEBHOOK_URL
+  ) {
+    warnings.push(
+      "Phone OTP SMS is not configured (set PAYOMCHI_API_KEY)"
+    );
+  }
+
   if (isProd && !process.env.CLIENT_URL && !process.env.APP_URL) {
     warnings.push("CLIENT_URL or APP_URL is not set");
   }

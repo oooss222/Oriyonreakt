@@ -24,3 +24,9 @@ services:
         sync: false
       - key: DATABASE_URL
         sync: false
+      - key: PAYOMCHI_API_URL
+        value: https://api.payomchi.tj
+      - key: PAYOMCHI_SENDER_ID
+        value: Xirs
+      - key: PAYOMCHI_API_KEY
+        sync: false
