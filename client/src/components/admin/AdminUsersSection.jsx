@@ -38,6 +38,7 @@ export default function AdminUsersSection({
   token,
   currentUser,
   initialBusinessFilter = "all",
+  initialQuery = "",
 }) {
   const { t } = useI18n();
   const [users, setUsers] = React.useState([]);
@@ -47,7 +48,7 @@ export default function AdminUsersSection({
   const [refreshing, setRefreshing] = React.useState(false);
   const [error, setError] = React.useState("");
 
-  const [query, setQuery] = React.useState("");
+  const [query, setQuery] = React.useState(initialQuery);
   const [roleFilter, setRoleFilter] = React.useState("all");
   const [statusFilter, setStatusFilter] = React.useState("all");
   const [businessFilter, setBusinessFilter] = React.useState(

@@ -17,7 +17,7 @@ import {
 import { roleLabel } from "../../lib/adminUtils";
 import { useI18n } from "../../i18n";
 
-function StatCard({ label, value, hint, tone = "slate" }) {
+function StatCard({ label, value, hint, tone = "slate", onClick }) {
   const tones = {
     slate: "",
     emerald: "border-emerald-200/80 bg-emerald-50/90",
@@ -27,13 +27,21 @@ function StatCard({ label, value, hint, tone = "slate" }) {
     sun: "border-sun-200/80 bg-sun-50/90",
     blue: "border-lagoon-200/80 bg-lagoon-50/90",
   };
-
-  return (
-    <div className={`admin-stat ${tones[tone] || ""}`}>
+  const className = `admin-stat text-left ${tones[tone] || ""} ${onClick ? "cursor-pointer hover:border-sun/40" : ""}`;
+  const body = (
+    <>
       <div className="admin-stat__label">{label}</div>
       <div className="admin-stat__value">{value}</div>
       {hint && <div className="text-xs text-ink-500">{hint}</div>}
-    </div>
+    </>
+  );
+
+  if (!onClick) return <div className={className}>{body}</div>;
+
+  return (
+    <button type="button" className={className} onClick={onClick}>
+      {body}
+    </button>
   );
 }
 
@@ -69,6 +77,7 @@ function PriorityCard({ icon: Icon, title, count, hint, tone, onClick }) {
 
 export default function AdminDashboard({
   stats,
+  adStats = null,
   loading,
   error,
   role = "admin",
@@ -184,6 +193,54 @@ export default function AdminDashboard({
             )}
           </div>
         </div>
+      </div>
+
+      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
+        <StatCard
+          label={t("admin.dashboard.usersTotal")}
+          value={users.total}
+          hint={t("admin.dashboard.kpiNewUsers", { count: users.newWeek })}
+          onClick={() => onGoToSection?.("users")}
+        />
+        <StatCard
+          label={t("admin.dashboard.listingsTotal")}
+          value={listings.total}
+          onClick={() => onGoToSection?.("listings")}
+        />
+        <StatCard
+          label={t("admin.dashboard.listingsApproved")}
+          value={listings.approved}
+          tone="emerald"
+          onClick={() => onGoToSection?.("listings")}
+        />
+        <StatCard
+          label={t("admin.dashboard.listingsPending")}
+          value={listings.pending}
+          tone="amber"
+          onClick={() => onGoToSection?.("moderation")}
+        />
+        <StatCard
+          label={t("admin.dashboard.walletsHeading")}
+          value={`${Number(wallet.totalBalance || 0).toLocaleString("ru-RU")} TJS`}
+          tone="sun"
+          onClick={
+            role === "super_admin"
+              ? () => onGoToSection?.("finance")
+              : undefined
+          }
+        />
+        <StatCard
+          label={t("admin.dashboard.adsActive")}
+          value={adStats ? adStats.active : "—"}
+          hint={
+            adStats && Number(adStats.impressions) > 0
+              ? t("admin.dashboard.adsCtr", {
+                  ctr: ((Number(adStats.clicks || 0) / Number(adStats.impressions)) * 100).toFixed(1),
+                })
+              : t("admin.dashboard.adsNoCompare")
+          }
+          onClick={() => onGoToSection?.("ads")}
+        />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">

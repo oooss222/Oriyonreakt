@@ -7,14 +7,16 @@ import {
   ClipboardCheck,
   Flag,
   Wallet,
-  Shield,
-  ArrowLeft,
   ScrollText,
   BarChart3,
   Settings,
   Download,
   Megaphone,
-  MessageCircle,
+  Menu,
+  Search,
+  LogOut,
+  Bell,
+  Shield,
 } from "lucide-react";
 import { useI18n } from "../i18n";
 import { api } from "../lib/api";
@@ -39,20 +41,27 @@ import AdminFinancePanel from "../components/admin/AdminFinancePanel";
 import ModerationListingsPanel from "../components/admin/ModerationListingsPanel";
 import ModerationReports from "../components/ModerationReports";
 import AdminAdsSection from "../components/admin/AdminAdsSection";
+import AdminCommandPalette from "../components/admin/AdminCommandPalette";
+import AdminRolesSection from "../components/admin/AdminRolesSection";
+import AdminSystemSection from "../components/admin/AdminSystemSection";
 
 const SECTIONS = [
-  { id: "dashboard", icon: LayoutDashboard },
-  { id: "analytics", icon: BarChart3 },
-  { id: "users", icon: Users },
-  { id: "listings", icon: FileText },
-  { id: "ads", icon: Megaphone },
-  { id: "moderation", icon: ClipboardCheck },
-  { id: "reports", icon: Flag },
-  { id: "finance", icon: Wallet },
-  { id: "settings", icon: Settings },
-  { id: "export", icon: Download },
-  { id: "audit", icon: ScrollText },
+  { id: "dashboard", icon: LayoutDashboard, group: "overview" },
+  { id: "analytics", icon: BarChart3, group: "overview" },
+  { id: "listings", icon: FileText, group: "market" },
+  { id: "moderation", icon: ClipboardCheck, group: "market" },
+  { id: "reports", icon: Flag, group: "market" },
+  { id: "users", icon: Users, group: "people" },
+  { id: "roles", icon: Shield, group: "people" },
+  { id: "ads", icon: Megaphone, group: "money" },
+  { id: "finance", icon: Wallet, group: "money" },
+  { id: "export", icon: Download, group: "money" },
+  { id: "audit", icon: ScrollText, group: "system" },
+  { id: "settings", icon: Settings, group: "system" },
+  { id: "system", icon: Shield, group: "system" },
 ];
+
+const GROUPS = ["overview", "market", "people", "money", "system"];
 
 const SECTION_LABEL_KEYS = {
   dashboard: "admin.sections.dashboard",
@@ -66,6 +75,8 @@ const SECTION_LABEL_KEYS = {
   settings: "admin.sections.settings",
   export: "admin.sections.export",
   audit: "admin.sections.audit",
+  roles: "admin.sections.roles",
+  system: "admin.sections.system",
 };
 
 function getSectionBadge(sectionId, stats) {
@@ -101,8 +112,12 @@ export default function Admin() {
   });
 
   const [stats, setStats] = React.useState(null);
+  const [adStats, setAdStats] = React.useState(null);
   const [statsLoading, setStatsLoading] = React.useState(false);
   const [statsError, setStatsError] = React.useState("");
+  const [navOpen, setNavOpen] = React.useState(false);
+  const [paletteOpen, setPaletteOpen] = React.useState(false);
+  const [queueOpen, setQueueOpen] = React.useState(false);
 
   const role = me?.role || "user";
   const isAdmin = canAccessAdmin(role);
@@ -154,8 +169,15 @@ export default function Admin() {
 
     api
       .adminStats(token)
-      .then((data) => {
-        if (alive) setStats(data);
+      .then(async (data) => {
+        if (!alive) return;
+        setStats(data);
+        try {
+          const ads = await api.adminAdStats(token);
+          if (alive) setAdStats(ads);
+        } catch {
+          if (alive) setAdStats(null);
+        }
       })
       .catch((e) => {
         if (alive)
@@ -169,6 +191,18 @@ export default function Admin() {
       alive = false;
     };
   }, [token, isAdmin]);
+
+  React.useEffect(() => {
+    const onKey = (event) => {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        setPaletteOpen((open) => !open);
+      }
+    };
+
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   React.useEffect(() => {
     if (!token) return;
@@ -189,67 +223,44 @@ export default function Admin() {
   const setSection = (id, extra = {}) => {
     const next = { section: id };
 
-    if (extra.business) {
-      next.business = extra.business;
-    } else if (id !== "users") {
-      // keep business filter only on users section navigation intent
-    }
+    if (extra.business) next.business = extra.business;
+    if (extra.q) next.q = extra.q;
 
     setSearchParams(next);
+    setNavOpen(false);
+    setPaletteOpen(false);
+    setQueueOpen(false);
   };
 
   const goToSection = (id, extra = {}) => {
     setSection(id, extra);
   };
 
-  return (
-    <div className="page-container admin-shell py-6 md:py-8">
-      <div className="mb-5 flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
-        <div>
-          <Link
-            to="/profile"
-            className="inline-flex items-center gap-1 text-sm text-ink-500 hover:text-ink-800 mb-2"
-          >
-            <ArrowLeft size={16} />
-            {t("admin.page.backToProfile")}
-          </Link>
-          <div className="flex flex-wrap items-center gap-2">
-            <h1 className="font-display text-2xl md:text-3xl font-bold text-ink flex items-center gap-2">
-              <Shield className="text-sun" />
-              {t("admin.page.title")}
-            </h1>
-            <span
-              className={`px-2.5 py-1 rounded-full text-xs font-semibold border ${roleBadgeClass(role)}`}
-            >
-              {roleLabel(role)}
-            </span>
-          </div>
-          <p className="text-sm text-ink-500 mt-1 max-w-2xl">
-            {isSuperAdmin
-              ? t("admin.page.subtitleSuperAdmin")
-              : isAdmin
-                ? t("admin.page.subtitleAdmin")
-                : isAccountant
-                  ? t("admin.page.subtitleAccountant")
-                  : t("admin.page.subtitleModerator")}
-          </p>
-        </div>
+  const logout = () => {
+    if (!window.confirm(t("listing.confirmLogout"))) return;
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
+    navigate("/auth");
+  };
 
-        <div className="flex flex-wrap gap-2">
-          <Link
-            to="/messages"
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border bg-white hover:bg-mist-50 text-sm font-semibold"
-          >
-            <MessageCircle size={16} />
-            {t("nav.messages")}
-          </Link>
-        </div>
-      </div>
+  const searchQuery = searchParams.get("q") || "";
+  const displayName = me?.name || me?.phone || me?.email || t("admin.shell.account");
+  const initial = displayName.trim().charAt(0).toUpperCase() || "A";
+  const queue = [
+    { id: "moderation", count: Number(stats?.listings?.pending || 0) },
+    { id: "reports", count: Number(stats?.reports?.pending || 0) },
+  ].filter((item) => item.count > 0 && canAccessAdminSection(role, item.id));
 
-      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,14rem)_minmax(0,1fr)] gap-5">
-        <aside className="admin-panel p-3 h-fit lg:sticky lg:top-24">
-          <nav className="flex lg:flex-col gap-1 overflow-x-auto pb-1 lg:pb-0">
-            {visibleSections.map((item) => {
+  const nav = (
+    <nav className="admin-nav" aria-label={t("admin.page.title")}>
+      {GROUPS.map((group) => {
+        const items = visibleSections.filter((item) => item.group === group);
+        if (!items.length) return null;
+
+        return (
+          <div key={group} className="admin-nav__group">
+            <p>{t(`admin.nav.${group}`)}</p>
+            {items.map((item) => {
               const Icon = item.icon;
               const active = section === item.id;
               const badge = getSectionBadge(item.id, stats);
@@ -258,45 +269,116 @@ export default function Admin() {
                 <button
                   key={item.id}
                   type="button"
+                  aria-current={active ? "page" : undefined}
                   onClick={() => setSection(item.id)}
-                  className={`inline-flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl text-sm font-medium whitespace-nowrap transition w-full ${
-                    active
-                      ? "bg-ink text-white"
-                      : "hover:bg-mist-50 text-ink-700"
-                  }`}
+                  className={active ? "is-active" : ""}
                 >
-                  <span className="inline-flex items-center gap-2 min-w-0">
-                    <Icon size={16} className="shrink-0" />
+                  <span>
+                    <Icon size={16} aria-hidden="true" />
                     {t(SECTION_LABEL_KEYS[item.id])}
                   </span>
-                  {badge > 0 && (
-                    <span
-                      className={`min-w-[20px] h-5 px-1.5 rounded-full text-xs font-bold flex items-center justify-center ${
-                        active
-                          ? "bg-sun text-white"
-                          : "bg-red-100 text-red-700"
-                      }`}
-                    >
-                      {badge > 99 ? "99+" : badge}
-                    </span>
-                  )}
+                  {badge > 0 && <em>{badge > 99 ? "99+" : badge}</em>}
                 </button>
               );
             })}
-          </nav>
-        </aside>
+          </div>
+        );
+      })}
+    </nav>
+  );
 
-        <main>
+  return (
+    <div className="admin-app">
+      {navOpen && (
+        <button
+          type="button"
+          className="admin-drawer-backdrop lg:hidden"
+          aria-label={t("admin.shell.closeMenu")}
+          onClick={() => setNavOpen(false)}
+        />
+      )}
+      <aside className={`admin-sidebar ${navOpen ? "is-open" : ""}`}>
+        <div className="admin-brand">
+          <strong>Diyor</strong>
+          <span>{t("admin.page.title")}</span>
+        </div>
+        {nav}
+        <div className="admin-account">
+          <span className="admin-avatar" aria-hidden="true">{initial}</span>
+          <div className="min-w-0">
+            <strong>{displayName}</strong>
+            <span className={roleBadgeClass(role)}>{roleLabel(role)}</span>
+          </div>
+          <Link to="/profile" className="admin-icon-button" aria-label={t("nav.profile")}>
+            <Users size={16} />
+          </Link>
+          <button type="button" className="admin-icon-button" onClick={logout} aria-label={t("profile.logout")}>
+            <LogOut size={16} />
+          </button>
+        </div>
+      </aside>
+
+      <div className="admin-workspace">
+        <header className="admin-header">
+          <button
+            type="button"
+            className="admin-icon-button lg:hidden"
+            aria-label={t("admin.shell.openMenu")}
+            onClick={() => setNavOpen(true)}
+          >
+            <Menu size={18} />
+          </button>
+          <div className="min-w-0">
+            <p className="admin-crumbs">{t("admin.page.title")}</p>
+            <h1>{t(SECTION_LABEL_KEYS[section] || "admin.page.title")}</h1>
+          </div>
+          <div className="admin-header__tools">
+            <button type="button" className="admin-search" onClick={() => setPaletteOpen(true)}>
+              <Search size={15} aria-hidden="true" />
+              <span>{t("admin.shell.searchLabel")}</span>
+              <kbd>Ctrl K</kbd>
+            </button>
+            {isAdmin && (
+              <div className="relative">
+                <button
+                  type="button"
+                  className="admin-icon-button"
+                  aria-label={t("admin.shell.queue")}
+                  aria-expanded={queueOpen}
+                  onClick={() => setQueueOpen((open) => !open)}
+                >
+                  <Bell size={16} />
+                  {queue.length > 0 && <i />}
+                </button>
+                {queueOpen && (
+                  <div className="admin-queue" role="menu">
+                    {queue.length === 0 ? (
+                      <p>{t("admin.dashboard.queueEmpty")}</p>
+                    ) : (
+                      queue.map((item) => (
+                        <button key={item.id} type="button" onClick={() => setSection(item.id)}>
+                          {t(SECTION_LABEL_KEYS[item.id])}
+                          <strong>{item.count}</strong>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </header>
+
+        <main className="admin-main">
           {section === "dashboard" && isAdmin && (
-            <div className="admin-panel p-4 md:p-5">
-              <AdminDashboard
-                stats={stats}
-                loading={statsLoading}
-                error={statsError}
-                role={role}
-                onGoToSection={goToSection}
-              />
-            </div>
+            <AdminDashboard
+              stats={stats}
+              adStats={adStats}
+              loading={statsLoading}
+              error={statsError}
+              role={role}
+              onGoToSection={goToSection}
+            />
           )}
 
           {section === "analytics" && isAdmin && (
@@ -305,14 +387,16 @@ export default function Admin() {
 
           {section === "users" && isAdmin && (
             <AdminUsersSection
+              key={`users-${businessFilter}-${searchQuery}`}
               token={token}
               currentUser={me}
               initialBusinessFilter={businessFilter}
+              initialQuery={searchQuery}
             />
           )}
 
           {section === "listings" && isAdmin && (
-            <AdminListingsSection token={token} />
+            <AdminListingsSection key={`listings-${searchQuery}`} token={token} initialQuery={searchQuery} />
           )}
 
           {section === "ads" && isAdmin && (
@@ -333,6 +417,8 @@ export default function Admin() {
             />
           )}
 
+          {section === "roles" && isAdmin && <AdminRolesSection stats={stats} />}
+
           {section === "audit" && isAdmin && (
             <AdminAuditSection token={token} />
           )}
@@ -340,6 +426,8 @@ export default function Admin() {
           {section === "settings" && isSuperAdmin && (
             <AdminSettingsSection token={token} />
           )}
+
+          {section === "system" && isAdmin && <AdminSystemSection />}
 
           {section === "export" && canAccessAdminSection(role, "export") && (
             <AdminExportSection token={token} role={role} />
@@ -350,6 +438,19 @@ export default function Admin() {
           )}
         </main>
       </div>
+
+      <AdminCommandPalette
+        open={paletteOpen}
+        onClose={() => setPaletteOpen(false)}
+        sections={visibleSections.map((item) => ({
+          id: item.id,
+          labelKey: SECTION_LABEL_KEYS[item.id],
+        }))}
+        token={token}
+        role={role}
+        t={t}
+        onOpen={setSection}
+      />
     </div>
   );
 }

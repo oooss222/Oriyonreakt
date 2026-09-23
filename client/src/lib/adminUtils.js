@@ -155,7 +155,23 @@ export const sectionRoles = {
   export: ["admin", "super_admin", "accountant"],
   settings: ["super_admin"],
   audit: ["admin", "super_admin"],
+  roles: ["admin", "super_admin"],
+  system: ["admin", "super_admin"],
 };
+
+export const ACTION_CAPABILITIES = [
+  { id: "users.view", roles: ["admin", "super_admin", "accountant"] },
+  { id: "users.block", roles: ["admin", "super_admin"] },
+  { id: "users.role", roles: ["super_admin"] },
+  { id: "listings.moderate", roles: ["moderator", "admin", "super_admin"] },
+  { id: "listings.delete", roles: ["admin", "super_admin"] },
+  { id: "reports.review", roles: ["moderator", "admin", "super_admin"] },
+  { id: "ads.manage", roles: ["admin", "super_admin"] },
+  { id: "wallet.view", roles: ["super_admin", "accountant"] },
+  { id: "wallet.adjust", roles: ["super_admin", "accountant"] },
+  { id: "settings.edit", roles: ["super_admin"] },
+  { id: "audit.view", roles: ["admin", "super_admin"] },
+];
 
 export const defaultAdminSection = (role) => {
   if (role === "accountant") return "finance";

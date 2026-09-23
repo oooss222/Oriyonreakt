@@ -183,6 +183,17 @@ const router = createBrowserRouter([
       {
         path: "admin",
         element: <Admin />,
+        handle: {
+          layout: {
+            showFooter: false,
+            showMobileNav: false,
+            showCompareBar: false,
+            showCookieConsent: false,
+            headerVariant: "hidden",
+            animateMain: false,
+            mobileBottomPadding: false,
+          },
+        },
       },
 
       {

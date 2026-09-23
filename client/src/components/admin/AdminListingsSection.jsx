@@ -7,6 +7,7 @@ import { getId } from "../../lib/adminUtils";
 import { getListingThumb } from "../../lib/media";
 import { formatPrice } from "../../lib/format";
 import { HOME_CATEGORIES } from "../../data/categories";
+import StatusBadge from "./StatusBadge";
 
 const PAGE_SIZE = 25;
 
@@ -140,13 +141,13 @@ const STATUS_LABEL_KEYS = {
   archived: "admin.listings.statusArchivedShort",
 };
 
-export default function AdminListingsSection({ token }) {
+export default function AdminListingsSection({ token, initialQuery = "" }) {
   const { t } = useI18n();
   const [items, setItems] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [refreshing, setRefreshing] = React.useState(false);
   const [error, setError] = React.useState("");
-  const [query, setQuery] = React.useState("");
+  const [query, setQuery] = React.useState(initialQuery);
   const [statusFilter, setStatusFilter] = React.useState("all");
   const [catFilter, setCatFilter] = React.useState("all");
   const [page, setPage] = React.useState(1);
@@ -331,9 +332,9 @@ export default function AdminListingsSection({ token }) {
 
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2 mb-1">
-                    <span className="inline-flex px-2 py-0.5 text-xs rounded-full border bg-mist-50">
+                    <StatusBadge status={ad.status}>
                       {(STATUS_LABEL_KEYS[ad.status] && t(STATUS_LABEL_KEYS[ad.status])) || ad.status}
-                    </span>
+                    </StatusBadge>
                     <span className="text-xs text-ink-500">
                       {ad.cat}
                       {ad.subcategory ? ` · ${ad.subcategory}` : ""}

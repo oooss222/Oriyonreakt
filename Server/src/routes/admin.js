@@ -669,7 +669,8 @@ router.get("/stats", requireRole("admin", "super_admin"), async (req, res) => {
             COUNT(*) FILTER (WHERE created_at >= now() - interval '7 days')::int AS new_week,
             COUNT(*) FILTER (WHERE role = 'super_admin')::int AS super_admins,
             COUNT(*) FILTER (WHERE role = 'moderator')::int AS moderators,
-            COUNT(*) FILTER (WHERE role = 'admin')::int AS admins
+            COUNT(*) FILTER (WHERE role = 'admin')::int AS admins,
+            COUNT(*) FILTER (WHERE role = 'accountant')::int AS accountants
           FROM users
         `),
         query(`
@@ -718,6 +719,7 @@ router.get("/stats", requireRole("admin", "super_admin"), async (req, res) => {
         superAdmins: Number(users.super_admins || 0),
         moderators: Number(users.moderators || 0),
         admins: Number(users.admins || 0),
+        accountants: Number(users.accountants || 0),
       },
       listings: {
         total: listingsTotal,

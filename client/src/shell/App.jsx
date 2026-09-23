@@ -104,7 +104,9 @@ export default function App() {
     <div className="page-shell min-h-screen min-w-0 max-w-full flex flex-col">
       {/* Returns to the previous scroll position on Back instead of jumping. */}
       <ScrollRestoration />
-      <Header variant={layout.headerVariant} />
+      {layout.headerVariant !== "hidden" && (
+        <Header variant={layout.headerVariant} />
+      )}
 
       <main
         className={`flex-1 min-w-0 ${layout.animateMain ? "animate-fade-in" : ""} ${
